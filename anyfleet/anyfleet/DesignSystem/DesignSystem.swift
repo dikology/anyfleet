@@ -7,14 +7,22 @@ enum DesignSystem {
         static let success = Color(red: 0.133, green: 0.773, blue: 0.369) // #22C55E
         static let warning = Color(red: 0.902, green: 0.506, blue: 0.380) // #E68161
         static let error = Color(red: 1.0, green: 0.329, blue: 0.349) // #FF5459
-        static let background = Color(red: 1.0, green: 0.988, blue: 0.976) // #FFFCF9
-        static let surface = Color(red: 1.0, green: 1.0, blue: 0.961) // #FFFFF5
-        static let textPrimary = Color(red: 0.074, green: 0.259, blue: 0.321) // #134252
-        static let textSecondary = Color(red: 0.384, green: 0.459, blue: 0.427) // #62756D
-        static let border = Color.black.opacity(0.06)
+        static let gold = Color(red: 0.98, green: 0.82, blue: 0.45) // accent for highlights
+        static let oceanDeep = Color(red: 0.02, green: 0.28, blue: 0.36)
+        
+        // Dynamic surfaces for light/dark
+        static let background = Color(.systemGroupedBackground)
+        static let surface = Color(.secondarySystemGroupedBackground)
+        static let surfaceAlt = Color(.tertiarySystemGroupedBackground)
+        
+        // Text
+        static let textPrimary = Color(.label)
+        static let textSecondary = Color(.secondaryLabel)
+        
+        static let border = Color(.separator).opacity(0.4)
         static let onPrimary = Color.white
-        static let onPrimaryMuted = Color.white.opacity(0.8)
-        static let shadowStrong = Color.black.opacity(0.16)
+        static let onPrimaryMuted = Color.white.opacity(0.9)
+        static let shadowStrong = Color.black.opacity(0.18)
     }
     
     enum Spacing {
@@ -65,6 +73,44 @@ enum DesignSystem {
                         .stroke(Colors.border, lineWidth: 1)
                 )
                 .shadow(color: Color.black.opacity(0.04), radius: 4, x: 0, y: 2)
+        }
+    }
+    
+    struct SectionHeader: View {
+        let title: String
+        let subtitle: String?
+        
+        init(_ title: String, subtitle: String? = nil) {
+            self.title = title
+            self.subtitle = subtitle
+        }
+        
+        var body: some View {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
+                Text(title)
+                    .font(Typography.headline)
+                    .foregroundColor(Colors.textPrimary)
+                if let subtitle {
+                    Text(subtitle)
+                        .font(Typography.caption)
+                        .foregroundColor(Colors.textSecondary)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+    
+    struct Pill: View {
+        let text: String
+        
+        var body: some View {
+            Text(text)
+                .font(Typography.caption)
+                .padding(.vertical, 6)
+                .padding(.horizontal, 10)
+                .background(Colors.border.opacity(0.5))
+                .foregroundColor(Colors.textPrimary)
+                .cornerRadius(20)
         }
     }
     
@@ -128,7 +174,7 @@ enum DesignSystem {
                 .textFieldStyle(.plain)
                 .padding(.horizontal, Spacing.md)
                 .padding(.vertical, Spacing.sm)
-                .background(Color(.systemGray6))
+                .background(Colors.surfaceAlt)
                 .cornerRadius(10)
         }
     }
@@ -144,6 +190,42 @@ enum DesignSystem {
                     RoundedRectangle(cornerRadius: 12)
                         .stroke(Colors.border, lineWidth: 1)
                 )
+        }
+    }
+
+    enum SelectableCardStyle {
+        static let cornerRadius: CGFloat = 14
+        static let borderWidth: CGFloat = 1
+        static let selectedBorderWidth: CGFloat = 2
+        static let shadowRadius: CGFloat = 4
+        static let shadowRadiusSelected: CGFloat = 10
+        static let shadowYOffset: CGFloat = 2
+        static let shadowYOffsetSelected: CGFloat = 6
+        static let shadowColor: Color = .black
+        static let selectedBorderColor: Color = Colors.primary
+    }
+    
+    enum Layout {
+        struct VStackSpaced<Content: View>: View {
+            let spacing: CGFloat
+            let alignment: HorizontalAlignment
+            @ViewBuilder let content: Content
+            
+            init(
+                alignment: HorizontalAlignment = .leading,
+                spacing: CGFloat = DesignSystem.Spacing.md,
+                @ViewBuilder content: () -> Content
+            ) {
+                self.alignment = alignment
+                self.spacing = spacing
+                self.content = content()
+            }
+            
+            var body: some View {
+                VStack(alignment: alignment, spacing: spacing) {
+                    content
+                }
+            }
         }
     }
 }

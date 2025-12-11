@@ -1,12 +1,12 @@
 import SwiftUI
 
 struct AppView: View {
-    @StateObject private var appModel = AppModel()
+    @StateObject private var coordinator = AppCoordinator()
 
     var body: some View {
-        NavigationStack(path: $appModel.path) {
+        NavigationStack(path: $coordinator.path) {
             HomeView(
-                viewModel: HomeViewModel(appModel: appModel)
+                viewModel: HomeViewModel(coordinator: coordinator)
             )
             .navigationDestination(for: AppRoute.self) { route in
                 switch route {

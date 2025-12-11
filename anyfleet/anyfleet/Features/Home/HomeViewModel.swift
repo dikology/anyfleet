@@ -10,14 +10,14 @@ import Combine
 
 @MainActor
 final class HomeViewModel: ObservableObject {
-    private let appModel: AppModel
+    private let coordinator: AppCoordinator
 
-    init(appModel: AppModel) {
-        self.appModel = appModel
+    init(coordinator: AppCoordinator) {
+        self.coordinator = coordinator
     }
     
     func onCreateCharterTapped() {
-        appModel.navigate(to: .createCharter)
+        coordinator.push(.createCharter)
     }
 }
 

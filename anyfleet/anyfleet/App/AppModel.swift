@@ -6,13 +6,18 @@ enum AppRoute: Hashable {
 }
 
 @MainActor
-final class AppModel: ObservableObject {
+final class AppCoordinator: ObservableObject {
     @Published var path = NavigationPath()
-
-    func navigate(to route: AppRoute) {
+    
+    func push(_ route: AppRoute) {
         path.append(route)
     }
-
+    
+    func pop() {
+        guard !path.isEmpty else { return }
+        path.removeLast()
+    }
+    
     func popToRoot() {
         path.removeLast(path.count)
     }
