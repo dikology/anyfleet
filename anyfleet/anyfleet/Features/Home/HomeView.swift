@@ -1,6 +1,12 @@
 import SwiftUI
 
 struct HomeView: View {
+    @StateObject private var viewModel: HomeViewModel
+
+    init(viewModel: HomeViewModel) {
+        _viewModel = StateObject(wrappedValue: viewModel)
+    }
+
     var body: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: DesignSystem.Spacing.lg, pinnedViews: []) {
@@ -9,8 +15,8 @@ struct HomeView: View {
                     title: L10n.homeCreateCharterTitle,
                     subtitle: L10n.homeCreateCharterSubtitle,
                     buttonTitle: L10n.homeCreateCharterAction,
-                    onTap: {},
-                    onButtonTap: {}
+                    onTap: { viewModel.onCreateCharterTapped() },
+                    onButtonTap: { viewModel.onCreateCharterTapped() }
                 )
             }
             .padding(.horizontal, DesignSystem.Spacing.lg)
@@ -21,5 +27,5 @@ struct HomeView: View {
 }
 
 #Preview {
-    HomeView()
+    HomeView(viewModel: HomeViewModel(appModel: AppModel()))
 }

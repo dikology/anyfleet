@@ -83,11 +83,82 @@ enum DesignSystem {
                 .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
         }
     }
+    
+    struct SecondaryButtonStyle: ButtonStyle {
+        func makeBody(configuration: Configuration) -> some View {
+            configuration.label
+                .font(.system(size: 16, weight: .semibold))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, Spacing.sm)
+                .padding(.horizontal, Spacing.md)
+                .background(Colors.surface)
+                .foregroundColor(Colors.textPrimary)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(Colors.border, lineWidth: 1)
+                )
+                .cornerRadius(10)
+                .opacity(configuration.isPressed ? 0.9 : 1.0)
+                .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
+                .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
+        }
+    }
+    
+    struct OutlineButtonStyle: ButtonStyle {
+        func makeBody(configuration: Configuration) -> some View {
+            configuration.label
+                .font(.system(size: 16, weight: .semibold))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, Spacing.sm)
+                .padding(.horizontal, Spacing.md)
+                .foregroundColor(Colors.textPrimary)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(Colors.border, lineWidth: 1)
+                )
+                .opacity(configuration.isPressed ? 0.9 : 1.0)
+                .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
+                .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
+        }
+    }
+    
+    struct FormFieldStyle: ViewModifier {
+        func body(content: Content) -> some View {
+            content
+                .textFieldStyle(.plain)
+                .padding(.horizontal, Spacing.md)
+                .padding(.vertical, Spacing.sm)
+                .background(Color(.systemGray6))
+                .cornerRadius(10)
+        }
+    }
+    
+    struct SectionContainer: ViewModifier {
+        func body(content: Content) -> some View {
+            content
+                .padding(Spacing.lg)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Colors.surface)
+                .cornerRadius(12)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Colors.border, lineWidth: 1)
+                )
+        }
+    }
 }
 
 extension View {
     func cardStyle() -> some View {
         modifier(DesignSystem.CardStyle())
+    }
+    
+    func formFieldStyle() -> some View {
+        modifier(DesignSystem.FormFieldStyle())
+    }
+    
+    func sectionContainer() -> some View {
+        modifier(DesignSystem.SectionContainer())
     }
 }
 
