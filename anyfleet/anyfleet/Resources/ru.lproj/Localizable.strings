@@ -2,3 +2,23 @@
 "home.createCharter.subtitle" = "Начните чартер, чтобы вести журнал и чек-листы.";
 "home.createCharter.action" = "Начать чартер";
 
+"charter.create.progress" = "Прогресс";
+"charter.create.whenWillYouSail" = "Когда вы выйдете в море?";
+"charter.create.chooseYourVoyageDates" = "Выберите даты вашего путешествия";
+"charter.create.setSailOnYourNextAdventure" = "Начните следующее путешествие"; 
+"charter.create.fromDreamToRealityInAFewGuidedSteps" = "Из мечты в реальность в несколько шагов.";
+"charter.create.yourAdventureAwaits" = "Ваше путешествие ждет";
+"charter.create.reviewYourCharterPlan" = "Проверьте ваш план чартера";
+"charter.create.dates" = "Даты";
+"charter.create.region" = "Регион";
+"charter.create.selectARegion" = "Выберите регион";
+"charter.create.vessel" = "Судно";
+"charter.create.upToGuests" = "До %d гостей";
+"charter.create.crew" = "Экипаж";
+"charter.create.captainAndOptionsSelected" = "Капитан + опции выбраны";
+"charter.create.createCharter" = "Создать чартер"; 
+"charter.create.from" = "От";
+"charter.create.to" = "До";
+"charter.create.startDate" = "Дата начала";
+"charter.create.endDate" = "Дата окончания";
+"charter.create.nights" = "ночей";

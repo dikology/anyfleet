@@ -8,18 +8,18 @@ struct DateRangeSection: View {
     var body: some View {
         VStack(spacing: DesignSystem.Spacing.lg) {
             HStack(alignment: .center, spacing: DesignSystem.Spacing.md) {
-                dateColumn(title: "From", date: startDate, alignment: .leading)
+                dateColumn(title: L10n.charterCreateFrom, date: startDate, alignment: .leading)
                 
                 VStack(spacing: 4) {
-                    Text("\(nights)")
+                    Text("\(nights) \(L10n.charterCreateNights)")
                         .font(.system(size: 26, weight: .bold))
                         .foregroundColor(DesignSystem.Colors.primary)
-                    Text("nights")
+                    Text(L10n.charterCreateNights)
                         .font(DesignSystem.Typography.caption)
                         .foregroundColor(DesignSystem.Colors.textSecondary)
                 }
                 
-                dateColumn(title: "To", date: endDate, alignment: .trailing)
+                dateColumn(title: L10n.charterCreateTo, date: endDate, alignment: .trailing)
             }
             .padding(DesignSystem.Spacing.md)
             .background(DesignSystem.Colors.surfaceAlt)
@@ -27,14 +27,14 @@ struct DateRangeSection: View {
             
             VStack(spacing: DesignSystem.Spacing.md) {
                 DatePicker(
-                    "Start date",
+                    L10n.charterCreateStartDate,
                     selection: $startDate,
                     displayedComponents: .date
                 )
                 .datePickerStyle(.graphical)
                 
                 DatePicker(
-                    "End date",
+                    L10n.charterCreateEndDate,
                     selection: $endDate,
                     in: startDate...,
                     displayedComponents: .date

@@ -25,30 +25,30 @@ struct CreateCharterView: View {
                 VStack(spacing: DesignSystem.Spacing.xl) {
                     hero
                     
-                    DesignSystem.Form.Progress(progress: completionProgress, label: "Progress")
+                    DesignSystem.Form.Progress(progress: completionProgress, label: L10n.charterCreateProgress)
                     
-                    DesignSystem.Form.Section(title: "When will you sail?", subtitle: "Choose your voyage dates") {
+                    DesignSystem.Form.Section(title: L10n.charterCreateWhenWillYouSail, subtitle: L10n.charterCreateChooseYourVoyageDates) {
                         DateRangeSection(startDate: $form.startDate, endDate: $form.endDate, nights: form.nights)
                     }
                     
-                    DesignSystem.Form.Section(title: "Destination", subtitle: "Choose where you will sail") {
+                    DesignSystem.Form.Section(title: L10n.charterCreateDestination, subtitle: L10n.charterCreateChooseWhereYouWillSail) {
                         RegionPickerSection(selectedRegion: $form.region, regions: CharterFormState.regionOptions)
                     }
                     
-                    DesignSystem.Form.Section(title: "Your vessel", subtitle: "Pick the character of your journey") {
+                    DesignSystem.Form.Section(title: L10n.charterCreateYourVessel, subtitle: L10n.charterCreatePickTheCharacterOfYourJourney) {
                         VesselPickerSection(selectedVessel: $form.vessel, vessels: CharterFormState.vesselOptions)
                         
                         VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
-                            DesignSystem.Form.FieldLabel("Guests")
+                            DesignSystem.Form.FieldLabel(L10n.charterCreateGuests)
                             Stepper(value: $form.guests, in: 1...12) {
-                                Text("\(form.guests) guests")
+                                Text("\(form.guests) \(L10n.charterCreateGuests)")
                                     .font(DesignSystem.Typography.body)
                                     .foregroundColor(DesignSystem.Colors.textPrimary)
                             }
                         }
                     }
                     
-                    DesignSystem.Form.Section(title: "Crew", subtitle: "Who is joining the trip") {
+                    DesignSystem.Form.Section(title: L10n.charterCreateCrew, subtitle: L10n.charterCreateWhoIsJoiningTheTrip) {
                         CrewSection(
                             captainIncluded: $form.captainIncluded,
                             chefIncluded: $form.chefIncluded,
@@ -56,7 +56,7 @@ struct CreateCharterView: View {
                         )
                     }
                     
-                    DesignSystem.Form.Section(title: "Budget", subtitle: "Optional budget range") {
+                    DesignSystem.Form.Section(title: L10n.charterCreateBudget, subtitle: L10n.charterCreateOptionalBudgetRange) {
                         BudgetSection(budget: $form.budget, notes: $form.notes)
                     }
                     
@@ -81,8 +81,8 @@ struct CreateCharterView: View {
 private extension CreateCharterView {
     var hero: some View {
         DesignSystem.Form.Hero(
-            title: "Set sail on your next adventure",
-            subtitle: "From dream to reality in a few guided steps."
+            title: L10n.charterCreateSetSailOnYourNextAdventure,
+            subtitle: L10n.charterCreateFromDreamToRealityInAFewGuidedSteps
         )
     }
 }
@@ -99,19 +99,19 @@ private struct SummaryCard: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: DesignSystem.Spacing.lg) {
-            DesignSystem.SectionHeader("Your adventure awaits", subtitle: "Review your charter plan")
+            DesignSystem.SectionHeader(L10n.charterCreateYourAdventureAwaits, subtitle: L10n.charterCreateReviewYourCharterPlan)
             
             VStack(spacing: DesignSystem.Spacing.md) {
-                DesignSystem.Form.SummaryRow(icon: "📅", title: "Dates", value: form.dateSummary, detail: "\(form.nights) nights")
-                DesignSystem.Form.SummaryRow(icon: "🧭", title: "Region", value: form.region, detail: form.regionDetails ?? "Select a region")
-                DesignSystem.Form.SummaryRow(icon: "⛵", title: "Vessel", value: form.vessel, detail: "Up to \(form.guests) guests")
-                DesignSystem.Form.SummaryRow(icon: "👥", title: "Crew", value: form.crewSummary, detail: "Captain + options selected")
+                DesignSystem.Form.SummaryRow(icon: "📅", title: L10n.charterCreateDates, value: form.dateSummary, detail: "\(form.nights) nights")
+                DesignSystem.Form.SummaryRow(icon: "🧭", title: L10n.charterCreateRegion, value: form.region, detail: form.regionDetails ?? L10n.charterCreateSelectARegion)
+                DesignSystem.Form.SummaryRow(icon: "⛵", title: L10n.charterCreateVessel, value: form.vessel, detail: "Up to \(form.guests) guests")
+                DesignSystem.Form.SummaryRow(icon: "👥", title: L10n.charterCreateCrew, value: form.crewSummary, detail: L10n.charterCreateCaptainAndOptionsSelected)
                 if form.budget > 0 {
                     DesignSystem.Form.SummaryRow(
                         icon: "💰",
-                        title: "Budget",
+                        title: L10n.charterCreateBudget,
                         value: form.budget.formatted(.currency(code: "USD")),
-                        detail: "Ready to lock in your plan"
+                        detail: L10n.charterCreateReadyToLockInYourPlan
                     )
                 }
             }
@@ -119,7 +119,7 @@ private struct SummaryCard: View {
             Button(action: onCreate) {
                 HStack(spacing: DesignSystem.Spacing.sm) {
                     Image(systemName: "checkmark.circle.fill")
-                    Text("Create charter")
+                    Text(L10n.charterCreateCreateCharter)
                 }
             }
             .buttonStyle(DesignSystem.PrimaryButtonStyle())
