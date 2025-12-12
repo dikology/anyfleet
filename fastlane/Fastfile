@@ -48,11 +48,18 @@ platform :ios do
     # 3. Use match to manage provisioning profiles
     export_method = ENV["EXPORT_METHOD"] || "app-store"
     
+    # For CI builds, we need to allow automatic provisioning updates
+    # This allows xcodebuild to automatically create/update provisioning profiles
+    # when using App Store Connect API key authentication
+    # The CI environment variable is set by GitHub Actions
+    xcargs = ENV["CI"] == "true" ? "-allowProvisioningUpdates" : nil
+    
     build_app(
       project: "anyfleet/anyfleet.xcodeproj",
       scheme: "anyfleet",
       export_method: export_method,
-      output_directory: "./fastlane/build_output"
+      output_directory: "./fastlane/build_output",
+      xcargs: xcargs
     )
   end
 
