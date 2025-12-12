@@ -22,3 +22,12 @@
 "charter.create.startDate" = "Дата начала";
 "charter.create.endDate" = "Дата окончания";
 "charter.create.nights" = "ночей";
+"charter.create.destination" = "Пункт назначения";
+"charter.create.chooseWhereYouWillSail" = "Выберите место, где вы будете путешествовать";
+"charter.create.yourVessel" = "Ваше судно";
+"charter.create.pickTheCharacterOfYourJourney" = "Выберите характер вашего путешествия";
+"charter.create.guests" = "Гости";
+"charter.create.whoIsJoiningTheTrip" = "Кто будет путешествовать";
+"charter.create.optionalBudgetRange" = "Опциональный бюджет";
+"charter.create.readyToLockInYourPlan" = "Готовы заблокировать ваш план";
+"charter.create.vesselNamePlaceholder" = "Название судна";

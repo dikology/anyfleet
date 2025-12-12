@@ -4,6 +4,7 @@ struct CharterFormState {
     var name: String = ""
     var startDate: Date = Date()
     var endDate: Date = Calendar.current.date(byAdding: .day, value: 7, to: Date()) ?? Date()
+    var destination: String = ""
     var region: String = regionOptions.first?.name ?? ""
     var vessel: String = vesselOptions.first?.name ?? ""
     var guests: Int = 6

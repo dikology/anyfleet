@@ -22,3 +22,12 @@
 "charter.create.startDate" = "Start date";
 "charter.create.endDate" = "End date";
 "charter.create.nights" = "nights";
+"charter.create.destination" = "Destination";
+"charter.create.chooseWhereYouWillSail" = "Choose where you will sail";
+"charter.create.yourVessel" = "Your vessel";
+"charter.create.pickTheCharacterOfYourJourney" = "Pick the character of your journey";
+"charter.create.guests" = "Guests";
+"charter.create.whoIsJoiningTheTrip" = "Who is joining the trip";
+"charter.create.optionalBudgetRange" = "Optional budget range";
+"charter.create.readyToLockInYourPlan" = "Ready to lock in your plan";
+"charter.create.vesselNamePlaceholder" = "Vessel name";

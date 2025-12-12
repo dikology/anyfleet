@@ -11,7 +11,7 @@ struct DateRangeSection: View {
                 dateColumn(title: L10n.charterCreateFrom, date: startDate, alignment: .leading)
                 
                 VStack(spacing: 4) {
-                    Text("\(nights) \(L10n.charterCreateNights)")
+                    Text("\(nights)")
                         .font(.system(size: 26, weight: .bold))
                         .foregroundColor(DesignSystem.Colors.primary)
                     Text(L10n.charterCreateNights)
@@ -24,23 +24,25 @@ struct DateRangeSection: View {
             .padding(DesignSystem.Spacing.md)
             .background(DesignSystem.Colors.surfaceAlt)
             .cornerRadius(12)
+
+            // TODO: date pickers should be in a modal, open on tap of the date column
             
-            VStack(spacing: DesignSystem.Spacing.md) {
-                DatePicker(
-                    L10n.charterCreateStartDate,
-                    selection: $startDate,
-                    displayedComponents: .date
-                )
-                .datePickerStyle(.graphical)
+            // VStack(spacing: DesignSystem.Spacing.md) {
+            //     DatePicker(
+            //         L10n.charterCreateStartDate,
+            //         selection: $startDate,
+            //         displayedComponents: .date
+            //     )
+            //     .datePickerStyle(.graphical)
                 
-                DatePicker(
-                    L10n.charterCreateEndDate,
-                    selection: $endDate,
-                    in: startDate...,
-                    displayedComponents: .date
-                )
-                .datePickerStyle(.graphical)
-            }
+            //     DatePicker(
+            //         L10n.charterCreateEndDate,
+            //         selection: $endDate,
+            //         in: startDate...,
+            //         displayedComponents: .date
+            //     )
+            //     .datePickerStyle(.graphical)
+            // }
         }
     }
     

@@ -198,5 +198,11 @@ enum L10n {
         tableName: "Localizable",
         comment: "Title for the nights section in the create charter form"
     )
+
+    static let charterCreateVesselNamePlaceholder = NSLocalizedString(
+        "charter.create.vesselNamePlaceholder",
+        tableName: "Localizable",
+        comment: "Placeholder for the vessel name input field in the create charter form"
+    )
 }
 

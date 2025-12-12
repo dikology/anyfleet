@@ -32,11 +32,21 @@ struct CreateCharterView: View {
                     }
                     
                     DesignSystem.Form.Section(title: L10n.charterCreateDestination, subtitle: L10n.charterCreateChooseWhereYouWillSail) {
-                        RegionPickerSection(selectedRegion: $form.region, regions: CharterFormState.regionOptions)
+                        VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
+                            DesignSystem.Form.FieldLabel(L10n.charterCreateDestination)
+                            TextField(L10n.charterCreateChooseWhereYouWillSail, text: $form.destination)
+                                .formFieldStyle()
+                        }
+                        // TODO: RegionPickerSection(selectedRegion: $form.region, regions: CharterFormState.regionOptions)
                     }
                     
                     DesignSystem.Form.Section(title: L10n.charterCreateYourVessel, subtitle: L10n.charterCreatePickTheCharacterOfYourJourney) {
-                        VesselPickerSection(selectedVessel: $form.vessel, vessels: CharterFormState.vesselOptions)
+                        VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
+                            DesignSystem.Form.FieldLabel(L10n.charterCreateYourVessel)
+                            TextField(L10n.charterCreateVesselNamePlaceholder, text: $form.vessel)
+                                .formFieldStyle()
+                        }
+                        // VesselPickerSection(selectedVessel: $form.vessel, vessels: CharterFormState.vesselOptions)
                         
                         VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
                             DesignSystem.Form.FieldLabel(L10n.charterCreateGuests)
@@ -48,17 +58,17 @@ struct CreateCharterView: View {
                         }
                     }
                     
-                    DesignSystem.Form.Section(title: L10n.charterCreateCrew, subtitle: L10n.charterCreateWhoIsJoiningTheTrip) {
-                        CrewSection(
-                            captainIncluded: $form.captainIncluded,
-                            chefIncluded: $form.chefIncluded,
-                            deckhandIncluded: $form.deckhandIncluded
-                        )
-                    }
+//                    DesignSystem.Form.Section(title: L10n.charterCreateCrew, subtitle: L10n.charterCreateWhoIsJoiningTheTrip) {
+//                        CrewSection(
+//                            captainIncluded: $form.captainIncluded,
+//                            chefIncluded: $form.chefIncluded,
+//                            deckhandIncluded: $form.deckhandIncluded
+//                        )
+//                    }
                     
-                    DesignSystem.Form.Section(title: L10n.charterCreateBudget, subtitle: L10n.charterCreateOptionalBudgetRange) {
-                        BudgetSection(budget: $form.budget, notes: $form.notes)
-                    }
+//                    DesignSystem.Form.Section(title: L10n.charterCreateBudget, subtitle: L10n.charterCreateOptionalBudgetRange) {
+//                        BudgetSection(budget: $form.budget, notes: $form.notes)
+//                    }
                     
                     CharterSummaryCard(form: form, progress: completionProgress) {
                         // Action placeholder; integrate with coordinator when available.
@@ -102,18 +112,10 @@ private struct SummaryCard: View {
             DesignSystem.SectionHeader(L10n.charterCreateYourAdventureAwaits, subtitle: L10n.charterCreateReviewYourCharterPlan)
             
             VStack(spacing: DesignSystem.Spacing.md) {
-                DesignSystem.Form.SummaryRow(icon: "📅", title: L10n.charterCreateDates, value: form.dateSummary, detail: "\(form.nights) nights")
+                DesignSystem.Form.SummaryRow(icon: "📅", title: L10n.charterCreateDates, value: form.dateSummary, detail: "\(form.nights) \(L10n.charterCreateNights)")
                 DesignSystem.Form.SummaryRow(icon: "🧭", title: L10n.charterCreateRegion, value: form.region, detail: form.regionDetails ?? L10n.charterCreateSelectARegion)
-                DesignSystem.Form.SummaryRow(icon: "⛵", title: L10n.charterCreateVessel, value: form.vessel, detail: "Up to \(form.guests) guests")
+                DesignSystem.Form.SummaryRow(icon: "⛵", title: L10n.charterCreateVessel, value: form.vessel, detail: "Up to \(form.guests) \(L10n.charterCreateUpToGuests)")
                 DesignSystem.Form.SummaryRow(icon: "👥", title: L10n.charterCreateCrew, value: form.crewSummary, detail: L10n.charterCreateCaptainAndOptionsSelected)
-                if form.budget > 0 {
-                    DesignSystem.Form.SummaryRow(
-                        icon: "💰",
-                        title: L10n.charterCreateBudget,
-                        value: form.budget.formatted(.currency(code: "USD")),
-                        detail: L10n.charterCreateReadyToLockInYourPlan
-                    )
-                }
             }
             
             Button(action: onCreate) {
@@ -126,7 +128,7 @@ private struct SummaryCard: View {
             .disabled(!isValid)
             .opacity(isValid ? 1.0 : 0.6)
             
-            Text("Step \(Int(progress * 6)) of 6")
+            Text("\(L10n.charterCreateStep) \(Int(progress * 6)) of 6")
                 .font(DesignSystem.Typography.caption)
                 .foregroundColor(DesignSystem.Colors.textSecondary)
         }
