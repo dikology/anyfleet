@@ -9,9 +9,7 @@ xcuserdata/
 *.hmap
 
 ## App packaging
-*.ipa
-*.dSYM.zip
-*.dSYM
+# (Note: *.ipa, *.dSYM also listed in Xcode build artifacts section below)
 
 ## Playgrounds
 timeline.xctimeline
@@ -60,3 +58,30 @@ fastlane/report.xml
 fastlane/Preview.html
 fastlane/screenshots/**/*.png
 fastlane/test_output
+fastlane/build_output
+fastlane/*.log
+
+# App Store Connect API Keys (sensitive - never commit!)
+*.p8
+AuthKey_*.p8
+~/.appstoreconnect/private_keys/
+
+# Match (certificates and provisioning profiles)
+fastlane/match_output/
+fastlane/certs/
+fastlane/profiles/
+
+# Environment files (may contain secrets)
+.env
+.env.local
+.env.*.local
+*.env
+
+# Xcode build artifacts
+*.ipa
+*.dSYM.zip
+*.dSYM
+*.app.dSYM.zip
+*.app.dSYM
+DerivedData/
+*.xcarchive
