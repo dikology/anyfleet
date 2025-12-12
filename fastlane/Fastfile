@@ -1,0 +1,86 @@
+# This file contains the fastlane.tools configuration
+# You can find the documentation at https://docs.fastlane.tools
+#
+# For a list of all available actions, check out
+#
+#     https://docs.fastlane.tools/actions
+#
+# For a list of all available plugins, check out
+#
+#     https://docs.fastlane.tools/plugins/available-plugins
+#
+
+default_platform(:ios)
+
+platform :ios do
+  desc "Run tests"
+  lane :test do
+    scan(
+      project: "anyfleet/anyfleet.xcodeproj",
+      scheme: "anyfleet",
+      # Let Fastlane auto-detect available simulators
+      # This is more reliable across different environments
+      ensure_devices_found: true,
+      code_coverage: false,
+      clean: true,
+      # Use xcbeautify for proper Swift Testing output display
+      xcodebuild_formatter: "xcbeautify",
+      # Disable parallel testing for CI reliability
+      # This prevents random freezes and ensures Swift Testing output is properly displayed
+      # The scheme already has parallelizable="NO", but we add these args for extra safety
+      xcargs: "-parallel-testing-worker-count 1 -parallel-testing-enabled NO",
+      output_directory: "./fastlane/test_output",
+      # xcbeautify doesn't support HTML output, only junit
+      output_types: "junit",
+      buildlog_path: "./fastlane/test_output"
+    )
+  end
+
+  desc "Build and archive the app"
+  lane :build do
+    # Allow export method to be overridden via environment variable
+    # Use "development" for local builds, "app-store-connect" for CI/TestFlight
+    export_method = ENV["EXPORT_METHOD"] || "app-store-connect"
+    
+    build_app(
+      project: "anyfleet/anyfleet.xcodeproj",
+      scheme: "anyfleet",
+      export_method: export_method,
+      output_directory: "./fastlane/build_output"
+    )
+  end
+
+  desc "Build and archive the app (local development - uses development export)"
+  lane :build_local do
+    ENV["EXPORT_METHOD"] = "development"
+    build
+  end
+
+  desc "Upload to TestFlight"
+  lane :beta do
+    # Build and archive
+    build
+    
+    # Upload to TestFlight
+    upload_to_testflight(
+      skip_waiting_for_build_processing: false,
+      skip_submission: true,
+      distribute_external: false,
+      notify_external_testers: false
+    )
+  end
+
+  desc "Run tests and upload to TestFlight if on main branch"
+  lane :ci do
+    # Always run tests
+    test
+    
+    # Only deploy to TestFlight if on main branch and label is present
+    if git_branch == "main" && ENV["DEPLOY_TO_TESTFLIGHT"] == "true"
+      beta
+    else
+      UI.message("Skipping TestFlight deployment. Set DEPLOY_TO_TESTFLIGHT=true to deploy.")
+    end
+  end
+end
+
