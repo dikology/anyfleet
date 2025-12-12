@@ -39,8 +39,14 @@ platform :ios do
   desc "Build and archive the app"
   lane :build do
     # Allow export method to be overridden via environment variable
-    # Use "development" for local builds, "app-store-connect" for CI/TestFlight
-    export_method = ENV["EXPORT_METHOD"] || "app-store-connect"
+    # Use "development" for local builds, "app-store" for CI/TestFlight
+    # 
+    # Note: For local App Store builds, you need to have the App Store provisioning
+    # profile set up. Either:
+    # 1. Open Xcode and archive for App Store (this will create the profile)
+    # 2. Use `build_local` for local testing (uses development export)
+    # 3. Use match to manage provisioning profiles
+    export_method = ENV["EXPORT_METHOD"] || "app-store"
     
     build_app(
       project: "anyfleet/anyfleet.xcodeproj",
