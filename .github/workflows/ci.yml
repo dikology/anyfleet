@@ -30,10 +30,14 @@ jobs:
       - name: Install xcbeautify
         run: brew install xcbeautify
 
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+          bundler-cache: true
+
       - name: Install Ruby dependencies
-        run: |
-          gem install bundler
-          bundle install
+        run: bundle install
 
       - name: Run tests
         run: bundle exec fastlane test
@@ -61,10 +65,14 @@ jobs:
       - name: Install xcbeautify
         run: brew install xcbeautify
 
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+          bundler-cache: true
+
       - name: Install Ruby dependencies
-        run: |
-          gem install bundler
-          bundle install
+        run: bundle install
 
       - name: Setup App Store Connect API Key
         env:
