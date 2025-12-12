@@ -36,30 +36,46 @@ platform :ios do
     )
   end
 
+  desc "Set up code signing with match"
+  lane :setup_signing do
+    # Only set up match if MATCH_GIT_URL is provided
+    if ENV["MATCH_GIT_URL"]
+      match_type = ENV["EXPORT_METHOD"] == "development" ? "development" : "appstore"
+      
+      match(
+        type: match_type,
+        app_identifier: "com.dikology.anyfleet",
+        git_url: ENV["MATCH_GIT_URL"],
+        git_branch: ENV["MATCH_GIT_BRANCH"] || "main",
+        readonly: ENV["CI"] == "true", # In CI, don't try to create new profiles
+        force: false,
+        force_for_new_devices: false
+      )
+    else
+      UI.important("⚠️  MATCH_GIT_URL not set. Skipping match setup.")
+      UI.important("   For CI builds, you should set up match:")
+      UI.important("   1. Create a private git repo for certificates")
+      UI.important("   2. Run locally: bundle exec fastlane match appstore")
+      UI.important("   3. Set MATCH_GIT_URL in your CI secrets")
+    end
+  end
+
   desc "Build and archive the app"
   lane :build do
     # Allow export method to be overridden via environment variable
     # Use "development" for local builds, "app-store" for CI/TestFlight
-    # 
-    # Note: For local App Store builds, you need to have the App Store provisioning
-    # profile set up. Either:
-    # 1. Open Xcode and archive for App Store (this will create the profile)
-    # 2. Use `build_local` for local testing (uses development export)
-    # 3. Use match to manage provisioning profiles
     export_method = ENV["EXPORT_METHOD"] || "app-store"
     
-    # For CI builds, we need to allow automatic provisioning updates
-    # This allows xcodebuild to automatically create/update provisioning profiles
-    # when using App Store Connect API key authentication
-    # The CI environment variable is set by GitHub Actions
-    xcargs = ENV["CI"] == "true" ? "-allowProvisioningUpdates" : nil
+    # Set up code signing if match is configured
+    if ENV["MATCH_GIT_URL"]
+      setup_signing
+    end
     
     build_app(
       project: "anyfleet/anyfleet.xcodeproj",
       scheme: "anyfleet",
       export_method: export_method,
-      output_directory: "./fastlane/build_output",
-      xcargs: xcargs
+      output_directory: "./fastlane/build_output"
     )
   end
 
