@@ -36,6 +36,9 @@ jobs:
           ruby-version: "3.2"
           bundler-cache: true
 
+      - name: Add platform to lockfile
+        run: bundle lock --add-platform arm64-darwin-23
+
       - name: Install Ruby dependencies
         run: bundle install
 
@@ -70,6 +73,9 @@ jobs:
         with:
           ruby-version: "3.2"
           bundler-cache: true
+
+      - name: Add platform to lockfile
+        run: bundle lock --add-platform arm64-darwin-23
 
       - name: Install Ruby dependencies
         run: bundle install
