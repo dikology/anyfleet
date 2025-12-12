@@ -97,44 +97,43 @@ private extension CreateCharterView {
     }
 }
 
-private struct SummaryCard: View {
-    let form: CharterFormState
-    let progress: Double
-    var onCreate: () -> Void
+// private struct SummaryCard: View {
+//     let form: CharterFormState
+//     let progress: Double
+//     var onCreate: () -> Void
     
-    private var isValid: Bool {
-        !form.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-        form.endDate >= form.startDate
-    }
+//     private var isValid: Bool {
+//         !form.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+//         form.endDate >= form.startDate
+//     }
     
-    var body: some View {
-        VStack(alignment: .leading, spacing: DesignSystem.Spacing.lg) {
-            DesignSystem.SectionHeader(L10n.charterCreateYourAdventureAwaits, subtitle: L10n.charterCreateReviewYourCharterPlan)
+//     var body: some View {
+//         VStack(alignment: .leading, spacing: DesignSystem.Spacing.lg) {
+//             DesignSystem.SectionHeader(L10n.charterCreateYourAdventureAwaits, subtitle: L10n.charterCreateReviewYourCharterPlan)
             
-            VStack(spacing: DesignSystem.Spacing.md) {
-                DesignSystem.Form.SummaryRow(icon: "📅", title: L10n.charterCreateDates, value: form.dateSummary, detail: "\(form.nights) \(L10n.charterCreateNights)")
-                DesignSystem.Form.SummaryRow(icon: "🧭", title: L10n.charterCreateRegion, value: form.region, detail: form.regionDetails ?? L10n.charterCreateSelectARegion)
-                DesignSystem.Form.SummaryRow(icon: "⛵", title: L10n.charterCreateVessel, value: form.vessel, detail: "Up to \(form.guests) \(L10n.charterCreateUpToGuests)")
-                DesignSystem.Form.SummaryRow(icon: "👥", title: L10n.charterCreateCrew, value: form.crewSummary, detail: L10n.charterCreateCaptainAndOptionsSelected)
-            }
+//             VStack(spacing: DesignSystem.Spacing.md) {
+//                 DesignSystem.Form.SummaryRow(icon: "📅", title: L10n.charterCreateDates, value: form.dateSummary, detail: "\(form.nights) \(L10n.charterCreateNights)")
+//                 DesignSystem.Form.SummaryRow(icon: "🧭", title: L10n.charterCreateRegion, value: form.destination, detail: form.regionDetails ?? L10n.charterCreateSelectARegion)
+//                 DesignSystem.Form.SummaryRow(icon: "⛵", title: L10n.charterCreateVessel, value: form.vessel, detail: "Up to \(form.guests) \(L10n.charterCreateUpToGuests    )")
+//             }
             
-            Button(action: onCreate) {
-                HStack(spacing: DesignSystem.Spacing.sm) {
-                    Image(systemName: "checkmark.circle.fill")
-                    Text(L10n.charterCreateCreateCharter)
-                }
-            }
-            .buttonStyle(DesignSystem.PrimaryButtonStyle())
-            .disabled(!isValid)
-            .opacity(isValid ? 1.0 : 0.6)
+//             Button(action: onCreate) {
+//                 HStack(spacing: DesignSystem.Spacing.sm) {
+//                     Image(systemName: "checkmark.circle.fill")
+//                     Text(L10n.charterCreateCreateCharter)
+//                 }
+//             }
+//             .buttonStyle(DesignSystem.PrimaryButtonStyle())
+//             .disabled(!isValid)
+//             .opacity(isValid ? 1.0 : 0.6)
             
-            Text("\(L10n.charterCreateStep) \(Int(progress * 6)) of 6")
-                .font(DesignSystem.Typography.caption)
-                .foregroundColor(DesignSystem.Colors.textSecondary)
-        }
-        .sectionContainer()
-    }
-}
+//             Text("\(L10n.charterCreateStep) \(Int(progress * 6)) of 6")
+//                 .font(DesignSystem.Typography.caption)
+//                 .foregroundColor(DesignSystem.Colors.textSecondary)
+//         }
+//         .sectionContainer()
+//     }
+// }
 
 #Preview {
     CreateCharterView(form: .mock)

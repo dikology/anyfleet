@@ -204,5 +204,100 @@ enum L10n {
         tableName: "Localizable",
         comment: "Placeholder for the vessel name input field in the create charter form"
     )
-}
 
+    static let charterSummaryYourAdventureAwaits = NSLocalizedString(
+        "charter.summary.yourAdventureAwaits",
+        tableName: "Localizable",
+        comment: "Title for the your adventure awaits section in the charter summary card"
+    )
+    
+    static let charterSummaryReviewYourCharterPlan = NSLocalizedString(
+        "charter.summary.reviewYourCharterPlan",
+        tableName: "Localizable",
+        comment: "Subtitle for the review your charter plan section in the charter summary card"
+    )
+    
+    static let charterSummaryDates = NSLocalizedString(
+        "charter.summary.dates",
+        tableName: "Localizable",
+        comment: "Title for the dates section in the charter summary card"
+    )
+    
+    static let charterSummaryRegion = NSLocalizedString(
+        "charter.summary.region",
+        tableName: "Localizable",
+        comment: "Title for the region section in the charter summary card"
+    )
+    
+    static let charterSummaryVessel = NSLocalizedString(
+        "charter.summary.vessel",
+        tableName: "Localizable",
+        comment: "Title for the vessel section in the charter summary card"
+    )
+    
+    static let charterSummaryCrew = NSLocalizedString(
+        "charter.summary.crew",
+        tableName: "Localizable",
+        comment: "Title for the crew section in the charter summary card"
+    )
+    
+    static let charterSummaryBudget = NSLocalizedString(
+        "charter.summary.budget",
+        tableName: "Localizable",
+        comment: "Title for the budget section in the charter summary card"
+    )
+    
+    static let charterSummaryReadyToLockInYourPlan = NSLocalizedString(
+        "charter.summary.readyToLockInYourPlan",
+        tableName: "Localizable",
+        comment: "Subtitle for the ready to lock in your plan section in the charter summary card"
+    )
+    
+    static let charterSummaryCreateCharter = NSLocalizedString(
+        "charter.summary.createCharter",
+        tableName: "Localizable",
+        comment: "Title for the create charter button in the charter summary card"
+    )
+    
+    static let charterSummaryStep = NSLocalizedString(
+        "charter.summary.step",
+        tableName: "Localizable",
+        comment: "Title for the step section in the charter summary card"
+    )
+
+    static let charterSummarySelectARegion = NSLocalizedString(
+        "charter.summary.selectARegion",
+        tableName: "Localizable",
+        comment: "Subtitle for the select a region section in the charter summary card"
+    )
+
+    static let charterSummaryUpToGuests = NSLocalizedString(
+        "charter.summary.upToGuests",
+        tableName: "Localizable",
+        comment: "Subtitle for the up to guests section in the charter summary card"
+    )
+
+    static let charterSummaryCaptainAndOptionsSelected = NSLocalizedString(
+        "charter.summary.captainAndOptionsSelected",
+        tableName: "Localizable",
+        comment: "Subtitle for the captain and options selected section in the charter summary card"
+    )
+
+    static let charterSummaryNights = NSLocalizedString(
+        "charter.summary.nights",
+        tableName: "Localizable",
+        comment: "Title for the nights section in the charter summary card"
+    )
+
+    static let charterSummaryUpto = NSLocalizedString(
+        "charter.summary.upto",
+        tableName: "Localizable",
+        comment: "Title for the upto section in the charter summary card"
+    )
+
+    static let charterSummaryOf = NSLocalizedString(
+        "charter.summary.of",
+        tableName: "Localizable",
+        comment: "Title for the of section in the charter summary card"
+    )
+}

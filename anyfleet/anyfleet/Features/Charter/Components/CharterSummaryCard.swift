@@ -12,34 +12,26 @@ struct CharterSummaryCard: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: DesignSystem.Spacing.lg) {
-            DesignSystem.SectionHeader("Your adventure awaits", subtitle: "Review your charter plan")
+            DesignSystem.SectionHeader(L10n.charterSummaryYourAdventureAwaits, subtitle: L10n.charterSummaryReviewYourCharterPlan)
             
             VStack(spacing: DesignSystem.Spacing.md) {
-                DesignSystem.Form.SummaryRow(icon: "📅", title: "Dates", value: form.dateSummary, detail: "\(form.nights) nights")
-                DesignSystem.Form.SummaryRow(icon: "🧭", title: "Region", value: form.region, detail: form.regionDetails ?? "Select a region")
-                DesignSystem.Form.SummaryRow(icon: "⛵", title: "Vessel", value: form.vessel, detail: "Up to \(form.guests) guests")
-                DesignSystem.Form.SummaryRow(icon: "👥", title: "Crew", value: form.crewSummary, detail: "Captain + options selected")
-                if form.budget > 0 {
-                    DesignSystem.Form.SummaryRow(
-                        icon: "💰",
-                        title: "Budget",
-                        value: form.budget.formatted(.currency(code: "USD")),
-                        detail: "Ready to lock in your plan"
-                    )
-                }
+                DesignSystem.Form.SummaryRow(icon: "📅", title: L10n.charterSummaryDates, value: form.dateSummary, detail: "\(form.nights) \(L10n.charterSummaryNights)")
+                DesignSystem.Form.SummaryRow(icon: "🧭", title: L10n.charterSummaryRegion, value: form.destination, detail: form.regionDetails ?? L10n.charterSummarySelectARegion)
+                DesignSystem.Form.SummaryRow(icon: "⛵", title: L10n.charterSummaryVessel, value: form.vessel, detail: "\(L10n.charterSummaryUpto) \(form.guests) \(L10n.charterSummaryUpToGuests)")
+                
             }
             
             Button(action: onCreate) {
                 HStack(spacing: DesignSystem.Spacing.sm) {
                     Image(systemName: "checkmark.circle.fill")
-                    Text("Create charter")
+                    Text(L10n.charterSummaryCreateCharter)
                 }
             }
             .buttonStyle(DesignSystem.PrimaryButtonStyle())
             .disabled(!isValid)
             .opacity(isValid ? 1.0 : 0.6)
             
-            Text("Step \(Int(progress * 6)) of 6")
+            Text("\(L10n.charterSummaryStep) \(Int(progress * 6)) \(L10n.charterSummaryOf) 6")
                 .font(DesignSystem.Typography.caption)
                 .foregroundColor(DesignSystem.Colors.textSecondary)
         }
