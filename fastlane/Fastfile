@@ -62,25 +62,31 @@ platform :ios do
 
   desc "Build and archive the app"
   lane :build do
-    # Allow export method to be overridden via environment variable
-    # Use "development" for local builds, "app-store" for CI/TestFlight
     export_method = ENV["EXPORT_METHOD"] || "app-store"
-    
-    # Set up code signing if match is configured
-    if ENV["MATCH_GIT_URL"]
-      setup_signing
-    end
-    
+
+    setup_signing if ENV["MATCH_GIT_URL"]
+
     build_app(
       project: "anyfleet/anyfleet.xcodeproj",
       scheme: "anyfleet",
+      configuration: "Release",
       export_method: export_method,
       output_directory: "./fastlane/build_output",
       clean: true,
-      # Use xcbeautify for cleaner build output
       xcodebuild_formatter: "xcbeautify",
-      # Capture full build logs for debugging
-      buildlog_path: "./fastlane/build_output"
+      buildlog_path: "./fastlane/build_output",
+      provisioning_profile_mapping: lane_context[SharedValues::MATCH_PROVISIONING_PROFILE_MAPPING],
+      export_options: {
+        provisioningProfiles: {
+          "com.dikology.anyfleet" => (
+            export_method == "development" ?
+            "match Development com.dikology.anyfleet" :
+            "match AppStore com.dikology.anyfleet"
+          )
+        },
+        signingStyle: "manual"
+      },
+      xcargs: "-allowProvisioningUpdates"
     )
   end
 
