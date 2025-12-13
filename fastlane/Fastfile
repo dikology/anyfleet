@@ -75,7 +75,12 @@ platform :ios do
       project: "anyfleet/anyfleet.xcodeproj",
       scheme: "anyfleet",
       export_method: export_method,
-      output_directory: "./fastlane/build_output"
+      output_directory: "./fastlane/build_output",
+      clean: true,
+      # Use xcbeautify for cleaner build output
+      xcodebuild_formatter: "xcbeautify",
+      # Capture full build logs for debugging
+      buildlog_path: "./fastlane/build_output"
     )
   end
 
