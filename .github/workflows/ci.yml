@@ -12,6 +12,7 @@ jobs:
   test:
     name: Run Tests
     runs-on: macos-15
+    if: github.event_name == 'pull_request'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -48,7 +49,6 @@ jobs:
   deploy:
     name: Deploy to TestFlight
     runs-on: macos-15
-    needs: test
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, '[deploy]')
     steps:
       - name: Checkout code
@@ -108,8 +108,8 @@ jobs:
           FASTLANE_USER: ${{ secrets.FASTLANE_USER }}
           APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
           APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
-          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
-          MATCH_GIT_BRANCH: ${{ secrets.MATCH_GIT_BRANCH || 'main' }}
+          MATCH_GIT_URL: https://x-access-token:${{ secrets.MATCH_GIT_TOKEN }}@github.com/dikology/certificates.git
+          MATCH_GIT_BRANCH: ${{ secrets.MATCH_GIT_BRANCH || 'master' }}
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
           MATCH_KEYCHAIN_NAME: build.keychain
           MATCH_KEYCHAIN_PASSWORD: ${{ secrets.MATCH_KEYCHAIN_PASSWORD }}
