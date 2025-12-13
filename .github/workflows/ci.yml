@@ -100,6 +100,16 @@ jobs:
           # Disable keychain lock timeout
           security set-keychain-settings build.keychain
 
+      - name: Resolve Swift Package Dependencies
+        run: |
+          xcodebuild -resolvePackageDependencies \
+            -project anyfleet/anyfleet.xcodeproj \
+            -scheme anyfleet
+
+      - name: Clear Derived Data
+        run: |
+          rm -rf ~/Library/Developer/Xcode/DerivedData/*
+
       - name: Deploy to TestFlight
         env:
           CI: "true"
@@ -114,4 +124,15 @@ jobs:
           MATCH_KEYCHAIN_NAME: build.keychain
           MATCH_KEYCHAIN_PASSWORD: ${{ secrets.MATCH_KEYCHAIN_PASSWORD }}
         run: bundle exec fastlane beta
+
+      - name: Upload build logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs
+          path: |
+            fastlane/build_output/**/*.log
+            fastlane/build_output/**/*.txt
+            ~/Library/Logs/gym/**/*.log
+          retention-days: 7
 
