@@ -228,6 +228,171 @@ enum DesignSystem {
             }
         }
     }
+    
+    // MARK: - Cinematic Composition Elements
+    
+    struct HeroCardStyle: ViewModifier {
+        let elevation: Elevation
+        
+        enum Elevation {
+            case low, medium, high
+            
+            var shadowRadius: CGFloat {
+                switch self {
+                case .low: return 6
+                case .medium: return 12
+                case .high: return 20
+                }
+            }
+            
+            var shadowYOffset: CGFloat {
+                switch self {
+                case .low: return 2
+                case .medium: return 4
+                case .high: return 8
+                }
+            }
+            
+            var shadowOpacity: Double {
+                switch self {
+                case .low: return 0.08
+                case .medium: return 0.12
+                case .high: return 0.16
+                }
+            }
+        }
+        
+        init(elevation: Elevation = .medium) {
+            self.elevation = elevation
+        }
+        
+        func body(content: Content) -> some View {
+            content
+                .background(
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(Colors.surface)
+                        .shadow(
+                            color: Colors.shadowStrong.opacity(elevation.shadowOpacity),
+                            radius: elevation.shadowRadius,
+                            x: 0,
+                            y: elevation.shadowYOffset
+                        )
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(
+                            LinearGradient(
+                                colors: [
+                                    Colors.border.opacity(0.6),
+                                    Colors.border.opacity(0.2)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
+                )
+        }
+    }
+    
+    struct FocalHighlight: ViewModifier {
+        func body(content: Content) -> some View {
+            content
+                .overlay(
+                    LinearGradient(
+                        colors: [
+                            Colors.gold.opacity(0.15),
+                            Colors.gold.opacity(0.05),
+                            Color.clear
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+        }
+    }
+    
+    struct EmptyStateHero: View {
+        let icon: String
+        let title: String
+        let message: String
+        let accentColor: Color
+        
+        init(
+            icon: String,
+            title: String,
+            message: String,
+            accentColor: Color = Colors.primary
+        ) {
+            self.icon = icon
+            self.title = title
+            self.message = message
+            self.accentColor = accentColor
+        }
+        
+        var body: some View {
+            VStack(spacing: Spacing.xl) {
+                ZStack {
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    accentColor.opacity(0.15),
+                                    accentColor.opacity(0.05)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 120, height: 120)
+                    
+                    Image(systemName: icon)
+                        .font(.system(size: 56, weight: .light))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [accentColor, accentColor.opacity(0.7)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                }
+                .padding(.bottom, Spacing.sm)
+                
+                VStack(spacing: Spacing.sm) {
+                    Text(title)
+                        .font(.system(size: 24, weight: .semibold))
+                        .foregroundColor(Colors.textPrimary)
+                    
+                    Text(message)
+                        .font(Typography.body)
+                        .foregroundColor(Colors.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .lineSpacing(4)
+                }
+                .padding(.horizontal, Spacing.xl)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .padding(Spacing.xxl)
+        }
+    }
+    
+    struct TimelineIndicator: View {
+        let isActive: Bool
+        
+        var body: some View {
+            ZStack {
+                Circle()
+                    .fill(isActive ? Colors.primary : Colors.border)
+                    .frame(width: 8, height: 8)
+                
+                if isActive {
+                    Circle()
+                        .fill(Colors.primary.opacity(0.3))
+                        .frame(width: 16, height: 16)
+                }
+            }
+        }
+    }
 }
 
 extension View {
@@ -241,6 +406,14 @@ extension View {
     
     func sectionContainer() -> some View {
         modifier(DesignSystem.SectionContainer())
+    }
+    
+    func heroCardStyle(elevation: DesignSystem.HeroCardStyle.Elevation = .medium) -> some View {
+        modifier(DesignSystem.HeroCardStyle(elevation: elevation))
+    }
+    
+    func focalHighlight() -> some View {
+        modifier(DesignSystem.FocalHighlight())
     }
 }
 

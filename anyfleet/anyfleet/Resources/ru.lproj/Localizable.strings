@@ -54,3 +54,9 @@
 "charter.summary.nights" = "ночей";
 "charter.summary.upto" = "До";
 "charter.summary.of" = "из";
+
+"home" = "Главная";
+"library" = "Библиотека";
+"discover" = "Открыть";
+"charters" = "Чартеры";
+"profile" = "Профиль";

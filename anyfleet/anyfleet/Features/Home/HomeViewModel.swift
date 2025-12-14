@@ -17,7 +17,7 @@ final class HomeViewModel: ObservableObject {
     }
     
     func onCreateCharterTapped() {
-        coordinator.push(.createCharter)
+        coordinator.push(.createCharter, to: .charters)
     }
 }
 
