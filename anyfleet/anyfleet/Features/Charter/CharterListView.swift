@@ -24,44 +24,52 @@ struct CharterListView: View {
     }
     
     private var emptyState: some View {
-        VStack(spacing: DesignSystem.Spacing.lg) {
-            Image(systemName: "sailboat")
-                .font(.system(size: 48))
-                .foregroundColor(DesignSystem.Colors.textSecondary)
-            
-            Text("No charters yet")
-                .font(DesignSystem.Typography.title)
-                .foregroundColor(DesignSystem.Colors.textPrimary)
-            
-            Text("Create your first charter to get started")
-                .font(DesignSystem.Typography.body)
-                .foregroundColor(DesignSystem.Colors.textSecondary)
-                .multilineTextAlignment(.center)
-        }
-        .padding(DesignSystem.Spacing.xl)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        DesignSystem.EmptyStateHero(
+            icon: "sailboat",
+            title: "Your Journey Awaits",
+            message: "Create your first charter and set sail on an unforgettable adventure. Every great voyage begins with a single plan.",
+            accentColor: DesignSystem.Colors.primary
+        )
+        .background(
+            LinearGradient(
+                colors: [
+                    DesignSystem.Colors.background,
+                    DesignSystem.Colors.oceanDeep.opacity(0.03)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
+        )
     }
     
     private var charterList: some View {
-        List {
-            ForEach(charterStore.charters) { charter in
-                CharterRowView(charter: charter)
-                    .listRowInsets(EdgeInsets(
-                        top: DesignSystem.Spacing.sm,
-                        leading: DesignSystem.Spacing.lg,
-                        bottom: DesignSystem.Spacing.sm,
-                        trailing: DesignSystem.Spacing.lg
-                    ))
-                    .listRowBackground(Color.clear)
+        ScrollView {
+            LazyVStack(spacing: DesignSystem.Spacing.lg) {
+                ForEach(charterStore.charters) { charter in
+                    CharterRowView(charter: charter)
+                        .padding(.horizontal, DesignSystem.Spacing.lg)
+                }
             }
+            .padding(.vertical, DesignSystem.Spacing.md)
         }
-        .listStyle(.plain)
-        .scrollContentBackground(.hidden)
+        .background(
+            LinearGradient(
+                colors: [
+                    DesignSystem.Colors.background,
+                    DesignSystem.Colors.oceanDeep.opacity(0.02)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
+        )
     }
 }
 
 struct CharterRowView: View {
     let charter: CharterModel
+    @State private var isPressed = false
     
     private var dateFormatter: DateFormatter {
         let formatter = DateFormatter()
@@ -70,69 +78,170 @@ struct CharterRowView: View {
         return formatter
     }
     
+    private var isUpcoming: Bool {
+        charter.daysUntilStart > 0
+    }
+    
     var body: some View {
-        VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
-            HStack {
+        VStack(alignment: .leading, spacing: 0) {
+            // Hero Section - Focal Point
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
+                // Charter Name - Primary Focal Element
                 Text(charter.name)
-                    .font(DesignSystem.Typography.headline)
-                    .foregroundColor(DesignSystem.Colors.textPrimary)
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [
+                                DesignSystem.Colors.textPrimary,
+                                DesignSystem.Colors.textPrimary.opacity(0.8)
+                            ],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
                 
-                Spacer()
-                
+                // Boat Name - Secondary Focal with Gold Accent
                 if let boatName = charter.boatName {
-                    Text(boatName)
-                        .font(DesignSystem.Typography.caption)
-                        .foregroundColor(DesignSystem.Colors.textSecondary)
-                        .padding(.horizontal, DesignSystem.Spacing.sm)
-                        .padding(.vertical, DesignSystem.Spacing.xs)
-                        .background(DesignSystem.Colors.surfaceAlt)
-                        .cornerRadius(8)
+                    HStack(spacing: DesignSystem.Spacing.xs) {
+                        Image(systemName: "sailboat.fill")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: [
+                                        DesignSystem.Colors.gold,
+                                        DesignSystem.Colors.gold.opacity(0.7)
+                                    ],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                        
+                        Text(boatName)
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(DesignSystem.Colors.textPrimary)
+                    }
+                    .padding(.horizontal, DesignSystem.Spacing.md)
+                    .padding(.vertical, DesignSystem.Spacing.xs + 2)
+                    .background(
+                        Capsule()
+                            .fill(
+                                LinearGradient(
+                                    colors: [
+                                        DesignSystem.Colors.gold.opacity(0.15),
+                                        DesignSystem.Colors.gold.opacity(0.08)
+                                    ],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                    )
+                    .overlay(
+                        Capsule()
+                            .stroke(
+                                DesignSystem.Colors.gold.opacity(0.3),
+                                lineWidth: 1
+                            )
+                    )
                 }
             }
+            .padding(.horizontal, DesignSystem.Spacing.lg)
+            .padding(.top, DesignSystem.Spacing.lg)
+            .padding(.bottom, DesignSystem.Spacing.md)
+            .focalHighlight()
             
-            HStack(spacing: DesignSystem.Spacing.md) {
-                Label {
-                    Text(dateFormatter.string(from: charter.startDate))
-                        .font(DesignSystem.Typography.body)
-                        .foregroundColor(DesignSystem.Colors.textSecondary)
-                } icon: {
-                    Image(systemName: "calendar")
-                        .foregroundColor(DesignSystem.Colors.textSecondary)
-                }
-                
-                Text("→")
-                    .foregroundColor(DesignSystem.Colors.textSecondary)
-                
-                Label {
-                    Text(dateFormatter.string(from: charter.endDate))
-                        .font(DesignSystem.Typography.body)
-                        .foregroundColor(DesignSystem.Colors.textSecondary)
-                } icon: {
-                    Image(systemName: "calendar")
-                        .foregroundColor(DesignSystem.Colors.textSecondary)
-                }
-                
-                Spacer()
-                
-                Text("\(charter.durationDays) days")
-                    .font(DesignSystem.Typography.caption)
-                    .foregroundColor(DesignSystem.Colors.textSecondary)
-            }
+            Divider()
+                .background(DesignSystem.Colors.border.opacity(0.5))
+                .padding(.horizontal, DesignSystem.Spacing.lg)
             
-            if let location = charter.location {
-                HStack(spacing: DesignSystem.Spacing.xs) {
-                    Image(systemName: "location.fill")
-                        .font(.system(size: 12))
-                        .foregroundColor(DesignSystem.Colors.textSecondary)
-                    Text(location)
-                        .font(DesignSystem.Typography.caption)
-                        .foregroundColor(DesignSystem.Colors.textSecondary)
+            // Timeline Narrative Section
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
+                // Date Range with Visual Timeline
+                HStack(spacing: DesignSystem.Spacing.md) {
+                    VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
+                        HStack(spacing: DesignSystem.Spacing.xs) {
+                            DesignSystem.TimelineIndicator(isActive: isUpcoming)
+                            Text("Departure")
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(DesignSystem.Colors.textSecondary)
+                                .textCase(.uppercase)
+                                .tracking(0.5)
+                        }
+                        Text(dateFormatter.string(from: charter.startDate))
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(DesignSystem.Colors.textPrimary)
+                    }
+                    
+                    Spacer()
+                    
+                    // Duration Badge
+                    HStack(spacing: DesignSystem.Spacing.xs) {
+                        Image(systemName: "clock.fill")
+                            .font(.system(size: 11))
+                            .foregroundColor(DesignSystem.Colors.primary)
+                        Text("\(charter.durationDays) days")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(DesignSystem.Colors.primary)
+                    }
+                    .padding(.horizontal, DesignSystem.Spacing.sm)
+                    .padding(.vertical, DesignSystem.Spacing.xs)
+                    .background(
+                        Capsule()
+                            .fill(DesignSystem.Colors.primary.opacity(0.12))
+                    )
+                    
+                    VStack(alignment: .trailing, spacing: DesignSystem.Spacing.xs) {
+                        HStack(spacing: DesignSystem.Spacing.xs) {
+                            Text("Return")
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(DesignSystem.Colors.textSecondary)
+                                .textCase(.uppercase)
+                                .tracking(0.5)
+                            DesignSystem.TimelineIndicator(isActive: false)
+                        }
+                        Text(dateFormatter.string(from: charter.endDate))
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(DesignSystem.Colors.textPrimary)
+                    }
+                }
+                
+                // Location Context
+                if let location = charter.location {
+                    HStack(spacing: DesignSystem.Spacing.sm) {
+                        Image(systemName: "mappin.circle.fill")
+                            .font(.system(size: 14))
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: [
+                                        DesignSystem.Colors.primary,
+                                        DesignSystem.Colors.primary.opacity(0.7)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                        Text(location)
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(DesignSystem.Colors.textSecondary)
+                    }
+                    .padding(.top, DesignSystem.Spacing.xs)
                 }
             }
+            .padding(.horizontal, DesignSystem.Spacing.lg)
+            .padding(.vertical, DesignSystem.Spacing.md)
         }
-        .padding(DesignSystem.Spacing.md)
-        .background(DesignSystem.Colors.surface)
-        .cornerRadius(12)
+        .heroCardStyle(elevation: isUpcoming ? .high : .medium)
+        .scaleEffect(isPressed ? 0.98 : 1.0)
+        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isPressed)
+        .onTapGesture {
+            // Handle tap if needed
+        }
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { _ in isPressed = true }
+                .onEnded { _ in isPressed = false }
+        )
     }
 }
 
