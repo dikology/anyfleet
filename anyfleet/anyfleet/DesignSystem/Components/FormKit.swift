@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /// Common building blocks for forms, selection flows, and summaries.
 extension DesignSystem {
@@ -53,6 +54,37 @@ extension DesignSystem {
                             .foregroundColor(DesignSystem.Colors.textSecondary.opacity(0.8))
                     }
                 }
+            }
+        }
+        
+        /// A reusable text field component following iOS best practices.
+        /// Provides consistent styling, accessibility, and user experience.
+        /// Use this component inside Form.Section for consistent form layouts.
+        struct FormTextField: View {
+            let placeholder: String
+            @Binding var text: String
+            let keyboardType: UIKeyboardType
+            let autocapitalization: TextInputAutocapitalization
+            
+            init(
+                placeholder: String,
+                text: Binding<String>,
+                keyboardType: UIKeyboardType = .default,
+                autocapitalization: TextInputAutocapitalization = .sentences
+            ) {
+                self.placeholder = placeholder
+                self._text = text
+                self.keyboardType = keyboardType
+                self.autocapitalization = autocapitalization
+            }
+            
+            var body: some View {
+                SwiftUI.TextField(placeholder, text: $text)
+                    .keyboardType(keyboardType)
+                    .textInputAutocapitalization(autocapitalization)
+                    .autocorrectionDisabled()
+                    .formFieldStyle()
+                    .accessibilityLabel(placeholder)
             }
         }
         

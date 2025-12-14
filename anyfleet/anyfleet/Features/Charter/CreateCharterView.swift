@@ -2,6 +2,10 @@ import SwiftUI
 
 struct CreateCharterView: View {
     @State private var form: CharterFormState
+    @State private var charterStore = CharterStore()
+    @State private var isSaving = false
+    @State private var saveError: Error?
+    @Environment(\.dismiss) private var dismiss
     
     init(form: CharterFormState = .init()) {
         _form = State(initialValue: form)
@@ -26,6 +30,13 @@ struct CreateCharterView: View {
                     hero
                     
                     DesignSystem.Form.Progress(progress: completionProgress, label: L10n.charterCreateProgress)
+                    
+                    DesignSystem.Form.Section(title: L10n.charterCreateName, subtitle: L10n.charterCreateNameHelper) {
+                        DesignSystem.Form.FormTextField(
+                            placeholder: L10n.charterCreateNamePlaceholder,
+                            text: $form.name
+                        )
+                    }
                     
                     DesignSystem.Form.Section(title: L10n.charterCreateWhenWillYouSail, subtitle: L10n.charterCreateChooseYourVoyageDates) {
                         DateRangeSection(startDate: $form.startDate, endDate: $form.endDate, nights: form.nights)
@@ -71,7 +82,7 @@ struct CreateCharterView: View {
 //                    }
                     
                     CharterSummaryCard(form: form, progress: completionProgress) {
-                        // Action placeholder; integrate with coordinator when available.
+                        saveCharter()
                     }
                 }
                 .padding(.horizontal, DesignSystem.Spacing.lg)
@@ -94,6 +105,48 @@ private extension CreateCharterView {
             title: L10n.charterCreateSetSailOnYourNextAdventure,
             subtitle: L10n.charterCreateFromDreamToRealityInAFewGuidedSteps
         )
+    }
+    
+    func saveCharter() {
+        AppLogger.view.startOperation("Save Charter")
+        
+        guard !isSaving else {
+            AppLogger.view.warning("Save already in progress, ignoring duplicate request")
+            return
+        }
+        
+        isSaving = true
+        saveError = nil
+        
+        Task {
+            do {
+                // Generate a name if not provided
+                let charterName = form.name.isEmpty 
+                    ? "\(form.destination.isEmpty ? "Charter" : form.destination) - \(form.dateSummary)"
+                    : form.name
+                
+                AppLogger.view.info("Creating charter with name: '\(charterName)'")
+                AppLogger.view.debug("Charter details - boatName: \(form.vessel.isEmpty ? "nil" : form.vessel), location: \(form.destination.isEmpty ? "nil" : form.destination), startDate: \(form.startDate), endDate: \(form.endDate)")
+                
+                let charter = try await charterStore.createCharter(
+                    name: charterName,
+                    boatName: form.vessel.isEmpty ? nil : form.vessel,
+                    location: form.destination.isEmpty ? nil : form.destination,
+                    startDate: form.startDate,
+                    endDate: form.endDate,
+                    checkInChecklistID: nil
+                )
+                
+                AppLogger.view.info("Charter created successfully with ID: \(charter.id.uuidString)")
+                AppLogger.view.completeOperation("Save Charter")
+                
+                dismiss()
+            } catch {
+                AppLogger.view.failOperation("Save Charter", error: error)
+                saveError = error
+                isSaving = false
+            }
+        }
     }
 }
 

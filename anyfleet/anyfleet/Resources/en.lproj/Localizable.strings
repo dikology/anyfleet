@@ -3,6 +3,9 @@
 "home.createCharter.action" = "Start a charter";
 
 "charter.create.progress" = "Progress";
+"charter.create.name" = "Charter name";
+"charter.create.namePlaceholder" = "e.g., Mediterranean 2025";
+"charter.create.nameHelper" = "Give your charter a memorable name";
 "charter.create.whenWillYouSail" = "When will you sail?";
 "charter.create.chooseYourVoyageDates" = "Choose your voyage dates";
 "charter.create.setSailOnYourNextAdventure" = "Set sail on your next adventure";
