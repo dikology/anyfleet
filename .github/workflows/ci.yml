@@ -7,6 +7,15 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to deploy from'
+        required: true
+        default: 'main'
+        type: choice
+        options:
+          - main
 
 jobs:
   test:
@@ -49,10 +58,14 @@ jobs:
   deploy:
     name: Deploy to TestFlight
     runs-on: macos-15
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, '[deploy]')
+    if: |
+      (github.event_name == 'push' && github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, '[deploy]')) ||
+      (github.event_name == 'workflow_dispatch')
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch || github.ref }}
 
       - name: Set up Xcode
         uses: maxim-lobanov/setup-xcode@v1
