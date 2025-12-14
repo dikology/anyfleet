@@ -160,7 +160,9 @@ extension CharterRecord {
         
         // Smart conversion preserving metadata
         let record = fromDomainModel(charter, existingRecord: existing)
-        // GRDB's save() is mutating, so we need a mutable copy
+        
+        // GRDB's save() is mutating, so we need var
+        // The compiler warning is a false positive - save() does mutate the record
         let mutableRecord = record
         try mutableRecord.save(db)
         return mutableRecord

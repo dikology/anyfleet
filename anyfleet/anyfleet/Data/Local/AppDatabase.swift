@@ -14,7 +14,10 @@ final class AppDatabase: Sendable {
     /// The database writer (DatabaseQueue for main app, DatabaseQueue for tests)
     let dbWriter: any DatabaseWriter 
     
-    private static let lock = NSLock()
+    // Note: nonisolated(unsafe) is required here despite compiler warning
+    // because static properties are inferred as main actor-isolated in Swift 6,
+    // and we need to access lock from nonisolated shared property
+    private nonisolated(unsafe) static let lock = NSLock()
     private nonisolated(unsafe) static var _shared: AppDatabase?
     
     nonisolated static var shared: AppDatabase {
