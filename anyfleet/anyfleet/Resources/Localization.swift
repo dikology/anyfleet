@@ -24,6 +24,24 @@ enum L10n {
         tableName: "Localizable",
         comment: "Progress label for the create charter form"
     )
+    
+    static let charterCreateName = NSLocalizedString(
+        "charter.create.name",
+        tableName: "Localizable",
+        comment: "Title for the charter name field in the create charter form"
+    )
+    
+    static let charterCreateNamePlaceholder = NSLocalizedString(
+        "charter.create.namePlaceholder",
+        tableName: "Localizable",
+        comment: "Placeholder for the charter name input field in the create charter form"
+    )
+    
+    static let charterCreateNameHelper = NSLocalizedString(
+        "charter.create.nameHelper",
+        tableName: "Localizable",
+        comment: "Helper text for the charter name field in the create charter form"
+    )
 
     static let charterCreateWhenWillYouSail = NSLocalizedString(
         "charter.create.whenWillYouSail",

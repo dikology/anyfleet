@@ -3,6 +3,9 @@
 "home.createCharter.action" = "Начать чартер";
 
 "charter.create.progress" = "Прогресс";
+"charter.create.name" = "Название чартера";
+"charter.create.namePlaceholder" = "например, Средиземноморье 2025";
+"charter.create.nameHelper" = "Дайте вашему чартеру запоминающееся название";
 "charter.create.whenWillYouSail" = "Когда вы выйдете в море?";
 "charter.create.chooseYourVoyageDates" = "Выберите даты вашего путешествия";
 "charter.create.setSailOnYourNextAdventure" = "Начните следующее путешествие"; 
