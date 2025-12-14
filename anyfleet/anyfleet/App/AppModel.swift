@@ -2,24 +2,123 @@ import SwiftUI
 import Combine
 
 enum AppRoute: Hashable {
+    // Charters
     case createCharter
+    case charterDetail(UUID)
+    
+    // TODO: Add more routes as features are implemented
+    // case checklistDetail(UUID)
+    // case checklistEditor(UUID)
+    // case checklistExecution(charterID: UUID, checklistID: UUID)
+    // case deckDetail(UUID)
+    // case deckEditor(UUID)
+    // case guideDetail(UUID)
+    // case guideEditor(UUID)
+    // case profileUser(UUID)
+    // case profileSettings
+    // case search(String)
 }
 
 @MainActor
 final class AppCoordinator: ObservableObject {
-    @Published var path = NavigationPath()
+    // Individual navigation paths per tab
+    @Published var homePath: [AppRoute] = []
+    //@Published var libraryPath = NavigationPath()
+    //@Published var discoverPath = NavigationPath()
+    @Published var chartersPath: [AppRoute] = []
+    //@Published var profilePath = NavigationPath()
     
-    func push(_ route: AppRoute) {
-        path.append(route)
+    // Tab selection state
+    @Published var selectedTab: AppView.Tab = .home
+    
+    // MARK: - Tab-Specific Navigation
+    
+    func push(_ route: AppRoute, to tab: AppView.Tab) {
+        switch tab {
+        case .home:
+            homePath.append(route)
+        //case .library:
+            //libraryPath.append(route)
+        //case .discover:
+            //discoverPath.append(route)
+        case .charters:
+            chartersPath.append(route)
+        //case .profile:
+            //profilePath.append(route)
+        }
     }
     
-    func pop() {
-        guard !path.isEmpty else { return }
-        path.removeLast()
+    func pop(from tab: AppView.Tab) {
+        switch tab {
+        case .home:
+            guard !homePath.isEmpty else { return }
+            homePath.removeLast()
+        //case .library:
+            //guard !libraryPath.isEmpty else { return }
+            //libraryPath.removeLast()
+        //case .discover:
+            //guard !discoverPath.isEmpty else { return }
+            //discoverPath.removeLast()
+        case .charters:
+            guard !chartersPath.isEmpty else { return }
+            chartersPath.removeLast()
+        //case .profile:
+            //guard !profilePath.isEmpty else { return }
+            //profilePath.removeLast()
+        }
     }
     
-    func popToRoot() {
-        path.removeLast(path.count)
+    func popToRoot(from tab: AppView.Tab) {
+        switch tab {
+        case .home:
+            homePath.removeLast(homePath.count)
+        //case .library:
+            //libraryPath.removeLast(libraryPath.count)
+        //case .discover:
+            //discoverPath.removeLast(discoverPath.count)
+        case .charters:
+            chartersPath.removeLast(chartersPath.count)
+        //case .profile:
+            //profilePath.removeLast(profilePath.count)
+        }
+    }
+    
+    // MARK: - Charter Navigation
+    
+    func createCharter() {
+        chartersPath.append(.createCharter)
+    }
+    
+    func viewCharter(_ id: UUID) {
+        chartersPath.append(.charterDetail(id))
+    }
+    
+    // MARK: - Cross-Tab Navigation
+    
+    func navigateToCharter(_ id: UUID) {
+        selectedTab = .charters
+        chartersPath = []
+        chartersPath.append(.charterDetail(id))
+    }
+    
+    // MARK: - Deep Linking (TODO: Implement when needed)
+    
+    func handleDeepLink(_ url: URL) {
+        // TODO: Implement deep link handling
+        // See PRD section "Deep Linking & URL Handling" for implementation details
+    }
+}
+
+// MARK: - Environment Key
+
+private struct AppCoordinatorKey: EnvironmentKey {
+    static let defaultValue: AppCoordinator = AppCoordinator()
+}
+
+extension EnvironmentValues {
+    var appCoordinator: AppCoordinator {
+        get { self[AppCoordinatorKey.self] }
+        set { self[AppCoordinatorKey.self] = newValue }
     }
 }
 

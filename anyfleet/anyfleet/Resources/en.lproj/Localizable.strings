@@ -16,7 +16,6 @@
 "charter.create.region" = "Region";
 "charter.create.selectARegion" = "Select a region";
 "charter.create.vessel" = "Vessel";
-"charter.create.upToGuests" = "Up to %d guests";
 "charter.create.crew" = "Crew";
 "charter.create.captainAndOptionsSelected" = "Captain + options selected";
 "charter.create.createCharter" = "Create charter"; 
@@ -40,7 +39,6 @@
 "charter.summary.region" = "Region";
 "charter.summary.selectARegion" = "Select a region";
 "charter.summary.vessel" = "Vessel";
-"charter.summary.upToGuests" = "Up to %d guests";
 "charter.summary.crew" = "Crew";
 "charter.summary.captainAndOptionsSelected" = "Captain + options selected";
 "charter.summary.budget" = "Budget";
@@ -48,7 +46,6 @@
 "charter.summary.createCharter" = "Create charter";
 "charter.summary.step" = "Step";
 "charter.summary.selectARegion" = "Select a region";
-"charter.summary.upToGuests" = "Up to %d guests";
 "charter.summary.captainAndOptionsSelected" = "Captain + options selected";
 "charter.summary.budget" = "Budget";
 "charter.summary.readyToLockInYourPlan" = "Ready to lock in your plan";
@@ -57,3 +54,9 @@
 "charter.summary.nights" = "nights";
 "charter.summary.upto" = "Up to";
 "charter.summary.of" = "of";
+
+"home" = "Home";
+"library" = "Library";
+"discover" = "Discover";
+"charters" = "Charters";
+"profile" = "Profile";

@@ -50,3 +50,9 @@
 "charter.summary.nights" = "nights";
 "charter.summary.upto" = "Up to";
 "charter.summary.of" = "of";
+
+"home" = "Home";
+"library" = "Library";
+"discover" = "Discover";
+"charters" = "Charters";
+"profile" = "Profile";

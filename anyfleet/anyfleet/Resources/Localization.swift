@@ -1,6 +1,36 @@
 import Foundation
 
 enum L10n {
+    static let Home = NSLocalizedString(
+        "home",
+        tableName: "Localizable",
+        comment: "Title for the home tab"
+    )
+    
+    static let Library = NSLocalizedString(
+        "library",
+        tableName: "Localizable",
+        comment: "Title for the library tab"
+    )
+    
+    static let Discover = NSLocalizedString(
+        "discover",
+        tableName: "Localizable",
+        comment: "Title for the discover tab"
+    )
+    
+    static let Charters = NSLocalizedString(
+        "charters",
+        tableName: "Localizable",
+        comment: "Title for the charters tab"
+    )
+    
+    static let Profile = NSLocalizedString(
+        "profile",
+        tableName: "Localizable",
+        comment: "Title for the profile tab"
+    )
+    
     static let homeCreateCharterTitle = NSLocalizedString(
         "home.createCharter.title",
         tableName: "Localizable",
