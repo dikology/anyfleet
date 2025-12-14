@@ -10,6 +10,10 @@
 #     https://docs.fastlane.tools/plugins/available-plugins
 #
 
+# Enable verbose logging for better error visibility
+# This helps prevent error truncation in CI
+ENV["FASTLANE_VERBOSE"] = "true" if ENV["CI"] == "true"
+
 default_platform(:ios)
 
 platform :ios do
@@ -54,13 +58,26 @@ platform :ios do
 
     UI.message("Setting up match with type: #{match_type}")
 
-    match(
+    match_options = {
       type: match_type,
       app_identifier: "com.dikology.anyfleet",
       git_url: ENV["MATCH_GIT_URL"],
       git_branch: ENV["MATCH_GIT_BRANCH"] || "main",
-      readonly: ENV["CI"] == "true"
-    )
+      readonly: ENV["CI"] == "true",
+      # Explicitly override Matchfile defaults
+      force: false,
+      skip_confirmation: true
+    }
+
+    # Add keychain options if provided (for CI)
+    if ENV["MATCH_KEYCHAIN_NAME"]
+      match_options[:keychain_name] = ENV["MATCH_KEYCHAIN_NAME"]
+    end
+    if ENV["MATCH_KEYCHAIN_PASSWORD"]
+      match_options[:keychain_password] = ENV["MATCH_KEYCHAIN_PASSWORD"]
+    end
+
+    match(match_options)
   end
 
   desc "Build and archive the app"
@@ -110,12 +127,30 @@ platform :ios do
     build
     
     # Upload to TestFlight
-    upload_to_testflight(
+    # Prefer App Store Connect API key over username/password for CI
+    upload_options = {
       skip_waiting_for_build_processing: false,
       skip_submission: true,
       distribute_external: false,
       notify_external_testers: false
-    )
+    }
+    
+    # Explicitly use API key if available (for CI)
+    if ENV["APP_STORE_CONNECT_API_KEY_ID"] && ENV["APP_STORE_CONNECT_ISSUER_ID"]
+      key_path = ENV["APP_STORE_CONNECT_API_KEY_PATH"] || 
+                 File.expand_path("~/.appstoreconnect/private_keys/AuthKey_#{ENV["APP_STORE_CONNECT_API_KEY_ID"]}.p8")
+      
+      upload_options[:api_key] = {
+        key_id: ENV["APP_STORE_CONNECT_API_KEY_ID"],
+        issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
+        key_filepath: key_path,
+        is_key_content_base64: false,
+        duration: 1200, # optional
+        in_house: false
+      }
+    end
+    
+    upload_to_testflight(upload_options)
   end
 
   desc "Run tests and upload to TestFlight if on main branch"

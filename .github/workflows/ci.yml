@@ -87,7 +87,10 @@ jobs:
           APP_STORE_CONNECT_API_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT }}
         run: |
           mkdir -p ~/.appstoreconnect/private_keys
-          echo "$APP_STORE_CONNECT_API_KEY_CONTENT" > ~/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8
+          KEY_PATH=~/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8
+          echo "$APP_STORE_CONNECT_API_KEY_CONTENT" > "$KEY_PATH"
+          chmod 600 "$KEY_PATH"
+          echo "APP_STORE_CONNECT_API_KEY_PATH=$KEY_PATH" >> $GITHUB_ENV
 
       - name: Setup Keychain for Match
         run: |
@@ -114,16 +117,23 @@ jobs:
         env:
           CI: "true"
           DEPLOY_TO_TESTFLIGHT: "true"
-          FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD: ${{ secrets.FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD }}
-          FASTLANE_USER: ${{ secrets.FASTLANE_USER }}
+          # Use App Store Connect API key (preferred for CI)
           APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
           APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          # Fallback to username/password only if API key is not available
+          FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD: ${{ secrets.FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD }}
+          FASTLANE_USER: ${{ secrets.FASTLANE_USER }}
           MATCH_GIT_URL: https://x-access-token:${{ secrets.MATCH_GIT_TOKEN }}@github.com/dikology/certificates.git
           MATCH_GIT_BRANCH: ${{ secrets.MATCH_GIT_BRANCH || 'master' }}
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
           MATCH_KEYCHAIN_NAME: build.keychain
           MATCH_KEYCHAIN_PASSWORD: ${{ secrets.MATCH_KEYCHAIN_PASSWORD }}
-        run: bundle exec fastlane beta
+        run: |
+          # Enable verbose output to prevent error truncation
+          export FASTLANE_VERBOSE=true
+          # Show full stack traces
+          export FASTLANE_SKIP_UPDATE_CHECK=1
+          bundle exec fastlane beta --verbose
 
       - name: Upload build logs
         if: always()
