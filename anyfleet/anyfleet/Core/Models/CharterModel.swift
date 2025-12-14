@@ -9,7 +9,7 @@ import Foundation
 
 // MARK: - Charter Model
 
-struct CharterModel: Identifiable, Hashable, Sendable {
+nonisolated struct CharterModel: Identifiable, Hashable, Sendable {
     let id: UUID
     var name: String
     var boatName: String?

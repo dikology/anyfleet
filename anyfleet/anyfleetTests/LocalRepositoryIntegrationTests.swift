@@ -10,18 +10,18 @@ import Testing
 @testable import anyfleet
 
 @Suite("LocalRepository Integration Tests")
-struct LocalRepositoryIntegrationTests {
+nonisolated struct LocalRepositoryIntegrationTests {
     
     var database: AppDatabase!
     var repository: LocalRepository!
     
-    init() async throws {
+    nonisolated init() async throws {
         database = try AppDatabase.makeEmpty()
         repository = LocalRepository(database: database)
     }
     
     @Test("Create and fetch charter - full flow")
-    func testCreateAndFetchCharter() async throws {
+    nonisolated func testCreateAndFetchCharter() async throws {
         // Arrange
         let charter = CharterModel(
             id: UUID(),
@@ -47,7 +47,7 @@ struct LocalRepositoryIntegrationTests {
     }
     
     @Test("Fetch charters by status - active")
-    func testFetchChartersByStatus_Active() async throws {
+    nonisolated func testFetchChartersByStatus_Active() async throws {
         // Arrange
         let now = Date()
         let activeCharter = CharterModel(
@@ -85,7 +85,7 @@ struct LocalRepositoryIntegrationTests {
     }
     
     @Test("Fetch charters by status - upcoming")
-    func testFetchChartersByStatus_Upcoming() async throws {
+    nonisolated func testFetchChartersByStatus_Upcoming() async throws {
         // Arrange
         let now = Date()
         let upcomingCharter = CharterModel(
@@ -109,7 +109,7 @@ struct LocalRepositoryIntegrationTests {
     }
     
     @Test("Fetch charters by status - past")
-    func testFetchChartersByStatus_Past() async throws {
+    nonisolated func testFetchChartersByStatus_Past() async throws {
         // Arrange
         let now = Date()
         let pastCharter = CharterModel(
@@ -133,7 +133,7 @@ struct LocalRepositoryIntegrationTests {
     }
     
     @Test("Mark charter as synced")
-    func testMarkCharterSynced() async throws {
+    nonisolated func testMarkCharterSynced() async throws {
         // Arrange
         let charter = CharterModel(
             id: UUID(),
@@ -161,7 +161,7 @@ struct LocalRepositoryIntegrationTests {
     }
     
     @Test("Delete charter")
-    func testDeleteCharter() async throws {
+    nonisolated func testDeleteCharter() async throws {
         // Arrange
         let charter = CharterModel(
             id: UUID(),
@@ -184,7 +184,7 @@ struct LocalRepositoryIntegrationTests {
     }
     
     @Test("Fetch all charters - returns all")
-    func testFetchAllCharters() async throws {
+    nonisolated func testFetchAllCharters() async throws {
         // Arrange
         let charter1 = CharterModel(
             id: UUID(),
@@ -220,7 +220,7 @@ struct LocalRepositoryIntegrationTests {
     }
     
     @Test("Save charter - updates existing")
-    func testSaveCharter_UpdatesExisting() async throws {
+    nonisolated func testSaveCharter_UpdatesExisting() async throws {
         // Arrange
         let original = CharterModel(
             id: UUID(),
