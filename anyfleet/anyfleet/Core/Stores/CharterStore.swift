@@ -9,12 +9,12 @@ final class CharterStore {
     
     /// Local repository for database operations
     // Sendable conformance required for Observable in Swift 6
-    nonisolated private let repository: LocalRepository
+    nonisolated private let repository: any CharterRepository
     
     // MARK: - Initialization
     
-    nonisolated init(repository: LocalRepository = LocalRepository()) {
-        self.repository = repository
+    nonisolated init(repository: (any CharterRepository)? = nil) {
+        self.repository = repository ?? LocalRepository()
     }
     
     // MARK: - Charter Operations
