@@ -135,7 +135,8 @@ platform :ios do
       notify_external_testers: false
     }
     
-    # Explicitly use API key if available (for CI)
+    # Configure API key if available (for CI)
+    # The api_key parameter expects the key content, not the file path
     if ENV["APP_STORE_CONNECT_API_KEY_ID"] && ENV["APP_STORE_CONNECT_ISSUER_ID"]
       key_id = ENV["APP_STORE_CONNECT_API_KEY_ID"]
       issuer_id = ENV["APP_STORE_CONNECT_ISSUER_ID"]
@@ -148,25 +149,31 @@ platform :ios do
         key_path = File.expand_path(key_path)  # Ensure absolute path
       end
       
-      UI.message("Looking for API key at: #{key_path}")
+      UI.message("🔑 Configuring App Store Connect API key")
+      UI.message("   Key ID: #{key_id}")
+      UI.message("   Issuer ID: #{issuer_id}")
+      UI.message("   Key path: #{key_path}")
       
       # Verify the key file exists
       unless File.exist?(key_path)
-        UI.user_error!("App Store Connect API key file not found at: #{key_path}")
+        UI.user_error!("❌ App Store Connect API key file not found at: #{key_path}")
       end
       
-      UI.message("Using App Store Connect API key from: #{key_path}")
+      # Read the key file content
+      key_content = File.read(key_path)
       
-      # Create API key hash - ensure all values are strings, not nil
-      api_key_hash = {
-        key_id: key_id.to_s,
-        issuer_id: issuer_id.to_s,
-        key_filepath: key_path.to_s
+      # Pass the API key as a hash with the key content
+      upload_options[:api_key] = {
+        key_id: key_id,
+        issuer_id: issuer_id,
+        key: key_content,
+        duration: 1200,  # optional, maximum 1200 seconds
+        in_house: false  # optional
       }
       
-      UI.message("API key configuration: key_id=#{api_key_hash[:key_id]}, issuer_id=#{api_key_hash[:issuer_id]}, path=#{api_key_hash[:key_filepath]}")
-      
-      upload_options[:api_key] = api_key_hash
+      UI.message("✅ API key configured and loaded")
+    else
+      UI.message("⚠️  No API key found - will use username/password if available")
     end
     
     upload_to_testflight(upload_options)
