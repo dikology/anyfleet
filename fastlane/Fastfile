@@ -137,17 +137,36 @@ platform :ios do
     
     # Explicitly use API key if available (for CI)
     if ENV["APP_STORE_CONNECT_API_KEY_ID"] && ENV["APP_STORE_CONNECT_ISSUER_ID"]
-      key_path = ENV["APP_STORE_CONNECT_API_KEY_PATH"] || 
-                 File.expand_path("~/.appstoreconnect/private_keys/AuthKey_#{ENV["APP_STORE_CONNECT_API_KEY_ID"]}.p8")
+      key_id = ENV["APP_STORE_CONNECT_API_KEY_ID"]
+      issuer_id = ENV["APP_STORE_CONNECT_ISSUER_ID"]
       
-      upload_options[:api_key] = {
-        key_id: ENV["APP_STORE_CONNECT_API_KEY_ID"],
-        issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
-        key_filepath: key_path,
-        is_key_content_base64: false,
-        duration: 1200, # optional
-        in_house: false
+      # Construct the key path - prefer explicit path, otherwise use default location
+      key_path = ENV["APP_STORE_CONNECT_API_KEY_PATH"]
+      if key_path.nil? || key_path.empty?
+        key_path = File.expand_path("~/.appstoreconnect/private_keys/AuthKey_#{key_id}.p8")
+      else
+        key_path = File.expand_path(key_path)  # Ensure absolute path
+      end
+      
+      UI.message("Looking for API key at: #{key_path}")
+      
+      # Verify the key file exists
+      unless File.exist?(key_path)
+        UI.user_error!("App Store Connect API key file not found at: #{key_path}")
+      end
+      
+      UI.message("Using App Store Connect API key from: #{key_path}")
+      
+      # Create API key hash - ensure all values are strings, not nil
+      api_key_hash = {
+        key_id: key_id.to_s,
+        issuer_id: issuer_id.to_s,
+        key_filepath: key_path.to_s
       }
+      
+      UI.message("API key configuration: key_id=#{api_key_hash[:key_id]}, issuer_id=#{api_key_hash[:issuer_id]}, path=#{api_key_hash[:key_filepath]}")
+      
+      upload_options[:api_key] = api_key_hash
     end
     
     upload_to_testflight(upload_options)

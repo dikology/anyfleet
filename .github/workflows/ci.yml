@@ -120,6 +120,7 @@ jobs:
           # Use App Store Connect API key (preferred for CI)
           APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
           APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          # API key path is set from previous step via GITHUB_ENV
           # Fallback to username/password only if API key is not available
           FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD: ${{ secrets.FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD }}
           FASTLANE_USER: ${{ secrets.FASTLANE_USER }}
@@ -133,6 +134,16 @@ jobs:
           export FASTLANE_VERBOSE=true
           # Show full stack traces
           export FASTLANE_SKIP_UPDATE_CHECK=1
+          # Verify API key file exists if using API key
+          if [ -n "$APP_STORE_CONNECT_API_KEY_ID" ]; then
+            KEY_PATH="${APP_STORE_CONNECT_API_KEY_PATH:-$HOME/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8}"
+            if [ ! -f "$KEY_PATH" ]; then
+              echo "Error: API key file not found at $KEY_PATH"
+              exit 1
+            fi
+            echo "Using API key file: $KEY_PATH"
+            export APP_STORE_CONNECT_API_KEY_PATH="$KEY_PATH"
+          fi
           bundle exec fastlane beta --verbose
 
       - name: Upload build logs
