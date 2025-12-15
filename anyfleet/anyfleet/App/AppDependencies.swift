@@ -124,16 +124,15 @@ extension AppDependencies {
     ///
     /// - Returns: A new `AppDependencies` instance configured for testing
     /// - Throws: If the in-memory database cannot be created
-    nonisolated static func makeForTesting() throws -> AppDependencies {
+    @MainActor
+    static func makeForTesting() throws -> AppDependencies {
         let testDatabase = try AppDatabase.makeEmpty()
         let testRepository = LocalRepository(database: testDatabase)
         
-        return MainActor.assumeIsolated {
-            AppDependencies(
-                database: testDatabase,
-                repository: testRepository
-            )
-        }
+        return AppDependencies(
+            database: testDatabase,
+            repository: testRepository
+        )
     }
     
     /// Creates a dependency container for testing with a mock repository.
@@ -143,22 +142,21 @@ extension AppDependencies {
     /// - Parameter mockRepository: The mock repository to use
     /// - Returns: A new `AppDependencies` instance with the mock repository
     /// - Throws: If the in-memory database cannot be created
-    nonisolated static func makeForTesting(
+    @MainActor
+    static func makeForTesting(
         mockRepository: any CharterRepository
     ) throws -> AppDependencies {
         let testDatabase = try AppDatabase.makeEmpty()
         
-        return MainActor.assumeIsolated {
-            let dependencies = AppDependencies(
-                database: testDatabase,
-                repository: LocalRepository(database: testDatabase)
-            )
-            // Replace the store with one using the mock repository
-            let mockStore = CharterStore(repository: mockRepository)
-            // Note: We can't reassign let properties, so this approach needs adjustment
-            // For now, we'll document that tests should create stores directly
-            return dependencies
-        }
+        let dependencies = AppDependencies(
+            database: testDatabase,
+            repository: LocalRepository(database: testDatabase)
+        )
+        // Replace the store with one using the mock repository
+        let mockStore = CharterStore(repository: mockRepository)
+        // Note: We can't reassign let properties, so this approach needs adjustment
+        // For now, we'll document that tests should create stores directly
+        return dependencies
     }
 }
 

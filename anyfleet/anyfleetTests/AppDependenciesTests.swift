@@ -7,6 +7,7 @@
 
 import Foundation
 import Testing
+import GRDB
 @testable import anyfleet
 
 @Suite("AppDependencies Tests")
@@ -18,11 +19,13 @@ struct AppDependenciesTests {
         // Act
         let dependencies = AppDependencies()
         
-        // Assert - verify all dependencies are initialized
-        #expect(dependencies.database != nil)
-        #expect(dependencies.repository != nil)
-        #expect(dependencies.charterStore != nil)
-        #expect(dependencies.localizationService != nil)
+        // Assert - verify all dependencies are initialized properly
+        #expect(dependencies.database === AppDatabase.shared)
+        #expect(dependencies.charterStore.charters.isEmpty)  // Initial state
+        
+        // Verify localization service has a valid language
+        let language = dependencies.localizationService.effectiveLanguage
+        #expect(language == .english || language == .russian)
     }
     
     @Test("AppDependencies - database is shared instance")
@@ -87,21 +90,23 @@ struct AppDependenciesTests {
     @Test("AppDependencies.makeForTesting - creates test dependencies")
     func testMakeForTesting() async throws {
         // Act
-        let dependencies = try AppDependencies.makeForTesting()
+        let dependencies = try await AppDependencies.makeForTesting()
         
-        // Assert
+        // Assert - verify test dependencies are properly initialized
         await MainActor.run {
-            #expect(dependencies.database != nil)
-            #expect(dependencies.repository != nil)
-            #expect(dependencies.charterStore != nil)
-            #expect(dependencies.localizationService != nil)
+            #expect(dependencies.database !== AppDatabase.shared)  // Different instance
+            #expect(dependencies.charterStore.charters.isEmpty)  // Clean state
+            
+            // Verify localization service has a valid language
+            let language = dependencies.localizationService.effectiveLanguage
+            #expect(language == .english || language == .russian)
         }
     }
     
     @Test("AppDependencies.makeForTesting - uses in-memory database")
     func testMakeForTestingUsesInMemoryDatabase() async throws {
         // Arrange
-        let dependencies = try AppDependencies.makeForTesting()
+        let dependencies = try await AppDependencies.makeForTesting()
         
         // Act - create a charter in the test database
         let charter = CharterModel(
@@ -161,9 +166,13 @@ struct AppDependenciesTests {
         // Arrange
         let dependencies = AppDependencies()
         
-        // Act & Assert
-        #expect(dependencies.localizationService != nil)
-        #expect(dependencies.localizationService.effectiveLanguage != nil)
+        // Act & Assert - verify service is functional
+        let language = dependencies.localizationService.effectiveLanguage
+        #expect(language == .english || language == .russian)
+        
+        // Test localization works
+        let testString = dependencies.localizationService.localized("home")
+        #expect(!testString.isEmpty)
     }
 }
 
