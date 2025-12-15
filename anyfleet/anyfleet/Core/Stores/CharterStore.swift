@@ -1,6 +1,33 @@
 import Foundation
 import SwiftUI
 
+/// Store managing charter state and operations across the application.
+///
+/// `CharterStore` serves as the single source of truth for charter data in the app.
+/// It maintains an in-memory cache synchronized with the local database through
+/// the repository layer.
+///
+/// This class uses Swift's modern `@Observable` macro for state observation,
+/// providing automatic change tracking without the need for `@Published` properties.
+///
+/// ## Usage
+///
+/// Access the shared instance through the environment:
+///
+/// ```swift
+/// struct MyView: View {
+///     @Environment(\.appDependencies) private var dependencies
+///
+///     var body: some View {
+///         List(dependencies.charterStore.charters) { charter in
+///             Text(charter.name)
+///         }
+///     }
+/// }
+/// ```
+///
+/// - Important: This class must be accessed from the main actor.
+/// - Note: All operations are automatically logged using `AppLogger`.
 @Observable
 final class CharterStore {
     // MARK: - Properties

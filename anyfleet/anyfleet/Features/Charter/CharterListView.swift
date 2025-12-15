@@ -1,7 +1,9 @@
 import SwiftUI
 
 struct CharterListView: View {
-    @State private var charterStore = CharterStore()
+    @Environment(\.appDependencies) private var dependencies
+    
+    private var charterStore: CharterStore { dependencies.charterStore }
     
     var body: some View {
         Group {
@@ -247,4 +249,5 @@ struct CharterRowView: View {
 
 #Preview {
     CharterListView()
+        .environment(\.appDependencies, try! AppDependencies.makeForTesting())
 }

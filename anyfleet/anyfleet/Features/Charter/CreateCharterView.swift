@@ -2,10 +2,12 @@ import SwiftUI
 
 struct CreateCharterView: View {
     @State private var form: CharterFormState
-    @State private var charterStore = CharterStore()
+    @Environment(\.appDependencies) private var dependencies
     @State private var isSaving = false
     @State private var saveError: Error?
     @Environment(\.dismiss) private var dismiss
+    
+    private var charterStore: CharterStore { dependencies.charterStore }
     
     init(form: CharterFormState = .init()) {
         _form = State(initialValue: form)
@@ -95,6 +97,7 @@ struct CreateCharterView: View {
 
 #Preview {
     CreateCharterView()
+        .environment(\.appDependencies, try! AppDependencies.makeForTesting())
 }
 
 // MARK: - Subviews
@@ -190,5 +193,6 @@ private extension CreateCharterView {
 
 #Preview {
     CreateCharterView(form: .mock)
+        .environment(\.appDependencies, try! AppDependencies.makeForTesting())
 }
 

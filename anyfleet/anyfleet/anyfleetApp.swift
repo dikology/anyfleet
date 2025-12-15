@@ -9,9 +9,13 @@ import SwiftUI
 
 @main
 struct anyfleetApp: App {
+    @State private var dependencies = AppDependencies()
+    
     var body: some Scene {
         WindowGroup {
             AppView()
+                .environment(\.appDependencies, dependencies)
+                .environment(\.appCoordinator, AppCoordinator())
         }
     }
 }
