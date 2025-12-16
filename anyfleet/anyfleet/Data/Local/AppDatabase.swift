@@ -73,6 +73,52 @@ final class AppDatabase: Sendable {
             AppLogger.database.info("Migration v1.0.0_createInitialSchema completed successfully")
         }
         
+        migrator.registerMigration("v1.1.0_createLibrarySchema") { db in
+            AppLogger.database.debug("Running migration: v1.1.0_createLibrarySchema")
+            
+            // MARK: Library Content Metadata Table
+            try db.create(table: "library_content") { t in
+                t.primaryKey("id", .text).notNull()
+                t.column("title", .text).notNull()
+                t.column("description", .text)
+                t.column("type", .text).notNull() // checklist, practice_guide, flashcard_deck
+                t.column("visibility", .text).notNull().defaults(to: "private")
+                t.column("creatorID", .text).notNull()
+                t.column("forkedFromID", .text)
+                t.column("forkCount", .integer).notNull().defaults(to: 0)
+                t.column("ratingAverage", .double)
+                t.column("ratingCount", .integer).notNull().defaults(to: 0)
+                t.column("tags", .text).notNull().defaults(to: "[]") // JSON array
+                t.column("language", .text).notNull().defaults(to: "en")
+                t.column("createdAt", .datetime).notNull()
+                t.column("updatedAt", .datetime).notNull()
+                t.column("syncStatus", .text).notNull().defaults(to: "pending")
+            }
+            
+            // MARK: Checklists Table (full content)
+            try db.create(table: "checklists") { t in
+                t.primaryKey("id", .text).notNull()
+                t.column("title", .text).notNull()
+                t.column("description", .text)
+                t.column("checklistType", .text).notNull().defaults(to: "general")
+                t.column("tags", .text).notNull().defaults(to: "[]") // JSON array
+                t.column("content", .text).notNull().defaults(to: "[]") // JSON of sections/items
+                t.column("creatorID", .text).notNull()
+                t.column("createdAt", .datetime).notNull()
+                t.column("updatedAt", .datetime).notNull()
+                t.column("syncStatus", .text).notNull().defaults(to: "pending")
+            }
+            
+            // Create indexes
+            try db.create(index: "idx_library_content_creator", on: "library_content", columns: ["creatorID"])
+            try db.create(index: "idx_library_content_type", on: "library_content", columns: ["type"])
+            try db.create(index: "idx_library_content_updated", on: "library_content", columns: ["updatedAt"])
+            try db.create(index: "idx_checklists_creator", on: "checklists", columns: ["creatorID"])
+            try db.create(index: "idx_checklists_updated", on: "checklists", columns: ["updatedAt"])
+            
+            AppLogger.database.info("Migration v1.1.0_createLibrarySchema completed successfully")
+        }
+        
         return migrator
     }
     

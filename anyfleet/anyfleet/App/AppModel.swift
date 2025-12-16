@@ -6,14 +6,16 @@ enum AppRoute: Hashable {
     case createCharter
     case charterDetail(UUID)
     
+    // Library Content
+    case checklistEditor(UUID?)
+    case guideEditor(UUID?)
+    case deckEditor(UUID?)
+    
     // TODO: Add more routes as features are implemented
     // case checklistDetail(UUID)
-    // case checklistEditor(UUID)
     // case checklistExecution(charterID: UUID, checklistID: UUID)
     // case deckDetail(UUID)
-    // case deckEditor(UUID)
     // case guideDetail(UUID)
-    // case guideEditor(UUID)
     // case profileUser(UUID)
     // case profileSettings
     // case search(String)
@@ -23,7 +25,7 @@ enum AppRoute: Hashable {
 final class AppCoordinator: ObservableObject {
     // Individual navigation paths per tab
     @Published var homePath: [AppRoute] = []
-    //@Published var libraryPath = NavigationPath()
+    @Published var libraryPath: [AppRoute] = []
     //@Published var discoverPath = NavigationPath()
     @Published var chartersPath: [AppRoute] = []
     //@Published var profilePath = NavigationPath()
@@ -37,8 +39,8 @@ final class AppCoordinator: ObservableObject {
         switch tab {
         case .home:
             homePath.append(route)
-        //case .library:
-            //libraryPath.append(route)
+        case .library:
+            libraryPath.append(route)
         //case .discover:
             //discoverPath.append(route)
         case .charters:
@@ -53,9 +55,9 @@ final class AppCoordinator: ObservableObject {
         case .home:
             guard !homePath.isEmpty else { return }
             homePath.removeLast()
-        //case .library:
-            //guard !libraryPath.isEmpty else { return }
-            //libraryPath.removeLast()
+        case .library:
+            guard !libraryPath.isEmpty else { return }
+            libraryPath.removeLast()
         //case .discover:
             //guard !discoverPath.isEmpty else { return }
             //discoverPath.removeLast()
@@ -72,8 +74,8 @@ final class AppCoordinator: ObservableObject {
         switch tab {
         case .home:
             homePath.removeLast(homePath.count)
-        //case .library:
-            //libraryPath.removeLast(libraryPath.count)
+        case .library:
+            libraryPath.removeLast(libraryPath.count)
         //case .discover:
             //discoverPath.removeLast(discoverPath.count)
         case .charters:
@@ -91,6 +93,26 @@ final class AppCoordinator: ObservableObject {
     
     func viewCharter(_ id: UUID) {
         chartersPath.append(.charterDetail(id))
+    }
+    
+    // MARK: - Library Navigation
+    
+    /// Navigate to checklist editor (create new or edit existing)
+    /// - Parameter checklistID: Optional checklist ID. If nil, creates new checklist.
+    func editChecklist(_ checklistID: UUID? = nil) {
+        libraryPath.append(.checklistEditor(checklistID))
+    }
+    
+    /// Navigate to guide editor (create new or edit existing)
+    /// - Parameter guideID: Optional guide ID. If nil, creates new guide.
+    func editGuide(_ guideID: UUID? = nil) {
+        libraryPath.append(.guideEditor(guideID))
+    }
+    
+    /// Navigate to deck editor (create new or edit existing)
+    /// - Parameter deckID: Optional deck ID. If nil, creates new deck.
+    func editDeck(_ deckID: UUID? = nil) {
+        libraryPath.append(.deckEditor(deckID))
     }
     
     // MARK: - Cross-Tab Navigation

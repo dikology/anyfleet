@@ -7,11 +7,37 @@ enum L10n {
         comment: "Title for the home tab"
     )
     
-    static let Library = NSLocalizedString(
-        "library",
-        tableName: "Localizable",
-        comment: "Title for the library tab"
-    )
+    enum Library {
+        static let myLibrary = NSLocalizedString(
+            "library.myLibrary",
+            tableName: "Localizable",
+            comment: "Title for the library tab"
+        )
+        
+        static let myLibraryDescription = NSLocalizedString(
+            "library.myLibraryDescription",
+            tableName: "Localizable",
+            comment: "Description for the library tab"
+        )
+        
+        static let newChecklist = NSLocalizedString(
+            "library.newChecklist",
+            tableName: "Localizable",
+            comment: "Label for creating a new checklist in the library"
+        )
+        
+        static let newFlashcardDeck = NSLocalizedString(
+            "library.newFlashcardDeck",
+            tableName: "Localizable",
+            comment: "Label for creating a new flashcard deck in the library"
+        )
+        
+        static let newPracticeGuide = NSLocalizedString(
+            "library.newPracticeGuide",
+            tableName: "Localizable",
+            comment: "Label for creating a new practice guide in the library"
+        )
+    }
     
     static let Discover = NSLocalizedString(
         "discover",

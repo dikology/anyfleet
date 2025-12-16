@@ -54,6 +54,9 @@ final class AppDependencies {
     /// Shared charter store instance
     let charterStore: CharterStore
     
+    /// Shared library store instance
+    let libraryStore: LibraryStore
+    
     // MARK: - Services
     
     /// Localization service for managing app language
@@ -77,7 +80,7 @@ final class AppDependencies {
         
         // Initialize stores
         self.charterStore = CharterStore(repository: repository)
-        
+        self.libraryStore = LibraryStore(repository: repository)
         // Initialize services
         self.localizationService = LocalizationService()
         
@@ -111,6 +114,7 @@ final class AppDependencies {
         self.database = database
         self.repository = repository
         self.charterStore = CharterStore(repository: repository)
+        self.libraryStore = LibraryStore(repository: repository)
         self.localizationService = LocalizationService()
         
         AppLogger.dependencies.info("Test AppDependencies initialized successfully")
