@@ -80,18 +80,14 @@ final class ChecklistEditorViewModel {
         errorMessage = nil
         
         do {
-            // TODO: Get userID from dependencies or environment
-            // For now, using a placeholder UUID
-            let userID = UUID() // TODO: Get from UserStore
-            
             if isNewChecklist {
-                try await libraryStore.createChecklist(checklist, creatorID: userID)
+                try await libraryStore.createChecklist(checklist)
             } else {
-                try await libraryStore.saveChecklist(checklist, creatorID: userID)
+                try await libraryStore.saveChecklist(checklist)
             }
             
             // Reload library to reflect changes
-            await libraryStore.loadLibrary(userID: userID)
+            await libraryStore.loadLibrary()
             
             onDismiss()
         } catch {

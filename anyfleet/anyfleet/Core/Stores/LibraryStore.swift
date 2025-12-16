@@ -69,16 +69,15 @@ final class LibraryStore {
     
     // MARK: - Loading Content
     
-    /// Load all library content for a user
-    /// - Parameter userID: The user ID to load content for
+    /// Load all library content
     @MainActor
-    func loadLibrary(userID: UUID) async {
+    func loadLibrary() async {
         do {
             // Load metadata for all content types in parallel
-            async let metadataTask = repository.fetchUserLibrary(userID: userID)
-            async let checklistsTask = repository.fetchUserChecklists(userID: userID)
-            async let guidesTask = repository.fetchUserGuides(userID: userID)
-            async let decksTask = repository.fetchUserDecks(userID: userID)
+            async let metadataTask = repository.fetchUserLibrary()
+            async let checklistsTask = repository.fetchUserChecklists()
+            async let guidesTask = repository.fetchUserGuides()
+            async let decksTask = repository.fetchUserDecks()
             
             // Wait for all tasks to complete
             library = try await metadataTask
@@ -98,68 +97,58 @@ final class LibraryStore {
     // MARK: - Creating Content
     
     /// Create a new checklist
-    /// - Parameters:
-    ///   - checklist: The full checklist model to create
-    ///   - creatorID: The ID of the user creating the checklist
+    /// - Parameter checklist: The full checklist model to create
     @MainActor
-    func createChecklist(_ checklist: Checklist, creatorID: UUID) async throws {
-        try await repository.createChecklist(checklist, creatorID: creatorID)
+    func createChecklist(_ checklist: Checklist) async throws {
+        try await repository.createChecklist(checklist)
         // Reload library to reflect the new content
-        await loadLibrary(userID: creatorID)
+        await loadLibrary()
     }
     
     /// Create a new practice guide
-    /// - Parameters:
-    ///   - guide: The full guide model to create
-    ///   - creatorID: The ID of the user creating the guide
+    /// - Parameter guide: The full guide model to create
     @MainActor
-    func createGuide(_ guide: PracticeGuide, creatorID: UUID) async throws {
-        try await repository.createGuide(guide, creatorID: creatorID)
+    func createGuide(_ guide: PracticeGuide) async throws {
+        try await repository.createGuide(guide)
         // Reload library to reflect the new content
-        await loadLibrary(userID: creatorID)
+        await loadLibrary()
     }
     
     /// Create a new flashcard deck
-    /// - Parameters:
-    ///   - deck: The full deck model to create
-    ///   - creatorID: The ID of the user creating the deck
+    /// - Parameter deck: The full deck model to create
     @MainActor
-    func createDeck(_ deck: FlashcardDeck, creatorID: UUID) async throws {
-        try await repository.createDeck(deck, creatorID: creatorID)
+    func createDeck(_ deck: FlashcardDeck) async throws {
+        try await repository.createDeck(deck)
         // Reload library to reflect the new content
-        await loadLibrary(userID: creatorID)
+        await loadLibrary()
     }
     
     // MARK: - Updating Content
     
     /// Save/update an existing checklist
-    /// - Parameters:
-    ///   - checklist: The updated checklist model
-    ///   - creatorID: The ID of the user who owns the checklist
+    /// - Parameter checklist: The updated checklist model
     @MainActor
-    func saveChecklist(_ checklist: Checklist, creatorID: UUID) async throws {
-        try await repository.saveChecklist(checklist, creatorID: creatorID)
+    func saveChecklist(_ checklist: Checklist) async throws {
+        try await repository.saveChecklist(checklist)
         // Update in-memory cache
         if let index = checklists.firstIndex(where: { $0.id == checklist.id }) {
             checklists[index] = checklist
         }
         // Reload metadata to ensure sync status is updated
-        await loadLibrary(userID: creatorID)
+        await loadLibrary()
     }
     
     /// Save/update an existing practice guide
-    /// - Parameters:
-    ///   - guide: The updated guide model
-    ///   - creatorID: The ID of the user who owns the guide
+    /// - Parameter guide: The updated guide model
     @MainActor
-    func saveGuide(_ guide: PracticeGuide, creatorID: UUID) async throws {
-        try await repository.saveGuide(guide, creatorID: creatorID)
+    func saveGuide(_ guide: PracticeGuide) async throws {
+        try await repository.saveGuide(guide)
         // Update in-memory cache
         if let index = guides.firstIndex(where: { $0.id == guide.id }) {
             guides[index] = guide
         }
         // Reload metadata to ensure sync status is updated
-        await loadLibrary(userID: creatorID)
+        await loadLibrary()
     }
     
     // MARK: - Deleting Content

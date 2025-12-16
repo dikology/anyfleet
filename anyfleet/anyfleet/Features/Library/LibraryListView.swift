@@ -36,8 +36,7 @@ struct LibraryListView: View {
             }
         }
         .task {
-            // TODO: Get userID from dependencies or environment
-            // await viewModel.loadLibrary(userID: userID)
+            await viewModel.loadLibrary()
         }
         .refreshable {
             await viewModel.refresh()

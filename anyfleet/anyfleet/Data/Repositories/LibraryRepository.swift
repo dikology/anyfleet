@@ -4,19 +4,19 @@ import Foundation
 protocol LibraryRepository: Sendable {
     // MARK: - Metadata Queries
     
-    /// Fetch all library content metadata for a user
-    func fetchUserLibrary(userID: UUID) async throws -> [LibraryModel]
+    /// Fetch all library content metadata
+    func fetchUserLibrary() async throws -> [LibraryModel]
     
     // MARK: - Full Model Queries
     
-    /// Fetch all full checklist models for a user
-    func fetchUserChecklists(userID: UUID) async throws -> [Checklist]
+    /// Fetch all full checklist models
+    func fetchUserChecklists() async throws -> [Checklist]
     
-    /// Fetch all full practice guide models for a user
-    func fetchUserGuides(userID: UUID) async throws -> [PracticeGuide]
+    /// Fetch all full practice guide models
+    func fetchUserGuides() async throws -> [PracticeGuide]
     
-    /// Fetch all full flashcard deck models for a user
-    func fetchUserDecks(userID: UUID) async throws -> [FlashcardDeck]
+    /// Fetch all full flashcard deck models
+    func fetchUserDecks() async throws -> [FlashcardDeck]
     
     /// Fetch a single checklist by ID
     func fetchChecklist(_ checklistID: UUID) async throws -> Checklist?
@@ -30,25 +30,25 @@ protocol LibraryRepository: Sendable {
     // MARK: - Creating Content
     
     /// Create a new checklist
-    func createChecklist(_ checklist: Checklist, creatorID: UUID) async throws
+    func createChecklist(_ checklist: Checklist) async throws
     
     /// Create a new practice guide
-    func createGuide(_ guide: PracticeGuide, creatorID: UUID) async throws
+    func createGuide(_ guide: PracticeGuide) async throws
     
     /// Create a new flashcard deck
-    func createDeck(_ deck: FlashcardDeck, creatorID: UUID) async throws
+    func createDeck(_ deck: FlashcardDeck) async throws
     
     // MARK: - Updating Content
     
     /// Save/update an existing checklist
-    func saveChecklist(_ checklist: Checklist, creatorID: UUID) async throws
+    func saveChecklist(_ checklist: Checklist) async throws
     
     /// Save/update an existing practice guide
-    func saveGuide(_ guide: PracticeGuide, creatorID: UUID) async throws
+    func saveGuide(_ guide: PracticeGuide) async throws
     
     // MARK: - Deleting Content
     
-    /// Delete content by ID (soft delete)
+    /// Delete content by ID
     func deleteContent(_ contentID: UUID) async throws
 }
 

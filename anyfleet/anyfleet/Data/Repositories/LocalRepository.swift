@@ -137,93 +137,73 @@ final class LocalRepository: Sendable {
     
     // MARK: - Metadata Queries
     
-    /// Fetch all library content metadata for a user
-    /// TODO: Implement when LibraryModelRecord is created
-    func fetchUserLibrary(userID: UUID) async throws -> [LibraryModel] {
+    /// Fetch all library content metadata
+    func fetchUserLibrary() async throws -> [LibraryModel] {
         AppLogger.repository.startOperation("Fetch User Library")
         defer { AppLogger.repository.completeOperation("Fetch User Library") }
         
-        // TODO: Implement when LibraryModelRecord is created
-        // try await database.dbWriter.read { db in
-        //     try LibraryModelRecord.fetchUserLibrary(userID: userID, db: db)
-        //         .map { $0.toDomainModel() }
-        // }
-        
-        // Stub implementation - returns empty array until records are implemented
-        AppLogger.repository.debug("Fetching library for user: \(userID.uuidString)")
-        return []
+        return try await database.dbWriter.read { db in
+            try LibraryModelRecord.fetchAll(db: db)
+                .map { $0.toDomainModel() }
+        }
     }
     
     // MARK: - Full Model Queries
     
-    /// Fetch all full checklist models for a user
-    /// TODO: Implement when ChecklistRecord is created
-    func fetchUserChecklists(userID: UUID) async throws -> [Checklist] {
+    /// Fetch all full checklist models
+    func fetchUserChecklists() async throws -> [Checklist] {
         AppLogger.repository.startOperation("Fetch User Checklists")
         defer { AppLogger.repository.completeOperation("Fetch User Checklists") }
         
-        // TODO: Implement when ChecklistRecord is created
-        // try await database.dbWriter.read { db in
-        //     try ChecklistRecord.fetchUserChecklists(userID: userID, db: db)
-        //         .map { $0.toDomainModel() }
-        // }
-        
-        // Stub implementation - returns empty array until records are implemented
-        AppLogger.repository.debug("Fetching checklists for user: \(userID.uuidString)")
-        return []
+        return try await database.dbWriter.read { db in
+            try ChecklistRecord.fetchAll(db: db)
+                .map { $0.toDomainModel() }
+        }
     }
     
-    /// Fetch all full practice guide models for a user
+    /// Fetch all full practice guide models
     /// TODO: Implement when PracticeGuideRecord is created
-    func fetchUserGuides(userID: UUID) async throws -> [PracticeGuide] {
+    func fetchUserGuides() async throws -> [PracticeGuide] {
         AppLogger.repository.startOperation("Fetch User Guides")
         defer { AppLogger.repository.completeOperation("Fetch User Guides") }
         
         // TODO: Implement when PracticeGuideRecord is created
         // try await database.dbWriter.read { db in
-        //     try PracticeGuideRecord.fetchUserGuides(userID: userID, db: db)
+        //     try PracticeGuideRecord.fetchAll(db: db)
         //         .map { $0.toDomainModel() }
         // }
         
         // Stub implementation - returns empty array until records are implemented
-        AppLogger.repository.debug("Fetching guides for user: \(userID.uuidString)")
+        AppLogger.repository.debug("Fetching guides")
         return []
     }
     
-    /// Fetch all full flashcard deck models for a user
+    /// Fetch all full flashcard deck models
     /// TODO: Implement when FlashcardDeckRecord is created
-    func fetchUserDecks(userID: UUID) async throws -> [FlashcardDeck] {
+    func fetchUserDecks() async throws -> [FlashcardDeck] {
         AppLogger.repository.startOperation("Fetch User Decks")
         defer { AppLogger.repository.completeOperation("Fetch User Decks") }
         
         // TODO: Implement when FlashcardDeckRecord is created
         // try await database.dbWriter.read { db in
-        //     try FlashcardDeckRecord.fetchUserDecks(userID: userID, db: db)
+        //     try FlashcardDeckRecord.fetchAll(db: db)
         //         .map { $0.toDomainModel() }
         // }
         
         // Stub implementation - returns empty array until records are implemented
-        AppLogger.repository.debug("Fetching decks for user: \(userID.uuidString)")
+        AppLogger.repository.debug("Fetching decks")
         return []
     }
     
     /// Fetch a single checklist by ID
-    /// TODO: Implement when ChecklistRecord is created
     func fetchChecklist(_ checklistID: UUID) async throws -> Checklist? {
         AppLogger.repository.startOperation("Fetch Checklist")
         defer { AppLogger.repository.completeOperation("Fetch Checklist") }
         
-        // TODO: Implement when ChecklistRecord is created
-        // try await database.dbWriter.read { db in
-        //     try ChecklistRecord
-        //         .filter(ChecklistRecord.Columns.id == checklistID.uuidString)
-        //         .fetchOne(db)?
-        //         .toDomainModel()
-        // }
-        
-        // Stub implementation - returns nil until records are implemented
-        AppLogger.repository.debug("Fetching checklist: \(checklistID.uuidString)")
-        return nil
+        return try await database.dbWriter.read { db in
+            try ChecklistRecord.fetchOne(id: checklistID, db: db)?
+                .toDomainModel()
+        }
     }
     
     /// Fetch a single guide by ID
@@ -267,34 +247,44 @@ final class LocalRepository: Sendable {
     // MARK: - Creating Content
     
     /// Create a new checklist
-    /// TODO: Implement when ChecklistRecord is created
-    func createChecklist(_ checklist: Checklist, creatorID: UUID) async throws {
+    func createChecklist(_ checklist: Checklist) async throws {
         AppLogger.repository.startOperation("Create Checklist")
         defer { AppLogger.repository.completeOperation("Create Checklist") }
         
-        // TODO: Implement when ChecklistRecord is created
-        // try await database.dbWriter.write { db in
-        //     var record = ChecklistRecord(from: checklist, creatorID: creatorID)
-        //     record.updatedAt = Date()
-        //     try record.save(db)
-        //     
-        //     // Enqueue for sync if sync service is available
-        //     // try SyncQueueRecord.enqueue(
-        //     //     entityType: SyncEntityType.content.rawValue,
-        //     //     entityID: checklist.id,
-        //     //     operation: .create,
-        //     //     db: db
-        //     // )
-        // }
+        try await database.dbWriter.write { db in
+            // Save full checklist (using default creatorID for single-user device)
+            _ = try ChecklistRecord.saveChecklist(checklist, db: db)
+            
+            // Create metadata entry
+            let metadata = LibraryModel(
+                id: checklist.id,
+                title: checklist.title,
+                description: checklist.description,
+                type: .checklist,
+                visibility: .private,
+                creatorID: UUID(uuidString: "00000000-0000-0000-0000-000000000000") ?? UUID(), // Placeholder for single-user device
+                tags: checklist.tags,
+                createdAt: checklist.createdAt,
+                updatedAt: checklist.updatedAt,
+                syncStatus: checklist.syncStatus
+            )
+            _ = try LibraryModelRecord.saveMetadata(metadata, db: db)
+            
+            // TODO: Enqueue for sync if sync service is available
+            // try SyncQueueRecord.enqueue(
+            //     entityType: SyncEntityType.content.rawValue,
+            //     entityID: checklist.id,
+            //     operation: .create,
+            //     db: db
+            // )
+        }
         
-        // Stub implementation - logs until records are implemented
-        AppLogger.repository.debug("Creating checklist with ID: \(checklist.id.uuidString)")
         AppLogger.repository.info("Checklist created successfully - ID: \(checklist.id.uuidString)")
     }
     
     /// Create a new practice guide
     /// TODO: Implement when PracticeGuideRecord is created
-    func createGuide(_ guide: PracticeGuide, creatorID: UUID) async throws {
+    func createGuide(_ guide: PracticeGuide) async throws {
         AppLogger.repository.startOperation("Create Guide")
         defer { AppLogger.repository.completeOperation("Create Guide") }
         
@@ -320,7 +310,7 @@ final class LocalRepository: Sendable {
     
     /// Create a new flashcard deck
     /// TODO: Implement when FlashcardDeckRecord is created
-    func createDeck(_ deck: FlashcardDeck, creatorID: UUID) async throws {
+    func createDeck(_ deck: FlashcardDeck) async throws {
         AppLogger.repository.startOperation("Create Deck")
         defer { AppLogger.repository.completeOperation("Create Deck") }
         
@@ -347,34 +337,44 @@ final class LocalRepository: Sendable {
     // MARK: - Updating Content
     
     /// Save/update an existing checklist
-    /// TODO: Implement when ChecklistRecord is created
-    func saveChecklist(_ checklist: Checklist, creatorID: UUID) async throws {
+    func saveChecklist(_ checklist: Checklist) async throws {
         AppLogger.repository.startOperation("Save Checklist")
         defer { AppLogger.repository.completeOperation("Save Checklist") }
         
-        // TODO: Implement when ChecklistRecord is created
-        // try await database.dbWriter.write { db in
-        //     var record = ChecklistRecord(from: checklist, creatorID: creatorID)
-        //     record.updatedAt = Date()
-        //     try record.save(db)
-        //     
-        //     // Enqueue for sync if sync service is available
-        //     // try SyncQueueRecord.enqueue(
-        //     //     entityType: SyncEntityType.content.rawValue,
-        //     //     entityID: checklist.id,
-        //     //     operation: .update,
-        //     //     db: db
-        //     // )
-        // }
+        try await database.dbWriter.write { db in
+            // Update full checklist
+            _ = try ChecklistRecord.saveChecklist(checklist, db: db)
+            
+            // Update metadata entry
+            let metadata = LibraryModel(
+                id: checklist.id,
+                title: checklist.title,
+                description: checklist.description,
+                type: .checklist,
+                visibility: .private,
+                creatorID: UUID(uuidString: "00000000-0000-0000-0000-000000000000") ?? UUID(), // Placeholder for single-user device
+                tags: checklist.tags,
+                createdAt: checklist.createdAt,
+                updatedAt: checklist.updatedAt,
+                syncStatus: checklist.syncStatus
+            )
+            _ = try LibraryModelRecord.saveMetadata(metadata, db: db)
+            
+            // TODO: Enqueue for sync if sync service is available
+            // try SyncQueueRecord.enqueue(
+            //     entityType: SyncEntityType.content.rawValue,
+            //     entityID: checklist.id,
+            //     operation: .update,
+            //     db: db
+            // )
+        }
         
-        // Stub implementation - logs until records are implemented
-        AppLogger.repository.debug("Saving checklist with ID: \(checklist.id.uuidString)")
         AppLogger.repository.info("Checklist saved successfully - ID: \(checklist.id.uuidString)")
     }
     
     /// Save/update an existing practice guide
     /// TODO: Implement when PracticeGuideRecord is created
-    func saveGuide(_ guide: PracticeGuide, creatorID: UUID) async throws {
+    func saveGuide(_ guide: PracticeGuide) async throws {
         AppLogger.repository.startOperation("Save Guide")
         defer { AppLogger.repository.completeOperation("Save Guide") }
         
@@ -400,27 +400,30 @@ final class LocalRepository: Sendable {
     
     // MARK: - Deleting Content
     
-    /// Delete content by ID (soft delete)
-    /// TODO: Implement when LibraryModelRecord is created
+    /// Delete content by ID
     func deleteContent(_ contentID: UUID) async throws {
         AppLogger.repository.startOperation("Delete Content")
         defer { AppLogger.repository.completeOperation("Delete Content") }
         
-        // TODO: Implement when LibraryModelRecord is created
-        // try await database.dbWriter.write { db in
-        //     try LibraryModelRecord.softDelete(contentID, db: db)
-        //     
-        //     // Enqueue for sync if sync service is available
-        //     // try SyncQueueRecord.enqueue(
-        //     //     entityType: SyncEntityType.content.rawValue,
-        //     //     entityID: contentID,
-        //     //     operation: .delete,
-        //     //     db: db
-        //     // )
-        // }
+        try await database.dbWriter.write { db in
+            // Delete metadata
+            try LibraryModelRecord.delete(contentID, db: db)
+            
+            // Delete full content (checklist, guide, or deck)
+            // Try to delete from checklists table (will fail silently if not a checklist)
+            try? ChecklistRecord.delete(contentID, db: db)
+            
+            // TODO: Delete from guides and decks tables when implemented
+            
+            // TODO: Enqueue for sync if sync service is available
+            // try SyncQueueRecord.enqueue(
+            //     entityType: SyncEntityType.content.rawValue,
+            //     entityID: contentID,
+            //     operation: .delete,
+            //     db: db
+            // )
+        }
         
-        // Stub implementation - logs until records are implemented
-        AppLogger.repository.debug("Deleting content with ID: \(contentID.uuidString)")
         AppLogger.repository.info("Content deleted successfully - ID: \(contentID.uuidString)")
     }
 }

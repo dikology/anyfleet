@@ -86,16 +86,15 @@ final class LibraryListViewModel {
     
     // MARK: - Data Loading
     
-    /// Load library content for the current user
-    /// Note: This requires a userID - you may need to get it from UserStore or AppDependencies
-    func loadLibrary(userID: UUID) async {
+    /// Load library content
+    func loadLibrary() async {
         guard !isLoading else { return }
         
         AppLogger.view.startOperation("Load Library")
         isLoading = true
         loadError = nil
         
-        await libraryStore.loadLibrary(userID: userID)
+        await libraryStore.loadLibrary()
         
         isLoading = false
         AppLogger.view.completeOperation("Load Library")
@@ -104,9 +103,7 @@ final class LibraryListViewModel {
     
     /// Refresh library content
     func refresh() async {
-        // TODO: Get userID from dependencies or environment
-        // For now, this is a placeholder
-        // await loadLibrary(userID: userID)
+        await loadLibrary()
     }
     
     /// Delete content item
