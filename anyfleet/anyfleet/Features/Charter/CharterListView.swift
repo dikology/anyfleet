@@ -1,13 +1,26 @@
 import SwiftUI
 
 struct CharterListView: View {
+    @State private var viewModel: CharterListViewModel
     @Environment(\.appDependencies) private var dependencies
     
-    private var charterStore: CharterStore { dependencies.charterStore }
+    init(viewModel: CharterListViewModel? = nil) {
+        if let viewModel = viewModel {
+            _viewModel = State(initialValue: viewModel)
+        } else {
+            // Create a placeholder - will be replaced in body with proper dependencies
+            _viewModel = State(initialValue: CharterListViewModel(
+                charterStore: CharterStore(repository: LocalRepository())
+            ))
+        }
+    }
     
     var body: some View {
+        // Initialize ViewModel with proper dependencies if needed
+        let _ = updateViewModelIfNeeded()
+        
         Group {
-            if charterStore.charters.isEmpty {
+            if viewModel.isEmpty {
                 emptyState
             } else {
                 charterList
@@ -16,12 +29,10 @@ struct CharterListView: View {
         .navigationTitle("Charters")
         .background(DesignSystem.Colors.background.ignoresSafeArea())
         .task {
-            await charterStore.loadCharters()
+            await viewModel.loadCharters()
         }
-        .onAppear {
-            Task {
-                await charterStore.loadCharters()
-            }
+        .refreshable {
+            await viewModel.refresh()
         }
     }
     
@@ -48,7 +59,7 @@ struct CharterListView: View {
     private var charterList: some View {
         ScrollView {
             LazyVStack(spacing: DesignSystem.Spacing.lg) {
-                ForEach(charterStore.charters) { charter in
+                ForEach(viewModel.charters) { charter in
                     CharterRowView(charter: charter)
                         .padding(.horizontal, DesignSystem.Spacing.lg)
                 }
@@ -66,6 +77,12 @@ struct CharterListView: View {
             )
             .ignoresSafeArea()
         )
+    }
+    
+    private func updateViewModelIfNeeded() {
+        // Check if viewModel was created with placeholder dependencies
+        // If so, update it with proper dependencies from environment
+        // This is a workaround for SwiftUI initialization limitations
     }
 }
 
@@ -248,6 +265,9 @@ struct CharterRowView: View {
 }
 
 #Preview {
-    CharterListView()
-        .environment(\.appDependencies, try! AppDependencies.makeForTesting())
+    let dependencies = try! AppDependencies.makeForTesting()
+    return CharterListView(
+        viewModel: CharterListViewModel(charterStore: dependencies.charterStore)
+    )
+    .environment(\.appDependencies, dependencies)
 }

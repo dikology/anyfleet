@@ -40,8 +40,14 @@ final class CharterStore {
     
     // MARK: - Initialization
     
-    nonisolated init(repository: (any CharterRepository)? = nil) {
-        self.repository = repository ?? LocalRepository()
+    /// Creates a new CharterStore with the specified repository.
+    ///
+    /// - Parameter repository: The charter repository to use for data operations
+    ///
+    /// - Important: The repository must be injected; there is no default implementation
+    ///              to ensure proper dependency injection throughout the app.
+    nonisolated init(repository: any CharterRepository) {
+        self.repository = repository
     }
     
     // MARK: - Charter Operations
