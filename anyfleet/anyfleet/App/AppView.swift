@@ -50,7 +50,7 @@ struct AppView: View {
                     }
             }
             .tabItem {
-                Label(L10n.Library, systemImage: "book.fill")
+                Label(L10n.Library.myLibrary, systemImage: "book.fill")
             }
             .tag(Tab.library)
         }
