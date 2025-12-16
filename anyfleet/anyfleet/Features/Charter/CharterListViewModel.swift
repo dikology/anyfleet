@@ -79,6 +79,22 @@ final class CharterListViewModel {
         await loadCharters()
     }
     
+    /// Deletes a charter by ID.
+    ///
+    /// - Parameter charterID: The ID of the charter to delete
+    func deleteCharter(_ charterID: UUID) async throws {
+        AppLogger.view.startOperation("Delete Charter")
+        AppLogger.view.info("Deleting charter with ID: \(charterID.uuidString)")
+        
+        do {
+            try await charterStore.deleteCharter(charterID)
+            AppLogger.view.completeOperation("Delete Charter")
+        } catch {
+            AppLogger.view.failOperation("Delete Charter", error: error)
+            throw error
+        }
+    }
+    
     // MARK: - Computed Properties
     
     /// Returns charters sorted by start date (most recent first)

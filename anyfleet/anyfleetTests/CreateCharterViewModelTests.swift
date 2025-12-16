@@ -76,9 +76,9 @@ struct CreateCharterViewModelTests {
         #expect(abs(viewModel.completionProgress - expected) < 0.001)
     }
     
-    @Test("Completion progress - completely empty form")
+    @Test("Completion progress - minimal filled form")
     @MainActor
-    func testCompletionProgressEmpty() async throws {
+    func testCompletionProgressMinimal() async throws {
         // Arrange
         let mockRepository = MockLocalRepository()
         let store = CharterStore(repository: mockRepository)
@@ -87,17 +87,18 @@ struct CreateCharterViewModelTests {
             onDismiss: {}
         )
         
-        // Act - Clear all fields
+        // Act - Clear optional string fields and set guests to 0
         viewModel.form.name = ""
         viewModel.form.region = ""
         viewModel.form.vessel = ""
         viewModel.form.guests = 0
-        viewModel.form.startDate = .now
-        viewModel.form.endDate = .now
+        // Note: Dates always have values (can't be "empty")
+        // So startDate and endDate still count as filled
         
         // Assert
-        // All 6 fields empty = 0.0
-        #expect(viewModel.completionProgress == 0.0)
+        // Only dates are filled (2/6) = 0.333...
+        let expected = 2.0 / 6.0
+        #expect(abs(viewModel.completionProgress - expected) < 0.001)
     }
     
     @Test("Completion progress - partially filled form")

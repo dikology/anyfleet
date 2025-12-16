@@ -103,4 +103,23 @@ final class CharterStore {
             AppLogger.store.failOperation("Load Charters", error: error)
         }
     }
+    
+    @MainActor
+    func deleteCharter(_ charterID: UUID) async throws {
+        AppLogger.store.startOperation("Delete Charter")
+        AppLogger.store.info("Deleting charter with ID: \(charterID.uuidString)")
+        
+        do {
+            try await repository.deleteCharter(charterID)
+            
+            // Remove from local array
+            charters.removeAll { $0.id == charterID }
+            
+            AppLogger.store.info("Charter deleted successfully, remaining charters: \(charters.count)")
+            AppLogger.store.completeOperation("Delete Charter")
+        } catch {
+            AppLogger.store.failOperation("Delete Charter", error: error)
+            throw error
+        }
+    }
 }

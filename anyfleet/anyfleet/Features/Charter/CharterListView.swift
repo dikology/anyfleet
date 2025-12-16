@@ -57,15 +57,34 @@ struct CharterListView: View {
     }
     
     private var charterList: some View {
-        ScrollView {
-            LazyVStack(spacing: DesignSystem.Spacing.lg) {
-                ForEach(viewModel.charters) { charter in
-                    CharterRowView(charter: charter)
-                        .padding(.horizontal, DesignSystem.Spacing.lg)
-                }
+        List {
+            ForEach(viewModel.charters) { charter in
+                CharterRowView(charter: charter)
+                    .listRowInsets(EdgeInsets(
+                        top: DesignSystem.Spacing.sm,
+                        leading: DesignSystem.Spacing.lg,
+                        bottom: DesignSystem.Spacing.sm,
+                        trailing: DesignSystem.Spacing.lg
+                    ))
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
+                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                        Button(role: .destructive) {
+                            Task {
+                                do {
+                                    try await viewModel.deleteCharter(charter.id)
+                                } catch {
+                                    AppLogger.view.error("Failed to delete charter: \(error.localizedDescription)")
+                                }
+                            }
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
+                    }
             }
-            .padding(.vertical, DesignSystem.Spacing.md)
         }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
         .background(
             LinearGradient(
                 colors: [
@@ -256,11 +275,11 @@ struct CharterRowView: View {
         .onTapGesture {
             // Handle tap if needed
         }
-        .simultaneousGesture(
-            DragGesture(minimumDistance: 0)
-                .onChanged { _ in isPressed = true }
-                .onEnded { _ in isPressed = false }
-        )
+        // .simultaneousGesture(
+        //     DragGesture(minimumDistance: 0)
+        //         .onChanged { _ in isPressed = true }
+        //         .onEnded { _ in isPressed = false }
+        // )
     }
 }
 

@@ -323,5 +323,119 @@ struct CharterListViewModelTests {
         // Act & Assert
         #expect(viewModel.isEmpty == false)
     }
+    
+    @Test("Delete charter - success")
+    @MainActor
+    func testDeleteCharter_Success() async throws {
+        // Arrange
+        let mockRepository = MockLocalRepository()
+        let store = CharterStore(repository: mockRepository)
+        let viewModel = CharterListViewModel(charterStore: store)
+        
+        let charter1 = CharterModel(
+            id: UUID(),
+            name: "Charter 1",
+            boatName: nil,
+            location: nil,
+            startDate: Date(),
+            endDate: Date().addingTimeInterval(86400),
+            createdAt: Date(),
+            checkInChecklistID: nil
+        )
+        
+        let charter2 = CharterModel(
+            id: UUID(),
+            name: "Charter 2",
+            boatName: nil,
+            location: nil,
+            startDate: Date(),
+            endDate: Date().addingTimeInterval(86400),
+            createdAt: Date(),
+            checkInChecklistID: nil
+        )
+        
+        mockRepository.fetchAllChartersResult = .success([charter1, charter2])
+        await viewModel.loadCharters()
+        
+        #expect(viewModel.charters.count == 2)
+        
+        mockRepository.deleteCharterResult = .success(())
+        
+        // Act
+        try await viewModel.deleteCharter(charter1.id)
+        
+        // Assert
+        #expect(viewModel.charters.count == 1)
+        #expect(viewModel.charters.first?.id == charter2.id)
+        #expect(mockRepository.deleteCharterCallCount == 1)
+    }
+    
+    @Test("Delete charter - failure propagates error")
+    @MainActor
+    func testDeleteCharter_Failure() async throws {
+        // Arrange
+        let mockRepository = MockLocalRepository()
+        let store = CharterStore(repository: mockRepository)
+        let viewModel = CharterListViewModel(charterStore: store)
+        
+        let charter = CharterModel(
+            id: UUID(),
+            name: "Test",
+            boatName: nil,
+            location: nil,
+            startDate: Date(),
+            endDate: Date().addingTimeInterval(86400),
+            createdAt: Date(),
+            checkInChecklistID: nil
+        )
+        
+        mockRepository.fetchAllChartersResult = .success([charter])
+        await viewModel.loadCharters()
+        
+        let testError = NSError(domain: "TestError", code: 1)
+        mockRepository.deleteCharterResult = .failure(testError)
+        
+        // Act & Assert
+        await #expect(throws: testError) {
+            try await viewModel.deleteCharter(charter.id)
+        }
+        
+        // Charter should still be in list since delete failed
+        #expect(viewModel.charters.count == 1)
+    }
+    
+    @Test("Delete charter - updates empty state")
+    @MainActor
+    func testDeleteCharter_UpdatesEmptyState() async throws {
+        // Arrange
+        let mockRepository = MockLocalRepository()
+        let store = CharterStore(repository: mockRepository)
+        let viewModel = CharterListViewModel(charterStore: store)
+        
+        let charter = CharterModel(
+            id: UUID(),
+            name: "Only Charter",
+            boatName: nil,
+            location: nil,
+            startDate: Date(),
+            endDate: Date().addingTimeInterval(86400),
+            createdAt: Date(),
+            checkInChecklistID: nil
+        )
+        
+        mockRepository.fetchAllChartersResult = .success([charter])
+        await viewModel.loadCharters()
+        
+        #expect(viewModel.isEmpty == false)
+        
+        mockRepository.deleteCharterResult = .success(())
+        
+        // Act
+        try await viewModel.deleteCharter(charter.id)
+        
+        // Assert - Should now be empty
+        #expect(viewModel.isEmpty == true)
+        #expect(viewModel.charters.isEmpty)
+    }
 }
 
