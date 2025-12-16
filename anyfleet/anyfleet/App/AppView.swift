@@ -75,16 +75,13 @@ struct AppView: View {
             Text("Charter Detail: \(id.uuidString)")
                 .navigationTitle("Charter")
         case .checklistEditor(let checklistID):
-            // TODO: Implement ChecklistEditorView when ready
-            // ChecklistEditorView(
-            //     viewModel: ChecklistEditorViewModel(
-            //         libraryStore: dependencies.libraryStore,
-            //         checklistID: checklistID,
-            //         onDismiss: { coordinator.pop(from: .library) }
-            //     )
-            // )
-            Text("Checklist Editor: \(checklistID?.uuidString ?? "New")")
-                .navigationTitle("Checklist")
+            ChecklistEditorView(
+                viewModel: ChecklistEditorViewModel(
+                    libraryStore: dependencies.libraryStore,
+                    checklistID: checklistID,
+                    onDismiss: { coordinator.pop(from: .library) }
+                )
+            )
         case .guideEditor(let guideID):
             // TODO: Implement GuideEditorView when ready
             // GuideEditorView(

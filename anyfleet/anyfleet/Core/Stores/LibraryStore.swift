@@ -229,22 +229,8 @@ final class LibraryStore {
     }
 }
 
-// MARK: - Content Model Placeholders (Temporary until full models are implemented)
-
-/// Full checklist model with sections and items
-/// TODO: Replace with actual Checklist struct when implemented
-/// This is a minimal placeholder that will be replaced with a full model
-/// containing sections, items, metadata, etc.
-struct Checklist: Identifiable, Hashable, Sendable {
-    let id: UUID
-    
-    // TODO: Add full checklist properties:
-    // var title: String
-    // var description: String?
-    // var sections: [ChecklistSection]
-    // var checklistType: ChecklistType
-    // etc.
-}
+// MARK: - Content Models
+// Note: Checklist, ChecklistSection, ChecklistItem, and ChecklistType are defined in Core/Models/Checklist.swift
 
 /// Full practice guide model with markdown content
 /// TODO: Replace with actual PracticeGuide struct when implemented
