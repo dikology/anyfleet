@@ -43,7 +43,10 @@ struct AppView: View {
             // Library Tab
             NavigationStack(path: $coordinator.libraryPath) {
                 LibraryListView(
-                    viewModel: LibraryListViewModel(libraryStore: dependencies.libraryStore)
+                    viewModel: LibraryListViewModel(
+                        libraryStore: dependencies.libraryStore,
+                        coordinator: coordinator
+                    )
                 )
                     .navigationDestination(for: AppRoute.self) { route in
                         navigationDestination(route)
@@ -71,6 +74,39 @@ struct AppView: View {
             // TODO: Implement CharterDetailView when ready
             Text("Charter Detail: \(id.uuidString)")
                 .navigationTitle("Charter")
+        case .checklistEditor(let checklistID):
+            // TODO: Implement ChecklistEditorView when ready
+            // ChecklistEditorView(
+            //     viewModel: ChecklistEditorViewModel(
+            //         libraryStore: dependencies.libraryStore,
+            //         checklistID: checklistID,
+            //         onDismiss: { coordinator.pop(from: .library) }
+            //     )
+            // )
+            Text("Checklist Editor: \(checklistID?.uuidString ?? "New")")
+                .navigationTitle("Checklist")
+        case .guideEditor(let guideID):
+            // TODO: Implement GuideEditorView when ready
+            // GuideEditorView(
+            //     viewModel: GuideEditorViewModel(
+            //         libraryStore: dependencies.libraryStore,
+            //         guideID: guideID,
+            //         onDismiss: { coordinator.pop(from: .library) }
+            //     )
+            // )
+            Text("Guide Editor: \(guideID?.uuidString ?? "New")")
+                .navigationTitle("Guide")
+        case .deckEditor(let deckID):
+            // TODO: Implement DeckEditorView when ready
+            // DeckEditorView(
+            //     viewModel: DeckEditorViewModel(
+            //         libraryStore: dependencies.libraryStore,
+            //         deckID: deckID,
+            //         onDismiss: { coordinator.pop(from: .library) }
+            //     )
+            // )
+            Text("Deck Editor: \(deckID?.uuidString ?? "New")")
+                .navigationTitle("Deck")
         }
     }
 }

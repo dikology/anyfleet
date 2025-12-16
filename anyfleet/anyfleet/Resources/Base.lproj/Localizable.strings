@@ -56,3 +56,9 @@
 "discover" = "Discover";
 "charters" = "Charters";
 "profile" = "Profile";
+
+"library.myLibrary" = "My Library";
+"library.myLibraryDescription" = "Your checklists, decks, and guides";
+"library.newChecklist" = "New Checklist";
+"library.newFlashcardDeck" = "New Flashcard Deck";
+"library.newPracticeGuide" = "New Practice Guide";
