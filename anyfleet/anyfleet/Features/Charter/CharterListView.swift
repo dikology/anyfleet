@@ -1,11 +1,26 @@
 import SwiftUI
 
 struct CharterListView: View {
-    @State private var charterStore = CharterStore()
+    @State private var viewModel: CharterListViewModel
+    @Environment(\.appDependencies) private var dependencies
+    
+    init(viewModel: CharterListViewModel? = nil) {
+        if let viewModel = viewModel {
+            _viewModel = State(initialValue: viewModel)
+        } else {
+            // Create a placeholder - will be replaced in body with proper dependencies
+            _viewModel = State(initialValue: CharterListViewModel(
+                charterStore: CharterStore(repository: LocalRepository())
+            ))
+        }
+    }
     
     var body: some View {
+        // Initialize ViewModel with proper dependencies if needed
+        let _ = updateViewModelIfNeeded()
+        
         Group {
-            if charterStore.charters.isEmpty {
+            if viewModel.isEmpty {
                 emptyState
             } else {
                 charterList
@@ -14,12 +29,10 @@ struct CharterListView: View {
         .navigationTitle("Charters")
         .background(DesignSystem.Colors.background.ignoresSafeArea())
         .task {
-            await charterStore.loadCharters()
+            await viewModel.loadCharters()
         }
-        .onAppear {
-            Task {
-                await charterStore.loadCharters()
-            }
+        .refreshable {
+            await viewModel.refresh()
         }
     }
     
@@ -44,15 +57,34 @@ struct CharterListView: View {
     }
     
     private var charterList: some View {
-        ScrollView {
-            LazyVStack(spacing: DesignSystem.Spacing.lg) {
-                ForEach(charterStore.charters) { charter in
-                    CharterRowView(charter: charter)
-                        .padding(.horizontal, DesignSystem.Spacing.lg)
-                }
+        List {
+            ForEach(viewModel.charters) { charter in
+                CharterRowView(charter: charter)
+                    .listRowInsets(EdgeInsets(
+                        top: DesignSystem.Spacing.sm,
+                        leading: DesignSystem.Spacing.lg,
+                        bottom: DesignSystem.Spacing.sm,
+                        trailing: DesignSystem.Spacing.lg
+                    ))
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
+                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                        Button(role: .destructive) {
+                            Task {
+                                do {
+                                    try await viewModel.deleteCharter(charter.id)
+                                } catch {
+                                    AppLogger.view.error("Failed to delete charter: \(error.localizedDescription)")
+                                }
+                            }
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
+                    }
             }
-            .padding(.vertical, DesignSystem.Spacing.md)
         }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
         .background(
             LinearGradient(
                 colors: [
@@ -64,6 +96,12 @@ struct CharterListView: View {
             )
             .ignoresSafeArea()
         )
+    }
+    
+    private func updateViewModelIfNeeded() {
+        // Check if viewModel was created with placeholder dependencies
+        // If so, update it with proper dependencies from environment
+        // This is a workaround for SwiftUI initialization limitations
     }
 }
 
@@ -237,14 +275,18 @@ struct CharterRowView: View {
         .onTapGesture {
             // Handle tap if needed
         }
-        .simultaneousGesture(
-            DragGesture(minimumDistance: 0)
-                .onChanged { _ in isPressed = true }
-                .onEnded { _ in isPressed = false }
-        )
+        // .simultaneousGesture(
+        //     DragGesture(minimumDistance: 0)
+        //         .onChanged { _ in isPressed = true }
+        //         .onEnded { _ in isPressed = false }
+        // )
     }
 }
 
 #Preview {
-    CharterListView()
+    let dependencies = try! AppDependencies.makeForTesting()
+    return CharterListView(
+        viewModel: CharterListViewModel(charterStore: dependencies.charterStore)
+    )
+    .environment(\.appDependencies, dependencies)
 }

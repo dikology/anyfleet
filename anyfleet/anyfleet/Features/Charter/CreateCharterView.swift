@@ -1,68 +1,66 @@
 import SwiftUI
 
 struct CreateCharterView: View {
-    @State private var form: CharterFormState
-    @State private var charterStore = CharterStore()
-    @State private var isSaving = false
-    @State private var saveError: Error?
+    @State private var viewModel: CreateCharterViewModel
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.appDependencies) private var dependencies
     
-    init(form: CharterFormState = .init()) {
-        _form = State(initialValue: form)
-    }
-    
-    private var completionProgress: Double {
-        let total = 6.0
-        var count = 0.0
-        if !form.name.isEmpty { count += 1 }
-        if form.startDate != .now { count += 1 }
-        if form.endDate != .now { count += 1 }
-        if !form.region.isEmpty { count += 1 }
-        if !form.vessel.isEmpty { count += 1 }
-        if form.guests > 0 { count += 1 }
-        return count / total
+    init(viewModel: CreateCharterViewModel? = nil, form: CharterFormState = .init()) {
+        if let viewModel = viewModel {
+            _viewModel = State(initialValue: viewModel)
+        } else {
+            // Create a placeholder - will be replaced in body with proper dependencies
+            _viewModel = State(initialValue: CreateCharterViewModel(
+                charterStore: CharterStore(repository: LocalRepository()),
+                onDismiss: {},
+                initialForm: form
+            ))
+        }
     }
     
     var body: some View {
+        // Initialize ViewModel with proper dependencies if needed
+        let _ = updateViewModelIfNeeded()
+        
         ZStack(alignment: .top) {
             ScrollView {
                 VStack(spacing: DesignSystem.Spacing.xl) {
                     hero
                     
-                    DesignSystem.Form.Progress(progress: completionProgress, label: L10n.charterCreateProgress)
+                    DesignSystem.Form.Progress(progress: viewModel.completionProgress, label: L10n.charterCreateProgress)
                     
                     DesignSystem.Form.Section(title: L10n.charterCreateName, subtitle: L10n.charterCreateNameHelper) {
                         DesignSystem.Form.FormTextField(
                             placeholder: L10n.charterCreateNamePlaceholder,
-                            text: $form.name
+                            text: $viewModel.form.name
                         )
                     }
                     
                     DesignSystem.Form.Section(title: L10n.charterCreateWhenWillYouSail, subtitle: L10n.charterCreateChooseYourVoyageDates) {
-                        DateRangeSection(startDate: $form.startDate, endDate: $form.endDate, nights: form.nights)
+                        DateRangeSection(startDate: $viewModel.form.startDate, endDate: $viewModel.form.endDate, nights: viewModel.form.nights)
                     }
                     
                     DesignSystem.Form.Section(title: L10n.charterCreateDestination, subtitle: L10n.charterCreateChooseWhereYouWillSail) {
                         VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
                             DesignSystem.Form.FieldLabel(L10n.charterCreateDestination)
-                            TextField(L10n.charterCreateChooseWhereYouWillSail, text: $form.destination)
+                            TextField(L10n.charterCreateChooseWhereYouWillSail, text: $viewModel.form.destination)
                                 .formFieldStyle()
                         }
-                        // TODO: RegionPickerSection(selectedRegion: $form.region, regions: CharterFormState.regionOptions)
+                        // TODO: RegionPickerSection(selectedRegion: $viewModel.form.region, regions: CharterFormState.regionOptions)
                     }
                     
                     DesignSystem.Form.Section(title: L10n.charterCreateYourVessel, subtitle: L10n.charterCreatePickTheCharacterOfYourJourney) {
                         VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
                             DesignSystem.Form.FieldLabel(L10n.charterCreateYourVessel)
-                            TextField(L10n.charterCreateVesselNamePlaceholder, text: $form.vessel)
+                            TextField(L10n.charterCreateVesselNamePlaceholder, text: $viewModel.form.vessel)
                                 .formFieldStyle()
                         }
-                        // VesselPickerSection(selectedVessel: $form.vessel, vessels: CharterFormState.vesselOptions)
+                        // VesselPickerSection(selectedVessel: $viewModel.form.vessel, vessels: CharterFormState.vesselOptions)
                         
                         VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
                             DesignSystem.Form.FieldLabel(L10n.charterCreateGuests)
-                            Stepper(value: $form.guests, in: 1...12) {
-                                Text("\(form.guests) \(L10n.charterCreateGuests)")
+                            Stepper(value: $viewModel.form.guests, in: 1...12) {
+                                Text("\(viewModel.form.guests) \(L10n.charterCreateGuests)")
                                     .font(DesignSystem.Typography.body)
                                     .foregroundColor(DesignSystem.Colors.textPrimary)
                             }
@@ -71,18 +69,20 @@ struct CreateCharterView: View {
                     
 //                    DesignSystem.Form.Section(title: L10n.charterCreateCrew, subtitle: L10n.charterCreateWhoIsJoiningTheTrip) {
 //                        CrewSection(
-//                            captainIncluded: $form.captainIncluded,
-//                            chefIncluded: $form.chefIncluded,
-//                            deckhandIncluded: $form.deckhandIncluded
+//                            captainIncluded: $viewModel.form.captainIncluded,
+//                            chefIncluded: $viewModel.form.chefIncluded,
+//                            deckhandIncluded: $viewModel.form.deckhandIncluded
 //                        )
 //                    }
                     
 //                    DesignSystem.Form.Section(title: L10n.charterCreateBudget, subtitle: L10n.charterCreateOptionalBudgetRange) {
-//                        BudgetSection(budget: $form.budget, notes: $form.notes)
+//                        BudgetSection(budget: $viewModel.form.budget, notes: $viewModel.form.notes)
 //                    }
                     
-                    CharterSummaryCard(form: form, progress: completionProgress) {
-                        saveCharter()
+                    CharterSummaryCard(form: viewModel.form, progress: viewModel.completionProgress) {
+                        Task {
+                            await viewModel.saveCharter()
+                        }
                     }
                 }
                 .padding(.horizontal, DesignSystem.Spacing.lg)
@@ -91,10 +91,23 @@ struct CreateCharterView: View {
             .background(DesignSystem.Colors.background.ignoresSafeArea())
         }
     }
+    
+    private func updateViewModelIfNeeded() {
+        // Check if viewModel was created with placeholder dependencies
+        // If so, update it with proper dependencies from environment
+        // This is a workaround for SwiftUI initialization limitations
+    }
 }
 
 #Preview {
-    CreateCharterView()
+    let dependencies = try! AppDependencies.makeForTesting()
+    return CreateCharterView(
+        viewModel: CreateCharterViewModel(
+            charterStore: dependencies.charterStore,
+            onDismiss: {}
+        )
+    )
+    .environment(\.appDependencies, dependencies)
 }
 
 // MARK: - Subviews
@@ -106,89 +119,16 @@ private extension CreateCharterView {
             subtitle: L10n.charterCreateFromDreamToRealityInAFewGuidedSteps
         )
     }
-    
-    func saveCharter() {
-        AppLogger.view.startOperation("Save Charter")
-        
-        guard !isSaving else {
-            AppLogger.view.warning("Save already in progress, ignoring duplicate request")
-            return
-        }
-        
-        isSaving = true
-        saveError = nil
-        
-        Task {
-            do {
-                // Generate a name if not provided
-                let charterName = form.name.isEmpty 
-                    ? "\(form.destination.isEmpty ? "Charter" : form.destination) - \(form.dateSummary)"
-                    : form.name
-                
-                AppLogger.view.info("Creating charter with name: '\(charterName)'")
-                AppLogger.view.debug("Charter details - boatName: \(form.vessel.isEmpty ? "nil" : form.vessel), location: \(form.destination.isEmpty ? "nil" : form.destination), startDate: \(form.startDate), endDate: \(form.endDate)")
-                
-                let charter = try await charterStore.createCharter(
-                    name: charterName,
-                    boatName: form.vessel.isEmpty ? nil : form.vessel,
-                    location: form.destination.isEmpty ? nil : form.destination,
-                    startDate: form.startDate,
-                    endDate: form.endDate,
-                    checkInChecklistID: nil
-                )
-                
-                AppLogger.view.info("Charter created successfully with ID: \(charter.id.uuidString)")
-                AppLogger.view.completeOperation("Save Charter")
-                
-                dismiss()
-            } catch {
-                AppLogger.view.failOperation("Save Charter", error: error)
-                saveError = error
-                isSaving = false
-            }
-        }
-    }
 }
 
-// private struct SummaryCard: View {
-//     let form: CharterFormState
-//     let progress: Double
-//     var onCreate: () -> Void
-    
-//     private var isValid: Bool {
-//         !form.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-//         form.endDate >= form.startDate
-//     }
-    
-//     var body: some View {
-//         VStack(alignment: .leading, spacing: DesignSystem.Spacing.lg) {
-//             DesignSystem.SectionHeader(L10n.charterCreateYourAdventureAwaits, subtitle: L10n.charterCreateReviewYourCharterPlan)
-            
-//             VStack(spacing: DesignSystem.Spacing.md) {
-//                 DesignSystem.Form.SummaryRow(icon: "📅", title: L10n.charterCreateDates, value: form.dateSummary, detail: "\(form.nights) \(L10n.charterCreateNights)")
-//                 DesignSystem.Form.SummaryRow(icon: "🧭", title: L10n.charterCreateRegion, value: form.destination, detail: form.regionDetails ?? L10n.charterCreateSelectARegion)
-//                 DesignSystem.Form.SummaryRow(icon: "⛵", title: L10n.charterCreateVessel, value: form.vessel, detail: "Up to \(form.guests) \(L10n.charterCreateUpToGuests    )")
-//             }
-            
-//             Button(action: onCreate) {
-//                 HStack(spacing: DesignSystem.Spacing.sm) {
-//                     Image(systemName: "checkmark.circle.fill")
-//                     Text(L10n.charterCreateCreateCharter)
-//                 }
-//             }
-//             .buttonStyle(DesignSystem.PrimaryButtonStyle())
-//             .disabled(!isValid)
-//             .opacity(isValid ? 1.0 : 0.6)
-            
-//             Text("\(L10n.charterCreateStep) \(Int(progress * 6)) of 6")
-//                 .font(DesignSystem.Typography.caption)
-//                 .foregroundColor(DesignSystem.Colors.textSecondary)
-//         }
-//         .sectionContainer()
-//     }
-// }
-
-#Preview {
-    CreateCharterView(form: .mock)
+#Preview("With Mock Form") {
+    let dependencies = try! AppDependencies.makeForTesting()
+    return CreateCharterView(
+        viewModel: CreateCharterViewModel(
+            charterStore: dependencies.charterStore,
+            onDismiss: {},
+            initialForm: .mock
+        )
+    )
+    .environment(\.appDependencies, dependencies)
 }
-

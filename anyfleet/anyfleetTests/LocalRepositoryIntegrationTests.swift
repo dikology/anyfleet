@@ -10,18 +10,19 @@ import Testing
 @testable import anyfleet
 
 @Suite("LocalRepository Integration Tests")
-nonisolated struct LocalRepositoryIntegrationTests {
+struct LocalRepositoryIntegrationTests {
     
-    var database: AppDatabase!
-    var repository: LocalRepository!
-    
-    nonisolated init() async throws {
-        database = try AppDatabase.makeEmpty()
-        repository = LocalRepository(database: database)
+    // Each test gets its own fresh in-memory database to avoid cross-test
+    // contamination and ensure a clean state.
+    private func makeRepository() throws -> LocalRepository {
+        let database = try AppDatabase.makeEmpty()
+        return LocalRepository(database: database)
     }
     
     @Test("Create and fetch charter - full flow")
-    nonisolated func testCreateAndFetchCharter() async throws {
+    func testCreateAndFetchCharter() async throws {
+        // Arrange
+        let repository = try makeRepository()
         // Arrange
         let charter = CharterModel(
             id: UUID(),
@@ -47,8 +48,9 @@ nonisolated struct LocalRepositoryIntegrationTests {
     }
     
     @Test("Fetch charters by status - active")
-    nonisolated func testFetchChartersByStatus_Active() async throws {
+    func testFetchChartersByStatus_Active() async throws {
         // Arrange
+        let repository = try makeRepository()
         let now = Date()
         let activeCharter = CharterModel(
             id: UUID(),
@@ -85,8 +87,9 @@ nonisolated struct LocalRepositoryIntegrationTests {
     }
     
     @Test("Fetch charters by status - upcoming")
-    nonisolated func testFetchChartersByStatus_Upcoming() async throws {
+    func testFetchChartersByStatus_Upcoming() async throws {
         // Arrange
+        let repository = try makeRepository()
         let now = Date()
         let upcomingCharter = CharterModel(
             id: UUID(),
@@ -104,13 +107,14 @@ nonisolated struct LocalRepositoryIntegrationTests {
         let upcoming = try await repository.fetchUpcomingCharters()
         
         // Assert
-        #expect(upcoming.count >= 1)
+        #expect(upcoming.count == 1)
         #expect(upcoming.contains { $0.id == upcomingCharter.id })
     }
     
     @Test("Fetch charters by status - past")
-    nonisolated func testFetchChartersByStatus_Past() async throws {
+    func testFetchChartersByStatus_Past() async throws {
         // Arrange
+        let repository = try makeRepository()
         let now = Date()
         let pastCharter = CharterModel(
             id: UUID(),
@@ -128,13 +132,14 @@ nonisolated struct LocalRepositoryIntegrationTests {
         let past = try await repository.fetchPastCharters()
         
         // Assert
-        #expect(past.count >= 1)
+        #expect(past.count == 1)
         #expect(past.contains { $0.id == pastCharter.id })
     }
     
     @Test("Mark charter as synced")
-    nonisolated func testMarkCharterSynced() async throws {
+    func testMarkCharterSynced() async throws {
         // Arrange
+        let repository = try makeRepository()
         let charter = CharterModel(
             id: UUID(),
             name: "Sync Test Charter",
@@ -161,8 +166,9 @@ nonisolated struct LocalRepositoryIntegrationTests {
     }
     
     @Test("Delete charter")
-    nonisolated func testDeleteCharter() async throws {
+    func testDeleteCharter() async throws {
         // Arrange
+        let repository = try makeRepository()
         let charter = CharterModel(
             id: UUID(),
             name: "Delete Test Charter",
@@ -184,8 +190,9 @@ nonisolated struct LocalRepositoryIntegrationTests {
     }
     
     @Test("Fetch all charters - returns all")
-    nonisolated func testFetchAllCharters() async throws {
+    func testFetchAllCharters() async throws {
         // Arrange
+        let repository = try makeRepository()
         let charter1 = CharterModel(
             id: UUID(),
             name: "Charter 1",
@@ -214,14 +221,15 @@ nonisolated struct LocalRepositoryIntegrationTests {
         let all = try await repository.fetchAllCharters()
         
         // Assert
-        #expect(all.count >= 2)
+        #expect(all.count == 2)
         #expect(all.contains { $0.id == charter1.id })
         #expect(all.contains { $0.id == charter2.id })
     }
     
     @Test("Save charter - updates existing")
-    nonisolated func testSaveCharter_UpdatesExisting() async throws {
+    func testSaveCharter_UpdatesExisting() async throws {
         // Arrange
+        let repository = try makeRepository()
         let original = CharterModel(
             id: UUID(),
             name: "Original Name",

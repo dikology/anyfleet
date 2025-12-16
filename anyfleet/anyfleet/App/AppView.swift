@@ -2,6 +2,7 @@ import SwiftUI
 
 struct AppView: View {
     @StateObject private var coordinator = AppCoordinator()
+    @Environment(\.appDependencies) private var dependencies
 
     enum Tab: Hashable {
         case home
@@ -27,7 +28,9 @@ struct AppView: View {
             
             // Charters Tab
             NavigationStack(path: $coordinator.chartersPath) {
-                CharterListView()
+                CharterListView(
+                    viewModel: CharterListViewModel(charterStore: dependencies.charterStore)
+                )
                     .navigationDestination(for: AppRoute.self) { route in
                         navigationDestination(route)
                     }
@@ -44,7 +47,12 @@ struct AppView: View {
     private func navigationDestination(_ route: AppRoute) -> some View {
         switch route {
         case .createCharter:
-            CreateCharterView()
+            CreateCharterView(
+                viewModel: CreateCharterViewModel(
+                    charterStore: dependencies.charterStore,
+                    onDismiss: { coordinator.pop(from: .charters) }
+                )
+            )
         case .charterDetail(let id):
             // TODO: Implement CharterDetailView when ready
             Text("Charter Detail: \(id.uuidString)")

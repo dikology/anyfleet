@@ -95,6 +95,22 @@ final class AppCoordinator: ObservableObject {
     
     // MARK: - Cross-Tab Navigation
     
+    /// Navigates to charter creation from any tab.
+    ///
+    /// Switches to the charters tab and pushes the create charter view.
+    /// Used for cross-tab navigation (e.g., from Home tab).
+    func navigateToCreateCharter() {
+        selectedTab = .charters
+        chartersPath = []
+        chartersPath.append(.createCharter)
+    }
+    
+    /// Navigates to a specific charter detail from any tab.
+    ///
+    /// Switches to the charters tab and pushes the charter detail view.
+    /// Used for cross-tab navigation and deep linking.
+    ///
+    /// - Parameter id: The UUID of the charter to view
     func navigateToCharter(_ id: UUID) {
         selectedTab = .charters
         chartersPath = []
