@@ -6,7 +6,7 @@ struct AppView: View {
 
     enum Tab: Hashable {
         case home
-        //case library
+        case library
         //case discover
         case charters
         //case profile
@@ -22,7 +22,7 @@ struct AppView: View {
                     }
             }
             .tabItem {
-                Label("Home", systemImage: "house.fill")
+                Label(L10n.Home, systemImage: "house.fill")
             }
             .tag(Tab.home)
             
@@ -36,9 +36,23 @@ struct AppView: View {
                     }
             }
             .tabItem {
-                Label("Charters", systemImage: "sailboat.fill")
+                Label(L10n.Charters, systemImage: "sailboat.fill")
             }
             .tag(Tab.charters)
+
+            // Library Tab
+            NavigationStack(path: $coordinator.libraryPath) {
+                LibraryListView(
+                    viewModel: LibraryListViewModel(libraryStore: dependencies.libraryStore)
+                )
+                    .navigationDestination(for: AppRoute.self) { route in
+                        navigationDestination(route)
+                    }
+            }
+            .tabItem {
+                Label(L10n.Library, systemImage: "book.fill")
+            }
+            .tag(Tab.library)
         }
         .environment(\.appCoordinator, coordinator)
     }

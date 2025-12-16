@@ -23,7 +23,7 @@ enum AppRoute: Hashable {
 final class AppCoordinator: ObservableObject {
     // Individual navigation paths per tab
     @Published var homePath: [AppRoute] = []
-    //@Published var libraryPath = NavigationPath()
+    @Published var libraryPath = NavigationPath()
     //@Published var discoverPath = NavigationPath()
     @Published var chartersPath: [AppRoute] = []
     //@Published var profilePath = NavigationPath()
@@ -37,8 +37,8 @@ final class AppCoordinator: ObservableObject {
         switch tab {
         case .home:
             homePath.append(route)
-        //case .library:
-            //libraryPath.append(route)
+        case .library:
+            libraryPath.append(route)
         //case .discover:
             //discoverPath.append(route)
         case .charters:
@@ -53,9 +53,9 @@ final class AppCoordinator: ObservableObject {
         case .home:
             guard !homePath.isEmpty else { return }
             homePath.removeLast()
-        //case .library:
-            //guard !libraryPath.isEmpty else { return }
-            //libraryPath.removeLast()
+        case .library:
+            guard !libraryPath.isEmpty else { return }
+            libraryPath.removeLast()
         //case .discover:
             //guard !discoverPath.isEmpty else { return }
             //discoverPath.removeLast()
@@ -72,8 +72,8 @@ final class AppCoordinator: ObservableObject {
         switch tab {
         case .home:
             homePath.removeLast(homePath.count)
-        //case .library:
-            //libraryPath.removeLast(libraryPath.count)
+        case .library:
+            libraryPath.removeLast(libraryPath.count)
         //case .discover:
             //discoverPath.removeLast(discoverPath.count)
         case .charters:
