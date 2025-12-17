@@ -30,11 +30,11 @@ struct HomeView: View {
                     headerSection
                     
                     // Primary card: adaptive based on charter state
-                    // if let charter = viewModel.activeCharter {
-                    //     activeCharterCard(charter: charter)
-                    // } else {
-                    //     createCharterCard
-                    // }
+                    if let charter = viewModel.activeCharter {
+                        activeCharterCard(charter: charter)
+                    } else {
+                        createCharterCard
+                    }
                     
                     // Reference content: pinned checklists and guides
                     //referenceContentSection
@@ -76,6 +76,59 @@ struct HomeView: View {
         let formatter = DateFormatter()
         formatter.dateStyle = .full
         return formatter.string(from: Date())
+    }
+
+    // MARK: - Primary Card: Active Charter State
+    
+    private func activeCharterCard(charter: CharterModel) -> some View {
+        VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
+            // Badge label
+            Text(L10n.homeActiveCharterTitle)
+                .font(DesignSystem.Typography.caption)
+                .foregroundColor(.white.opacity(0.85))
+            
+            // Charter name (title)
+            Text(charter.name)
+                .font(DesignSystem.Typography.title)
+                .foregroundColor(.white)
+            
+            // Location with icon
+            if let location = charter.location, !location.isEmpty {
+                HStack(spacing: DesignSystem.Spacing.xs) {
+                    Image(systemName: "mappin.and.ellipse")
+                    Text(location)
+                }
+                .font(DesignSystem.Typography.caption)
+                .foregroundColor(.white.opacity(0.9))
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        // .padding(DesignSystem.Spacing.cardPadding)
+        // .background(DesignSystem.Colors.oceanGradient)
+        // .cornerRadius(DesignSystem.Spacing.cardCornerRadiusLarge)
+         .shadow(color: .black.opacity(0.08), radius: 12, y: 6)
+        .padding(.horizontal, DesignSystem.Spacing.screenPadding)
+        .onTapGesture {
+            //viewModel.onActiveCharterTapped(charter)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Active charter")
+        .accessibilityValue(charter.name)
+        .accessibilityHint("Double tap to view details and checkins")
+    }
+    
+    // MARK: - Primary Card: Create Charter State
+    
+    private var createCharterCard: some View {
+        ActionCard(
+            icon: "sailboat.fill",
+            title: L10n.homeCreateCharterTitle,
+            subtitle: L10n.homeCreateCharterSubtitle,
+            buttonTitle: L10n.homeCreateCharterAction,
+            onTap: { viewModel.onCreateCharterTapped() },
+            onButtonTap: { viewModel.onCreateCharterTapped() }
+        )
+        .padding(.horizontal, DesignSystem.Spacing.screenPadding)
     }
 }
 

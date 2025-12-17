@@ -400,4 +400,10 @@ enum L10n {
         tableName: "Localizable",
         comment: "Title for the of section in the charter summary card"
     )
+
+    static let homeActiveCharterTitle = NSLocalizedString(
+        "charter.activeCharter",
+        tableName: "Localizable",
+        comment: ""
+    )
 }

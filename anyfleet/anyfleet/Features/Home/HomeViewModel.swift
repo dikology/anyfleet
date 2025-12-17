@@ -33,9 +33,9 @@ final class HomeViewModel {
     
     // MARK: - State
     
-    // Future: Add state properties for home screen content
-    // var recentCharters: [CharterModel] = []
-    // var isLoading = false
+    var activeCharter: CharterModel?
+    var activeCharterChecklistID: UUID?
+    var isLoading = false
     
     // MARK: - Initialization
     
