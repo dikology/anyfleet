@@ -56,11 +56,11 @@ struct SectionEditorSheet: View {
                     VStack(spacing: DesignSystem.Spacing.xl) {
                         // Title section
                         VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
-                            Text("Section Title")
+                            Text(L10n.SectionEditor.sectionTitle)
                                 .font(DesignSystem.Typography.caption)
                                 .foregroundColor(DesignSystem.Colors.textSecondary)
                             
-                            TextField("Section name", text: $title)
+                            TextField(L10n.SectionEditor.sectionNamePlaceholder, text: $title)
                                 .font(DesignSystem.Typography.body)
                                 .formFieldStyle()
                         }
@@ -68,11 +68,11 @@ struct SectionEditorSheet: View {
                         // Icon selection
                         VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
                             HStack {
-                                Text("Icon")
+                                Text(L10n.SectionEditor.icon)
                                     .font(DesignSystem.Typography.caption)
                                     .foregroundColor(DesignSystem.Colors.textSecondary)
                                 
-                                Text("Optional")
+                                Text(L10n.SectionEditor.optional)
                                     .font(DesignSystem.Typography.caption)
                                     .foregroundColor(DesignSystem.Colors.textSecondary)
                             }
@@ -97,7 +97,7 @@ struct SectionEditorSheet: View {
                                             .cornerRadius(8)
                                     }
                                     
-                                    Text(icon != nil ? "Change Icon" : "Choose Icon")
+                                    Text(icon != nil ? L10n.SectionEditor.changeIcon : L10n.SectionEditor.chooseIcon)
                                         .font(DesignSystem.Typography.body)
                                         .foregroundColor(DesignSystem.Colors.textPrimary)
                                     
@@ -116,16 +116,16 @@ struct SectionEditorSheet: View {
                         // Description
                         VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
                             HStack {
-                                Text("Description")
+                                Text(L10n.SectionEditor.description)
                                     .font(DesignSystem.Typography.caption)
                                     .foregroundColor(DesignSystem.Colors.textSecondary)
                                 
-                                Text("Optional")
+                                Text(L10n.SectionEditor.optional)
                                     .font(DesignSystem.Typography.caption)
                                     .foregroundColor(DesignSystem.Colors.textSecondary)
                             }
                             
-                            TextField("Section description", text: $description, axis: .vertical)
+                            TextField(L10n.SectionEditor.sectionDescriptionPlaceholder, text: $description, axis: .vertical)
                                 .font(DesignSystem.Typography.body)
                                 .lineLimit(2...4)
                                 .formFieldStyle()
@@ -133,16 +133,16 @@ struct SectionEditorSheet: View {
                         
                         // Options
                         VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
-                            Text("Options")
+                            Text(L10n.SectionEditor.options)
                                 .font(DesignSystem.Typography.caption)
                                 .foregroundColor(DesignSystem.Colors.textSecondary)
                             
                             Toggle(isOn: $isExpandedByDefault) {
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text("Expanded by Default")
+                                    Text(L10n.SectionEditor.expandedByDefault)
                                         .font(DesignSystem.Typography.body)
                                         .foregroundColor(DesignSystem.Colors.textPrimary)
-                                    Text("Show items when viewing checklist")
+                                    Text(L10n.SectionEditor.expandedByDefaultDescription)
                                         .font(DesignSystem.Typography.caption)
                                         .foregroundColor(DesignSystem.Colors.textSecondary)
                                 }
@@ -159,7 +159,7 @@ struct SectionEditorSheet: View {
                             } label: {
                                 HStack {
                                     Image(systemName: "trash")
-                                    Text("Delete Section")
+                                    Text(L10n.SectionEditor.deleteSection)
                                 }
                                 .font(DesignSystem.Typography.body)
                                 .foregroundColor(DesignSystem.Colors.error)
@@ -173,17 +173,17 @@ struct SectionEditorSheet: View {
                     .padding(DesignSystem.Spacing.lg)
                 }
             }
-            .navigationTitle(existingSection == nil ? "New Section" : "Edit Section")
+            .navigationTitle(existingSection == nil ? L10n.SectionEditor.newSection : L10n.SectionEditor.editSection)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
+                    Button(L10n.SectionEditor.cancel) {
                         dismiss()
                     }
                 }
                 
                 ToolbarItem(placement: .primaryAction) {
-                    Button("Save") {
+                    Button(L10n.SectionEditor.save) {
                         let section = ChecklistSection(
                             id: existingSection?.id ?? UUID(),
                             title: title,
@@ -203,14 +203,14 @@ struct SectionEditorSheet: View {
             .sheet(isPresented: $showingIconPicker) {
                 IconPickerSheet(selectedIcon: $icon, icons: sectionIcons)
             }
-            .alert("Delete Section", isPresented: $showingDeleteConfirm) {
-                Button("Cancel", role: .cancel) { }
-                Button("Delete", role: .destructive) {
+            .alert(L10n.SectionEditor.deleteSectionAlert, isPresented: $showingDeleteConfirm) {
+                Button(L10n.SectionEditor.cancel, role: .cancel) { }
+                Button(L10n.SectionEditor.delete, role: .destructive) {
                     onDelete?()
                     dismiss()
                 }
             } message: {
-                Text("Are you sure you want to delete this section? All items in this section will be deleted.")
+                Text(L10n.SectionEditor.deleteSectionMessage)
             }
         }
     }
@@ -240,7 +240,7 @@ private struct IconPickerSheet: View {
                             Image(systemName: "xmark.circle")
                                 .font(.system(size: 24))
                                 .foregroundColor(DesignSystem.Colors.textSecondary)
-                            Text("None")
+                            Text(L10n.SectionEditor.none)
                                 .font(DesignSystem.Typography.caption)
                                 .foregroundColor(DesignSystem.Colors.textSecondary)
                         }
@@ -268,11 +268,11 @@ private struct IconPickerSheet: View {
                 }
                 .padding(DesignSystem.Spacing.lg)
             }
-            .navigationTitle("Choose Icon")
+            .navigationTitle(L10n.SectionEditor.chooseIconTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
-                    Button("Done") {
+                    Button(L10n.SectionEditor.done) {
                         dismiss()
                     }
                 }
@@ -281,3 +281,47 @@ private struct IconPickerSheet: View {
     }
 }
 
+// MARK: - Preview
+
+#Preview("New Section") {
+    SectionEditorSheet(
+        section: nil,
+        onSave: { _ in }
+    )
+}
+
+#Preview("Edit Section") {
+    let sampleSection = ChecklistSection(
+        title: "Engine & Systems",
+        icon: "engine.combustion",
+        description: "Essential engine and mechanical system checks",
+        items: [
+            ChecklistItem(title: "Check engine oil level"),
+            ChecklistItem(title: "Test bilge pump operation")
+        ],
+        isExpandedByDefault: true
+    )
+    
+    return SectionEditorSheet(
+        section: sampleSection,
+        onSave: { _ in },
+        onDelete: {}
+    )
+}
+
+#Preview("Edit Section - No Icon") {
+    let sampleSection = ChecklistSection(
+        title: "Safety Equipment",
+        description: "Safety equipment verification",
+        items: [
+            ChecklistItem(title: "Life jackets accessible")
+        ],
+        isExpandedByDefault: false
+    )
+    
+    return SectionEditorSheet(
+        section: sampleSection,
+        onSave: { _ in },
+        onDelete: {}
+    )
+}
