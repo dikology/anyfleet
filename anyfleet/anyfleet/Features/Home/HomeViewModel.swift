@@ -103,5 +103,10 @@ final class HomeViewModel {
         //     activeCharterChecklistID = nil
         // }
     }
+
+    func onActiveCharterTapped(_ charter: CharterModel) {
+        AppLogger.view.info("Active charter tapped: \(charter.id)")
+        coordinator.navigateToCharter(charter.id)
+    }
 }
 

@@ -112,7 +112,7 @@ struct HomeView: View {
         .shadow(color: DesignSystem.Colors.shadowStrong, radius: 12, y: 6)
         .padding(.horizontal, DesignSystem.Spacing.screenPadding)
         .onTapGesture {
-            //viewModel.onActiveCharterTapped(charter)
+            viewModel.onActiveCharterTapped(charter)
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Active charter")
