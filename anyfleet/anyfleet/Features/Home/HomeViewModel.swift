@@ -30,6 +30,7 @@ final class HomeViewModel {
     // MARK: - Dependencies
     
     private let coordinator: AppCoordinator
+    private let charterStore: CharterStore
     
     // MARK: - State
     
@@ -42,8 +43,11 @@ final class HomeViewModel {
     /// Creates a new HomeViewModel.
     ///
     /// - Parameter coordinator: The app coordinator for navigation
-    init(coordinator: AppCoordinator) {
+    init(coordinator: AppCoordinator,
+         charterStore: CharterStore
+    ) {
         self.coordinator = coordinator
+        self.charterStore = charterStore
     }
     
     // MARK: - Actions
@@ -55,6 +59,40 @@ final class HomeViewModel {
     func onCreateCharterTapped() {
         AppLogger.view.info("Create charter tapped from home")
         coordinator.navigateToCreateCharter()
+    }
+
+    /// Refresh home screen data: active charter, auth state, content
+    func refresh() async {
+        isLoading = true
+        defer { isLoading = false }
+        
+        // Fetch active charter (latest with today in date range)
+        let today = Calendar.current.startOfDay(for: Date())
+        activeCharter = charterStore.charters
+            .filter { charter in
+                charter.startDate <= today && charter.endDate >= today
+            }
+            .sorted { $0.startDate > $1.startDate } // Latest first
+            .first
+        
+        AppLogger.view.info("Active charter: \(activeCharter?.name ?? "none")")
+        
+        // Fetch checkin checklist for active charter if it exists
+        // if let charterID = activeCharter?.id {
+        //     activeCharterChecklistID = contentStore.myChecklists
+        //         .filter { checklist in
+        //             checklist.type == .checkin && 
+        //             checklist.charterID == charterID
+        //         }
+        //         .sorted { $0.createdAt > $1.createdAt } // Latest first
+        //         .first?.id
+            
+        //     AppLogger.home.info(
+        //         "Active charter checklist: \(activeCharterChecklistID?.uuidString ?? "none")"
+        //     )
+        // } else {
+        //     activeCharterChecklistID = nil
+        // }
     }
 }
 

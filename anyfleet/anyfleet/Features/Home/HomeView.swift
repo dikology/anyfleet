@@ -41,6 +41,9 @@ struct HomeView: View {
                 }
                 .padding(.vertical, DesignSystem.Spacing.md)
             }
+            .task {
+                await viewModel.refresh()
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
@@ -133,5 +136,13 @@ struct HomeView: View {
 }
 
 #Preview {
-    HomeView(viewModel: HomeViewModel(coordinator: AppCoordinator()))
+    // Simple preview wiring with real dependencies
+    let dependencies = AppDependencies()
+    let coordinator = AppCoordinator()
+    let viewModel = HomeViewModel(
+        coordinator: coordinator,
+        charterStore: dependencies.charterStore
+    )
+    return HomeView(viewModel: viewModel)
+        .environment(dependencies)
 }

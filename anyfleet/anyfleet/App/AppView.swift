@@ -16,7 +16,8 @@ struct AppView: View {
         TabView(selection: $coordinator.selectedTab) {
             // Home Tab
             NavigationStack(path: $coordinator.homePath) {
-                HomeView(viewModel: HomeViewModel(coordinator: coordinator))
+                HomeView(viewModel: HomeViewModel(coordinator: coordinator, 
+                charterStore: dependencies.charterStore))
                     .navigationDestination(for: AppRoute.self) { route in
                         navigationDestination(route)
                     }
