@@ -66,3 +66,8 @@
 "library.newChecklist" = "Новый чек-лист";
 "library.newFlashcardDeck" = "Новая колода карточек";
 "library.newPracticeGuide" = "Новое практическое руководство";
+
+"greeting.morning" = "Доброе утро";
+"greeting.day" = "Добрый день";
+"greeting.evening" = "Добрый вечер";
+"greeting.night" = "Доброй ночи";

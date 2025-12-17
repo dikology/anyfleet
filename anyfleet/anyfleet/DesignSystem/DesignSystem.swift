@@ -1,66 +1,6 @@
 import SwiftUI
 
 enum DesignSystem {
-    enum Colors {
-        static let primary = Color(red: 0.126, green: 0.541, blue: 0.552) // #208A8D
-        static let secondary = Color(red: 0.369, green: 0.322, blue: 0.251) // #5E5240
-        static let success = Color(red: 0.133, green: 0.773, blue: 0.369) // #22C55E
-        static let warning = Color(red: 0.902, green: 0.506, blue: 0.380) // #E68161
-        static let error = Color(red: 1.0, green: 0.329, blue: 0.349) // #FF5459
-        static let gold = Color(red: 0.98, green: 0.82, blue: 0.45) // accent for highlights
-        static let oceanDeep = Color(red: 0.02, green: 0.28, blue: 0.36)
-        
-        // Dynamic surfaces for light/dark
-        static let background = Color(.systemGroupedBackground)
-        static let surface = Color(.secondarySystemGroupedBackground)
-        static let surfaceAlt = Color(.tertiarySystemGroupedBackground)
-        
-        // Text
-        static let textPrimary = Color(.label)
-        static let textSecondary = Color(.secondaryLabel)
-        
-        static let border = Color(.separator).opacity(0.4)
-        static let onPrimary = Color.white
-        static let onPrimaryMuted = Color.white.opacity(0.9)
-        static let shadowStrong = Color.black.opacity(0.18)
-    }
-    
-    enum Spacing {
-        static let xs: CGFloat = 4
-        static let sm: CGFloat = 8
-        static let md: CGFloat = 12
-        static let lg: CGFloat = 16
-        static let xl: CGFloat = 20
-        static let xxl: CGFloat = 24
-    }
-    
-    enum Typography {
-        static let title = Font.system(size: 20, weight: .semibold)
-        static let headline = Font.system(size: 18, weight: .semibold)
-        static let body = Font.system(size: 16, weight: .regular)
-        static let caption = Font.system(size: 14, weight: .regular)
-    }
-    
-    enum Gradients {
-        static let primary = LinearGradient(
-            colors: [
-                Color(red: 0.102, green: 0.47, blue: 0.53),
-                Color(red: 0.054, green: 0.32, blue: 0.45)
-            ],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
-        
-        static let subtleOverlay = LinearGradient(
-            colors: [
-                Color.white.opacity(0.08),
-                Color.white.opacity(0.02)
-            ],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
-    }
-    
     struct CardStyle: ViewModifier {
         func body(content: Content) -> some View {
             content
