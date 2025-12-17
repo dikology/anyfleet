@@ -71,3 +71,5 @@
 "greeting.day" = "Добрый день";
 "greeting.evening" = "Добрый вечер";
 "greeting.night" = "Доброй ночи";
+
+"charter.activeCharter" = "Активный";

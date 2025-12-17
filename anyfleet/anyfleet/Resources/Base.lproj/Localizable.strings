@@ -67,3 +67,5 @@
 "greeting.day" = "Good day";
 "greeting.evening" = "Good evening";
 "greeting.night" = "Good night";
+
+"charter.activeCharter" = "Active";
