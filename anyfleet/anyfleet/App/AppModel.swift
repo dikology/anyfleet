@@ -5,6 +5,7 @@ enum AppRoute: Hashable {
     // Charters
     case createCharter
     case charterDetail(UUID)
+    case checklistExecution(charterID: UUID, checklistID: UUID)
     
     // Library Content
     case checklistEditor(UUID?)
@@ -13,7 +14,6 @@ enum AppRoute: Hashable {
     
     // TODO: Add more routes as features are implemented
     // case checklistDetail(UUID)
-    // case checklistExecution(charterID: UUID, checklistID: UUID)
     // case deckDetail(UUID)
     // case guideDetail(UUID)
     // case profileUser(UUID)

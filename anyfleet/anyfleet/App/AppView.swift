@@ -72,9 +72,13 @@ struct AppView: View {
                 )
             )
         case .charterDetail(let id):
-            // TODO: Implement CharterDetailView when ready
-            Text("Charter Detail: \(id.uuidString)")
-                .navigationTitle("Charter")
+            CharterDetailView(
+                viewModel: CharterDetailViewModel(
+                    charterID: id,
+                    charterStore: dependencies.charterStore,
+                    libraryStore: dependencies.libraryStore
+                )
+            )
         case .checklistEditor(let checklistID):
             ChecklistEditorView(
                 viewModel: ChecklistEditorViewModel(
@@ -105,6 +109,19 @@ struct AppView: View {
             // )
             Text("Deck Editor: \(deckID?.uuidString ?? "New")")
                 .navigationTitle("Deck")
+        case .checklistExecution(let charterID, let checklistID):
+            // Placeholder for future checklist execution flow
+            VStack(spacing: DesignSystem.Spacing.md) {
+                Text("Checklist Execution")
+                    .font(DesignSystem.Typography.title)
+                Text("Charter: \(charterID.uuidString)")
+                    .font(DesignSystem.Typography.caption)
+                Text("Checklist: \(checklistID.uuidString)")
+                    .font(DesignSystem.Typography.caption)
+                    .foregroundColor(DesignSystem.Colors.textSecondary)
+            }
+            .padding()
+            .navigationTitle("Check-In Checklist")
         }
     }
 }
