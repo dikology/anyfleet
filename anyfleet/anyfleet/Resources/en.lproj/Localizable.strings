@@ -66,3 +66,10 @@
 "library.newChecklist" = "New Checklist";
 "library.newFlashcardDeck" = "New Flashcard Deck";
 "library.newPracticeGuide" = "New Practice Guide";
+
+"greeting.morning" = "Good morning";
+"greeting.day" = "Good day";
+"greeting.evening" = "Good evening";
+"greeting.night" = "Good night";
+
+"charter.activeCharter" = "Active";

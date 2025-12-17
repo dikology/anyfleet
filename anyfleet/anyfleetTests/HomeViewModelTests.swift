@@ -12,20 +12,23 @@ import Testing
 @Suite("HomeViewModel Tests")
 struct HomeViewModelTests {
     
-    @Test("Initialize with coordinator")
+    @Test("Initialize with coordinator and charter store")
     @MainActor
-    func testInitialization() async throws {
+    func testInitialization() throws {
         // Arrange
         let coordinator = AppCoordinator()
+        let dependencies = try AppDependencies.makeForTesting()
         
         // Act
-        let viewModel = HomeViewModel(coordinator: coordinator)
+        let viewModel = HomeViewModel(
+            coordinator: coordinator,
+            charterStore: dependencies.charterStore
+        )
         
         // Assert
-        // ViewModel is successfully created (test passes if no exception thrown)
-        // We can verify the coordinator is properly stored by testing behavior
         #expect(coordinator.chartersPath.isEmpty)
         #expect(coordinator.selectedTab == .home)
+        #expect(viewModel.activeCharter == nil)
     }
     
     @Test("Create charter tapped - switches to charters tab")
@@ -34,7 +37,11 @@ struct HomeViewModelTests {
         // Arrange
         let coordinator = AppCoordinator()
         coordinator.selectedTab = .home
-        let viewModel = HomeViewModel(coordinator: coordinator)
+        let dependencies = try AppDependencies.makeForTesting()
+        let viewModel = HomeViewModel(
+            coordinator: coordinator,
+            charterStore: dependencies.charterStore
+        )
         
         // Verify initial state
         #expect(coordinator.selectedTab == .home)
@@ -56,7 +63,11 @@ struct HomeViewModelTests {
         let coordinator = AppCoordinator()
         coordinator.selectedTab = .home
         coordinator.push(.charterDetail(UUID()), to: .charters) // Add existing route
-        let viewModel = HomeViewModel(coordinator: coordinator)
+        let dependencies = try AppDependencies.makeForTesting()
+        let viewModel = HomeViewModel(
+            coordinator: coordinator,
+            charterStore: dependencies.charterStore
+        )
         
         // Verify initial state has existing route
         #expect(coordinator.chartersPath.count == 1)
@@ -76,7 +87,11 @@ struct HomeViewModelTests {
         // Arrange
         let coordinator = AppCoordinator()
         coordinator.selectedTab = .charters
-        let viewModel = HomeViewModel(coordinator: coordinator)
+        let dependencies = try AppDependencies.makeForTesting()
+        let viewModel = HomeViewModel(
+            coordinator: coordinator,
+            charterStore: dependencies.charterStore
+        )
         
         // Act
         viewModel.onCreateCharterTapped()
@@ -93,7 +108,11 @@ struct HomeViewModelTests {
         // Arrange
         let coordinator = AppCoordinator()
         coordinator.selectedTab = .home
-        let viewModel = HomeViewModel(coordinator: coordinator)
+        let dependencies = try AppDependencies.makeForTesting()
+        let viewModel = HomeViewModel(
+            coordinator: coordinator,
+            charterStore: dependencies.charterStore
+        )
         
         // Act
         viewModel.onCreateCharterTapped()
@@ -109,7 +128,11 @@ struct HomeViewModelTests {
     func testRealisticUserFlow() async throws {
         // Arrange
         let coordinator = AppCoordinator()
-        let viewModel = HomeViewModel(coordinator: coordinator)
+        let dependencies = try AppDependencies.makeForTesting()
+        let viewModel = HomeViewModel(
+            coordinator: coordinator,
+            charterStore: dependencies.charterStore
+        )
         
         // Start on home tab
         #expect(coordinator.selectedTab == .home)
@@ -136,6 +159,160 @@ struct HomeViewModelTests {
         // Assert: Should again switch to charters and show create view
         #expect(coordinator.selectedTab == .charters)
         #expect(coordinator.chartersPath.first == .createCharter)
+    }
+
+    // MARK: - Active Charter Selection
+    
+    @Test("refresh() selects charter active today based on date range")
+    @MainActor
+    func testRefreshSelectsActiveCharterForToday() async throws {
+        // Arrange
+        let coordinator = AppCoordinator()
+        let dependencies = try AppDependencies.makeForTesting()
+        let store = dependencies.charterStore
+        let repository = dependencies.repository
+        
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        
+        // Charter that started yesterday and ends tomorrow (should be active)
+        let activeCharter = CharterModel(
+            id: UUID(),
+            name: "Active Charter",
+            boatName: nil,
+            location: nil,
+            startDate: today.addingTimeInterval(-86400),
+            endDate: today.addingTimeInterval(86400),
+            createdAt: Date(),
+            checkInChecklistID: nil
+        )
+        
+        // Charter that starts tomorrow (should NOT be active yet)
+        let futureCharter = CharterModel(
+            id: UUID(),
+            name: "Future Charter",
+            boatName: nil,
+            location: nil,
+            startDate: today.addingTimeInterval(86400),
+            endDate: today.addingTimeInterval(86400 * 2),
+            createdAt: Date(),
+            checkInChecklistID: nil
+        )
+        
+        // Persist both charters via repository, then load into store
+        try await repository.createCharter(activeCharter)
+        try await repository.createCharter(futureCharter)
+        await store.loadCharters()
+        
+        let viewModel = HomeViewModel(
+            coordinator: coordinator,
+            charterStore: store
+        )
+        
+        // Act
+        await viewModel.refresh()
+        
+        // Assert
+        #expect(viewModel.activeCharter?.id == activeCharter.id)
+    }
+    
+    @Test("refresh() picks latest starting active charter when multiple overlap")
+    @MainActor
+    func testRefreshSelectsLatestOverlappingActiveCharter() async throws {
+        // Arrange
+        let coordinator = AppCoordinator()
+        let dependencies = try AppDependencies.makeForTesting()
+        let store = dependencies.charterStore
+        let repository = dependencies.repository
+        
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        
+        // Older active charter
+        let olderCharter = CharterModel(
+            id: UUID(),
+            name: "Older Charter",
+            boatName: nil,
+            location: nil,
+            startDate: today.addingTimeInterval(-86400 * 5),
+            endDate: today.addingTimeInterval(86400),
+            createdAt: Date(),
+            checkInChecklistID: nil
+        )
+        
+        // Newer active charter that also includes today
+        let newerCharter = CharterModel(
+            id: UUID(),
+            name: "Newer Charter",
+            boatName: nil,
+            location: nil,
+            startDate: today.addingTimeInterval(-86400 * 1),
+            endDate: today.addingTimeInterval(86400 * 3),
+            createdAt: Date(),
+            checkInChecklistID: nil
+        )
+        
+        // Persist both charters via repository, then load into store
+        try await repository.createCharter(olderCharter)
+        try await repository.createCharter(newerCharter)
+        await store.loadCharters()
+        
+        let viewModel = HomeViewModel(
+            coordinator: coordinator,
+            charterStore: store
+        )
+        
+        // Act
+        await viewModel.refresh()
+        
+        // Assert - picks the one with the latest startDate
+        #expect(viewModel.activeCharter?.id == newerCharter.id)
+    }
+    
+    @Test("refresh() loads charters from database if store is empty")
+    @MainActor
+    func testRefreshLoadsChartersIfEmpty() async throws {
+        // Arrange
+        let coordinator = AppCoordinator()
+        let dependencies = try AppDependencies.makeForTesting()
+        let store = dependencies.charterStore
+        let repository = dependencies.repository
+        
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        
+        // Create a charter directly in the database (bypassing store to simulate
+        // the scenario where HomeView appears before Charters tab loads)
+        let activeCharter = CharterModel(
+            id: UUID(),
+            name: "Active Charter",
+            boatName: nil,
+            location: nil,
+            startDate: today.addingTimeInterval(-86400),
+            endDate: today.addingTimeInterval(86400),
+            createdAt: Date(),
+            checkInChecklistID: nil
+        )
+        
+        try await repository.createCharter(activeCharter)
+        
+        // Verify store is empty initially (hasn't loaded yet)
+        #expect(store.charters.isEmpty)
+        
+        let viewModel = HomeViewModel(
+            coordinator: coordinator,
+            charterStore: store
+        )
+        
+        #expect(viewModel.activeCharter == nil)
+        
+        // Act - refresh should load charters from database and find the active one
+        await viewModel.refresh()
+        
+        // Assert - charters should be loaded and active charter found
+        #expect(!store.charters.isEmpty)
+        #expect(store.charters.contains { $0.id == activeCharter.id })
+        #expect(viewModel.activeCharter?.id == activeCharter.id)
     }
 }
 

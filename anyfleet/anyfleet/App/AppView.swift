@@ -16,7 +16,8 @@ struct AppView: View {
         TabView(selection: $coordinator.selectedTab) {
             // Home Tab
             NavigationStack(path: $coordinator.homePath) {
-                HomeView(viewModel: HomeViewModel(coordinator: coordinator))
+                HomeView(viewModel: HomeViewModel(coordinator: coordinator, 
+                charterStore: dependencies.charterStore))
                     .navigationDestination(for: AppRoute.self) { route in
                         navigationDestination(route)
                     }
@@ -71,9 +72,13 @@ struct AppView: View {
                 )
             )
         case .charterDetail(let id):
-            // TODO: Implement CharterDetailView when ready
-            Text("Charter Detail: \(id.uuidString)")
-                .navigationTitle("Charter")
+            CharterDetailView(
+                viewModel: CharterDetailViewModel(
+                    charterID: id,
+                    charterStore: dependencies.charterStore,
+                    libraryStore: dependencies.libraryStore
+                )
+            )
         case .checklistEditor(let checklistID):
             ChecklistEditorView(
                 viewModel: ChecklistEditorViewModel(
@@ -104,6 +109,14 @@ struct AppView: View {
             // )
             Text("Deck Editor: \(deckID?.uuidString ?? "New")")
                 .navigationTitle("Deck")
+        case .checklistExecution(let charterID, let checklistID):
+            ChecklistExecutionView(
+                viewModel: ChecklistExecutionViewModel(
+                    libraryStore: dependencies.libraryStore,
+                    charterID: charterID,
+                    checklistID: checklistID
+                )
+            )
         }
     }
 }

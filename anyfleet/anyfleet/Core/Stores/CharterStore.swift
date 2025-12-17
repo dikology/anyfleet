@@ -104,6 +104,29 @@ final class CharterStore {
         }
     }
     
+    /// Save/update an existing charter (or append if not already cached)
+    @MainActor
+    func saveCharter(_ charter: CharterModel) async throws {
+        AppLogger.store.startOperation("Save Charter")
+        AppLogger.store.info("Saving charter with ID: \(charter.id.uuidString)")
+        
+        do {
+            try await repository.saveCharter(charter)
+            
+            if let index = charters.firstIndex(where: { $0.id == charter.id }) {
+                charters[index] = charter
+            } else {
+                charters.append(charter)
+            }
+            
+            AppLogger.store.info("Charter saved successfully, total charters: \(charters.count)")
+            AppLogger.store.completeOperation("Save Charter")
+        } catch {
+            AppLogger.store.failOperation("Save Charter", error: error)
+            throw error
+        }
+    }
+    
     @MainActor
     func deleteCharter(_ charterID: UUID) async throws {
         AppLogger.store.startOperation("Delete Charter")

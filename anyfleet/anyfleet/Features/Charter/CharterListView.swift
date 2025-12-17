@@ -59,7 +59,9 @@ struct CharterListView: View {
     private var charterList: some View {
         List {
             ForEach(viewModel.charters) { charter in
-                CharterRowView(charter: charter)
+                NavigationLink(value: AppRoute.charterDetail(charter.id)) {
+                    CharterRowView(charter: charter)
+                }
                     .listRowInsets(EdgeInsets(
                         top: DesignSystem.Spacing.sm,
                         leading: DesignSystem.Spacing.lg,

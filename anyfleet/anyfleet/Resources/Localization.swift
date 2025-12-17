@@ -6,6 +6,32 @@ enum L10n {
         tableName: "Localizable",
         comment: "Title for the home tab"
     )
+
+    enum Greeting {
+        static let morning = NSLocalizedString(
+            "greeting.morning",
+            tableName: "Localizable",
+            comment: "Morning greeting"
+        )
+
+        static let day = NSLocalizedString(
+            "greeting.day",
+            tableName: "Localizable",
+            comment: "day greeting"
+        )
+
+        static let evening = NSLocalizedString(
+            "greeting.evening",
+            tableName: "Localizable",
+            comment: "evening greeting"
+        )
+
+        static let night = NSLocalizedString(
+            "greeting.night",
+            tableName: "Localizable",
+            comment: "night greeting"
+        )
+    }
     
     enum Library {
         static let myLibrary = NSLocalizedString(
@@ -373,5 +399,11 @@ enum L10n {
         "charter.summary.of",
         tableName: "Localizable",
         comment: "Title for the of section in the charter summary card"
+    )
+
+    static let homeActiveCharterTitle = NSLocalizedString(
+        "charter.activeCharter",
+        tableName: "Localizable",
+        comment: ""
     )
 }
