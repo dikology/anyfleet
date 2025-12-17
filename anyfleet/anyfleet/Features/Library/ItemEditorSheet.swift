@@ -47,11 +47,11 @@ struct ItemEditorSheet: View {
                     VStack(spacing: DesignSystem.Spacing.xl) {
                         // Title
                         VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
-                            Text("Item Title")
+                            Text(L10n.ItemEditor.itemTitle)
                                 .font(DesignSystem.Typography.caption)
                                 .foregroundColor(DesignSystem.Colors.textSecondary)
                             
-                            TextField("Item name", text: $title)
+                            TextField(L10n.ItemEditor.itemNamePlaceholder, text: $title)
                                 .font(DesignSystem.Typography.body)
                                 .formFieldStyle()
                         }
@@ -59,90 +59,21 @@ struct ItemEditorSheet: View {
                         // Description
                         VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
                             HStack {
-                                Text("Description")
+                                Text(L10n.ItemEditor.description)
                                     .font(DesignSystem.Typography.caption)
                                     .foregroundColor(DesignSystem.Colors.textSecondary)
                                 
-                                Text("Optional")
+                                Text(L10n.ItemEditor.optional)
                                     .font(DesignSystem.Typography.caption)
                                     .foregroundColor(DesignSystem.Colors.textSecondary)
                             }
                             
-                            TextField("Item description", text: $itemDescription, axis: .vertical)
+                            TextField(L10n.ItemEditor.itemDescriptionPlaceholder, text: $itemDescription, axis: .vertical)
                                 .font(DesignSystem.Typography.body)
                                 .lineLimit(3...6)
                                 .formFieldStyle()
                         }
                         
-                        // Importance toggles
-                        VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
-                            Text("Importance")
-                                .font(DesignSystem.Typography.caption)
-                                .foregroundColor(DesignSystem.Colors.textSecondary)
-                            
-                            VStack(spacing: 0) {
-                                // Required toggle
-                                Toggle(isOn: $isRequired) {
-                                    HStack(spacing: DesignSystem.Spacing.sm) {
-                                        Image(systemName: "exclamationmark.triangle.fill")
-                                            .foregroundColor(DesignSystem.Colors.error)
-                                        
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text("Required")
-                                                .font(DesignSystem.Typography.body)
-                                                .foregroundColor(DesignSystem.Colors.textPrimary)
-                                            Text("Safety-critical item")
-                                                .font(DesignSystem.Typography.caption)
-                                                .foregroundColor(DesignSystem.Colors.textSecondary)
-                                        }
-                                    }
-                                }
-                                .tint(DesignSystem.Colors.error)
-                                .padding(DesignSystem.Spacing.md)
-                                .onChange(of: isRequired) { _, newValue in
-                                    if newValue { isOptional = false }
-                                }
-                                
-                                Divider()
-                                    .padding(.horizontal, DesignSystem.Spacing.md)
-                                
-                                // Optional toggle
-                                Toggle(isOn: $isOptional) {
-                                    HStack(spacing: DesignSystem.Spacing.sm) {
-                                        Image(systemName: "circle.dashed")
-                                            .foregroundColor(DesignSystem.Colors.textSecondary)
-                                        
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text("Optional")
-                                                .font(DesignSystem.Typography.body)
-                                                .foregroundColor(DesignSystem.Colors.textPrimary)
-                                            Text("Can be skipped")
-                                                .font(DesignSystem.Typography.caption)
-                                                .foregroundColor(DesignSystem.Colors.textSecondary)
-                                        }
-                                    }
-                                }
-                                .tint(DesignSystem.Colors.primary)
-                                .padding(DesignSystem.Spacing.md)
-                                .onChange(of: isOptional) { _, newValue in
-                                    if newValue { isRequired = false }
-                                }
-                            }
-                            .background(DesignSystem.Colors.surface)
-                            .cornerRadius(10)
-                        }
-                        
-                        // Estimated time
-                        VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
-                            Text("Estimated Time (minutes)")
-                                .font(DesignSystem.Typography.caption)
-                                .foregroundColor(DesignSystem.Colors.textSecondary)
-                            
-                            TextField("Minutes", value: $estimatedMinutes, format: .number)
-                                .font(DesignSystem.Typography.body)
-                                .formFieldStyle()
-                                .keyboardType(.numberPad)
-                        }
                         
                         // Delete button (if editing existing)
                         if let _ = existingItem, onDelete != nil {
@@ -151,7 +82,7 @@ struct ItemEditorSheet: View {
                             } label: {
                                 HStack {
                                     Image(systemName: "trash")
-                                    Text("Delete Item")
+                                    Text(L10n.ItemEditor.deleteItem)
                                 }
                                 .font(DesignSystem.Typography.body)
                                 .foregroundColor(DesignSystem.Colors.error)
@@ -165,17 +96,17 @@ struct ItemEditorSheet: View {
                     .padding(DesignSystem.Spacing.lg)
                 }
             }
-            .navigationTitle(existingItem == nil ? "New Item" : "Edit Item")
+            .navigationTitle(existingItem == nil ? L10n.ItemEditor.newItem : L10n.ItemEditor.editItem)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
+                    Button(L10n.ItemEditor.cancel) {
                         dismiss()
                     }
                 }
                 
                 ToolbarItem(placement: .primaryAction) {
-                    Button("Save") {
+                    Button(L10n.ItemEditor.save) {
                         let item = ChecklistItem(
                             id: existingItem?.id ?? UUID(),
                             title: title,
@@ -193,16 +124,54 @@ struct ItemEditorSheet: View {
                     .fontWeight(.semibold)
                 }
             }
-            .alert("Delete Item", isPresented: $showingDeleteConfirm) {
-                Button("Cancel", role: .cancel) { }
-                Button("Delete", role: .destructive) {
+            .alert(L10n.ItemEditor.deleteItemAlert, isPresented: $showingDeleteConfirm) {
+                Button(L10n.ItemEditor.cancel, role: .cancel) { }
+                Button(L10n.ItemEditor.delete, role: .destructive) {
                     onDelete?()
                     dismiss()
                 }
             } message: {
-                Text("Are you sure you want to delete this item?")
+                Text(L10n.ItemEditor.deleteItemMessage)
             }
         }
     }
 }
 
+// MARK: - Preview
+
+#Preview("New Item") {
+    ItemEditorSheet(
+        item: nil,
+        onSave: { _ in }
+    )
+}
+
+#Preview("Edit Item") {
+    let sampleItem = ChecklistItem(
+        title: "Check engine oil level",
+        itemDescription: "Verify oil level is within acceptable range",
+        isRequired: true,
+        estimatedMinutes: 5
+    )
+    
+    return ItemEditorSheet(
+        item: sampleItem,
+        onSave: { _ in },
+        onDelete: {}
+    )
+}
+
+#Preview("Edit Item - Optional") {
+    let sampleItem = ChecklistItem(
+        title: "Clean windows",
+        itemDescription: "Optional cleaning task",
+        isOptional: true,
+        estimatedMinutes: 10
+    )
+    
+    return ItemEditorSheet(
+        item: sampleItem,
+        onSave: { _ in },
+        onDelete: {}
+    )
+}

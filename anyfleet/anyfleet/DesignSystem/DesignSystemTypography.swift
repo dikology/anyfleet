@@ -12,6 +12,9 @@ extension DesignSystem {
         static let largeTitle = headerFont(size: 20, weight: .semibold)
         static let title = headerFont(size: 16, weight: .semibold)
         static let headline = headerFont(size: 12, weight: .semibold)
+
+        // Subheader
+        static let subheader = Font.system(size: 16, weight: .semibold, design: .default)
         
         // Body
         static let body = Font.system(size: 16, weight: .regular, design: .default)

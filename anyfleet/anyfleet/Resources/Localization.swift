@@ -406,4 +406,346 @@ enum L10n {
         tableName: "Localizable",
         comment: ""
     )
+    
+    enum ChecklistEditor {
+        static let newChecklist = NSLocalizedString(
+            "checklistEditor.newChecklist",
+            tableName: "Localizable",
+            comment: "Navigation title for creating a new checklist"
+        )
+        
+        static let editChecklist = NSLocalizedString(
+            "checklistEditor.editChecklist",
+            tableName: "Localizable",
+            comment: "Navigation title for editing an existing checklist"
+        )
+        
+        static let save = NSLocalizedString(
+            "checklistEditor.save",
+            tableName: "Localizable",
+            comment: "Save button label"
+        )
+        
+        static let error = NSLocalizedString(
+            "checklistEditor.error",
+            tableName: "Localizable",
+            comment: "Error alert title"
+        )
+        
+        static let ok = NSLocalizedString(
+            "checklistEditor.ok",
+            tableName: "Localizable",
+            comment: "OK button label"
+        )
+        
+        static let title = NSLocalizedString(
+            "checklistEditor.title",
+            tableName: "Localizable",
+            comment: "Title field label"
+        )
+        
+        static let checklistNamePlaceholder = NSLocalizedString(
+            "checklistEditor.checklistNamePlaceholder",
+            tableName: "Localizable",
+            comment: "Placeholder for checklist name input field"
+        )
+        
+        static let description = NSLocalizedString(
+            "checklistEditor.description",
+            tableName: "Localizable",
+            comment: "Description field label"
+        )
+        
+        static let descriptionPlaceholder = NSLocalizedString(
+            "checklistEditor.descriptionPlaceholder",
+            tableName: "Localizable",
+            comment: "Placeholder for checklist description input field"
+        )
+        
+        static let checklistType = NSLocalizedString(
+            "checklistEditor.checklistType",
+            tableName: "Localizable",
+            comment: "Checklist type field label"
+        )
+        
+        static let sections = NSLocalizedString(
+            "checklistEditor.sections",
+            tableName: "Localizable",
+            comment: "Sections stat label"
+        )
+        
+        static let items = NSLocalizedString(
+            "checklistEditor.items",
+            tableName: "Localizable",
+            comment: "Items stat label"
+        )
+        
+        static let addSection = NSLocalizedString(
+            "checklistEditor.addSection",
+            tableName: "Localizable",
+            comment: "Add section button label"
+        )
+        
+        static let addItem = NSLocalizedString(
+            "checklistEditor.addItem",
+            tableName: "Localizable",
+            comment: "Add item button label"
+        )
+        
+        static let delete = NSLocalizedString(
+            "checklistEditor.delete",
+            tableName: "Localizable",
+            comment: "Delete button label"
+        )
+    }
+    
+    enum ItemEditor {
+        static let newItem = NSLocalizedString(
+            "itemEditor.newItem",
+            tableName: "Localizable",
+            comment: "Navigation title for creating a new item"
+        )
+        
+        static let editItem = NSLocalizedString(
+            "itemEditor.editItem",
+            tableName: "Localizable",
+            comment: "Navigation title for editing an existing item"
+        )
+        
+        static let itemTitle = NSLocalizedString(
+            "itemEditor.itemTitle",
+            tableName: "Localizable",
+            comment: "Item title field label"
+        )
+        
+        static let itemNamePlaceholder = NSLocalizedString(
+            "itemEditor.itemNamePlaceholder",
+            tableName: "Localizable",
+            comment: "Placeholder for item name input field"
+        )
+        
+        static let description = NSLocalizedString(
+            "itemEditor.description",
+            tableName: "Localizable",
+            comment: "Description field label"
+        )
+        
+        static let optional = NSLocalizedString(
+            "itemEditor.optional",
+            tableName: "Localizable",
+            comment: "Optional label"
+        )
+        
+        static let itemDescriptionPlaceholder = NSLocalizedString(
+            "itemEditor.itemDescriptionPlaceholder",
+            tableName: "Localizable",
+            comment: "Placeholder for item description input field"
+        )
+        
+        static let importance = NSLocalizedString(
+            "itemEditor.importance",
+            tableName: "Localizable",
+            comment: "Importance section label"
+        )
+        
+        static let required = NSLocalizedString(
+            "itemEditor.required",
+            tableName: "Localizable",
+            comment: "Required toggle label"
+        )
+        
+        static let requiredDescription = NSLocalizedString(
+            "itemEditor.requiredDescription",
+            tableName: "Localizable",
+            comment: "Required toggle description"
+        )
+        
+        static let optionalDescription = NSLocalizedString(
+            "itemEditor.optionalDescription",
+            tableName: "Localizable",
+            comment: "Optional toggle description"
+        )
+        
+        static let estimatedTime = NSLocalizedString(
+            "itemEditor.estimatedTime",
+            tableName: "Localizable",
+            comment: "Estimated time field label"
+        )
+        
+        static let minutesPlaceholder = NSLocalizedString(
+            "itemEditor.minutesPlaceholder",
+            tableName: "Localizable",
+            comment: "Placeholder for minutes input field"
+        )
+        
+        static let deleteItem = NSLocalizedString(
+            "itemEditor.deleteItem",
+            tableName: "Localizable",
+            comment: "Delete item button label"
+        )
+        
+        static let cancel = NSLocalizedString(
+            "itemEditor.cancel",
+            tableName: "Localizable",
+            comment: "Cancel button label"
+        )
+        
+        static let save = NSLocalizedString(
+            "itemEditor.save",
+            tableName: "Localizable",
+            comment: "Save button label"
+        )
+        
+        static let deleteItemAlert = NSLocalizedString(
+            "itemEditor.deleteItemAlert",
+            tableName: "Localizable",
+            comment: "Delete item alert title"
+        )
+        
+        static let deleteItemMessage = NSLocalizedString(
+            "itemEditor.deleteItemMessage",
+            tableName: "Localizable",
+            comment: "Delete item alert message"
+        )
+        
+        static let delete = NSLocalizedString(
+            "itemEditor.delete",
+            tableName: "Localizable",
+            comment: "Delete button label in alert"
+        )
+    }
+    
+    enum SectionEditor {
+        static let newSection = NSLocalizedString(
+            "sectionEditor.newSection",
+            tableName: "Localizable",
+            comment: "Navigation title for creating a new section"
+        )
+        
+        static let editSection = NSLocalizedString(
+            "sectionEditor.editSection",
+            tableName: "Localizable",
+            comment: "Navigation title for editing an existing section"
+        )
+        
+        static let sectionTitle = NSLocalizedString(
+            "sectionEditor.sectionTitle",
+            tableName: "Localizable",
+            comment: "Section title field label"
+        )
+        
+        static let sectionNamePlaceholder = NSLocalizedString(
+            "sectionEditor.sectionNamePlaceholder",
+            tableName: "Localizable",
+            comment: "Placeholder for section name input field"
+        )
+        
+        static let icon = NSLocalizedString(
+            "sectionEditor.icon",
+            tableName: "Localizable",
+            comment: "Icon field label"
+        )
+        
+        static let optional = NSLocalizedString(
+            "sectionEditor.optional",
+            tableName: "Localizable",
+            comment: "Optional label"
+        )
+        
+        static let changeIcon = NSLocalizedString(
+            "sectionEditor.changeIcon",
+            tableName: "Localizable",
+            comment: "Change icon button label"
+        )
+        
+        static let chooseIcon = NSLocalizedString(
+            "sectionEditor.chooseIcon",
+            tableName: "Localizable",
+            comment: "Choose icon button label"
+        )
+        
+        static let description = NSLocalizedString(
+            "sectionEditor.description",
+            tableName: "Localizable",
+            comment: "Description field label"
+        )
+        
+        static let sectionDescriptionPlaceholder = NSLocalizedString(
+            "sectionEditor.sectionDescriptionPlaceholder",
+            tableName: "Localizable",
+            comment: "Placeholder for section description input field"
+        )
+        
+        static let options = NSLocalizedString(
+            "sectionEditor.options",
+            tableName: "Localizable",
+            comment: "Options section label"
+        )
+        
+        static let expandedByDefault = NSLocalizedString(
+            "sectionEditor.expandedByDefault",
+            tableName: "Localizable",
+            comment: "Expanded by default toggle label"
+        )
+        
+        static let expandedByDefaultDescription = NSLocalizedString(
+            "sectionEditor.expandedByDefaultDescription",
+            tableName: "Localizable",
+            comment: "Expanded by default toggle description"
+        )
+        
+        static let deleteSection = NSLocalizedString(
+            "sectionEditor.deleteSection",
+            tableName: "Localizable",
+            comment: "Delete section button label"
+        )
+        
+        static let cancel = NSLocalizedString(
+            "sectionEditor.cancel",
+            tableName: "Localizable",
+            comment: "Cancel button label"
+        )
+        
+        static let save = NSLocalizedString(
+            "sectionEditor.save",
+            tableName: "Localizable",
+            comment: "Save button label"
+        )
+        
+        static let deleteSectionAlert = NSLocalizedString(
+            "sectionEditor.deleteSectionAlert",
+            tableName: "Localizable",
+            comment: "Delete section alert title"
+        )
+        
+        static let deleteSectionMessage = NSLocalizedString(
+            "sectionEditor.deleteSectionMessage",
+            tableName: "Localizable",
+            comment: "Delete section alert message"
+        )
+        
+        static let delete = NSLocalizedString(
+            "sectionEditor.delete",
+            tableName: "Localizable",
+            comment: "Delete button label in alert"
+        )
+        
+        static let chooseIconTitle = NSLocalizedString(
+            "sectionEditor.chooseIconTitle",
+            tableName: "Localizable",
+            comment: "Icon picker navigation title"
+        )
+        
+        static let done = NSLocalizedString(
+            "sectionEditor.done",
+            tableName: "Localizable",
+            comment: "Done button label"
+        )
+        
+        static let none = NSLocalizedString(
+            "sectionEditor.none",
+            tableName: "Localizable",
+            comment: "None option label in icon picker"
+        )
+    }
 }

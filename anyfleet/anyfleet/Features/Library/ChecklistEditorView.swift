@@ -36,8 +36,8 @@ struct ChecklistEditorView: View {
             .task {
                 await viewModel.loadChecklist()
             }
-            .alert("Error", isPresented: errorAlertBinding) {
-                Button("OK") { viewModel.errorMessage = nil }
+            .alert(L10n.ChecklistEditor.error, isPresented: errorAlertBinding) {
+                Button(L10n.ChecklistEditor.ok) { viewModel.errorMessage = nil }
             } message: {
                 if let error = viewModel.errorMessage {
                     Text(error)
@@ -66,7 +66,7 @@ struct ChecklistEditorView: View {
     }
     
     private var navigationTitle: String {
-        viewModel.isNewChecklist ? "New Checklist" : "Edit Checklist"
+        viewModel.isNewChecklist ? L10n.ChecklistEditor.newChecklist : L10n.ChecklistEditor.editChecklist
     }
     
     // MARK: - Toolbar
@@ -84,7 +84,7 @@ struct ChecklistEditorView: View {
                 ProgressView()
                     .tint(DesignSystem.Colors.primary)
             } else {
-                Text("Save")
+                Text(L10n.ChecklistEditor.save)
                     .fontWeight(.semibold)
             }
         }
@@ -165,30 +165,42 @@ struct ChecklistEditorView: View {
         VStack(alignment: .leading, spacing: 0) {
             // Focal Point: Title Section with subtle emphasis
             VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs + 2) {
-                Text("Title")
+                Text(L10n.ChecklistEditor.title)
                     .font(DesignSystem.Typography.caption)
                     .foregroundColor(DesignSystem.Colors.textSecondary)
                     .tracking(0.3)
                 
-                TextField("Checklist name", text: $viewModel.checklist.title)
-                    .font(.system(size: 22, weight: .bold, design: .default))
+                TextField(L10n.ChecklistEditor.checklistNamePlaceholder, text: $viewModel.checklist.title)
+                    .font(DesignSystem.Typography.headline)
                     .foregroundColor(DesignSystem.Colors.textPrimary)
                     .textFieldStyle(.plain)
                     .padding(.vertical, DesignSystem.Spacing.xs)
+                    .contentShape(Rectangle())
             }
             .padding(.horizontal, DesignSystem.Spacing.lg)
             .padding(.top, DesignSystem.Spacing.lg)
             .padding(.bottom, DesignSystem.Spacing.md)
-            .focalHighlight()
+            .background(
+                LinearGradient(
+                    colors: [
+                        DesignSystem.Colors.gold.opacity(0.15),
+                        DesignSystem.Colors.gold.opacity(0.05),
+                        Color.clear
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .allowsHitTesting(false)
+            )
             
             // Supporting Element: Description with refined spacing
             VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs + 2) {
-                Text("Description")
+                Text(L10n.ChecklistEditor.description)
                     .font(DesignSystem.Typography.caption)
                     .foregroundColor(DesignSystem.Colors.textSecondary)
                     .tracking(0.3)
                 
-                TextField("Brief description (optional)", text: Binding(
+                TextField(L10n.ChecklistEditor.descriptionPlaceholder, text: Binding(
                     get: { viewModel.checklist.description ?? "" },
                     set: { viewModel.checklist.description = $0.isEmpty ? nil : $0 }
                 ))
@@ -199,7 +211,7 @@ struct ChecklistEditorView: View {
                 .padding(.vertical, DesignSystem.Spacing.xs)
             }
             .padding(.horizontal, DesignSystem.Spacing.lg)
-            .padding(.bottom, DesignSystem.Spacing.lg)
+            .padding(.bottom, DesignSystem.Spacing.md)
             
             // Visual separator with intentional spacing
             Divider()
@@ -208,7 +220,7 @@ struct ChecklistEditorView: View {
             
             // Metadata: Checklist Type Selector
             VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
-                Text("Checklist type")
+                Text(L10n.ChecklistEditor.checklistType)
                     .font(DesignSystem.Typography.caption)
                     .foregroundColor(DesignSystem.Colors.textSecondary)
                     .tracking(0.3)
@@ -305,8 +317,8 @@ struct ChecklistEditorView: View {
     
     private var statsRow: some View {
         HStack(spacing: DesignSystem.Spacing.md) {
-            statItem(value: "\(viewModel.checklist.sections.count)", label: "Sections")
-            statItem(value: "\(viewModel.checklist.totalItems)", label: "Items")
+            statItem(value: "\(viewModel.checklist.sections.count)", label: L10n.ChecklistEditor.sections)
+            statItem(value: "\(viewModel.checklist.totalItems)", label: L10n.ChecklistEditor.items)
             
             Spacer()
         }
@@ -316,7 +328,7 @@ struct ChecklistEditorView: View {
     private func statItem(value: String, label: String) -> some View {
         VStack(spacing: 2) {
             Text(value)
-                .font(DesignSystem.Typography.headline)
+                .font(DesignSystem.Typography.body)
                 .foregroundColor(DesignSystem.Colors.textPrimary)
             Text(label)
                 .font(DesignSystem.Typography.caption)
@@ -364,7 +376,7 @@ struct ChecklistEditorView: View {
             HStack(spacing: DesignSystem.Spacing.sm) {
                 Image(systemName: "plus.circle.fill")
                     .font(.system(size: 20))
-                Text("Add Section")
+                Text(L10n.ChecklistEditor.addSection)
                     .font(DesignSystem.Typography.body)
             }
             .foregroundColor(DesignSystem.Colors.primary)
@@ -426,10 +438,10 @@ private struct SectionCard: View {
                     
                     VStack(alignment: .leading, spacing: 2) {
                         Text(section.title)
-                            .font(DesignSystem.Typography.headline)
+                            .font(DesignSystem.Typography.subheader)
                             .foregroundColor(DesignSystem.Colors.textPrimary)
                         
-                        Text("\(section.items.count) items")
+                        Text("\(section.items.count) \(L10n.ChecklistEditor.items)")
                             .font(DesignSystem.Typography.caption)
                             .foregroundColor(DesignSystem.Colors.textSecondary)
                     }
@@ -482,7 +494,7 @@ private struct SectionCard: View {
                         HStack(spacing: DesignSystem.Spacing.sm) {
                             Image(systemName: "plus.circle")
                                 .font(.system(size: 18))
-                            Text("Add Item")
+                            Text(L10n.ChecklistEditor.addItem)
                                 .font(DesignSystem.Typography.caption)
                         }
                         .foregroundColor(DesignSystem.Colors.primary)
@@ -539,9 +551,76 @@ private struct ItemRow: View {
             Button(role: .destructive) {
                 onDelete()
             } label: {
-                Label("Delete", systemImage: "trash")
+                Label(L10n.ChecklistEditor.delete, systemImage: "trash")
             }
         }
     }
+}
+
+// MARK: - Preview
+
+#Preview("New Checklist") {
+    let dependencies = try! AppDependencies.makeForTesting()
+    let viewModel = ChecklistEditorViewModel(
+        libraryStore: dependencies.libraryStore,
+        checklistID: nil,
+        onDismiss: {}
+    )
+    
+    return NavigationStack {
+        ChecklistEditorView(viewModel: viewModel)
+    }
+    .environment(\.appDependencies, dependencies)
+}
+
+#Preview("Existing Checklist") {
+    let dependencies = try! AppDependencies.makeForTesting()
+    
+    // Create a sample checklist with sections and items
+    var sampleChecklist = Checklist(
+        title: "Pre-Departure Safety Checklist",
+        description: "Essential safety checks before leaving port",
+        sections: [
+            ChecklistSection(
+                title: "Engine & Systems",
+                icon: "engine",
+                items: [
+                    ChecklistItem(title: "Check engine oil level"),
+                    ChecklistItem(title: "Test bilge pump operation"),
+                    ChecklistItem(title: "Verify fuel tank levels")
+                ]
+            ),
+            ChecklistSection(
+                title: "Safety Equipment",
+                icon: "shield.checkered",
+                items: [
+                    ChecklistItem(title: "Life jackets accessible"),
+                    ChecklistItem(title: "Fire extinguishers checked"),
+                    ChecklistItem(title: "Flares and emergency kit ready")
+                ]
+            ),
+            ChecklistSection(
+                title: "Navigation",
+                icon: "compass",
+                items: [
+                    ChecklistItem(title: "GPS and chartplotter working"),
+                    ChecklistItem(title: "VHF radio tested")
+                ]
+            )
+        ],
+        checklistType: .preCharter
+    )
+    
+    let viewModel = ChecklistEditorViewModel(
+        libraryStore: dependencies.libraryStore,
+        checklistID: sampleChecklist.id,
+        onDismiss: {}
+    )
+    viewModel.checklist = sampleChecklist
+    
+    return NavigationStack {
+        ChecklistEditorView(viewModel: viewModel)
+    }
+    .environment(\.appDependencies, dependencies)
 }
 
