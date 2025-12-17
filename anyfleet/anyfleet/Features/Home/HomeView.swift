@@ -106,10 +106,10 @@ struct HomeView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        // .padding(DesignSystem.Spacing.cardPadding)
-        // .background(DesignSystem.Colors.oceanGradient)
-        // .cornerRadius(DesignSystem.Spacing.cardCornerRadiusLarge)
-         .shadow(color: .black.opacity(0.08), radius: 12, y: 6)
+        .padding(DesignSystem.Spacing.cardPadding)
+        .background(DesignSystem.Gradients.ocean)
+        .cornerRadius(DesignSystem.Spacing.cardCornerRadiusLarge)
+        .shadow(color: DesignSystem.Colors.shadowStrong, radius: 12, y: 6)
         .padding(.horizontal, DesignSystem.Spacing.screenPadding)
         .onTapGesture {
             //viewModel.onActiveCharterTapped(charter)

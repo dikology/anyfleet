@@ -12,6 +12,12 @@ extension DesignSystem {
         
         // Screen layout (mirrors sailaway AppSpacing)
         static let screenPadding: CGFloat = 20
+
+        // Card layout
+        static let cardPadding: CGFloat = 16
+        static let featuredCardHeight: CGFloat = 180
+        static let cardCornerRadius: CGFloat = 16
+        static let cardCornerRadiusLarge: CGFloat = 24
     }
 }
 

@@ -66,11 +66,20 @@ final class HomeViewModel {
         isLoading = true
         defer { isLoading = false }
         
+        // Ensure charters are loaded before checking for active charter
+        if charterStore.charters.isEmpty {
+            await charterStore.loadCharters()
+        }
+        
         // Fetch active charter (latest with today in date range)
-        let today = Calendar.current.startOfDay(for: Date())
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        
         activeCharter = charterStore.charters
             .filter { charter in
-                charter.startDate <= today && charter.endDate >= today
+                let start = calendar.startOfDay(for: charter.startDate)
+                let end = calendar.startOfDay(for: charter.endDate)
+                return start <= today && end >= today
             }
             .sorted { $0.startDate > $1.startDate } // Latest first
             .first

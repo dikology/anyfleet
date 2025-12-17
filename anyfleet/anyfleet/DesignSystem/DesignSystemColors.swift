@@ -26,6 +26,7 @@ extension DesignSystem {
     }
     
     enum Gradients {
+        /// Primary brand ocean gradient for hero/CTA cards.
         static let primary = LinearGradient(
             colors: [
                 Color(red: 0.102, green: 0.47, blue: 0.53),
@@ -34,6 +35,9 @@ extension DesignSystem {
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )
+        
+        /// Convenience alias specifically for ocean-themed hero cards.
+        static let ocean = primary
         
         static let subtleOverlay = LinearGradient(
             colors: [
