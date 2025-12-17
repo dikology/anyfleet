@@ -110,18 +110,13 @@ struct AppView: View {
             Text("Deck Editor: \(deckID?.uuidString ?? "New")")
                 .navigationTitle("Deck")
         case .checklistExecution(let charterID, let checklistID):
-            // Placeholder for future checklist execution flow
-            VStack(spacing: DesignSystem.Spacing.md) {
-                Text("Checklist Execution")
-                    .font(DesignSystem.Typography.title)
-                Text("Charter: \(charterID.uuidString)")
-                    .font(DesignSystem.Typography.caption)
-                Text("Checklist: \(checklistID.uuidString)")
-                    .font(DesignSystem.Typography.caption)
-                    .foregroundColor(DesignSystem.Colors.textSecondary)
-            }
-            .padding()
-            .navigationTitle("Check-In Checklist")
+            ChecklistExecutionView(
+                viewModel: ChecklistExecutionViewModel(
+                    libraryStore: dependencies.libraryStore,
+                    charterID: charterID,
+                    checklistID: checklistID
+                )
+            )
         }
     }
 }
