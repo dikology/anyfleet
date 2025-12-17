@@ -119,6 +119,37 @@ final class AppDatabase: Sendable {
             AppLogger.database.info("Migration v1.1.0_createLibrarySchema completed successfully")
         }
         
+        migrator.registerMigration("v1.2.0_createChecklistExecutionSchema") { db in
+            AppLogger.database.debug("Running migration: v1.2.0_createChecklistExecutionSchema")
+            
+            // MARK: Checklist Execution States Table
+            try db.create(table: "checklistExecutionStates") { t in
+                t.primaryKey("id", .text).notNull()
+                t.column("checklistID", .text).notNull()
+                t.column("charterID", .text).notNull()
+                t.column("itemStates", .text).notNull().defaults(to: "{}")
+                t.column("progressPercentage", .real)
+                t.column("createdAt", .datetime).notNull()
+                t.column("lastUpdated", .datetime).notNull()
+                t.column("completedAt", .datetime)
+                t.column("syncStatus", .text).notNull().defaults(to: "pending")
+                
+                t.uniqueKey(["checklistID", "charterID"])
+                
+                t.foreignKey(["charterID"], references: "charters", onDelete: .cascade, onUpdate: .cascade)
+            }
+            
+            // Create indexes
+            try db.create(index: "idx_executionStates_charter",
+                          on: "checklistExecutionStates", columns: ["charterID"])
+            try db.create(index: "idx_executionStates_checklist",
+                          on: "checklistExecutionStates", columns: ["checklistID"])
+            try db.create(index: "idx_executionStates_updated",
+                          on: "checklistExecutionStates", columns: ["lastUpdated"])
+            
+            AppLogger.database.info("Migration v1.2.0_createChecklistExecutionSchema completed successfully")
+        }
+        
         return migrator
     }
     

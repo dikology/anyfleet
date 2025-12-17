@@ -113,6 +113,7 @@ struct AppView: View {
             ChecklistExecutionView(
                 viewModel: ChecklistExecutionViewModel(
                     libraryStore: dependencies.libraryStore,
+                    executionRepository: dependencies.executionRepository,
                     charterID: charterID,
                     checklistID: checklistID
                 )
