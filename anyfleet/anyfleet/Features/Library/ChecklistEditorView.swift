@@ -192,18 +192,61 @@ struct ChecklistEditorView: View {
             Divider()
             
             // Metadata row
-            HStack(spacing: DesignSystem.Spacing.md) {
-                // Checklist type
-                metadataPill(
-                    icon: viewModel.checklist.checklistType.icon,
-                    text: viewModel.checklist.checklistType.displayName
-                )
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
+                Text("Checklist type")
+                    .font(DesignSystem.Typography.caption)
+                    .foregroundColor(DesignSystem.Colors.textSecondary)
                 
-                Spacer()
+                checklistTypeSelector
             }
         }
         .padding(DesignSystem.Spacing.lg)
         .cardStyle()
+    }
+    
+    /// Selector allowing the user to change the checklist type using DesignSystem styling.
+    private var checklistTypeSelector: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: DesignSystem.Spacing.sm) {
+                ForEach(ChecklistType.allCases, id: \.self) { type in
+                    Button {
+                        viewModel.checklist.checklistType = type
+                    } label: {
+                        HStack(spacing: DesignSystem.Spacing.xs) {
+                            Image(systemName: type.icon)
+                                .font(.system(size: 12, weight: .semibold))
+                            Text(type.displayName)
+                                .font(DesignSystem.Typography.caption)
+                        }
+                        .padding(.horizontal, DesignSystem.Spacing.sm)
+                        .padding(.vertical, DesignSystem.Spacing.xs)
+                        .background(
+                            Capsule()
+                                .fill(
+                                    viewModel.checklist.checklistType == type
+                                    ? DesignSystem.Colors.primary.opacity(0.12)
+                                    : DesignSystem.Colors.surfaceAlt
+                                )
+                        )
+                        .overlay(
+                            Capsule()
+                                .stroke(
+                                    viewModel.checklist.checklistType == type
+                                    ? DesignSystem.Colors.primary
+                                    : DesignSystem.Colors.border,
+                                    lineWidth: viewModel.checklist.checklistType == type ? 1.5 : 1
+                                )
+                        )
+                        .foregroundColor(
+                            viewModel.checklist.checklistType == type
+                            ? DesignSystem.Colors.primary
+                            : DesignSystem.Colors.textSecondary
+                        )
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
     }
     
     private func metadataPill(icon: String, text: String) -> some View {
