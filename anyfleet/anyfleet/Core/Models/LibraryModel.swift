@@ -20,6 +20,8 @@ nonisolated struct LibraryModel: Identifiable, Hashable, Sendable {
     var ratingCount: Int = 0
     var tags: [String] = []
     var language: String = "en"
+    var isPinned: Bool = false
+    var pinnedOrder: Int?
     var createdAt: Date
     var updatedAt: Date
     var syncStatus: ContentSyncStatus = .pending
@@ -39,6 +41,8 @@ nonisolated struct LibraryModel: Identifiable, Hashable, Sendable {
         ratingCount: Int = 0,
         tags: [String] = [],
         language: String = "en",
+        isPinned: Bool = false,
+        pinnedOrder: Int? = nil,
         createdAt: Date = Date(),
         updatedAt: Date = Date(),
         syncStatus: ContentSyncStatus = .pending
@@ -55,6 +59,8 @@ nonisolated struct LibraryModel: Identifiable, Hashable, Sendable {
         self.ratingCount = ratingCount
         self.tags = tags
         self.language = language
+        self.isPinned = isPinned
+        self.pinnedOrder = pinnedOrder
         self.createdAt = createdAt
         self.updatedAt = updatedAt
         self.syncStatus = syncStatus

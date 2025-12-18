@@ -112,7 +112,7 @@ struct LibraryListView: View {
                         LibraryItemRow(
                             item: item,
                             contentType: .checklist,
-                            onTap: { viewModel.onEditChecklistTapped(item.id) }
+                            onTap: { } //viewModel.onReadChecklistTapped(item.id) }
                         )
                         .listRowInsets(EdgeInsets(
                             top: DesignSystem.Spacing.sm,
@@ -122,7 +122,23 @@ struct LibraryListView: View {
                         ))
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
-                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                            Button {
+                                Task {
+                                    await viewModel.togglePin(for: item)
+                                }
+                            } label: {
+                                Label(item.isPinned ? "Unpin" : "Pin", systemImage: item.isPinned ? "pin.slash" : "pin")
+                            }
+                            .tint(DesignSystem.Colors.primary)
+
+                            Button {
+                                viewModel.onEditChecklistTapped(item.id)
+                            } label: {
+                                Label("Edit", systemImage: "pencil")
+                            }
+                            .tint(.gray)
+
                             Button(role: .destructive) {
                                 Task {
                                     do {
@@ -150,7 +166,7 @@ struct LibraryListView: View {
                         LibraryItemRow(
                             item: item,
                             contentType: .practiceGuide,
-                            onTap: { viewModel.onEditGuideTapped(item.id) }
+                            onTap: { } //viewModel.onReadGuideTapped(item.id) }
                         )
                         .listRowInsets(EdgeInsets(
                             top: DesignSystem.Spacing.sm,
@@ -160,7 +176,23 @@ struct LibraryListView: View {
                         ))
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
-                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                            Button {
+                                Task {
+                                    await viewModel.togglePin(for: item)
+                                }
+                            } label: {
+                                Label(item.isPinned ? "Unpin" : "Pin", systemImage: item.isPinned ? "pin.slash" : "pin")
+                            }
+                            .tint(DesignSystem.Colors.primary)
+
+                            Button {
+                                viewModel.onEditGuideTapped(item.id)
+                            } label: {
+                                Label("Edit", systemImage: "pencil")
+                            }
+                            .tint(.gray)
+
                             Button(role: .destructive) {
                                 Task {
                                     do {
@@ -188,7 +220,7 @@ struct LibraryListView: View {
                         LibraryItemRow(
                             item: item,
                             contentType: .flashcardDeck,
-                            onTap: { viewModel.onEditDeckTapped(item.id) }
+                            onTap: { } //viewModel.onReadDeckTapped(item.id) }
                         )
                         .listRowInsets(EdgeInsets(
                             top: DesignSystem.Spacing.sm,
@@ -198,7 +230,23 @@ struct LibraryListView: View {
                         ))
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
-                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                            Button {
+                                Task {
+                                    await viewModel.togglePin(for: item)
+                                }
+                            } label: {
+                                Label(item.isPinned ? "Unpin" : "Pin", systemImage: item.isPinned ? "pin.slash" : "pin")
+                            }
+                            .tint(DesignSystem.Colors.primary)
+
+                            Button {
+                                viewModel.onEditDeckTapped(item.id)
+                            } label: {
+                                Label("Edit", systemImage: "pencil")
+                            }
+                            .tint(.gray)
+
                             Button(role: .destructive) {
                                 Task {
                                     do {
@@ -390,14 +438,84 @@ struct LibraryItemRow: View {
 // MARK: - Preview
 
 #Preview {
-    let dependencies = try! AppDependencies.makeForTesting()
-    let coordinator = AppCoordinator()
-    return LibraryListView(
-        viewModel: LibraryListViewModel(
-            libraryStore: dependencies.libraryStore,
-            coordinator: coordinator
+    #if DEBUG
+    let sampleLibrary: [LibraryModel] = [
+        LibraryModel(
+            title: "Pre‑Departure Safety Checklist",
+            description: "Run through this before every sail: weather, rigging, engine, and crew briefing.",
+            type: .checklist,
+            visibility: .private,
+            creatorID: UUID(),
+            tags: ["safety", "pre‑departure", "crew"],
+            createdAt: Date().addingTimeInterval(-60 * 60 * 24 * 7),
+            updatedAt: Date().addingTimeInterval(-60 * 30)
+        ),
+        LibraryModel(
+            title: "Heavy Weather Tactics",
+            description: "Step‑by‑step guide for reefing, heaving‑to, and staying safe when the wind picks up.",
+            type: .practiceGuide,
+            visibility: .public,
+            creatorID: UUID(),
+            tags: ["heavy weather", "reefing", "safety"],
+            createdAt: Date().addingTimeInterval(-60 * 60 * 24 * 21),
+            updatedAt: Date().addingTimeInterval(-60 * 60 * 2)
+        ),
+        LibraryModel(
+            title: "COLREGs Flashcards",
+            description: "Flashcards to memorize the most important right‑of‑way rules and light patterns.",
+            type: .flashcardDeck,
+            visibility: .unlisted,
+            creatorID: UUID(),
+            tags: ["colregs", "rules", "night"],
+            createdAt: Date().addingTimeInterval(-60 * 60 * 24 * 3),
+            updatedAt: Date().addingTimeInterval(-60 * 10)
         )
+    ]
+
+    let repository = PreviewLibraryRepository(sampleLibrary: sampleLibrary)
+    let libraryStore = LibraryStore(repository: repository)
+    let coordinator = AppCoordinator()
+    let viewModel = LibraryListViewModel(
+        libraryStore: libraryStore,
+        coordinator: coordinator
     )
-    .environment(\.appDependencies, dependencies)
+
+    return NavigationStack {
+        LibraryListView(viewModel: viewModel)
+    }
     .environment(\.appCoordinator, coordinator)
+    #else
+    return LibraryListView()
+    #endif
 }
+
+#if DEBUG
+private struct PreviewLibraryRepository: LibraryRepository {
+    let sampleLibrary: [LibraryModel]
+
+    // MARK: - Metadata
+    func fetchUserLibrary() async throws -> [LibraryModel] {
+        sampleLibrary
+    }
+
+    // MARK: - Full Models
+    func fetchUserChecklists() async throws -> [Checklist] { [] }
+    func fetchUserGuides() async throws -> [PracticeGuide] { [] }
+    func fetchUserDecks() async throws -> [FlashcardDeck] { [] }
+
+    func fetchChecklist(_ checklistID: UUID) async throws -> Checklist? { nil }
+    func fetchGuide(_ guideID: UUID) async throws -> PracticeGuide? { nil }
+    func fetchDeck(_ deckID: UUID) async throws -> FlashcardDeck? { nil }
+
+    // MARK: - Mutating Operations (no‑ops for preview)
+    func createChecklist(_ checklist: Checklist) async throws {}
+    func createGuide(_ guide: PracticeGuide) async throws {}
+    func createDeck(_ deck: FlashcardDeck) async throws {}
+
+    func saveChecklist(_ checklist: Checklist) async throws {}
+    func saveGuide(_ guide: PracticeGuide) async throws {}
+
+    func deleteContent(_ contentID: UUID) async throws {}
+}
+#endif
+

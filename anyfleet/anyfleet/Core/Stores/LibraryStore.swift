@@ -173,6 +173,26 @@ final class LibraryStore {
         }
     }
     
+    // MARK: - Pinning
+    
+    /// Toggle pinned state for a library item and update its order.
+    @MainActor
+    func togglePin(for item: LibraryModel) async {
+        guard let index = library.firstIndex(where: { $0.id == item.id }) else { return }
+        
+        var updated = library[index]
+        updated.isPinned.toggle()
+        
+        if updated.isPinned {
+            let maxOrder = library.compactMap { $0.pinnedOrder }.max() ?? 0
+            updated.pinnedOrder = maxOrder + 1
+        } else {
+            updated.pinnedOrder = nil
+        }
+        
+        library[index] = updated
+    }
+    
     // MARK: - Fetching Full Models
     
     /// Fetch a full checklist model by ID

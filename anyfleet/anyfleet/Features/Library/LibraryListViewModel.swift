@@ -63,6 +63,26 @@ final class LibraryListViewModel {
         coordinator.editDeck(nil)
     }
     
+    // MARK: - Read Actions
+    
+    // /// Handles tapping a checklist to read/view it.
+    // func onReadChecklistTapped(_ checklistID: UUID) {
+    //     AppLogger.view.info("Read checklist tapped: \(checklistID.uuidString)")
+    //     coordinator.viewChecklist(checklistID)
+    // }
+    
+    // /// Handles tapping a guide to read/view it.
+    // func onReadGuideTapped(_ guideID: UUID) {
+    //     AppLogger.view.info("Read guide tapped: \(guideID.uuidString)")
+    //     coordinator.viewGuide(guideID)
+    // }
+    
+    // /// Handles tapping a deck to read/view it.
+    // func onReadDeckTapped(_ deckID: UUID) {
+    //     AppLogger.view.info("Read deck tapped: \(deckID.uuidString)")
+    //     coordinator.viewDeck(deckID)
+    // }
+    
     /// Handles editing an existing checklist.
     /// - Parameter checklistID: The ID of the checklist to edit
     func onEditChecklistTapped(_ checklistID: UUID) {
@@ -109,5 +129,10 @@ final class LibraryListViewModel {
     /// Delete content item
     func deleteContent(_ item: LibraryModel) async throws {
         try await libraryStore.deleteContent(item)
+    }
+    
+    /// Toggle pinned state for a library item
+    func togglePin(for item: LibraryModel) async {
+        await libraryStore.togglePin(for: item)
     }
 }
