@@ -12,13 +12,21 @@ import Testing
 @Suite("AppCoordinator Tests")
 struct AppCoordinatorTests {
     
+    // MARK: - Test Helpers
+    
+    @MainActor
+    private func makeTestCoordinator() -> AppCoordinator {
+        let dependencies = AppDependencies()
+        return AppCoordinator(dependencies: dependencies)
+    }
+    
     // MARK: - Initialization Tests
     
     @Test("Initialize with default state")
     @MainActor
     func testInitialization() async throws {
         // Arrange & Act
-        let coordinator = AppCoordinator()
+        let coordinator = makeTestCoordinator()
         
         // Assert
         #expect(coordinator.homePath.isEmpty)
@@ -32,7 +40,7 @@ struct AppCoordinatorTests {
     @MainActor
     func testPushToHomePath() async throws {
         // Arrange
-        let coordinator = AppCoordinator()
+        let coordinator = makeTestCoordinator()
         
         // Act
         coordinator.push(.createCharter, to: .home)
@@ -47,7 +55,7 @@ struct AppCoordinatorTests {
     @MainActor
     func testPushToChartersPath() async throws {
         // Arrange
-        let coordinator = AppCoordinator()
+        let coordinator = makeTestCoordinator()
         
         // Act
         coordinator.push(.createCharter, to: .charters)
@@ -62,7 +70,7 @@ struct AppCoordinatorTests {
     @MainActor
     func testPushMultipleRoutes() async throws {
         // Arrange
-        let coordinator = AppCoordinator()
+        let coordinator = makeTestCoordinator()
         let charterId = UUID()
         
         // Act
@@ -81,7 +89,7 @@ struct AppCoordinatorTests {
     @MainActor
     func testPopFromHomePath() async throws {
         // Arrange
-        let coordinator = AppCoordinator()
+        let coordinator = makeTestCoordinator()
         coordinator.push(.createCharter, to: .home)
         
         // Act
@@ -95,7 +103,7 @@ struct AppCoordinatorTests {
     @MainActor
     func testPopFromChartersPath() async throws {
         // Arrange
-        let coordinator = AppCoordinator()
+        let coordinator = makeTestCoordinator()
         coordinator.push(.createCharter, to: .charters)
         
         // Act
@@ -109,7 +117,7 @@ struct AppCoordinatorTests {
     @MainActor
     func testPopFromEmptyPath() async throws {
         // Arrange
-        let coordinator = AppCoordinator()
+        let coordinator = makeTestCoordinator()
         
         // Act
         coordinator.pop(from: .charters)
@@ -122,7 +130,7 @@ struct AppCoordinatorTests {
     @MainActor
     func testPopRemovesOnlyLastItem() async throws {
         // Arrange
-        let coordinator = AppCoordinator()
+        let coordinator = makeTestCoordinator()
         let charterId = UUID()
         coordinator.push(.createCharter, to: .charters)
         coordinator.push(.charterDetail(charterId), to: .charters)
@@ -141,7 +149,7 @@ struct AppCoordinatorTests {
     @MainActor
     func testPopToRootFromHomePath() async throws {
         // Arrange
-        let coordinator = AppCoordinator()
+        let coordinator = makeTestCoordinator()
         coordinator.push(.createCharter, to: .home)
         coordinator.push(.charterDetail(UUID()), to: .home)
         
@@ -156,7 +164,7 @@ struct AppCoordinatorTests {
     @MainActor
     func testPopToRootFromChartersPath() async throws {
         // Arrange
-        let coordinator = AppCoordinator()
+        let coordinator = makeTestCoordinator()
         coordinator.push(.createCharter, to: .charters)
         coordinator.push(.charterDetail(UUID()), to: .charters)
         coordinator.push(.charterDetail(UUID()), to: .charters)
@@ -174,7 +182,7 @@ struct AppCoordinatorTests {
     @MainActor
     func testCreateCharter() async throws {
         // Arrange
-        let coordinator = AppCoordinator()
+        let coordinator = makeTestCoordinator()
         
         // Act
         coordinator.createCharter()
@@ -188,7 +196,7 @@ struct AppCoordinatorTests {
     @MainActor
     func testViewCharter() async throws {
         // Arrange
-        let coordinator = AppCoordinator()
+        let coordinator = makeTestCoordinator()
         let charterId = UUID()
         
         // Act
@@ -205,7 +213,7 @@ struct AppCoordinatorTests {
     @MainActor
     func testNavigateToCreateCharter() async throws {
         // Arrange
-        let coordinator = AppCoordinator()
+        let coordinator = makeTestCoordinator()
         coordinator.selectedTab = .home
         coordinator.push(.charterDetail(UUID()), to: .charters) // Add existing route
         
@@ -222,7 +230,7 @@ struct AppCoordinatorTests {
     @MainActor
     func testNavigateToCreateCharterFromHome() async throws {
         // Arrange
-        let coordinator = AppCoordinator()
+        let coordinator = makeTestCoordinator()
         coordinator.selectedTab = .home
         
         // Act
@@ -239,7 +247,7 @@ struct AppCoordinatorTests {
     @MainActor
     func testNavigateToCharter() async throws {
         // Arrange
-        let coordinator = AppCoordinator()
+        let coordinator = makeTestCoordinator()
         let charterId = UUID()
         coordinator.selectedTab = .home
         coordinator.push(.createCharter, to: .charters) // Add existing route
@@ -257,7 +265,7 @@ struct AppCoordinatorTests {
     @MainActor
     func testNavigateToCharterFromHome() async throws {
         // Arrange
-        let coordinator = AppCoordinator()
+        let coordinator = makeTestCoordinator()
         let charterId = UUID()
         coordinator.selectedTab = .home
         
@@ -277,7 +285,7 @@ struct AppCoordinatorTests {
     @MainActor
     func testSelectedTabChange() async throws {
         // Arrange
-        let coordinator = AppCoordinator()
+        let coordinator = makeTestCoordinator()
         #expect(coordinator.selectedTab == .home)
         
         // Act
@@ -293,7 +301,7 @@ struct AppCoordinatorTests {
     @MainActor
     func testComplexNavigationFlow() async throws {
         // Arrange
-        let coordinator = AppCoordinator()
+        let coordinator = makeTestCoordinator()
         let charter1Id = UUID()
         let charter2Id = UUID()
         

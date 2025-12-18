@@ -13,7 +13,7 @@ struct LibraryListView: View {
             // Placeholder - will be replaced in body with proper dependencies
             _viewModel = State(initialValue: LibraryListViewModel(
                 libraryStore: LibraryStore(repository: LocalRepository()),
-                coordinator: AppCoordinator()
+                coordinator: AppCoordinator(dependencies: AppDependencies())
             ))
         }
     }
@@ -393,19 +393,21 @@ struct LibraryItemRow: View {
     ]
 
     let repository = PreviewLibraryRepository(sampleLibrary: sampleLibrary)
+    let dependencies = AppDependencies()
     let libraryStore = LibraryStore(repository: repository)
-    let coordinator = AppCoordinator()
+    let coordinator = AppCoordinator(dependencies: dependencies)
     let viewModel = LibraryListViewModel(
         libraryStore: libraryStore,
         coordinator: coordinator
     )
 
-    return NavigationStack {
+    NavigationStack {
         LibraryListView(viewModel: viewModel)
     }
+    .environment(\.appDependencies, dependencies)
     .environment(\.appCoordinator, coordinator)
     #else
-    return LibraryListView()
+    LibraryListView()
     #endif
 }
 
