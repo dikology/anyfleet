@@ -41,8 +41,8 @@ struct AppDependenciesTests {
     @Test("AppDependencies - repository uses correct database")
     @MainActor
     func testRepositoryUsesCorrectDatabase() async throws {
-        // Arrange
-        let dependencies = AppDependencies()
+        // Arrange - use test database to avoid polluting simulator database
+        let dependencies = try AppDependencies.makeForTesting()
         
         // Act - create a charter through the repository
         let charter = CharterModel(
@@ -67,8 +67,8 @@ struct AppDependenciesTests {
     @Test("AppDependencies - charterStore uses correct repository")
     @MainActor
     func testCharterStoreUsesCorrectRepository() async throws {
-        // Arrange
-        let dependencies = AppDependencies()
+        // Arrange - use test database to avoid polluting simulator database
+        let dependencies = try AppDependencies.makeForTesting()
         
         // Act - create a charter through the store
         let charter = try await dependencies.charterStore.createCharter(
@@ -138,9 +138,12 @@ struct AppDependenciesTests {
     @Test("AppDependencies - single instance pattern")
     @MainActor
     func testSingleInstancePattern() async throws {
-        // Arrange
-        let dependencies1 = AppDependencies()
-        let dependencies2 = AppDependencies()
+        // Arrange - use test database to avoid polluting simulator database
+        // Note: This test demonstrates that separate instances share the same database
+        let testDatabase = try AppDatabase.makeEmpty()
+        let repository = LocalRepository(database: testDatabase)
+        let dependencies1 = AppDependencies(database: testDatabase, repository: repository)
+        let dependencies2 = AppDependencies(database: testDatabase, repository: repository)
         
         // Act - create a charter in first instance
         let charter = try await dependencies1.charterStore.createCharter(
@@ -155,7 +158,7 @@ struct AppDependenciesTests {
         // (This demonstrates why we need a single instance at app level)
         #expect(dependencies2.charterStore.charters.isEmpty)
         
-        // But after loading, it should be there (from shared database)
+        // But after loading, it should be there (from shared test database)
         try await dependencies2.charterStore.loadCharters()
         #expect(dependencies2.charterStore.charters.contains { $0.id == charter.id })
     }
@@ -253,8 +256,8 @@ struct AppDependenciesIntegrationTests {
     @Test("Dependency graph consistency")
     @MainActor
     func testDependencyGraphConsistency() async throws {
-        // Arrange
-        let dependencies = AppDependencies()
+        // Arrange - use test database to avoid polluting simulator database
+        let dependencies = try AppDependencies.makeForTesting()
         
         // Act - perform operations through different layers
         let charter = try await dependencies.charterStore.createCharter(
