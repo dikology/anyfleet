@@ -426,4 +426,97 @@ final class LocalRepository: Sendable {
         
         AppLogger.repository.info("Content deleted successfully - ID: \(contentID.uuidString)")
     }
+    
+    // MARK: - Checklist Execution State Operations
+}
+
+// MARK: - ChecklistExecutionRepository Implementation
+
+extension LocalRepository {
+    
+    func saveItemState(
+        checklistID: UUID,
+        charterID: UUID,
+        itemID: UUID,
+        isChecked: Bool
+    ) async throws {
+        AppLogger.repository.startOperation("Save Execution Item State")
+        defer { AppLogger.repository.completeOperation("Save Execution Item State") }
+        
+        try await database.dbWriter.write { db in
+            // Load existing state or create new
+            let existingRecord = try ChecklistExecutionRecord
+                .fetch(checklistID: checklistID, charterID: charterID, db: db)
+            
+            if let record = existingRecord {
+                // Update existing
+                var state = try record.toDomainModel()
+                state.itemStates[itemID] = ChecklistItemState(
+                    itemID: itemID,
+                    isChecked: isChecked,
+                    checkedAt: isChecked ? Date() : nil
+                )
+                state.lastUpdated = Date()
+                
+                try ChecklistExecutionRecord.saveState(state, db: db)
+            } else {
+                // Create new
+                let newState = ChecklistExecutionState(
+                    id: UUID(),
+                    checklistID: checklistID,
+                    charterID: charterID,
+                    itemStates: [itemID: ChecklistItemState(
+                        itemID: itemID,
+                        isChecked: isChecked,
+                        checkedAt: isChecked ? Date() : nil
+                    )],
+                    createdAt: Date(),
+                    lastUpdated: Date(),
+                    completedAt: nil,
+                    syncStatus: .pending
+                )
+                try ChecklistExecutionRecord.saveState(newState, db: db)
+            }
+        }
+    }
+    
+    func loadExecutionState(
+        checklistID: UUID,
+        charterID: UUID
+    ) async throws -> ChecklistExecutionState? {
+        AppLogger.repository.startOperation("Load Execution State")
+        defer { AppLogger.repository.completeOperation("Load Execution State") }
+        
+        return try await database.dbWriter.read { db in
+            try ChecklistExecutionRecord
+                .fetch(checklistID: checklistID, charterID: charterID, db: db)
+                .map { try $0.toDomainModel() }
+        }
+    }
+    
+    func loadAllStatesForCharter(_ charterID: UUID) async throws -> [ChecklistExecutionState] {
+        AppLogger.repository.startOperation("Load Charter Execution States")
+        defer { AppLogger.repository.completeOperation("Load Charter Execution States") }
+        
+        return try await database.dbWriter.read { db in
+            try ChecklistExecutionRecord.fetchForCharter(charterID, db: db)
+                .map { try $0.toDomainModel() }
+        }
+    }
+    
+    func clearExecutionState(
+        checklistID: UUID,
+        charterID: UUID
+    ) async throws {
+        AppLogger.repository.startOperation("Clear Execution State")
+        defer { AppLogger.repository.completeOperation("Clear Execution State") }
+        
+        try await database.dbWriter.write { db in
+            try ChecklistExecutionRecord.deleteState(
+                checklistID: checklistID,
+                charterID: charterID,
+                db: db
+            )
+        }
+    }
 }

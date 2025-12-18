@@ -57,6 +57,16 @@ final class AppDependencies {
     /// Shared library store instance
     let libraryStore: LibraryStore
     
+    // MARK: - Repository Access
+    
+    /// Returns the execution repository for checklist execution state persistence.
+    ///
+    /// Since `LocalRepository` conforms to `ChecklistExecutionRepository`,
+    /// this provides convenient access to execution state operations.
+    var executionRepository: ChecklistExecutionRepository {
+        repository
+    }
+    
     // MARK: - Services
     
     /// Localization service for managing app language

@@ -292,10 +292,11 @@ struct ChecklistExecutionView: View {
 #Preview {
     let dependencies = try! AppDependencies.makeForTesting()
     
-    return NavigationStack {
+    NavigationStack {
         ChecklistExecutionView(
             viewModel: ChecklistExecutionViewModel(
                 libraryStore: dependencies.libraryStore,
+                executionRepository: dependencies.executionRepository,
                 charterID: UUID(),
                 checklistID: UUID()
             )
