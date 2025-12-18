@@ -404,7 +404,19 @@ enum L10n {
     static let homeActiveCharterTitle = NSLocalizedString(
         "charter.activeCharter",
         tableName: "Localizable",
-        comment: ""
+        comment: "Label for the active charter badge on the home screen"
+    )
+    
+    static let homePinnedContentTitle = NSLocalizedString(
+        "home.pinnedContent.title",
+        tableName: "Localizable",
+        comment: "Section title for pinned content on the home screen"
+    )
+    
+    static let homePinnedContentSubtitle = NSLocalizedString(
+        "home.pinnedContent.subtitle",
+        tableName: "Localizable",
+        comment: "Section subtitle explaining pinned content on the home screen"
     )
     
     enum ChecklistEditor {

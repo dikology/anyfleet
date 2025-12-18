@@ -74,6 +74,9 @@
 
 "charter.activeCharter" = "Активный";
 
+"home.pinnedContent.title" = "Закрепленный контент";
+"home.pinnedContent.subtitle" = "Закрепляйте элементы из библиотеки для быстрого доступа.";
+
 "checklistEditor.newChecklist" = "Новый чек-лист";
 "checklistEditor.editChecklist" = "Редактировать чек-лист";
 "checklistEditor.save" = "Сохранить";

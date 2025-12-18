@@ -70,6 +70,9 @@
 
 "charter.activeCharter" = "Active";
 
+"home.pinnedContent.title" = "Pinned content";
+"home.pinnedContent.subtitle" = "Pin items from your library for quick access here.";
+
 "checklistEditor.newChecklist" = "New Checklist";
 "checklistEditor.editChecklist" = "Edit Checklist";
 "checklistEditor.save" = "Save";

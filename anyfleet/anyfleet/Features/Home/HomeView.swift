@@ -13,18 +13,6 @@ struct HomeView: View {
                 .ignoresSafeArea()
             
             ScrollView {
-                // LazyVStack(alignment: .leading, spacing: DesignSystem.Spacing.lg, pinnedViews: []) {
-                //     ActionCard(
-                //         icon: "sailboat.fill",
-                //         title: L10n.homeCreateCharterTitle,
-                //         subtitle: L10n.homeCreateCharterSubtitle,
-                //         buttonTitle: L10n.homeCreateCharterAction,
-                //         onTap: { viewModel.onCreateCharterTapped() },
-                //         onButtonTap: { viewModel.onCreateCharterTapped() }
-                //     )
-                // }
-                // .padding(.horizontal, DesignSystem.Spacing.lg)
-                // .padding(.vertical, DesignSystem.Spacing.lg + DesignSystem.Spacing.sm)
                 VStack(alignment: .leading, spacing: DesignSystem.Spacing.lg) {
                     // Greeting header
                     headerSection
@@ -35,6 +23,8 @@ struct HomeView: View {
                     } else {
                         createCharterCard
                     }
+                    
+                    Spacer()
                     
                     // Reference content: pinned library items
                     if !viewModel.pinnedLibraryItems.isEmpty {
@@ -86,7 +76,7 @@ struct HomeView: View {
     // MARK: - Primary Card: Active Charter State
     
     private func activeCharterCard(charter: CharterModel) -> some View {
-        VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
+        VStack(alignment: .leading, spacing: DesignSystem.Spacing.lg) {
             // Badge label
             Text(L10n.homeActiveCharterTitle)
                 .font(DesignSystem.Typography.caption)
@@ -141,8 +131,8 @@ struct HomeView: View {
     private var referenceContentSection: some View {
         VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
             DesignSystem.SectionHeader(
-                "📌 Pinned content",
-                subtitle: "Pin items from your library for quick access here."
+                "📌 " + L10n.homePinnedContentTitle,
+                subtitle: L10n.homePinnedContentSubtitle
             )
             
             let items = viewModel.pinnedLibraryItems
