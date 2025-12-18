@@ -143,42 +143,44 @@ struct PracticeGuideReaderView: View {
 // MARK: - Preview
 
 private func makePreviewView() -> some View {
-    let dependencies = try! AppDependencies.makeForTesting()
-    
-    // Create a sample guide for the preview
-    let sampleGuide = PracticeGuide(
-        title: "Heavy Weather Tactics",
-        description: "Step‑by‑step guide for reefing, heaving‑to, and staying safe when the wind picks up.",
-        markdown: """
-        # Heavy Weather Tactics
+    return MainActor.assumeIsolated {
+        let dependencies = try! AppDependencies.makeForTesting()
         
-        When the wind builds, your goal is to **slow the boat down** and keep her under control.
+        // Create a sample guide for the preview
+        let sampleGuide = PracticeGuide(
+            title: "Heavy Weather Tactics",
+            description: "Step‑by‑step guide for reefing, heaving‑to, and staying safe when the wind picks up.",
+            markdown: """
+            # Heavy Weather Tactics
+            
+            When the wind builds, your goal is to **slow the boat down** and keep her under control.
+            
+            ## 1. Reef Early
+            - Put the first reef in before you think you need it.
+            - Secure loose lines on deck.
+            
+            ## 2. Heave-To
+            Heaving-to is one of the most powerful heavy-weather tools:
+            
+            - Back the jib slightly.
+            - Lock the helm to leeward.
+            - Ease the mainsheet until the boat settles.
+            """,
+            tags: ["heavy weather", "safety"]
+        )
         
-        ## 1. Reef Early
-        - Put the first reef in before you think you need it.
-        - Secure loose lines on deck.
+        let viewModel = PracticeGuideReaderViewModel(
+            libraryStore: dependencies.libraryStore,
+            guideID: sampleGuide.id
+        )
+        // Set the guide directly in the viewModel for preview
+        viewModel.guide = sampleGuide
         
-        ## 2. Heave-To
-        Heaving-to is one of the most powerful heavy-weather tools:
-        
-        - Back the jib slightly.
-        - Lock the helm to leeward.
-        - Ease the mainsheet until the boat settles.
-        """,
-        tags: ["heavy weather", "safety"]
-    )
-    
-    let viewModel = PracticeGuideReaderViewModel(
-        libraryStore: dependencies.libraryStore,
-        guideID: sampleGuide.id
-    )
-    // Set the guide directly in the viewModel for preview
-    viewModel.guide = sampleGuide
-    
-    return NavigationStack {
-        PracticeGuideReaderView(viewModel: viewModel)
+        return NavigationStack {
+            PracticeGuideReaderView(viewModel: viewModel)
+        }
+        .environment(\.appDependencies, dependencies)
     }
-    .environment(\.appDependencies, dependencies)
 }
 
 #Preview("Practice Guide Reader") {

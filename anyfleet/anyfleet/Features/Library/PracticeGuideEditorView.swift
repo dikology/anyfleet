@@ -193,17 +193,19 @@ struct PracticeGuideEditorView: View {
 }
 
 #Preview("New Practice Guide") {
-    let dependencies = try! AppDependencies.makeForTesting()
-    let viewModel = PracticeGuideEditorViewModel(
-        libraryStore: dependencies.libraryStore,
-        guideID: nil,
-        onDismiss: {}
-    )
-    
-    return NavigationStack {
-        PracticeGuideEditorView(viewModel: viewModel)
+    MainActor.assumeIsolated {
+        let dependencies = try! AppDependencies.makeForTesting()
+        let viewModel = PracticeGuideEditorViewModel(
+            libraryStore: dependencies.libraryStore,
+            guideID: nil,
+            onDismiss: {}
+        )
+        
+        return NavigationStack {
+            PracticeGuideEditorView(viewModel: viewModel)
+        }
+        .environment(\.appDependencies, dependencies)
     }
-    .environment(\.appDependencies, dependencies)
 }
 
 

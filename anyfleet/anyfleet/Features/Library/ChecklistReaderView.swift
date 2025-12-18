@@ -253,55 +253,57 @@ struct ChecklistReaderView: View {
 // MARK: - Preview
 
 private func makePreviewView() -> some View {
-    let dependencies = try! AppDependencies.makeForTesting()
-    
-    // Create a sample checklist
-    let sampleChecklist = Checklist(
-        title: "Pre-Departure Safety Checklist",
-        description: "Essential safety checks before leaving port",
-        sections: [
-            ChecklistSection(
-                title: "Engine & Systems",
-                icon: "engine.combustion",
-                items: [
-                    ChecklistItem(title: "Check engine oil level"),
-                    ChecklistItem(title: "Test bilge pump operation", isRequired: true),
-                    ChecklistItem(title: "Verify fuel tank levels", estimatedMinutes: 5)
-                ]
-            ),
-            ChecklistSection(
-                title: "Safety Equipment",
-                icon: "shield.checkered",
-                description: "Verify all safety equipment is accessible and functional",
-                items: [
-                    ChecklistItem(title: "Life jackets accessible", isRequired: true),
-                    ChecklistItem(title: "Fire extinguishers checked", isRequired: true),
-                    ChecklistItem(title: "Flares and emergency kit ready", isOptional: true)
-                ]
-            ),
-            ChecklistSection(
-                title: "Navigation",
-                icon: "compass",
-                items: [
-                    ChecklistItem(title: "GPS and chartplotter working", isRequired: true),
-                    ChecklistItem(title: "VHF radio tested", isRequired: true)
-                ]
-            )
-        ],
-        checklistType: .preCharter
-    )
-    
-    let viewModel = ChecklistReaderViewModel(
-        libraryStore: dependencies.libraryStore,
-        checklistID: sampleChecklist.id
-    )
-    // Set the checklist directly in the viewModel for preview
-    viewModel.checklist = sampleChecklist
-    
-    return NavigationStack {
-        ChecklistReaderView(viewModel: viewModel)
+    return MainActor.assumeIsolated {
+        let dependencies = try! AppDependencies.makeForTesting()
+        
+        // Create a sample checklist
+        let sampleChecklist = Checklist(
+            title: "Pre-Departure Safety Checklist",
+            description: "Essential safety checks before leaving port",
+            sections: [
+                ChecklistSection(
+                    title: "Engine & Systems",
+                    icon: "engine.combustion",
+                    items: [
+                        ChecklistItem(title: "Check engine oil level"),
+                        ChecklistItem(title: "Test bilge pump operation", isRequired: true),
+                        ChecklistItem(title: "Verify fuel tank levels", estimatedMinutes: 5)
+                    ]
+                ),
+                ChecklistSection(
+                    title: "Safety Equipment",
+                    icon: "shield.checkered",
+                    description: "Verify all safety equipment is accessible and functional",
+                    items: [
+                        ChecklistItem(title: "Life jackets accessible", isRequired: true),
+                        ChecklistItem(title: "Fire extinguishers checked", isRequired: true),
+                        ChecklistItem(title: "Flares and emergency kit ready", isOptional: true)
+                    ]
+                ),
+                ChecklistSection(
+                    title: "Navigation",
+                    icon: "compass",
+                    items: [
+                        ChecklistItem(title: "GPS and chartplotter working", isRequired: true),
+                        ChecklistItem(title: "VHF radio tested", isRequired: true)
+                    ]
+                )
+            ],
+            checklistType: .preCharter
+        )
+        
+        let viewModel = ChecklistReaderViewModel(
+            libraryStore: dependencies.libraryStore,
+            checklistID: sampleChecklist.id
+        )
+        // Set the checklist directly in the viewModel for preview
+        viewModel.checklist = sampleChecklist
+        
+        return NavigationStack {
+            ChecklistReaderView(viewModel: viewModel)
+        }
+        .environment(\.appDependencies, dependencies)
     }
-    .environment(\.appDependencies, dependencies)
 }
 
 #Preview("Checklist Reader") {

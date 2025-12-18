@@ -561,67 +561,71 @@ private struct ItemRow: View {
 // MARK: - Preview
 
 #Preview("New Checklist") {
-    let dependencies = try! AppDependencies.makeForTesting()
-    let viewModel = ChecklistEditorViewModel(
-        libraryStore: dependencies.libraryStore,
-        checklistID: nil,
-        onDismiss: {}
-    )
-    
-    return NavigationStack {
-        ChecklistEditorView(viewModel: viewModel)
+    MainActor.assumeIsolated {
+        let dependencies = try! AppDependencies.makeForTesting()
+        let viewModel = ChecklistEditorViewModel(
+            libraryStore: dependencies.libraryStore,
+            checklistID: nil,
+            onDismiss: {}
+        )
+        
+        return NavigationStack {
+            ChecklistEditorView(viewModel: viewModel)
+        }
+        .environment(\.appDependencies, dependencies)
     }
-    .environment(\.appDependencies, dependencies)
 }
 
 #Preview("Existing Checklist") {
-    let dependencies = try! AppDependencies.makeForTesting()
-    
-    // Create a sample checklist with sections and items
-    var sampleChecklist = Checklist(
-        title: "Pre-Departure Safety Checklist",
-        description: "Essential safety checks before leaving port",
-        sections: [
-            ChecklistSection(
-                title: "Engine & Systems",
-                icon: "engine",
-                items: [
-                    ChecklistItem(title: "Check engine oil level"),
-                    ChecklistItem(title: "Test bilge pump operation"),
-                    ChecklistItem(title: "Verify fuel tank levels")
-                ]
-            ),
-            ChecklistSection(
-                title: "Safety Equipment",
-                icon: "shield.checkered",
-                items: [
-                    ChecklistItem(title: "Life jackets accessible"),
-                    ChecklistItem(title: "Fire extinguishers checked"),
-                    ChecklistItem(title: "Flares and emergency kit ready")
-                ]
-            ),
-            ChecklistSection(
-                title: "Navigation",
-                icon: "compass",
-                items: [
-                    ChecklistItem(title: "GPS and chartplotter working"),
-                    ChecklistItem(title: "VHF radio tested")
-                ]
-            )
-        ],
-        checklistType: .preCharter
-    )
-    
-    let viewModel = ChecklistEditorViewModel(
-        libraryStore: dependencies.libraryStore,
-        checklistID: sampleChecklist.id,
-        onDismiss: {}
-    )
-    viewModel.checklist = sampleChecklist
-    
-    return NavigationStack {
-        ChecklistEditorView(viewModel: viewModel)
+    MainActor.assumeIsolated {
+        let dependencies = try! AppDependencies.makeForTesting()
+        
+        // Create a sample checklist with sections and items
+        var sampleChecklist = Checklist(
+            title: "Pre-Departure Safety Checklist",
+            description: "Essential safety checks before leaving port",
+            sections: [
+                ChecklistSection(
+                    title: "Engine & Systems",
+                    icon: "engine",
+                    items: [
+                        ChecklistItem(title: "Check engine oil level"),
+                        ChecklistItem(title: "Test bilge pump operation"),
+                        ChecklistItem(title: "Verify fuel tank levels")
+                    ]
+                ),
+                ChecklistSection(
+                    title: "Safety Equipment",
+                    icon: "shield.checkered",
+                    items: [
+                        ChecklistItem(title: "Life jackets accessible"),
+                        ChecklistItem(title: "Fire extinguishers checked"),
+                        ChecklistItem(title: "Flares and emergency kit ready")
+                    ]
+                ),
+                ChecklistSection(
+                    title: "Navigation",
+                    icon: "compass",
+                    items: [
+                        ChecklistItem(title: "GPS and chartplotter working"),
+                        ChecklistItem(title: "VHF radio tested")
+                    ]
+                )
+            ],
+            checklistType: .preCharter
+        )
+        
+        let viewModel = ChecklistEditorViewModel(
+            libraryStore: dependencies.libraryStore,
+            checklistID: sampleChecklist.id,
+            onDismiss: {}
+        )
+        viewModel.checklist = sampleChecklist
+        
+        return NavigationStack {
+            ChecklistEditorView(viewModel: viewModel)
+        }
+        .environment(\.appDependencies, dependencies)
     }
-    .environment(\.appDependencies, dependencies)
 }
 

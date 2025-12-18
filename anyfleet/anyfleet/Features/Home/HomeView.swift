@@ -241,14 +241,16 @@ struct HomeView: View {
 }
 
 #Preview {
-    // Simple preview wiring with real dependencies
-    let dependencies = AppDependencies()
-    let coordinator = AppCoordinator(dependencies: dependencies)
-    let viewModel = HomeViewModel(
-        coordinator: coordinator,
-        charterStore: dependencies.charterStore,
-        libraryStore: dependencies.libraryStore
-    )
-    HomeView(viewModel: viewModel)
-        .environment(dependencies)
+    MainActor.assumeIsolated {
+        // Simple preview wiring with real dependencies
+        let dependencies = AppDependencies()
+        let coordinator = AppCoordinator(dependencies: dependencies)
+        let viewModel = HomeViewModel(
+            coordinator: coordinator,
+            charterStore: dependencies.charterStore,
+            libraryStore: dependencies.libraryStore
+        )
+        return HomeView(viewModel: viewModel)
+            .environment(dependencies)
+    }
 }
