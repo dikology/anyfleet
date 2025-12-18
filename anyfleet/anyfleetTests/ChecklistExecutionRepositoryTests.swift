@@ -13,9 +13,31 @@ import Testing
 struct ChecklistExecutionRepositoryTests {
     
     // Each test gets its own fresh in-memory database
-    private func makeRepository() throws -> ChecklistExecutionRepository {
+    private func makeRepository() throws -> LocalRepository {
         let database = try AppDatabase.makeEmpty()
         return LocalRepository(database: database)
+    }
+    
+    /// Helper to create a test charter so that foreign key constraints
+    /// on `charterID` are satisfied for execution state records.
+    @MainActor
+    private func createTestCharter(
+        id: UUID = UUID(),
+        repository: LocalRepository
+    ) async throws -> CharterModel {
+        let now = Date()
+        let charter = CharterModel(
+            id: id,
+            name: "Test Charter",
+            boatName: "Test Boat",
+            location: "Test Location",
+            startDate: now,
+            endDate: now.addingTimeInterval(86400), // +1 day
+            createdAt: now,
+            checkInChecklistID: nil
+        )
+        try await repository.createCharter(charter)
+        return charter
     }
     
     @Test("Save new execution state - creates new state")
@@ -23,7 +45,8 @@ struct ChecklistExecutionRepositoryTests {
         // Arrange
         let repository = try makeRepository()
         let checklistID = UUID()
-        let charterID = UUID()
+        let charter = try await createTestCharter(repository: repository)
+        let charterID = charter.id
         let itemID = UUID()
         
         // Act
@@ -52,7 +75,8 @@ struct ChecklistExecutionRepositoryTests {
         // Arrange
         let repository = try makeRepository()
         let checklistID = UUID()
-        let charterID = UUID()
+        let charter = try await createTestCharter(repository: repository)
+        let charterID = charter.id
         let itemID = UUID()
         
         // Act - Save as checked
@@ -86,8 +110,10 @@ struct ChecklistExecutionRepositoryTests {
         // Arrange
         let repository = try makeRepository()
         let checklistID = UUID()
-        let charter1ID = UUID()
-        let charter2ID = UUID()
+        let charter1 = try await createTestCharter(repository: repository)
+        let charter2 = try await createTestCharter(repository: repository)
+        let charter1ID = charter1.id
+        let charter2ID = charter2.id
         let itemID = UUID()
         
         // Act - Charter 1: checked
@@ -128,7 +154,8 @@ struct ChecklistExecutionRepositoryTests {
         // Arrange
         let repository = try makeRepository()
         let checklistID = UUID()
-        let charterID = UUID()
+        let charter = try await createTestCharter(repository: repository)
+        let charterID = charter.id
         
         // Act
         let loaded = try await repository.loadExecutionState(
@@ -145,7 +172,8 @@ struct ChecklistExecutionRepositoryTests {
         // Arrange
         let repository = try makeRepository()
         let checklistID = UUID()
-        let charterID = UUID()
+        let charter = try await createTestCharter(repository: repository)
+        let charterID = charter.id
         let item1ID = UUID()
         let item2ID = UUID()
         let item3ID = UUID()
@@ -190,7 +218,8 @@ struct ChecklistExecutionRepositoryTests {
     func testLoadAllStatesForCharter() async throws {
         // Arrange
         let repository = try makeRepository()
-        let charterID = UUID()
+        let charter = try await createTestCharter(repository: repository)
+        let charterID = charter.id
         let checklist1ID = UUID()
         let checklist2ID = UUID()
         let itemID = UUID()
@@ -238,7 +267,8 @@ struct ChecklistExecutionRepositoryTests {
         // Arrange
         let repository = try makeRepository()
         let checklistID = UUID()
-        let charterID = UUID()
+        let charter = try await createTestCharter(repository: repository)
+        let charterID = charter.id
         let itemID = UUID()
         
         // Act - Create state
@@ -274,7 +304,8 @@ struct ChecklistExecutionRepositoryTests {
     func testClearExecutionState_OnlyClearsSpecified() async throws {
         // Arrange
         let repository = try makeRepository()
-        let charterID = UUID()
+        let charter = try await createTestCharter(repository: repository)
+        let charterID = charter.id
         let checklist1ID = UUID()
         let checklist2ID = UUID()
         let itemID = UUID()
@@ -319,7 +350,8 @@ struct ChecklistExecutionRepositoryTests {
         // Arrange
         let repository = try makeRepository()
         let checklistID = UUID()
-        let charterID = UUID()
+        let charter = try await createTestCharter(repository: repository)
+        let charterID = charter.id
         let itemID = UUID()
         
         // Act - Create initial state

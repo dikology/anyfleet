@@ -18,6 +18,28 @@ struct ChecklistPersistenceIntegrationTests {
         return LocalRepository(database: database)
     }
     
+    /// Helper to create a test charter so that foreign key constraints
+    /// on `charterID` are satisfied for execution state records.
+    @MainActor
+    private func createTestCharter(
+        id: UUID = UUID(),
+        repository: LocalRepository
+    ) async throws -> CharterModel {
+        let now = Date()
+        let charter = CharterModel(
+            id: id,
+            name: "Integration Test Charter",
+            boatName: "Test Boat",
+            location: "Test Location",
+            startDate: now,
+            endDate: now.addingTimeInterval(86400), // +1 day
+            createdAt: now,
+            checkInChecklistID: nil
+        )
+        try await repository.createCharter(charter)
+        return charter
+    }
+    
     private func makeTestChecklist() -> Checklist {
         Checklist(
             id: UUID(),
@@ -56,7 +78,8 @@ struct ChecklistPersistenceIntegrationTests {
         // Arrange
         let repository = try makeRepository()
         let libraryStore = LibraryStore(repository: repository)
-        let charterID = UUID()
+        let charter = try await createTestCharter(repository: repository)
+        let charterID = charter.id
         let checklist = makeTestChecklist()
         let item1ID = checklist.sections[0].items[0].id
         let item2ID = checklist.sections[0].items[1].id
@@ -79,15 +102,33 @@ struct ChecklistPersistenceIntegrationTests {
         
         // Step 3: Toggle some items
         viewModel1.toggleItem(item1ID)
-        try await Task.sleep(nanoseconds: 100_000_000) // Wait for save
-        
         viewModel1.toggleItem(item2ID)
-        try await Task.sleep(nanoseconds: 100_000_000) // Wait for save
         
-        // Verify items are checked
+        // Wait for async saves to complete and verify they were saved
+        // Poll the repository until the state is saved (with timeout)
+        var savedState: ChecklistExecutionState?
+        for _ in 0..<10 {
+            try await Task.sleep(nanoseconds: 100_000_000) // 100ms
+            savedState = try await repository.loadExecutionState(
+                checklistID: checklist.id,
+                charterID: charterID
+            )
+            if let state = savedState,
+               state.itemStates[item1ID]?.isChecked == true,
+               state.itemStates[item2ID]?.isChecked == true {
+                break
+            }
+        }
+        
+        // Verify items are checked in view model
         #expect(viewModel1.checkedItems.contains(item1ID))
         #expect(viewModel1.checkedItems.contains(item2ID))
         #expect(viewModel1.checkedCount == 2)
+        
+        // Verify items were saved to repository
+        #expect(savedState != nil, "Execution state should be saved to repository")
+        #expect(savedState?.itemStates[item1ID]?.isChecked == true, "Item 1 should be checked in repository")
+        #expect(savedState?.itemStates[item2ID]?.isChecked == true, "Item 2 should be checked in repository")
         
         // Step 4: "Dismiss" view (viewModel1 goes out of scope)
         // In real app, this would happen when view is dismissed
@@ -115,8 +156,10 @@ struct ChecklistPersistenceIntegrationTests {
         // Arrange
         let repository = try makeRepository()
         let libraryStore = LibraryStore(repository: repository)
-        let charter1ID = UUID()
-        let charter2ID = UUID()
+        let charter1 = try await createTestCharter(repository: repository)
+        let charter2 = try await createTestCharter(repository: repository)
+        let charter1ID = charter1.id
+        let charter2ID = charter2.id
         let checklist = makeTestChecklist()
         let itemID = checklist.sections[0].items[0].id
         
@@ -132,7 +175,20 @@ struct ChecklistPersistenceIntegrationTests {
         )
         await viewModel1.load()
         viewModel1.toggleItem(itemID)
-        try await Task.sleep(nanoseconds: 100_000_000)
+        
+        // Wait for Charter 1 state to be saved
+        var charter1State: ChecklistExecutionState?
+        for _ in 0..<10 {
+            try await Task.sleep(nanoseconds: 100_000_000) // 100ms
+            charter1State = try await repository.loadExecutionState(
+                checklistID: checklist.id,
+                charterID: charter1ID
+            )
+            if let state = charter1State,
+               state.itemStates[itemID]?.isChecked == true {
+                break
+            }
+        }
         
         // Step 3: Charter 2 - same checklist, item not checked
         let viewModel2 = ChecklistExecutionViewModel(
@@ -151,7 +207,20 @@ struct ChecklistPersistenceIntegrationTests {
         
         // Step 4: Check item in Charter 2
         viewModel2.toggleItem(itemID)
-        try await Task.sleep(nanoseconds: 100_000_000)
+        
+        // Wait for Charter 2 state to be saved
+        var charter2State: ChecklistExecutionState?
+        for _ in 0..<10 {
+            try await Task.sleep(nanoseconds: 100_000_000) // 100ms
+            charter2State = try await repository.loadExecutionState(
+                checklistID: checklist.id,
+                charterID: charter2ID
+            )
+            if let state = charter2State,
+               state.itemStates[itemID]?.isChecked == true {
+                break
+            }
+        }
         
         // Step 5: Reopen Charter 1
         let viewModel1Reopened = ChecklistExecutionViewModel(
@@ -183,7 +252,8 @@ struct ChecklistPersistenceIntegrationTests {
         // Arrange
         let repository = try makeRepository()
         let libraryStore = LibraryStore(repository: repository)
-        let charterID = UUID()
+        let charter = try await createTestCharter(repository: repository)
+        let charterID = charter.id
         let checklist = makeTestChecklist()
         let allItemIDs = checklist.sections.flatMap { $0.items.map { $0.id } }
         
@@ -204,8 +274,23 @@ struct ChecklistPersistenceIntegrationTests {
             viewModel.toggleItem(itemID)
         }
         
-        // Wait for all saves to complete
-        try await Task.sleep(nanoseconds: 500_000_000) // 500ms
+        // Wait for all saves to complete by polling repository state
+        var rapidState: ChecklistExecutionState?
+        for _ in 0..<10 {
+            try await Task.sleep(nanoseconds: 100_000_000) // 100ms
+            rapidState = try await repository.loadExecutionState(
+                checklistID: checklist.id,
+                charterID: charterID
+            )
+            if let state = rapidState,
+               allItemIDs.allSatisfy({ state.itemStates[$0]?.isChecked == true }) {
+                break
+            }
+        }
+        
+        // Sanity check: repository should have all items checked
+        #expect(rapidState != nil, "Execution state for rapid toggles should be saved")
+        #expect(allItemIDs.allSatisfy { rapidState?.itemStates[$0]?.isChecked == true })
         
         // Step 4: Reopen view model
         let reopenedViewModel = ChecklistExecutionViewModel(
@@ -232,7 +317,8 @@ struct ChecklistPersistenceIntegrationTests {
         // Arrange
         let repository = try makeRepository()
         let libraryStore = LibraryStore(repository: repository)
-        let charterID = UUID()
+        let charter = try await createTestCharter(repository: repository)
+        let charterID = charter.id
         let checklist = makeTestChecklist()
         let itemID = checklist.sections[0].items[0].id
         
