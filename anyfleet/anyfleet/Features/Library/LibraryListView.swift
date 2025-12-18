@@ -2,6 +2,7 @@ import SwiftUI
 
 struct LibraryListView: View {
     @State private var viewModel: LibraryListViewModel
+    @State private var selectedFilter: ContentFilter = .all
     @Environment(\.appDependencies) private var dependencies
     @Environment(\.appCoordinator) private var coordinator
     
@@ -28,9 +29,15 @@ struct LibraryListView: View {
                 contentList
             }
         }
-        .navigationTitle(L10n.Library.myLibrary)
+        .navigationBarTitleDisplayMode(.inline)
         .background(DesignSystem.Colors.background.ignoresSafeArea())
         .toolbar {
+            ToolbarItem(placement: .principal) {
+                Text(L10n.Library.myLibrary)
+                    .font(DesignSystem.Typography.headline)
+                    .foregroundColor(DesignSystem.Colors.textPrimary)
+            }
+            
             ToolbarItem(placement: .primaryAction) {
                 createMenu
             }
@@ -103,135 +110,117 @@ struct LibraryListView: View {
     
     // MARK: - Content List
     
-    private var contentList: some View {
-        List {
-            // Checklists Section
-            if !viewModel.checklists.isEmpty {
-                Section {
-                    ForEach(viewModel.checklists) { item in
-                        LibraryItemRow(
-                            item: item,
-                            contentType: .checklist,
-                            onTap: { viewModel.onEditChecklistTapped(item.id) }
-                        )
-                        .listRowInsets(EdgeInsets(
-                            top: DesignSystem.Spacing.sm,
-                            leading: DesignSystem.Spacing.lg,
-                            bottom: DesignSystem.Spacing.sm,
-                            trailing: DesignSystem.Spacing.lg
-                        ))
-                        .listRowSeparator(.hidden)
-                        .listRowBackground(Color.clear)
-                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                            Button(role: .destructive) {
-                                Task {
-                                    do {
-                                        try await viewModel.deleteContent(item)
-                                    } catch {
-                                        AppLogger.view.error("Failed to delete content: \(error.localizedDescription)")
-                                    }
-                                }
-                            } label: {
-                                Label("Delete", systemImage: "trash")
-                            }
-                        }
-                    }
-                } header: {
-                    Text("Checklists")
-                        .font(DesignSystem.Typography.headline)
-                        .foregroundColor(DesignSystem.Colors.textPrimary)
-                }
-            }
-            
-            // Guides Section
-            if !viewModel.guides.isEmpty {
-                Section {
-                    ForEach(viewModel.guides) { item in
-                        LibraryItemRow(
-                            item: item,
-                            contentType: .practiceGuide,
-                            onTap: { viewModel.onEditGuideTapped(item.id) }
-                        )
-                        .listRowInsets(EdgeInsets(
-                            top: DesignSystem.Spacing.sm,
-                            leading: DesignSystem.Spacing.lg,
-                            bottom: DesignSystem.Spacing.sm,
-                            trailing: DesignSystem.Spacing.lg
-                        ))
-                        .listRowSeparator(.hidden)
-                        .listRowBackground(Color.clear)
-                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                            Button(role: .destructive) {
-                                Task {
-                                    do {
-                                        try await viewModel.deleteContent(item)
-                                    } catch {
-                                        AppLogger.view.error("Failed to delete content: \(error.localizedDescription)")
-                                    }
-                                }
-                            } label: {
-                                Label("Delete", systemImage: "trash")
-                            }
-                        }
-                    }
-                } header: {
-                    Text("Practice Guides")
-                        .font(DesignSystem.Typography.headline)
-                        .foregroundColor(DesignSystem.Colors.textPrimary)
-                }
-            }
-            
-            // Decks Section
-            if !viewModel.decks.isEmpty {
-                Section {
-                    ForEach(viewModel.decks) { item in
-                        LibraryItemRow(
-                            item: item,
-                            contentType: .flashcardDeck,
-                            onTap: { viewModel.onEditDeckTapped(item.id) }
-                        )
-                        .listRowInsets(EdgeInsets(
-                            top: DesignSystem.Spacing.sm,
-                            leading: DesignSystem.Spacing.lg,
-                            bottom: DesignSystem.Spacing.sm,
-                            trailing: DesignSystem.Spacing.lg
-                        ))
-                        .listRowSeparator(.hidden)
-                        .listRowBackground(Color.clear)
-                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                            Button(role: .destructive) {
-                                Task {
-                                    do {
-                                        try await viewModel.deleteContent(item)
-                                    } catch {
-                                        AppLogger.view.error("Failed to delete content: \(error.localizedDescription)")
-                                    }
-                                }
-                            } label: {
-                                Label("Delete", systemImage: "trash")
-                            }
-                        }
-                    }
-                } header: {
-                    Text("Flashcard Decks")
-                        .font(DesignSystem.Typography.headline)
-                        .foregroundColor(DesignSystem.Colors.textPrimary)
-                }
+    private enum ContentFilter: String, CaseIterable, Identifiable {
+        case all
+        case checklists
+        case guides
+        case decks
+        
+        var id: Self { self }
+        
+        var title: String {
+            switch self {
+            case .all: return L10n.Library.filterAll
+            case .checklists: return L10n.Library.filterChecklists
+            case .guides: return L10n.Library.filterGuides
+            case .decks: return L10n.Library.filterDecks
             }
         }
-        .listStyle(.plain)
-        .scrollContentBackground(.hidden)
-        .background(
-            LinearGradient(
-                colors: [
-                    DesignSystem.Colors.background,
-                    DesignSystem.Colors.oceanDeep.opacity(0.02)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
+    }
+    
+    private var filteredItems: [LibraryModel] {
+        switch selectedFilter {
+        case .all:
+            return viewModel.library
+        case .checklists:
+            return viewModel.checklists
+        case .guides:
+            return viewModel.guides
+        case .decks:
+            return viewModel.decks
+        }
+    }
+    
+    private var contentList: some View {
+        VStack(spacing: DesignSystem.Spacing.md) {
+            Picker(L10n.Library.filterAccessibilityLabel, selection: $selectedFilter) {
+                ForEach(ContentFilter.allCases) { filter in
+                    Text(filter.title).tag(filter)
+                }
+            }
+            .pickerStyle(.segmented)
+            .padding(.horizontal, DesignSystem.Spacing.lg)
+            
+            List {
+                ForEach(filteredItems) { item in
+                    LibraryItemRow(
+                        item: item,
+                        contentType: item.type,
+                        onTap: { }
+                    )
+                    .listRowInsets(EdgeInsets(
+                        top: DesignSystem.Spacing.sm,
+                        leading: DesignSystem.Spacing.lg,
+                        bottom: DesignSystem.Spacing.sm,
+                        trailing: DesignSystem.Spacing.lg
+                    ))
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
+                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                        Button(role: .destructive) {
+                            Task {
+                                do {
+                                    try await viewModel.deleteContent(item)
+                                } catch {
+                                    AppLogger.view.error("Failed to delete content: \(error.localizedDescription)")
+                                }
+                            }
+                        } label: {
+                            Label(L10n.Library.actionDelete, systemImage: "trash")
+                        }
+                        
+                        Button {
+                            switch item.type {
+                            case .checklist:
+                                viewModel.onEditChecklistTapped(item.id)
+                            case .practiceGuide:
+                                viewModel.onEditGuideTapped(item.id)
+                            case .flashcardDeck:
+                                viewModel.onEditDeckTapped(item.id)
+                            }
+                        } label: {
+                            Label(L10n.Library.actionEdit, systemImage: "pencil")
+                        }
+                        .tint(.gray)
+                        
+                        Button {
+                            Task {
+                                await viewModel.togglePin(for: item)
+                            }
+                        } label: {
+                            Label(
+                                item.isPinned ? L10n.Library.actionUnpin : L10n.Library.actionPin,
+                                systemImage: item.isPinned ? "pin.slash" : "pin"
+                            )
+                        }
+                        .tint(DesignSystem.Colors.primary)
+                    }
+                }
+            }
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
+            .background(
+                LinearGradient(
+                    colors: [
+                        DesignSystem.Colors.background,
+                        DesignSystem.Colors.oceanDeep.opacity(0.02)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
             )
-            .ignoresSafeArea()
-        )
+        }
     }
 }
 
@@ -349,30 +338,9 @@ struct LibraryItemRow: View {
                     Spacer()
                     
                     // Updated Date
-                    Text("Updated \(item.updatedAt.formatted(.relative(presentation: .named)))")
+                    Text("\(L10n.Library.updatedPrefix) \(item.updatedAt.formatted(.relative(presentation: .named)))")
                         .font(.system(size: 12, weight: .regular))
                         .foregroundColor(DesignSystem.Colors.textSecondary)
-                }
-                
-                // Tags
-                if !item.tags.isEmpty {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: DesignSystem.Spacing.xs) {
-                            ForEach(item.tags.prefix(5), id: \.self) { tag in
-                                Text(tag)
-                                    .font(.system(size: 11, weight: .medium))
-                                    .foregroundColor(DesignSystem.Colors.primary)
-                                    .padding(.horizontal, DesignSystem.Spacing.sm)
-                                    .padding(.vertical, DesignSystem.Spacing.xs)
-                                    .background(
-                                        Capsule()
-                                            .fill(DesignSystem.Colors.primary.opacity(0.1))
-                                    )
-                            }
-                        }
-                    }
-                    .padding(.leading, -DesignSystem.Spacing.lg)
-                    .padding(.trailing, DesignSystem.Spacing.lg)
                 }
             }
             .padding(.horizontal, DesignSystem.Spacing.lg)
@@ -390,14 +358,86 @@ struct LibraryItemRow: View {
 // MARK: - Preview
 
 #Preview {
-    let dependencies = try! AppDependencies.makeForTesting()
-    let coordinator = AppCoordinator()
-    return LibraryListView(
-        viewModel: LibraryListViewModel(
-            libraryStore: dependencies.libraryStore,
-            coordinator: coordinator
+    #if DEBUG
+    let sampleLibrary: [LibraryModel] = [
+        LibraryModel(
+            title: "Pre‑Departure Safety Checklist",
+            description: "Run through this before every sail: weather, rigging, engine, and crew briefing.",
+            type: .checklist,
+            visibility: .private,
+            creatorID: UUID(),
+            tags: ["safety", "pre‑departure", "crew"],
+            createdAt: Date().addingTimeInterval(-60 * 60 * 24 * 7),
+            updatedAt: Date().addingTimeInterval(-60 * 30)
+        ),
+        LibraryModel(
+            title: "Heavy Weather Tactics",
+            description: "Step‑by‑step guide for reefing, heaving‑to, and staying safe when the wind picks up.",
+            type: .practiceGuide,
+            visibility: .public,
+            creatorID: UUID(),
+            tags: ["heavy weather", "reefing", "safety"],
+            createdAt: Date().addingTimeInterval(-60 * 60 * 24 * 21),
+            updatedAt: Date().addingTimeInterval(-60 * 60 * 2)
+        ),
+        LibraryModel(
+            title: "COLREGs Flashcards",
+            description: "Flashcards to memorize the most important right‑of‑way rules and light patterns.",
+            type: .flashcardDeck,
+            visibility: .unlisted,
+            creatorID: UUID(),
+            tags: ["colregs", "rules", "night"],
+            createdAt: Date().addingTimeInterval(-60 * 60 * 24 * 3),
+            updatedAt: Date().addingTimeInterval(-60 * 10)
         )
+    ]
+
+    let repository = PreviewLibraryRepository(sampleLibrary: sampleLibrary)
+    let libraryStore = LibraryStore(repository: repository)
+    let coordinator = AppCoordinator()
+    let viewModel = LibraryListViewModel(
+        libraryStore: libraryStore,
+        coordinator: coordinator
     )
-    .environment(\.appDependencies, dependencies)
+
+    return NavigationStack {
+        LibraryListView(viewModel: viewModel)
+    }
     .environment(\.appCoordinator, coordinator)
+    #else
+    return LibraryListView()
+    #endif
 }
+
+#if DEBUG
+private struct PreviewLibraryRepository: LibraryRepository {
+    let sampleLibrary: [LibraryModel]
+
+    // MARK: - Metadata
+    func fetchUserLibrary() async throws -> [LibraryModel] {
+        sampleLibrary
+    }
+
+    // MARK: - Full Models
+    func fetchUserChecklists() async throws -> [Checklist] { [] }
+    func fetchUserGuides() async throws -> [PracticeGuide] { [] }
+    func fetchUserDecks() async throws -> [FlashcardDeck] { [] }
+
+    func fetchChecklist(_ checklistID: UUID) async throws -> Checklist? { nil }
+    func fetchGuide(_ guideID: UUID) async throws -> PracticeGuide? { nil }
+    func fetchDeck(_ deckID: UUID) async throws -> FlashcardDeck? { nil }
+
+    // MARK: - Mutating Operations (no‑ops for preview)
+    func createChecklist(_ checklist: Checklist) async throws {}
+    func createGuide(_ guide: PracticeGuide) async throws {}
+    func createDeck(_ deck: FlashcardDeck) async throws {}
+
+    func saveChecklist(_ checklist: Checklist) async throws {}
+    func saveGuide(_ guide: PracticeGuide) async throws {}
+    
+    func updateLibraryMetadata(_ model: LibraryModel) async throws {}
+
+    func deleteContent(_ contentID: UUID) async throws {}
+}
+#endif
+

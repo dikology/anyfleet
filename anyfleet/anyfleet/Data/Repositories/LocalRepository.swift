@@ -427,6 +427,18 @@ final class LocalRepository: Sendable {
         AppLogger.repository.info("Content deleted successfully - ID: \(contentID.uuidString)")
     }
     
+    /// Update metadata for a library item (e.g. pin state, title)
+    func updateLibraryMetadata(_ model: LibraryModel) async throws {
+        AppLogger.repository.startOperation("Update Library Metadata")
+        defer { AppLogger.repository.completeOperation("Update Library Metadata") }
+        
+        try await database.dbWriter.write { db in
+            _ = try LibraryModelRecord.saveMetadata(model, db: db)
+        }
+        
+        AppLogger.repository.info("Library metadata updated - ID: \(model.id.uuidString)")
+    }
+    
     // MARK: - Checklist Execution State Operations
 }
 

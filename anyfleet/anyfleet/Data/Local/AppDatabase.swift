@@ -150,6 +150,23 @@ final class AppDatabase: Sendable {
             AppLogger.database.info("Migration v1.2.0_createChecklistExecutionSchema completed successfully")
         }
         
+        migrator.registerMigration("v1.3.0_addPinnedColumnsToLibrary") { db in
+            AppLogger.database.debug("Running migration: v1.3.0_addPinnedColumnsToLibrary")
+            
+            try db.alter(table: "library_content") { t in
+                t.add(column: "isPinned", .integer).notNull().defaults(to: false)
+                t.add(column: "pinnedOrder", .integer)
+            }
+            
+            try db.create(
+                index: "idx_library_content_pinned",
+                on: "library_content",
+                columns: ["isPinned", "pinnedOrder", "updatedAt"]
+            )
+            
+            AppLogger.database.info("Migration v1.3.0_addPinnedColumnsToLibrary completed successfully")
+        }
+        
         return migrator
     }
     

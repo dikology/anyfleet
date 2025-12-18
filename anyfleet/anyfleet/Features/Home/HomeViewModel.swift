@@ -31,6 +31,7 @@ final class HomeViewModel {
     
     private let coordinator: AppCoordinator
     private let charterStore: CharterStore
+    private let libraryStore: LibraryStore
     
     // MARK: - State
     
@@ -42,12 +43,35 @@ final class HomeViewModel {
     
     /// Creates a new HomeViewModel.
     ///
-    /// - Parameter coordinator: The app coordinator for navigation
-    init(coordinator: AppCoordinator,
-         charterStore: CharterStore
+    /// - Parameters:
+    ///   - coordinator: The app coordinator for navigation
+    ///   - charterStore: Store for charter data
+    ///   - libraryStore: Store for library content (for pinned items)
+    init(
+        coordinator: AppCoordinator,
+        charterStore: CharterStore,
+        libraryStore: LibraryStore
     ) {
         self.coordinator = coordinator
         self.charterStore = charterStore
+        self.libraryStore = libraryStore
+    }
+    
+    // MARK: - Derived State
+    
+    /// Pinned library items for quick access on the home screen.
+    /// Sorted by explicit pinned order, then by most recently updated.
+    var pinnedLibraryItems: [LibraryModel] {
+        libraryStore.library
+            .filter { $0.isPinned }
+            .sorted { lhs, rhs in
+                let leftOrder = lhs.pinnedOrder ?? Int.max
+                let rightOrder = rhs.pinnedOrder ?? Int.max
+                if leftOrder != rightOrder {
+                    return leftOrder < rightOrder
+                }
+                return lhs.updatedAt > rhs.updatedAt
+            }
     }
     
     // MARK: - Actions
@@ -60,6 +84,21 @@ final class HomeViewModel {
         AppLogger.view.info("Create charter tapped from home")
         coordinator.navigateToCreateCharter()
     }
+    
+    /// Handles tapping a pinned library item from the home screen.
+    func onPinnedItemTapped(_ item: LibraryModel) {
+        AppLogger.view.info("Pinned library item tapped from home: \(item.id)")
+        coordinator.selectedTab = .library
+        
+        switch item.type {
+        case .checklist:
+            coordinator.editChecklist(item.id)
+        case .practiceGuide:
+            coordinator.editGuide(item.id)
+        case .flashcardDeck:
+            coordinator.editDeck(item.id)
+        }
+    }
 
     /// Refresh home screen data: active charter, auth state, content
     func refresh() async {
@@ -69,6 +108,11 @@ final class HomeViewModel {
         // Ensure charters are loaded before checking for active charter
         if charterStore.charters.isEmpty {
             await charterStore.loadCharters()
+        }
+        
+        // Ensure library content is loaded for pinned items
+        if libraryStore.library.isEmpty {
+            await libraryStore.loadLibrary()
         }
         
         // Fetch active charter (latest with today in date range)

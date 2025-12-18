@@ -13,18 +13,6 @@ struct HomeView: View {
                 .ignoresSafeArea()
             
             ScrollView {
-                // LazyVStack(alignment: .leading, spacing: DesignSystem.Spacing.lg, pinnedViews: []) {
-                //     ActionCard(
-                //         icon: "sailboat.fill",
-                //         title: L10n.homeCreateCharterTitle,
-                //         subtitle: L10n.homeCreateCharterSubtitle,
-                //         buttonTitle: L10n.homeCreateCharterAction,
-                //         onTap: { viewModel.onCreateCharterTapped() },
-                //         onButtonTap: { viewModel.onCreateCharterTapped() }
-                //     )
-                // }
-                // .padding(.horizontal, DesignSystem.Spacing.lg)
-                // .padding(.vertical, DesignSystem.Spacing.lg + DesignSystem.Spacing.sm)
                 VStack(alignment: .leading, spacing: DesignSystem.Spacing.lg) {
                     // Greeting header
                     headerSection
@@ -36,8 +24,12 @@ struct HomeView: View {
                         createCharterCard
                     }
                     
-                    // Reference content: pinned checklists and guides
-                    //referenceContentSection
+                    Spacer()
+                    
+                    // Reference content: pinned library items
+                    if !viewModel.pinnedLibraryItems.isEmpty {
+                        referenceContentSection
+                    }
                 }
                 .padding(.vertical, DesignSystem.Spacing.md)
             }
@@ -84,7 +76,7 @@ struct HomeView: View {
     // MARK: - Primary Card: Active Charter State
     
     private func activeCharterCard(charter: CharterModel) -> some View {
-        VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
+        VStack(alignment: .leading, spacing: DesignSystem.Spacing.lg) {
             // Badge label
             Text(L10n.homeActiveCharterTitle)
                 .font(DesignSystem.Typography.caption)
@@ -133,6 +125,119 @@ struct HomeView: View {
         )
         .padding(.horizontal, DesignSystem.Spacing.screenPadding)
     }
+    
+    // MARK: - Pinned Content Section
+    
+    private var referenceContentSection: some View {
+        VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
+            DesignSystem.SectionHeader(
+                "📌 " + L10n.homePinnedContentTitle,
+                subtitle: L10n.homePinnedContentSubtitle
+            )
+            
+            let items = viewModel.pinnedLibraryItems
+            let columns = [
+                GridItem(.flexible(), spacing: DesignSystem.Spacing.md),
+                GridItem(.flexible(), spacing: DesignSystem.Spacing.md)
+            ]
+            
+            LazyVGrid(columns: columns, spacing: DesignSystem.Spacing.md) {
+                ForEach(items.prefix(6)) { item in
+                    Button {
+                        // For now, open in the Library tab using edit flows
+                        onPinnedItemTapped(item)
+                    } label: {
+                        pinnedItemCard(item)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+        .padding(.horizontal, DesignSystem.Spacing.screenPadding)
+    }
+    
+    @ViewBuilder
+    private func pinnedItemCard(_ item: LibraryModel) -> some View {
+        VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
+            HStack(alignment: .top, spacing: DesignSystem.Spacing.sm) {
+                ZStack {
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    DesignSystem.Colors.primary.opacity(0.18),
+                                    DesignSystem.Colors.primary.opacity(0.05)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 32, height: 32)
+                    
+                    Image(systemName: item.type.icon)
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundColor(DesignSystem.Colors.primary)
+                }
+                
+                VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
+                    Text(item.title)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(DesignSystem.Colors.textPrimary)
+                        .lineLimit(2)
+                    
+                    Text(item.type.displayName)
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(DesignSystem.Colors.textSecondary)
+                        .padding(.horizontal, DesignSystem.Spacing.xs)
+                        .padding(.vertical, 4)
+                        .background(
+                            Capsule()
+                                .fill(DesignSystem.Colors.border.opacity(0.4))
+                        )
+                }
+                
+                Spacer()
+            }
+            
+            if let description = item.description, !description.isEmpty {
+                Text(description)
+                    .font(.system(size: 12))
+                    .foregroundColor(DesignSystem.Colors.textSecondary)
+                    .lineLimit(3)
+                    .padding(.top, DesignSystem.Spacing.xs)
+            }
+        }
+        .padding(DesignSystem.Spacing.md)
+        .background(
+            RoundedRectangle(cornerRadius: 14)
+                .fill(DesignSystem.Colors.surface)
+                .shadow(
+                    color: DesignSystem.Colors.shadowStrong.opacity(0.08),
+                    radius: 8,
+                    x: 0,
+                    y: 4
+                )
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(
+                    LinearGradient(
+                        colors: [
+                            DesignSystem.Colors.border.opacity(0.7),
+                            DesignSystem.Colors.border.opacity(0.25)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1
+                )
+        )
+    }
+    
+    private func onPinnedItemTapped(_ item: LibraryModel) {
+        // Navigate to the appropriate editor in the Library tab for now.
+        viewModel.onPinnedItemTapped(item)
+    }
 }
 
 #Preview {
@@ -141,7 +246,8 @@ struct HomeView: View {
     let coordinator = AppCoordinator()
     let viewModel = HomeViewModel(
         coordinator: coordinator,
-        charterStore: dependencies.charterStore
+        charterStore: dependencies.charterStore,
+        libraryStore: dependencies.libraryStore
     )
     return HomeView(viewModel: viewModel)
         .environment(dependencies)

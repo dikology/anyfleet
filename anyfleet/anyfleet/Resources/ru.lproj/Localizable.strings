@@ -67,12 +67,28 @@
 "library.newFlashcardDeck" = "Новая колода карточек";
 "library.newPracticeGuide" = "Новое практическое руководство";
 
+"library.filter.all" = "Все";
+"library.filter.checklists" = "Чек-листы";
+"library.filter.guides" = "Руководства";
+"library.filter.decks" = "Карточки";
+
+"library.action.delete" = "Удалить";
+"library.action.edit" = "Изменить";
+"library.action.pin" = "Закрепить";
+"library.action.unpin" = "Открепить";
+
+"library.filter.accessibilityLabel" = "Фильтр содержимого библиотеки";
+"library.updatedPrefix" = "Обновлено";
+
 "greeting.morning" = "Доброе утро";
 "greeting.day" = "Добрый день";
 "greeting.evening" = "Добрый вечер";
 "greeting.night" = "Доброй ночи";
 
 "charter.activeCharter" = "Активный";
+
+"home.pinnedContent.title" = "Закрепленный контент";
+"home.pinnedContent.subtitle" = "Закрепляйте элементы из библиотеки для быстрого доступа.";
 
 "checklistEditor.newChecklist" = "Новый чек-лист";
 "checklistEditor.editChecklist" = "Редактировать чек-лист";

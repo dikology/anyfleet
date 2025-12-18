@@ -22,7 +22,8 @@ struct HomeViewModelTests {
         // Act
         let viewModel = HomeViewModel(
             coordinator: coordinator,
-            charterStore: dependencies.charterStore
+            charterStore: dependencies.charterStore,
+            libraryStore: dependencies.libraryStore
         )
         
         // Assert
@@ -40,7 +41,8 @@ struct HomeViewModelTests {
         let dependencies = try AppDependencies.makeForTesting()
         let viewModel = HomeViewModel(
             coordinator: coordinator,
-            charterStore: dependencies.charterStore
+            charterStore: dependencies.charterStore,
+            libraryStore: dependencies.libraryStore
         )
         
         // Verify initial state
@@ -66,7 +68,8 @@ struct HomeViewModelTests {
         let dependencies = try AppDependencies.makeForTesting()
         let viewModel = HomeViewModel(
             coordinator: coordinator,
-            charterStore: dependencies.charterStore
+            charterStore: dependencies.charterStore,
+            libraryStore: dependencies.libraryStore
         )
         
         // Verify initial state has existing route
@@ -90,7 +93,8 @@ struct HomeViewModelTests {
         let dependencies = try AppDependencies.makeForTesting()
         let viewModel = HomeViewModel(
             coordinator: coordinator,
-            charterStore: dependencies.charterStore
+            charterStore: dependencies.charterStore,
+            libraryStore: dependencies.libraryStore
         )
         
         // Act
@@ -111,7 +115,8 @@ struct HomeViewModelTests {
         let dependencies = try AppDependencies.makeForTesting()
         let viewModel = HomeViewModel(
             coordinator: coordinator,
-            charterStore: dependencies.charterStore
+            charterStore: dependencies.charterStore,
+            libraryStore: dependencies.libraryStore
         )
         
         // Act
@@ -131,7 +136,8 @@ struct HomeViewModelTests {
         let dependencies = try AppDependencies.makeForTesting()
         let viewModel = HomeViewModel(
             coordinator: coordinator,
-            charterStore: dependencies.charterStore
+            charterStore: dependencies.charterStore,
+            libraryStore: dependencies.libraryStore
         )
         
         // Start on home tab
@@ -206,7 +212,8 @@ struct HomeViewModelTests {
         
         let viewModel = HomeViewModel(
             coordinator: coordinator,
-            charterStore: store
+            charterStore: store,
+            libraryStore: dependencies.libraryStore
         )
         
         // Act
@@ -259,7 +266,8 @@ struct HomeViewModelTests {
         
         let viewModel = HomeViewModel(
             coordinator: coordinator,
-            charterStore: store
+            charterStore: store,
+            libraryStore: dependencies.libraryStore
         )
         
         // Act
@@ -301,7 +309,8 @@ struct HomeViewModelTests {
         
         let viewModel = HomeViewModel(
             coordinator: coordinator,
-            charterStore: store
+            charterStore: store,
+            libraryStore: dependencies.libraryStore
         )
         
         #expect(viewModel.activeCharter == nil)
