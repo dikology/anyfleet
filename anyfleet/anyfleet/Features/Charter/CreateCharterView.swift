@@ -100,14 +100,16 @@ struct CreateCharterView: View {
 }
 
 #Preview {
-    let dependencies = try! AppDependencies.makeForTesting()
-    return CreateCharterView(
-        viewModel: CreateCharterViewModel(
-            charterStore: dependencies.charterStore,
-            onDismiss: {}
+    MainActor.assumeIsolated {
+        let dependencies = try! AppDependencies.makeForTesting()
+        return CreateCharterView(
+            viewModel: CreateCharterViewModel(
+                charterStore: dependencies.charterStore,
+                onDismiss: {}
+            )
         )
-    )
-    .environment(\.appDependencies, dependencies)
+        .environment(\.appDependencies, dependencies)
+    }
 }
 
 // MARK: - Subviews
@@ -122,13 +124,15 @@ private extension CreateCharterView {
 }
 
 #Preview("With Mock Form") {
-    let dependencies = try! AppDependencies.makeForTesting()
-    return CreateCharterView(
-        viewModel: CreateCharterViewModel(
-            charterStore: dependencies.charterStore,
-            onDismiss: {},
-            initialForm: .mock
+    MainActor.assumeIsolated {
+        let dependencies = try! AppDependencies.makeForTesting()
+        return CreateCharterView(
+            viewModel: CreateCharterViewModel(
+                charterStore: dependencies.charterStore,
+                onDismiss: {},
+                initialForm: .mock
+            )
         )
-    )
-    .environment(\.appDependencies, dependencies)
+        .environment(\.appDependencies, dependencies)
+    }
 }

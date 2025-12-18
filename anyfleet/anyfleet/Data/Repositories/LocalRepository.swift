@@ -162,20 +162,14 @@ final class LocalRepository: Sendable {
     }
     
     /// Fetch all full practice guide models
-    /// TODO: Implement when PracticeGuideRecord is created
     func fetchUserGuides() async throws -> [PracticeGuide] {
         AppLogger.repository.startOperation("Fetch User Guides")
         defer { AppLogger.repository.completeOperation("Fetch User Guides") }
         
-        // TODO: Implement when PracticeGuideRecord is created
-        // try await database.dbWriter.read { db in
-        //     try PracticeGuideRecord.fetchAll(db: db)
-        //         .map { $0.toDomainModel() }
-        // }
-        
-        // Stub implementation - returns empty array until records are implemented
-        AppLogger.repository.debug("Fetching guides")
-        return []
+        return try await database.dbWriter.read { db in
+            try PracticeGuideRecord.fetchAll(db: db)
+                .map { $0.toDomainModel() }
+        }
     }
     
     /// Fetch all full flashcard deck models
@@ -207,22 +201,14 @@ final class LocalRepository: Sendable {
     }
     
     /// Fetch a single guide by ID
-    /// TODO: Implement when PracticeGuideRecord is created
     func fetchGuide(_ guideID: UUID) async throws -> PracticeGuide? {
         AppLogger.repository.startOperation("Fetch Guide")
         defer { AppLogger.repository.completeOperation("Fetch Guide") }
         
-        // TODO: Implement when PracticeGuideRecord is created
-        // try await database.dbWriter.read { db in
-        //     try PracticeGuideRecord
-        //         .filter(PracticeGuideRecord.Columns.id == guideID.uuidString)
-        //         .fetchOne(db)?
-        //         .toDomainModel()
-        // }
-        
-        // Stub implementation - returns nil until records are implemented
-        AppLogger.repository.debug("Fetching guide: \(guideID.uuidString)")
-        return nil
+        return try await database.dbWriter.read { db in
+            try PracticeGuideRecord.fetchOne(id: guideID, db: db)?
+                .toDomainModel()
+        }
     }
     
     /// Fetch a single deck by ID
@@ -283,28 +269,38 @@ final class LocalRepository: Sendable {
     }
     
     /// Create a new practice guide
-    /// TODO: Implement when PracticeGuideRecord is created
     func createGuide(_ guide: PracticeGuide) async throws {
         AppLogger.repository.startOperation("Create Guide")
         defer { AppLogger.repository.completeOperation("Create Guide") }
         
-        // TODO: Implement when PracticeGuideRecord is created
-        // try await database.dbWriter.write { db in
-        //     var record = PracticeGuideRecord(from: guide, creatorID: creatorID)
-        //     record.updatedAt = Date()
-        //     try record.save(db)
-        //     
-        //     // Enqueue for sync if sync service is available
-        //     // try SyncQueueRecord.enqueue(
-        //     //     entityType: SyncEntityType.content.rawValue,
-        //     //     entityID: guide.id,
-        //     //     operation: .create,
-        //     //     db: db
-        //     // )
-        // }
+        try await database.dbWriter.write { db in
+            // Save full guide
+            _ = try PracticeGuideRecord.saveGuide(guide, db: db)
+            
+            // Create metadata entry
+            let metadata = LibraryModel(
+                id: guide.id,
+                title: guide.title,
+                description: guide.description,
+                type: .practiceGuide,
+                visibility: .private,
+                creatorID: UUID(uuidString: "00000000-0000-0000-0000-000000000000") ?? UUID(), // Placeholder for single-user device
+                tags: guide.tags,
+                createdAt: guide.createdAt,
+                updatedAt: guide.updatedAt,
+                syncStatus: guide.syncStatus
+            )
+            _ = try LibraryModelRecord.saveMetadata(metadata, db: db)
+            
+            // TODO: Enqueue for sync if sync service is available
+            // try SyncQueueRecord.enqueue(
+            //     entityType: SyncEntityType.content.rawValue,
+            //     entityID: guide.id,
+            //     operation: .create,
+            //     db: db
+            // )
+        }
         
-        // Stub implementation - logs until records are implemented
-        AppLogger.repository.debug("Creating guide with ID: \(guide.id.uuidString)")
         AppLogger.repository.info("Guide created successfully - ID: \(guide.id.uuidString)")
     }
     
@@ -373,28 +369,38 @@ final class LocalRepository: Sendable {
     }
     
     /// Save/update an existing practice guide
-    /// TODO: Implement when PracticeGuideRecord is created
     func saveGuide(_ guide: PracticeGuide) async throws {
         AppLogger.repository.startOperation("Save Guide")
         defer { AppLogger.repository.completeOperation("Save Guide") }
         
-        // TODO: Implement when PracticeGuideRecord is created
-        // try await database.dbWriter.write { db in
-        //     var record = PracticeGuideRecord(from: guide, creatorID: creatorID)
-        //     record.updatedAt = Date()
-        //     try record.save(db)
-        //     
-        //     // Enqueue for sync if sync service is available
-        //     // try SyncQueueRecord.enqueue(
-        //     //     entityType: SyncEntityType.content.rawValue,
-        //     //     entityID: guide.id,
-        //     //     operation: .update,
-        //     //     db: db
-        //     // )
-        // }
+        try await database.dbWriter.write { db in
+            // Update full guide
+            _ = try PracticeGuideRecord.saveGuide(guide, db: db)
+            
+            // Update metadata entry
+            let metadata = LibraryModel(
+                id: guide.id,
+                title: guide.title,
+                description: guide.description,
+                type: .practiceGuide,
+                visibility: .private,
+                creatorID: UUID(uuidString: "00000000-0000-0000-0000-000000000000") ?? UUID(), // Placeholder for single-user device
+                tags: guide.tags,
+                createdAt: guide.createdAt,
+                updatedAt: guide.updatedAt,
+                syncStatus: guide.syncStatus
+            )
+            _ = try LibraryModelRecord.saveMetadata(metadata, db: db)
+            
+            // TODO: Enqueue for sync if sync service is available
+            // try SyncQueueRecord.enqueue(
+            //     entityType: SyncEntityType.content.rawValue,
+            //     entityID: guide.id,
+            //     operation: .update,
+            //     db: db
+            // )
+        }
         
-        // Stub implementation - logs until records are implemented
-        AppLogger.repository.debug("Saving guide with ID: \(guide.id.uuidString)")
         AppLogger.repository.info("Guide saved successfully - ID: \(guide.id.uuidString)")
     }
     
@@ -413,7 +419,10 @@ final class LocalRepository: Sendable {
             // Try to delete from checklists table (will fail silently if not a checklist)
             try? ChecklistRecord.delete(contentID, db: db)
             
-            // TODO: Delete from guides and decks tables when implemented
+            // Try to delete from guides table (will fail silently if not a guide)
+            try? PracticeGuideRecord.delete(contentID, db: db)
+            
+            // TODO: Delete from decks table when implemented
             
             // TODO: Enqueue for sync if sync service is available
             // try SyncQueueRecord.enqueue(

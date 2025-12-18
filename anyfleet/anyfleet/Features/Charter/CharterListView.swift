@@ -295,9 +295,11 @@ struct CharterRowView: View {
 }
 
 #Preview {
-    let dependencies = try! AppDependencies.makeForTesting()
-    return CharterListView(
-        viewModel: CharterListViewModel(charterStore: dependencies.charterStore)
-    )
-    .environment(\.appDependencies, dependencies)
+    MainActor.assumeIsolated {
+        let dependencies = try! AppDependencies.makeForTesting()
+        return CharterListView(
+            viewModel: CharterListViewModel(charterStore: dependencies.charterStore)
+        )
+        .environment(\.appDependencies, dependencies)
+    }
 }

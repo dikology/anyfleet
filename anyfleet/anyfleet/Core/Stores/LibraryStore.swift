@@ -292,18 +292,45 @@ final class LibraryStore {
 // MARK: - Content Models
 // Note: Checklist, ChecklistSection, ChecklistItem, and ChecklistType are defined in Core/Models/Checklist.swift
 
-/// Full practice guide model with markdown content
-/// TODO: Replace with actual PracticeGuide struct when implemented
-/// This is a minimal placeholder that will be replaced with a full model
-/// containing markdown content, metadata, etc.
-struct PracticeGuide: Identifiable, Hashable, Sendable {
+/// Full practice guide model with markdown content.
+///
+/// This is the domain model for user-created practice guides. Metadata used for
+/// listing and discovery (creator, visibility, rating, etc.) lives in
+/// `LibraryModel`; this struct focuses on the actual document content.
+nonisolated struct PracticeGuide: Identifiable, Hashable, Sendable, Codable {
     let id: UUID
+    var title: String
+    var description: String?
+    var markdown: String
+    var tags: [String]
+    var createdAt: Date
+    var updatedAt: Date
+    var syncStatus: ContentSyncStatus
     
-    // TODO: Add full guide properties:
-    // var title: String
-    // var description: String?
-    // var markdown: String
-    // etc.
+    init(
+        id: UUID = UUID(),
+        title: String,
+        description: String? = nil,
+        markdown: String = "",
+        tags: [String] = [],
+        createdAt: Date = Date(),
+        updatedAt: Date = Date(),
+        syncStatus: ContentSyncStatus = .pending
+    ) {
+        self.id = id
+        self.title = title
+        self.description = description
+        self.markdown = markdown
+        self.tags = tags
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+        self.syncStatus = syncStatus
+    }
+    
+    /// Convenience factory for a new, empty guide.
+    static func empty() -> PracticeGuide {
+        PracticeGuide(title: "", markdown: "")
+    }
 }
 
 /// Full flashcard deck model with cards

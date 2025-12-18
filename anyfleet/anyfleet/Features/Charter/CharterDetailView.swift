@@ -186,18 +186,20 @@ struct CharterDetailView: View {
 }
 
 #Preview {
-    let dependencies = try! AppDependencies.makeForTesting()
-    
-    return NavigationStack {
-        CharterDetailView(
-            viewModel: CharterDetailViewModel(
-                charterID: UUID(),
-                charterStore: dependencies.charterStore,
-                libraryStore: dependencies.libraryStore
+    MainActor.assumeIsolated {
+        let dependencies = try! AppDependencies.makeForTesting()
+        
+        return NavigationStack {
+            CharterDetailView(
+                viewModel: CharterDetailViewModel(
+                    charterID: UUID(),
+                    charterStore: dependencies.charterStore,
+                    libraryStore: dependencies.libraryStore
+                )
             )
-        )
+        }
+        .environment(\.appDependencies, dependencies)
     }
-    .environment(\.appDependencies, dependencies)
 }
 
 

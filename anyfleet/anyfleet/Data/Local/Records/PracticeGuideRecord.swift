@@ -1,23 +1,22 @@
 //
-//  ChecklistRecord.swift
+//  PracticeGuideRecord.swift
 //  anyfleet
 //
-//  GRDB record type for Checklist persistence
+//  GRDB record type for PracticeGuide persistence
 //
 
 import Foundation
 @preconcurrency import GRDB
 
-/// Database record for Checklist
-nonisolated struct ChecklistRecord: Codable, FetchableRecord, PersistableRecord {
-    static let databaseTableName = "checklists"
+/// Database record for PracticeGuide
+nonisolated struct PracticeGuideRecord: Codable, FetchableRecord, PersistableRecord {
+    static let databaseTableName = "practice_guides"
     
     var id: String
     var title: String
     var description: String?
-    var checklistType: String
+    var markdown: String
     var tags: String // JSON array of strings
-    var content: String // JSON of sections and items
     var creatorID: String
     var createdAt: Date
     var updatedAt: Date
@@ -26,7 +25,7 @@ nonisolated struct ChecklistRecord: Codable, FetchableRecord, PersistableRecord 
     // MARK: - Column Definitions
     
     enum Columns: String, ColumnExpression {
-        case id, title, description, checklistType, tags, content
+        case id, title, description, markdown, tags
         case creatorID, createdAt, updatedAt, syncStatus
     }
     
@@ -36,9 +35,8 @@ nonisolated struct ChecklistRecord: Codable, FetchableRecord, PersistableRecord 
         id: String = UUID().uuidString,
         title: String,
         description: String? = nil,
-        checklistType: String,
+        markdown: String = "",
         tags: String = "[]",
-        content: String = "[]",
         creatorID: String,
         createdAt: Date = Date(),
         updatedAt: Date = Date(),
@@ -47,9 +45,8 @@ nonisolated struct ChecklistRecord: Codable, FetchableRecord, PersistableRecord 
         self.id = id
         self.title = title
         self.description = description
-        self.checklistType = checklistType
+        self.markdown = markdown
         self.tags = tags
-        self.content = content
         self.creatorID = creatorID
         self.createdAt = createdAt
         self.updatedAt = updatedAt
@@ -58,39 +55,31 @@ nonisolated struct ChecklistRecord: Codable, FetchableRecord, PersistableRecord 
     
     // MARK: - Conversion from Domain Model
     
-    init(from checklist: Checklist) {
-        self.id = checklist.id.uuidString
-        self.title = checklist.title
-        self.description = checklist.description
-        self.checklistType = checklist.checklistType.rawValue
+    init(from guide: PracticeGuide) {
+        self.id = guide.id.uuidString
+        self.title = guide.title
+        self.description = guide.description
+        self.markdown = guide.markdown
         self.creatorID = "00000000-0000-0000-0000-000000000000" // Placeholder for single-user device
-        self.createdAt = checklist.createdAt
-        self.updatedAt = checklist.updatedAt
-        self.syncStatus = checklist.syncStatus.rawValue
+        self.createdAt = guide.createdAt
+        self.updatedAt = guide.updatedAt
+        self.syncStatus = guide.syncStatus.rawValue
         
         // Encode tags as JSON
-        if let tagsData = try? JSONEncoder().encode(checklist.tags),
+        if let tagsData = try? JSONEncoder().encode(guide.tags),
            let tagsString = String(data: tagsData, encoding: .utf8) {
             self.tags = tagsString
         } else {
             self.tags = "[]"
         }
-        
-        // Encode sections/items as JSON
-        if let contentData = try? JSONEncoder().encode(checklist.sections),
-           let contentString = String(data: contentData, encoding: .utf8) {
-            self.content = contentString
-        } else {
-            self.content = "[]"
-        }
     }
     
     /// Create record from domain model, preserving existing metadata when updating
     nonisolated static func fromDomainModel(
-        _ checklist: Checklist,
-        existingRecord: ChecklistRecord? = nil
-    ) -> ChecklistRecord {
-        var record = ChecklistRecord(from: checklist)
+        _ guide: PracticeGuide,
+        existingRecord: PracticeGuideRecord? = nil
+    ) -> PracticeGuideRecord {
+        var record = PracticeGuideRecord(from: guide)
         
         // Preserve metadata if updating existing record
         if let existing = existingRecord {
@@ -105,7 +94,7 @@ nonisolated struct ChecklistRecord: Codable, FetchableRecord, PersistableRecord 
     
     // MARK: - Conversion to Domain Model
     
-    nonisolated func toDomainModel() -> Checklist {
+    nonisolated func toDomainModel() -> PracticeGuide {
         // Decode tags
         var decodedTags: [String] = []
         if let tagsData = tags.data(using: .utf8),
@@ -113,28 +102,14 @@ nonisolated struct ChecklistRecord: Codable, FetchableRecord, PersistableRecord 
             decodedTags = tags
         }
         
-        // Decode sections
-        var decodedSections: [ChecklistSection] = []
-        if let contentData = content.data(using: .utf8) {
-            do {
-                decodedSections = try JSONDecoder().decode([ChecklistSection].self, from: contentData)
-            } catch {
-                AppLogger.database.warning("Failed to decode checklist sections: \(error.localizedDescription). Content: \(content.prefix(100))")
-            }
-        }
-        
-        // Decode checklist type
-        let type = ChecklistType(rawValue: checklistType) ?? .general
-        
         // Decode sync status
         let syncStatus = ContentSyncStatus(rawValue: syncStatus) ?? .pending
         
-        return Checklist(
+        return PracticeGuide(
             id: UUID(uuidString: id) ?? UUID(),
             title: title,
             description: description,
-            sections: decodedSections,
-            checklistType: type,
+            markdown: markdown,
             tags: decodedTags,
             createdAt: createdAt,
             updatedAt: updatedAt,
@@ -145,32 +120,32 @@ nonisolated struct ChecklistRecord: Codable, FetchableRecord, PersistableRecord 
 
 // MARK: - Database Operations
 
-extension ChecklistRecord {
-    /// Fetch all checklists
-    nonisolated static func fetchAll(db: Database) throws -> [ChecklistRecord] {
-        try ChecklistRecord
+extension PracticeGuideRecord {
+    /// Fetch all practice guides
+    nonisolated static func fetchAll(db: Database) throws -> [PracticeGuideRecord] {
+        try PracticeGuideRecord
             .order(Columns.updatedAt.desc)
             .fetchAll(db)
     }
     
-    /// Fetch a single checklist by ID
-    nonisolated static func fetchOne(id: UUID, db: Database) throws -> ChecklistRecord? {
-        try ChecklistRecord
+    /// Fetch a single guide by ID
+    nonisolated static func fetchOne(id: UUID, db: Database) throws -> PracticeGuideRecord? {
+        try PracticeGuideRecord
             .filter(Columns.id == id.uuidString)
             .fetchOne(db)
     }
     
-    /// Save or update checklist
+    /// Save or update guide
     /// Preserves existing metadata (createdAt, syncStatus) when updating
     @discardableResult
-    nonisolated static func saveChecklist(_ checklist: Checklist, db: Database) throws -> ChecklistRecord {
+    nonisolated static func saveGuide(_ guide: PracticeGuide, db: Database) throws -> PracticeGuideRecord {
         // Check if record exists
-        let existing = try ChecklistRecord
-            .filter(Columns.id == checklist.id.uuidString)
+        let existing = try PracticeGuideRecord
+            .filter(Columns.id == guide.id.uuidString)
             .fetchOne(db)
         
         // Smart conversion preserving metadata
-        let record = fromDomainModel(checklist, existingRecord: existing)
+        let record = fromDomainModel(guide, existingRecord: existing)
         
         // GRDB's save() is mutating, so we need var
         let mutableRecord = record
@@ -178,17 +153,17 @@ extension ChecklistRecord {
         return mutableRecord
     }
     
-    /// Delete checklist
-    nonisolated static func delete(_ checklistID: UUID, db: Database) throws {
-        try ChecklistRecord
-            .filter(Columns.id == checklistID.uuidString)
+    /// Delete guide
+    nonisolated static func delete(_ guideID: UUID, db: Database) throws {
+        try PracticeGuideRecord
+            .filter(Columns.id == guideID.uuidString)
             .deleteAll(db)
     }
     
     /// Mark as synced
-    nonisolated static func markSynced(_ checklistID: UUID, db: Database) throws {
-        try ChecklistRecord
-            .filter(Columns.id == checklistID.uuidString)
+    nonisolated static func markSynced(_ guideID: UUID, db: Database) throws {
+        try PracticeGuideRecord
+            .filter(Columns.id == guideID.uuidString)
             .updateAll(db, Columns.syncStatus.set(to: "synced"))
     }
 }

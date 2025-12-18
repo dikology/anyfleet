@@ -156,7 +156,17 @@ struct LibraryListView: View {
                     LibraryItemRow(
                         item: item,
                         contentType: item.type,
-                        onTap: { }
+                        onTap: {
+                            switch item.type {
+                            case .checklist:
+                                viewModel.onReadChecklistTapped(item.id)
+                            case .practiceGuide:
+                                viewModel.onReadGuideTapped(item.id)
+                            case .flashcardDeck:
+                                // TODO: Implement deck reader when ready
+                                break
+                            }
+                        }
                     )
                     .listRowInsets(EdgeInsets(
                         top: DesignSystem.Spacing.sm,

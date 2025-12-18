@@ -167,6 +167,29 @@ final class AppDatabase: Sendable {
             AppLogger.database.info("Migration v1.3.0_addPinnedColumnsToLibrary completed successfully")
         }
         
+        migrator.registerMigration("v1.4.0_createPracticeGuidesTable") { db in
+            AppLogger.database.debug("Running migration: v1.4.0_createPracticeGuidesTable")
+            
+            // MARK: Practice Guides Table (full content)
+            try db.create(table: "practice_guides") { t in
+                t.primaryKey("id", .text).notNull()
+                t.column("title", .text).notNull()
+                t.column("description", .text)
+                t.column("markdown", .text).notNull().defaults(to: "")
+                t.column("tags", .text).notNull().defaults(to: "[]") // JSON array
+                t.column("creatorID", .text).notNull()
+                t.column("createdAt", .datetime).notNull()
+                t.column("updatedAt", .datetime).notNull()
+                t.column("syncStatus", .text).notNull().defaults(to: "pending")
+            }
+            
+            // Create indexes
+            try db.create(index: "idx_practice_guides_creator", on: "practice_guides", columns: ["creatorID"])
+            try db.create(index: "idx_practice_guides_updated", on: "practice_guides", columns: ["updatedAt"])
+            
+            AppLogger.database.info("Migration v1.4.0_createPracticeGuidesTable completed successfully")
+        }
+        
         return migrator
     }
     

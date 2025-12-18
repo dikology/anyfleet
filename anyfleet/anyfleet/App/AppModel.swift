@@ -11,11 +11,11 @@ enum AppRoute: Hashable {
     case checklistEditor(UUID?)
     case guideEditor(UUID?)
     case deckEditor(UUID?)
+    case checklistDetail(UUID)
+    case guideDetail(UUID)
     
     // TODO: Add more routes as features are implemented
-    // case checklistDetail(UUID)
     // case deckDetail(UUID)
-    // case guideDetail(UUID)
     // case profileUser(UUID)
     // case profileSettings
     // case search(String)
@@ -123,6 +123,18 @@ final class AppCoordinator: ObservableObject {
         libraryPath.append(.deckEditor(deckID))
     }
     
+    /// Navigate to checklist reader view.
+    /// - Parameter checklistID: The ID of the checklist to view.
+    func viewChecklist(_ checklistID: UUID) {
+        libraryPath.append(.checklistDetail(checklistID))
+    }
+    
+    /// Navigate to guide reader view.
+    /// - Parameter guideID: The ID of the guide to view.
+    func viewGuide(_ guideID: UUID) {
+        libraryPath.append(.guideDetail(guideID))
+    }
+    
     // MARK: - Cross-Tab Navigation
     
     /// Navigates to charter creation from any tab.
@@ -182,17 +194,21 @@ final class AppCoordinator: ObservableObject {
                     onDismiss: { self.pop(from: .library) }
                 )
             )
+        case .checklistDetail(let checklistID):
+            ChecklistReaderView(
+                viewModel: ChecklistReaderViewModel(
+                    libraryStore: dependencies.libraryStore,
+                    checklistID: checklistID
+                )
+            )
         case .guideEditor(let guideID):
-            // TODO: Implement GuideEditorView when ready
-            // GuideEditorView(
-            //     viewModel: GuideEditorViewModel(
-            //         libraryStore: dependencies.libraryStore,
-            //         guideID: guideID,
-            //         onDismiss: { self.pop(from: .library) }
-            //     )
-            // )
-            Text("Guide Editor: \(guideID?.uuidString ?? "New")")
-                .navigationTitle("Guide")
+            PracticeGuideEditorView(
+                viewModel: PracticeGuideEditorViewModel(
+                    libraryStore: dependencies.libraryStore,
+                    guideID: guideID,
+                    onDismiss: { self.pop(from: .library) }
+                )
+            )
         case .deckEditor(let deckID):
             // TODO: Implement DeckEditorView when ready
             // DeckEditorView(
@@ -204,6 +220,13 @@ final class AppCoordinator: ObservableObject {
             // )
             Text("Deck Editor: \(deckID?.uuidString ?? "New")")
                 .navigationTitle("Deck")
+        case .guideDetail(let guideID):
+            PracticeGuideReaderView(
+                viewModel: PracticeGuideReaderViewModel(
+                    libraryStore: dependencies.libraryStore,
+                    guideID: guideID
+                )
+            )
         case .checklistExecution(let charterID, let checklistID):
             ChecklistExecutionView(
                 viewModel: ChecklistExecutionViewModel(

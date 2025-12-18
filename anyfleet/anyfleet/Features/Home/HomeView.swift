@@ -235,20 +235,22 @@ struct HomeView: View {
     }
     
     private func onPinnedItemTapped(_ item: LibraryModel) {
-        // Navigate to the appropriate editor in the Library tab for now.
+        // Navigate to the appropriate reader view in the Library tab.
         viewModel.onPinnedItemTapped(item)
     }
 }
 
 #Preview {
-    // Simple preview wiring with real dependencies
-    let dependencies = AppDependencies()
-    let coordinator = AppCoordinator(dependencies: dependencies)
-    let viewModel = HomeViewModel(
-        coordinator: coordinator,
-        charterStore: dependencies.charterStore,
-        libraryStore: dependencies.libraryStore
-    )
-    HomeView(viewModel: viewModel)
-        .environment(dependencies)
+    MainActor.assumeIsolated {
+        // Simple preview wiring with real dependencies
+        let dependencies = AppDependencies()
+        let coordinator = AppCoordinator(dependencies: dependencies)
+        let viewModel = HomeViewModel(
+            coordinator: coordinator,
+            charterStore: dependencies.charterStore,
+            libraryStore: dependencies.libraryStore
+        )
+        return HomeView(viewModel: viewModel)
+            .environment(dependencies)
+    }
 }
