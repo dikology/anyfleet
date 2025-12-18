@@ -211,6 +211,7 @@ struct ChecklistEditorView: View {
                 .padding(.vertical, DesignSystem.Spacing.xs)
             }
             .padding(.horizontal, DesignSystem.Spacing.lg)
+            .padding(.top, DesignSystem.Spacing.md)
             .padding(.bottom, DesignSystem.Spacing.md)
             
             // Visual separator with intentional spacing

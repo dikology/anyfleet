@@ -156,7 +156,11 @@ struct LibraryListView: View {
                     LibraryItemRow(
                         item: item,
                         contentType: item.type,
-                        onTap: { }
+                        onTap: {
+                            if item.type == .practiceGuide {
+                                viewModel.onReadGuideTapped(item.id)
+                            }
+                        }
                     )
                     .listRowInsets(EdgeInsets(
                         top: DesignSystem.Spacing.sm,
