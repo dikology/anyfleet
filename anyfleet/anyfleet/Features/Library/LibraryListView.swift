@@ -28,9 +28,15 @@ struct LibraryListView: View {
                 contentList
             }
         }
-        .navigationTitle(L10n.Library.myLibrary)
+        .navigationBarTitleDisplayMode(.inline)
         .background(DesignSystem.Colors.background.ignoresSafeArea())
         .toolbar {
+            ToolbarItem(placement: .principal) {
+                Text(L10n.Library.myLibrary)
+                    .font(DesignSystem.Typography.headline)
+                    .foregroundColor(DesignSystem.Colors.textPrimary)
+            }
+            
             ToolbarItem(placement: .primaryAction) {
                 createMenu
             }
