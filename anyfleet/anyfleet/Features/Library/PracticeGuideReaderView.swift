@@ -15,18 +15,31 @@ struct PracticeGuideReaderView: View {
     }
     
     var body: some View {
-        Group {
-            if let guide = viewModel.guide {
-                contentView(for: guide)
-            } else if viewModel.isLoading {
-                ProgressView()
-                    .tint(DesignSystem.Colors.primary)
-            } else if let error = viewModel.errorMessage {
-                Text(error)
-                    .foregroundColor(DesignSystem.Colors.textSecondary)
+        ZStack {
+            DesignSystem.Colors.background
+                .ignoresSafeArea()
+            
+            Group {
+                if let guide = viewModel.guide {
+                    contentView(for: guide)
+                } else if viewModel.isLoading {
+                    ProgressView()
+                        .tint(DesignSystem.Colors.primary)
+                } else if let error = viewModel.errorMessage {
+                    Text(error)
+                        .foregroundColor(DesignSystem.Colors.textSecondary)
+                        .padding()
+                } else {
+                    // Show loading state instead of empty view
+                    VStack(spacing: DesignSystem.Spacing.md) {
+                        ProgressView()
+                            .tint(DesignSystem.Colors.primary)
+                        Text("Loading guide...")
+                            .font(DesignSystem.Typography.caption)
+                            .foregroundColor(DesignSystem.Colors.textSecondary)
+                    }
                     .padding()
-            } else {
-                EmptyView()
+                }
             }
         }
         .navigationTitle(viewModel.guide?.title ?? "Guide")
@@ -57,11 +70,12 @@ struct PracticeGuideReaderView: View {
                 
                 // Markdown body
                 markdownBody(from: guide.markdown)
+                
+                Spacer(minLength: 100)
             }
             .padding(.horizontal, DesignSystem.Spacing.lg)
             .padding(.vertical, DesignSystem.Spacing.lg)
         }
-        .background(DesignSystem.Colors.background.ignoresSafeArea())
     }
     
     private func markdownBody(from markdown: String) -> some View {

@@ -65,6 +65,12 @@ final class LibraryListViewModel {
     
     // MARK: - Read Actions
     
+    /// Handles tapping a checklist to read/view it.
+    func onReadChecklistTapped(_ checklistID: UUID) {
+        AppLogger.view.info("Read checklist tapped: \(checklistID.uuidString)")
+        coordinator.viewChecklist(checklistID)
+    }
+    
     /// Handles tapping a guide to read/view it.
     func onReadGuideTapped(_ guideID: UUID) {
         AppLogger.view.info("Read guide tapped: \(guideID.uuidString)")

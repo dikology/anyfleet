@@ -157,8 +157,14 @@ struct LibraryListView: View {
                         item: item,
                         contentType: item.type,
                         onTap: {
-                            if item.type == .practiceGuide {
+                            switch item.type {
+                            case .checklist:
+                                viewModel.onReadChecklistTapped(item.id)
+                            case .practiceGuide:
                                 viewModel.onReadGuideTapped(item.id)
+                            case .flashcardDeck:
+                                // TODO: Implement deck reader when ready
+                                break
                             }
                         }
                     )

@@ -235,7 +235,7 @@ struct HomeView: View {
     }
     
     private func onPinnedItemTapped(_ item: LibraryModel) {
-        // Navigate to the appropriate editor in the Library tab for now.
+        // Navigate to the appropriate reader view in the Library tab.
         viewModel.onPinnedItemTapped(item)
     }
 }

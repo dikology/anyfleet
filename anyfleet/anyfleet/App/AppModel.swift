@@ -11,12 +11,11 @@ enum AppRoute: Hashable {
     case checklistEditor(UUID?)
     case guideEditor(UUID?)
     case deckEditor(UUID?)
+    case checklistDetail(UUID)
     case guideDetail(UUID)
     
     // TODO: Add more routes as features are implemented
-    // case checklistDetail(UUID)
     // case deckDetail(UUID)
-    // case guideDetail(UUID)
     // case profileUser(UUID)
     // case profileSettings
     // case search(String)
@@ -124,6 +123,12 @@ final class AppCoordinator: ObservableObject {
         libraryPath.append(.deckEditor(deckID))
     }
     
+    /// Navigate to checklist reader view.
+    /// - Parameter checklistID: The ID of the checklist to view.
+    func viewChecklist(_ checklistID: UUID) {
+        libraryPath.append(.checklistDetail(checklistID))
+    }
+    
     /// Navigate to guide reader view.
     /// - Parameter guideID: The ID of the guide to view.
     func viewGuide(_ guideID: UUID) {
@@ -187,6 +192,13 @@ final class AppCoordinator: ObservableObject {
                     libraryStore: dependencies.libraryStore,
                     checklistID: checklistID,
                     onDismiss: { self.pop(from: .library) }
+                )
+            )
+        case .checklistDetail(let checklistID):
+            ChecklistReaderView(
+                viewModel: ChecklistReaderViewModel(
+                    libraryStore: dependencies.libraryStore,
+                    checklistID: checklistID
                 )
             )
         case .guideEditor(let guideID):

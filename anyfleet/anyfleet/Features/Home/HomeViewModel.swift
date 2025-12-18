@@ -92,10 +92,11 @@ final class HomeViewModel {
         
         switch item.type {
         case .checklist:
-            coordinator.editChecklist(item.id)
+            coordinator.viewChecklist(item.id)
         case .practiceGuide:
-            coordinator.editGuide(item.id)
+            coordinator.viewGuide(item.id)
         case .flashcardDeck:
+            // TODO: Implement deck reader when ready
             coordinator.editDeck(item.id)
         }
     }
