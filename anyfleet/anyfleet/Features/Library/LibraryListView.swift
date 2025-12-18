@@ -514,6 +514,8 @@ private struct PreviewLibraryRepository: LibraryRepository {
 
     func saveChecklist(_ checklist: Checklist) async throws {}
     func saveGuide(_ guide: PracticeGuide) async throws {}
+    
+    func updateLibraryMetadata(_ model: LibraryModel) async throws {}
 
     func deleteContent(_ contentID: UUID) async throws {}
 }

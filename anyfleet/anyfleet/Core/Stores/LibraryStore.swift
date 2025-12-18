@@ -191,6 +191,12 @@ final class LibraryStore {
         }
         
         library[index] = updated
+        
+        do {
+            try await repository.updateLibraryMetadata(updated)
+        } catch {
+            AppLogger.repository.failOperation("Update Library Metadata", error: error)
+        }
     }
     
     // MARK: - Fetching Full Models

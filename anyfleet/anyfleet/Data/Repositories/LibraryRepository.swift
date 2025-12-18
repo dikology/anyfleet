@@ -46,6 +46,9 @@ protocol LibraryRepository: Sendable {
     /// Save/update an existing practice guide
     func saveGuide(_ guide: PracticeGuide) async throws
     
+    /// Update metadata for a library item (e.g. pin state, title)
+    func updateLibraryMetadata(_ model: LibraryModel) async throws
+    
     // MARK: - Deleting Content
     
     /// Delete content by ID

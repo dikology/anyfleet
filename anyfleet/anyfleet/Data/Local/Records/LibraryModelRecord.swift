@@ -24,6 +24,8 @@ nonisolated struct LibraryModelRecord: Codable, FetchableRecord, PersistableReco
     var ratingCount: Int
     var tags: String // JSON array of strings
     var language: String
+    var isPinned: Bool
+    var pinnedOrder: Int?
     var createdAt: Date
     var updatedAt: Date
     var syncStatus: String
@@ -34,6 +36,7 @@ nonisolated struct LibraryModelRecord: Codable, FetchableRecord, PersistableReco
         case id, title, description, type, visibility
         case creatorID, forkedFromID, forkCount
         case ratingAverage, ratingCount, tags, language
+        case isPinned, pinnedOrder
         case createdAt, updatedAt, syncStatus
     }
     
@@ -52,6 +55,8 @@ nonisolated struct LibraryModelRecord: Codable, FetchableRecord, PersistableReco
         ratingCount: Int = 0,
         tags: String = "[]",
         language: String = "en",
+        isPinned: Bool = false,
+        pinnedOrder: Int? = nil,
         createdAt: Date = Date(),
         updatedAt: Date = Date(),
         syncStatus: String = "pending"
@@ -68,6 +73,8 @@ nonisolated struct LibraryModelRecord: Codable, FetchableRecord, PersistableReco
         self.ratingCount = ratingCount
         self.tags = tags
         self.language = language
+        self.isPinned = isPinned
+        self.pinnedOrder = pinnedOrder
         self.createdAt = createdAt
         self.updatedAt = updatedAt
         self.syncStatus = syncStatus
@@ -87,6 +94,8 @@ nonisolated struct LibraryModelRecord: Codable, FetchableRecord, PersistableReco
         self.ratingAverage = model.ratingAverage
         self.ratingCount = model.ratingCount
         self.language = model.language
+        self.isPinned = model.isPinned
+        self.pinnedOrder = model.pinnedOrder
         self.createdAt = model.createdAt
         self.updatedAt = model.updatedAt
         self.syncStatus = model.syncStatus.rawValue
@@ -128,6 +137,8 @@ nonisolated struct LibraryModelRecord: Codable, FetchableRecord, PersistableReco
             ratingCount: ratingCount,
             tags: decodedTags,
             language: language,
+            isPinned: isPinned,
+            pinnedOrder: pinnedOrder,
             createdAt: createdAt,
             updatedAt: updatedAt,
             syncStatus: syncStatus
