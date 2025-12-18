@@ -26,17 +26,16 @@ import Observation
 @MainActor
 @Observable
 final class CharterListViewModel {
+    // MARK: - State
+    var error: AppError?
+    var showError: Bool = false
+    
     // MARK: - Dependencies
     
     private let charterStore: CharterStore
     
-    // MARK: - State
-    
     /// Whether charters are currently being loaded
     var isLoading = false
-    
-    /// Error that occurred during loading, if any
-    var loadError: Error?
     
     /// The list of charters to display
     var charters: [CharterModel] {
@@ -61,17 +60,26 @@ final class CharterListViewModel {
     
     /// Loads all charters from the store.
     func loadCharters() async {
-        guard !isLoading else { return }
+        do {
+            guard !isLoading else { return }
         
-        AppLogger.view.startOperation("Load Charters")
-        isLoading = true
-        loadError = nil
-        
-        await charterStore.loadCharters()
-        
-        isLoading = false
-        AppLogger.view.completeOperation("Load Charters")
-        AppLogger.view.info("Loaded \(charters.count) charters")
+            AppLogger.view.startOperation("Load Charters")
+            isLoading = true
+            
+            try await charterStore.loadCharters()
+            
+            isLoading = false
+            AppLogger.view.completeOperation("Load Charters")
+            AppLogger.view.info("Loaded \(charters.count) charters")
+        } catch let error as AppError {
+            isLoading = false
+            self.error = error
+            self.showError = true
+        } catch {
+            isLoading = false
+            self.error = .unknown(error)
+            self.showError = true
+        }
     }
     
     /// Refreshes the charter list.

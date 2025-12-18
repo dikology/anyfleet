@@ -50,7 +50,7 @@ final class CharterDetailViewModel {
         
         // Ensure charters are loaded
         if charterStore.charters.isEmpty {
-            await charterStore.loadCharters()
+            try? await charterStore.loadCharters()
         }
         
         charter = charterStore.charters.first(where: { $0.id == charterID })

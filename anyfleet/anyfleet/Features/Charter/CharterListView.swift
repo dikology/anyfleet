@@ -28,6 +28,15 @@ struct CharterListView: View {
         }
         .navigationTitle("Charters")
         .background(DesignSystem.Colors.background.ignoresSafeArea())
+        .overlay(alignment: .top) {
+            if viewModel.showError, let error = viewModel.error {
+                ErrorBanner(
+                    error: error,
+                    onDismiss: { viewModel.showError = false },
+                    onRetry: { Task { await viewModel.loadCharters() } }
+                )
+            }
+        }
         .task {
             await viewModel.loadCharters()
         }

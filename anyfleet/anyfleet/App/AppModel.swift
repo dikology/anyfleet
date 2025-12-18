@@ -23,6 +23,8 @@ enum AppRoute: Hashable {
 
 @MainActor
 final class AppCoordinator: ObservableObject {
+    private let dependencies: AppDependencies
+    
     // Individual navigation paths per tab
     @Published var homePath: [AppRoute] = []
     @Published var libraryPath: [AppRoute] = []
@@ -32,6 +34,12 @@ final class AppCoordinator: ObservableObject {
     
     // Tab selection state
     @Published var selectedTab: AppView.Tab = .home
+    
+    // MARK: - Initialization
+    
+    init(dependencies: AppDependencies) {
+        self.dependencies = dependencies
+    }
     
     // MARK: - Tab-Specific Navigation
     
@@ -145,13 +153,75 @@ final class AppCoordinator: ObservableObject {
         // TODO: Implement deep link handling
         // See PRD section "Deep Linking & URL Handling" for implementation details
     }
+    
+    // MARK: - Destination Building
+    
+    @ViewBuilder
+    func destination(for route: AppRoute) -> some View {
+        switch route {
+        case .createCharter:
+            CreateCharterView(
+                viewModel: CreateCharterViewModel(
+                    charterStore: dependencies.charterStore,
+                    onDismiss: { self.pop(from: .charters) }
+                )
+            )
+        case .charterDetail(let id):
+            CharterDetailView(
+                viewModel: CharterDetailViewModel(
+                    charterID: id,
+                    charterStore: dependencies.charterStore,
+                    libraryStore: dependencies.libraryStore
+                )
+            )
+        case .checklistEditor(let checklistID):
+            ChecklistEditorView(
+                viewModel: ChecklistEditorViewModel(
+                    libraryStore: dependencies.libraryStore,
+                    checklistID: checklistID,
+                    onDismiss: { self.pop(from: .library) }
+                )
+            )
+        case .guideEditor(let guideID):
+            // TODO: Implement GuideEditorView when ready
+            // GuideEditorView(
+            //     viewModel: GuideEditorViewModel(
+            //         libraryStore: dependencies.libraryStore,
+            //         guideID: guideID,
+            //         onDismiss: { self.pop(from: .library) }
+            //     )
+            // )
+            Text("Guide Editor: \(guideID?.uuidString ?? "New")")
+                .navigationTitle("Guide")
+        case .deckEditor(let deckID):
+            // TODO: Implement DeckEditorView when ready
+            // DeckEditorView(
+            //     viewModel: DeckEditorViewModel(
+            //         libraryStore: dependencies.libraryStore,
+            //         deckID: deckID,
+            //         onDismiss: { self.pop(from: .library) }
+            //     )
+            // )
+            Text("Deck Editor: \(deckID?.uuidString ?? "New")")
+                .navigationTitle("Deck")
+        case .checklistExecution(let charterID, let checklistID):
+            ChecklistExecutionView(
+                viewModel: ChecklistExecutionViewModel(
+                    libraryStore: dependencies.libraryStore,
+                    executionRepository: dependencies.executionRepository,
+                    charterID: charterID,
+                    checklistID: checklistID
+                )
+            )
+        }
+    }
 }
 
 // MARK: - Environment Key
 
 private struct AppCoordinatorKey: EnvironmentKey {
     nonisolated(unsafe) static let defaultValue: AppCoordinator = MainActor.assumeIsolated {
-        AppCoordinator()
+        AppCoordinator(dependencies: AppDependencies())
     }
 }
 

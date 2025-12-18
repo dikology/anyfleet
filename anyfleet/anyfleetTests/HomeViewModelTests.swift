@@ -16,8 +16,8 @@ struct HomeViewModelTests {
     @MainActor
     func testInitialization() throws {
         // Arrange
-        let coordinator = AppCoordinator()
         let dependencies = try AppDependencies.makeForTesting()
+        let coordinator = AppCoordinator(dependencies: dependencies)
         
         // Act
         let viewModel = HomeViewModel(
@@ -36,9 +36,9 @@ struct HomeViewModelTests {
     @MainActor
     func testOnCreateCharterTapped_SwitchesTabs() async throws {
         // Arrange
-        let coordinator = AppCoordinator()
-        coordinator.selectedTab = .home
         let dependencies = try AppDependencies.makeForTesting()
+        let coordinator = AppCoordinator(dependencies: dependencies)
+        coordinator.selectedTab = .home
         let viewModel = HomeViewModel(
             coordinator: coordinator,
             charterStore: dependencies.charterStore,
@@ -62,10 +62,10 @@ struct HomeViewModelTests {
     @MainActor
     func testOnCreateCharterTapped_ClearsExistingPath() async throws {
         // Arrange
-        let coordinator = AppCoordinator()
+        let dependencies = try AppDependencies.makeForTesting()
+        let coordinator = AppCoordinator(dependencies: dependencies)
         coordinator.selectedTab = .home
         coordinator.push(.charterDetail(UUID()), to: .charters) // Add existing route
-        let dependencies = try AppDependencies.makeForTesting()
         let viewModel = HomeViewModel(
             coordinator: coordinator,
             charterStore: dependencies.charterStore,
@@ -88,9 +88,9 @@ struct HomeViewModelTests {
     @MainActor
     func testOnCreateCharterTapped_FromChartersTab() async throws {
         // Arrange
-        let coordinator = AppCoordinator()
-        coordinator.selectedTab = .charters
         let dependencies = try AppDependencies.makeForTesting()
+        let coordinator = AppCoordinator(dependencies: dependencies)
+        coordinator.selectedTab = .charters
         let viewModel = HomeViewModel(
             coordinator: coordinator,
             charterStore: dependencies.charterStore,
@@ -110,9 +110,9 @@ struct HomeViewModelTests {
     @MainActor
     func testOnCreateCharterTappedMultipleTimes() async throws {
         // Arrange
-        let coordinator = AppCoordinator()
-        coordinator.selectedTab = .home
         let dependencies = try AppDependencies.makeForTesting()
+        let coordinator = AppCoordinator(dependencies: dependencies)
+        coordinator.selectedTab = .home
         let viewModel = HomeViewModel(
             coordinator: coordinator,
             charterStore: dependencies.charterStore,
@@ -132,8 +132,8 @@ struct HomeViewModelTests {
     @MainActor
     func testRealisticUserFlow() async throws {
         // Arrange
-        let coordinator = AppCoordinator()
         let dependencies = try AppDependencies.makeForTesting()
+        let coordinator = AppCoordinator(dependencies: dependencies)
         let viewModel = HomeViewModel(
             coordinator: coordinator,
             charterStore: dependencies.charterStore,
@@ -173,8 +173,8 @@ struct HomeViewModelTests {
     @MainActor
     func testRefreshSelectsActiveCharterForToday() async throws {
         // Arrange
-        let coordinator = AppCoordinator()
         let dependencies = try AppDependencies.makeForTesting()
+        let coordinator = AppCoordinator(dependencies: dependencies)
         let store = dependencies.charterStore
         let repository = dependencies.repository
         
@@ -208,7 +208,7 @@ struct HomeViewModelTests {
         // Persist both charters via repository, then load into store
         try await repository.createCharter(activeCharter)
         try await repository.createCharter(futureCharter)
-        await store.loadCharters()
+        try await store.loadCharters()
         
         let viewModel = HomeViewModel(
             coordinator: coordinator,
@@ -227,8 +227,8 @@ struct HomeViewModelTests {
     @MainActor
     func testRefreshSelectsLatestOverlappingActiveCharter() async throws {
         // Arrange
-        let coordinator = AppCoordinator()
         let dependencies = try AppDependencies.makeForTesting()
+        let coordinator = AppCoordinator(dependencies: dependencies)
         let store = dependencies.charterStore
         let repository = dependencies.repository
         
@@ -262,7 +262,7 @@ struct HomeViewModelTests {
         // Persist both charters via repository, then load into store
         try await repository.createCharter(olderCharter)
         try await repository.createCharter(newerCharter)
-        await store.loadCharters()
+        try await store.loadCharters()
         
         let viewModel = HomeViewModel(
             coordinator: coordinator,
@@ -281,8 +281,8 @@ struct HomeViewModelTests {
     @MainActor
     func testRefreshLoadsChartersIfEmpty() async throws {
         // Arrange
-        let coordinator = AppCoordinator()
         let dependencies = try AppDependencies.makeForTesting()
+        let coordinator = AppCoordinator(dependencies: dependencies)
         let store = dependencies.charterStore
         let repository = dependencies.repository
         

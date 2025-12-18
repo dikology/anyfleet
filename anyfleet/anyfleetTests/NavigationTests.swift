@@ -12,13 +12,21 @@ import Testing
 @Suite("Navigation Tests")
 struct NavigationTests {
     
+    // MARK: - Test Helpers
+    
+    @MainActor
+    private func makeTestCoordinator() -> AppCoordinator {
+        let dependencies = AppDependencies()
+        return AppCoordinator(dependencies: dependencies)
+    }
+    
     // MARK: - Charter Navigation Flow
     
     @Test("Create charter flow - navigates to create charter view")
     @MainActor
     func testCreateCharterFlow() {
         // Arrange
-        let coordinator = AppCoordinator()
+        let coordinator = makeTestCoordinator()
         
         // Assert: Start at home with empty path
         #expect(coordinator.chartersPath.isEmpty)
@@ -35,7 +43,7 @@ struct NavigationTests {
     @MainActor
     func testViewCharterDetail() {
         // Arrange
-        let coordinator = AppCoordinator()
+        let coordinator = makeTestCoordinator()
         let charterID = UUID()
         
         // Assert: Start with empty path
@@ -53,7 +61,7 @@ struct NavigationTests {
     @MainActor
     func testCharterNavigationBackButton() {
         // Arrange
-        let coordinator = AppCoordinator()
+        let coordinator = makeTestCoordinator()
         let charterID = UUID()
         
         // Act: Navigate to charter detail
@@ -71,7 +79,7 @@ struct NavigationTests {
     @MainActor
     func testCharterNavigationPopToRoot() {
         // Arrange
-        let coordinator = AppCoordinator()
+        let coordinator = makeTestCoordinator()
         let charterID1 = UUID()
         let charterID2 = UUID()
         
@@ -93,7 +101,7 @@ struct NavigationTests {
     @MainActor
     func testTabPreservation() {
         // Arrange
-        let coordinator = AppCoordinator()
+        let coordinator = makeTestCoordinator()
         let charterID = UUID()
         
         // Act: Navigate in charters tab
@@ -113,7 +121,7 @@ struct NavigationTests {
     @MainActor
     func testTabIndependence() {
         // Arrange
-        let coordinator = AppCoordinator()
+        let coordinator = makeTestCoordinator()
         let charterID = UUID()
         
         // Act: Navigate in charters tab
@@ -137,7 +145,7 @@ struct NavigationTests {
     @MainActor
     func testCrossTabNavigationToCharter() {
         // Arrange
-        let coordinator = AppCoordinator()
+        let coordinator = makeTestCoordinator()
         let charterID = UUID()
         
         // Assert: Start at home tab
@@ -157,7 +165,7 @@ struct NavigationTests {
     @MainActor
     func testCrossTabNavigationClearsPath() {
         // Arrange
-        let coordinator = AppCoordinator()
+        let coordinator = makeTestCoordinator()
         let oldCharterID = UUID()
         let newCharterID = UUID()
         
@@ -180,7 +188,7 @@ struct NavigationTests {
     @MainActor
     func testPushRouteToHomeTab() {
         // Arrange
-        let coordinator = AppCoordinator()
+        let coordinator = makeTestCoordinator()
         
         // Act: Push route to home tab
         coordinator.push(.createCharter, to: .home)
@@ -195,7 +203,7 @@ struct NavigationTests {
     @MainActor
     func testPushRouteToChartersTab() {
         // Arrange
-        let coordinator = AppCoordinator()
+        let coordinator = makeTestCoordinator()
         let charterID = UUID()
         
         // Act: Push route to charters tab
@@ -211,7 +219,7 @@ struct NavigationTests {
     @MainActor
     func testPopFromEmptyPath() {
         // Arrange
-        let coordinator = AppCoordinator()
+        let coordinator = makeTestCoordinator()
         
         // Assert: Path is empty
         #expect(coordinator.chartersPath.isEmpty)
@@ -227,7 +235,7 @@ struct NavigationTests {
     @MainActor
     func testPopToRootFromEmptyPath() {
         // Arrange
-        let coordinator = AppCoordinator()
+        let coordinator = makeTestCoordinator()
         
         // Assert: Path is empty
         #expect(coordinator.chartersPath.isEmpty)
@@ -245,7 +253,7 @@ struct NavigationTests {
     @MainActor
     func testMultipleRoutesNavigation() {
         // Arrange
-        let coordinator = AppCoordinator()
+        let coordinator = makeTestCoordinator()
         let charterID1 = UUID()
         let charterID2 = UUID()
         
@@ -304,13 +312,35 @@ struct NavigationTests {
         #expect(route1 == route2)
     }
     
+    // MARK: - Navigation Destination Tests
+    
+    @Test("Navigate to charter detail - sets correct tab and path")
+    @MainActor
+    func testNavigateToCharterDetail() {
+        // Arrange
+        let coordinator = makeTestCoordinator()
+        let testID = UUID()
+        
+        // Act
+        coordinator.navigateToCharter(testID)
+        
+        // Assert
+        #expect(coordinator.selectedTab == .charters)
+        #expect(coordinator.chartersPath.count == 1)
+        guard case .charterDetail(let id) = coordinator.chartersPath.first else {
+            Issue.record("Expected charter detail route")
+            return
+        }
+        #expect(id == testID)
+    }
+    
     // MARK: - Deep Linking (Placeholder)
     
     @Test("Deep linking - placeholder implementation")
     @MainActor
     func testDeepLinkingPlaceholder() {
         // Arrange
-        let coordinator = AppCoordinator()
+        let coordinator = makeTestCoordinator()
         let url = URL(string: "sailaway://charter/550e8400-e29b-41d4-a716-446655440000")!
         
         // Act: Handle deep link (currently placeholder)

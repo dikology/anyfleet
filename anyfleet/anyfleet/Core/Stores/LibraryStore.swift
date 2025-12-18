@@ -40,6 +40,10 @@ final class LibraryStore {
     private(set) var guides: [PracticeGuide] = []
     private(set) var decks: [FlashcardDeck] = []
     
+    /// In-memory cache for frequently accessed checklists
+    private var checklistsCache: [UUID: Checklist] = [:]
+    private let maxChecklistCacheSize = 50
+    
     // Local repository for database operations
     // Sendable conformance required for Observable in Swift 6
     nonisolated private let repository: any LibraryRepository
@@ -130,12 +134,26 @@ final class LibraryStore {
     @MainActor
     func saveChecklist(_ checklist: Checklist) async throws {
         try await repository.saveChecklist(checklist)
-        // Update in-memory cache
+        
+        // Update in-memory full-model cache
         if let index = checklists.firstIndex(where: { $0.id == checklist.id }) {
             checklists[index] = checklist
         }
-        // Reload metadata to ensure sync status is updated
-        await loadLibrary()
+        
+        // Update metadata only (avoid full reload)
+        if let metadataIndex = library.firstIndex(where: { $0.id == checklist.id }) {
+            var metadata = library[metadataIndex]
+            metadata.title = checklist.title
+            metadata.description = checklist.description
+            metadata.tags = checklist.tags
+            metadata.updatedAt = checklist.updatedAt
+            metadata.syncStatus = checklist.syncStatus
+            library[metadataIndex] = metadata
+        }
+        
+        // Update cache
+        checklistsCache[checklist.id] = checklist
+        enforceChecklistCacheLimit()
     }
     
     /// Save/update an existing practice guide
@@ -206,13 +224,40 @@ final class LibraryStore {
     /// - Returns: The full checklist model, or nil if not found
     @MainActor
     func fetchChecklist(_ checklistID: UUID) async throws -> Checklist? {
-        // First check in-memory cache
+        // Check cache first
+        if let cached = checklistsCache[checklistID] {
+            return cached
+        }
+        
+        // Then check in-memory collection
         if let checklist = checklists.first(where: { $0.id == checklistID }) {
+            // Populate cache for future fast access
+            checklistsCache[checklistID] = checklist
+            enforceChecklistCacheLimit()
             return checklist
         }
         
-        // If not in cache, fetch from repository
-        return try await repository.fetchChecklist(checklistID)
+        // Finally, fetch from repository
+        guard let checklist = try await repository.fetchChecklist(checklistID) else {
+            return nil
+        }
+        
+        // Add to cache with size-based eviction
+        checklistsCache[checklistID] = checklist
+        enforceChecklistCacheLimit()
+        return checklist
+    }
+    
+    // MARK: - Cache Management
+    
+    private func enforceChecklistCacheLimit() {
+        guard checklistsCache.count > maxChecklistCacheSize else { return }
+        // Simple eviction: remove oldest key in dictionary order
+        let overflow = checklistsCache.count - maxChecklistCacheSize
+        let keysToRemove = Array(checklistsCache.keys.prefix(overflow))
+        for key in keysToRemove {
+            checklistsCache.removeValue(forKey: key)
+        }
     }
     
     /// Fetch a full guide model by ID
