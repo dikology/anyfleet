@@ -109,7 +109,7 @@ struct CharterStoreTests {
         mockRepository.fetchAllChartersResult = .success(charters)
         
         // Act
-        await store.loadCharters()
+        try await store.loadCharters()
         
         // Assert
         #expect(store.charters.count == 2)
@@ -118,9 +118,9 @@ struct CharterStoreTests {
         #expect(mockRepository.fetchAllChartersCallCount == 1)
     }
     
-    @Test("Load charters - handles errors gracefully")
+    @Test("Load charters - propagates errors")
     @MainActor
-    func testLoadCharters_HandlesErrors() async throws {
+    func testLoadCharters_PropagatesErrors() async throws {
         // Arrange
         let mockRepository = MockLocalRepository()
         let store = CharterStore(repository: mockRepository)
@@ -128,8 +128,10 @@ struct CharterStoreTests {
         let testError = NSError(domain: "TestError", code: 1)
         mockRepository.fetchAllChartersResult = .failure(testError)
         
-        // Act - should not throw, just log error
-        await store.loadCharters()
+        // Act & Assert - should throw error
+        await #expect(throws: testError) {
+            try await store.loadCharters()
+        }
         
         // Assert
         #expect(store.charters.isEmpty)

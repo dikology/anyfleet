@@ -208,7 +208,7 @@ struct HomeViewModelTests {
         // Persist both charters via repository, then load into store
         try await repository.createCharter(activeCharter)
         try await repository.createCharter(futureCharter)
-        await store.loadCharters()
+        try await store.loadCharters()
         
         let viewModel = HomeViewModel(
             coordinator: coordinator,
@@ -262,7 +262,7 @@ struct HomeViewModelTests {
         // Persist both charters via repository, then load into store
         try await repository.createCharter(olderCharter)
         try await repository.createCharter(newerCharter)
-        await store.loadCharters()
+        try await store.loadCharters()
         
         let viewModel = HomeViewModel(
             coordinator: coordinator,

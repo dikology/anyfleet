@@ -93,7 +93,7 @@ final class CharterStore {
     }
     
     @MainActor
-    func loadCharters() async {
+    func loadCharters() async throws {
         AppLogger.store.startOperation("Load Charters")
         do {
             charters = try await repository.fetchAllCharters()
@@ -101,6 +101,7 @@ final class CharterStore {
             AppLogger.store.completeOperation("Load Charters")
         } catch {
             AppLogger.store.failOperation("Load Charters", error: error)
+            throw error
         }
     }
     

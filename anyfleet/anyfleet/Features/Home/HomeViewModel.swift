@@ -107,7 +107,7 @@ final class HomeViewModel {
         
         // Ensure charters are loaded before checking for active charter
         if charterStore.charters.isEmpty {
-            await charterStore.loadCharters()
+            try? await charterStore.loadCharters()
         }
         
         // Ensure library content is loaded for pinned items

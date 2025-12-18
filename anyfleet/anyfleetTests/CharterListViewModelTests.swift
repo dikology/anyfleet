@@ -24,7 +24,7 @@ struct CharterListViewModelTests {
         
         // Assert
         #expect(viewModel.isLoading == false)
-        #expect(viewModel.loadError == nil)
+        #expect(viewModel.error == nil)
         #expect(viewModel.isEmpty == true)
         #expect(viewModel.charters.isEmpty == true)
     }

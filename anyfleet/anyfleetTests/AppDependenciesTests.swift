@@ -156,7 +156,7 @@ struct AppDependenciesTests {
         #expect(dependencies2.charterStore.charters.isEmpty)
         
         // But after loading, it should be there (from shared database)
-        await dependencies2.charterStore.loadCharters()
+        try await dependencies2.charterStore.loadCharters()
         #expect(dependencies2.charterStore.charters.contains { $0.id == charter.id })
     }
     
@@ -242,7 +242,7 @@ struct AppDependenciesIntegrationTests {
         try await dependencies.repository.createCharter(charter2)
         
         // Act - load charters into store
-        await dependencies.charterStore.loadCharters()
+        try await dependencies.charterStore.loadCharters()
         
         // Assert
         #expect(dependencies.charterStore.charters.count == 2)
