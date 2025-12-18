@@ -63,6 +63,66 @@ enum L10n {
             tableName: "Localizable",
             comment: "Label for creating a new practice guide in the library"
         )
+        
+        static let filterAll = NSLocalizedString(
+            "library.filter.all",
+            tableName: "Localizable",
+            comment: "Filter label for showing all library items"
+        )
+        
+        static let filterChecklists = NSLocalizedString(
+            "library.filter.checklists",
+            tableName: "Localizable",
+            comment: "Filter label for showing only checklists"
+        )
+        
+        static let filterGuides = NSLocalizedString(
+            "library.filter.guides",
+            tableName: "Localizable",
+            comment: "Filter label for showing only practice guides"
+        )
+        
+        static let filterDecks = NSLocalizedString(
+            "library.filter.decks",
+            tableName: "Localizable",
+            comment: "Filter label for showing only flashcard decks"
+        )
+        
+        static let actionDelete = NSLocalizedString(
+            "library.action.delete",
+            tableName: "Localizable",
+            comment: "Delete action label in the library list"
+        )
+        
+        static let actionEdit = NSLocalizedString(
+            "library.action.edit",
+            tableName: "Localizable",
+            comment: "Edit action label in the library list"
+        )
+        
+        static let actionPin = NSLocalizedString(
+            "library.action.pin",
+            tableName: "Localizable",
+            comment: "Pin action label in the library list"
+        )
+        
+        static let actionUnpin = NSLocalizedString(
+            "library.action.unpin",
+            tableName: "Localizable",
+            comment: "Unpin action label in the library list"
+        )
+        
+        static let filterAccessibilityLabel = NSLocalizedString(
+            "library.filter.accessibilityLabel",
+            tableName: "Localizable",
+            comment: "Accessibility label for the content filter segmented control"
+        )
+        
+        static let updatedPrefix = NSLocalizedString(
+            "library.updatedPrefix",
+            tableName: "Localizable",
+            comment: "Prefix text for updated date in library item metadata"
+        )
     }
     
     static let Discover = NSLocalizedString(

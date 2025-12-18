@@ -67,6 +67,19 @@
 "library.newFlashcardDeck" = "New Flashcard Deck";
 "library.newPracticeGuide" = "New Practice Guide";
 
+"library.filter.all" = "All";
+"library.filter.checklists" = "Checklists";
+"library.filter.guides" = "Guides";
+"library.filter.decks" = "Flashcards";
+
+"library.action.delete" = "Delete";
+"library.action.edit" = "Edit";
+"library.action.pin" = "Pin";
+"library.action.unpin" = "Unpin";
+
+"library.filter.accessibilityLabel" = "Library content filter";
+"library.updatedPrefix" = "Updated";
+
 "greeting.morning" = "Good morning";
 "greeting.day" = "Good day";
 "greeting.evening" = "Good evening";

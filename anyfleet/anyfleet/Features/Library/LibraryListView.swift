@@ -2,6 +2,7 @@ import SwiftUI
 
 struct LibraryListView: View {
     @State private var viewModel: LibraryListViewModel
+    @State private var selectedFilter: ContentFilter = .all
     @Environment(\.appDependencies) private var dependencies
     @Environment(\.appCoordinator) private var coordinator
     
@@ -109,183 +110,117 @@ struct LibraryListView: View {
     
     // MARK: - Content List
     
-    private var contentList: some View {
-        List {
-            // Checklists Section
-            if !viewModel.checklists.isEmpty {
-                Section {
-                    ForEach(viewModel.checklists) { item in
-                        LibraryItemRow(
-                            item: item,
-                            contentType: .checklist,
-                            onTap: { } //viewModel.onReadChecklistTapped(item.id) }
-                        )
-                        .listRowInsets(EdgeInsets(
-                            top: DesignSystem.Spacing.sm,
-                            leading: DesignSystem.Spacing.lg,
-                            bottom: DesignSystem.Spacing.sm,
-                            trailing: DesignSystem.Spacing.lg
-                        ))
-                        .listRowSeparator(.hidden)
-                        .listRowBackground(Color.clear)
-                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                            Button {
-                                Task {
-                                    await viewModel.togglePin(for: item)
-                                }
-                            } label: {
-                                Label(item.isPinned ? "Unpin" : "Pin", systemImage: item.isPinned ? "pin.slash" : "pin")
-                            }
-                            .tint(DesignSystem.Colors.primary)
-
-                            Button {
-                                viewModel.onEditChecklistTapped(item.id)
-                            } label: {
-                                Label("Edit", systemImage: "pencil")
-                            }
-                            .tint(.gray)
-
-                            Button(role: .destructive) {
-                                Task {
-                                    do {
-                                        try await viewModel.deleteContent(item)
-                                    } catch {
-                                        AppLogger.view.error("Failed to delete content: \(error.localizedDescription)")
-                                    }
-                                }
-                            } label: {
-                                Label("Delete", systemImage: "trash")
-                            }
-                        }
-                    }
-                } header: {
-                    Text("Checklists")
-                        .font(DesignSystem.Typography.headline)
-                        .foregroundColor(DesignSystem.Colors.textPrimary)
-                }
-            }
-            
-            // Guides Section
-            if !viewModel.guides.isEmpty {
-                Section {
-                    ForEach(viewModel.guides) { item in
-                        LibraryItemRow(
-                            item: item,
-                            contentType: .practiceGuide,
-                            onTap: { } //viewModel.onReadGuideTapped(item.id) }
-                        )
-                        .listRowInsets(EdgeInsets(
-                            top: DesignSystem.Spacing.sm,
-                            leading: DesignSystem.Spacing.lg,
-                            bottom: DesignSystem.Spacing.sm,
-                            trailing: DesignSystem.Spacing.lg
-                        ))
-                        .listRowSeparator(.hidden)
-                        .listRowBackground(Color.clear)
-                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                            Button {
-                                Task {
-                                    await viewModel.togglePin(for: item)
-                                }
-                            } label: {
-                                Label(item.isPinned ? "Unpin" : "Pin", systemImage: item.isPinned ? "pin.slash" : "pin")
-                            }
-                            .tint(DesignSystem.Colors.primary)
-
-                            Button {
-                                viewModel.onEditGuideTapped(item.id)
-                            } label: {
-                                Label("Edit", systemImage: "pencil")
-                            }
-                            .tint(.gray)
-
-                            Button(role: .destructive) {
-                                Task {
-                                    do {
-                                        try await viewModel.deleteContent(item)
-                                    } catch {
-                                        AppLogger.view.error("Failed to delete content: \(error.localizedDescription)")
-                                    }
-                                }
-                            } label: {
-                                Label("Delete", systemImage: "trash")
-                            }
-                        }
-                    }
-                } header: {
-                    Text("Practice Guides")
-                        .font(DesignSystem.Typography.headline)
-                        .foregroundColor(DesignSystem.Colors.textPrimary)
-                }
-            }
-            
-            // Decks Section
-            if !viewModel.decks.isEmpty {
-                Section {
-                    ForEach(viewModel.decks) { item in
-                        LibraryItemRow(
-                            item: item,
-                            contentType: .flashcardDeck,
-                            onTap: { } //viewModel.onReadDeckTapped(item.id) }
-                        )
-                        .listRowInsets(EdgeInsets(
-                            top: DesignSystem.Spacing.sm,
-                            leading: DesignSystem.Spacing.lg,
-                            bottom: DesignSystem.Spacing.sm,
-                            trailing: DesignSystem.Spacing.lg
-                        ))
-                        .listRowSeparator(.hidden)
-                        .listRowBackground(Color.clear)
-                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                            Button {
-                                Task {
-                                    await viewModel.togglePin(for: item)
-                                }
-                            } label: {
-                                Label(item.isPinned ? "Unpin" : "Pin", systemImage: item.isPinned ? "pin.slash" : "pin")
-                            }
-                            .tint(DesignSystem.Colors.primary)
-
-                            Button {
-                                viewModel.onEditDeckTapped(item.id)
-                            } label: {
-                                Label("Edit", systemImage: "pencil")
-                            }
-                            .tint(.gray)
-
-                            Button(role: .destructive) {
-                                Task {
-                                    do {
-                                        try await viewModel.deleteContent(item)
-                                    } catch {
-                                        AppLogger.view.error("Failed to delete content: \(error.localizedDescription)")
-                                    }
-                                }
-                            } label: {
-                                Label("Delete", systemImage: "trash")
-                            }
-                        }
-                    }
-                } header: {
-                    Text("Flashcard Decks")
-                        .font(DesignSystem.Typography.headline)
-                        .foregroundColor(DesignSystem.Colors.textPrimary)
-                }
+    private enum ContentFilter: String, CaseIterable, Identifiable {
+        case all
+        case checklists
+        case guides
+        case decks
+        
+        var id: Self { self }
+        
+        var title: String {
+            switch self {
+            case .all: return L10n.Library.filterAll
+            case .checklists: return L10n.Library.filterChecklists
+            case .guides: return L10n.Library.filterGuides
+            case .decks: return L10n.Library.filterDecks
             }
         }
-        .listStyle(.plain)
-        .scrollContentBackground(.hidden)
-        .background(
-            LinearGradient(
-                colors: [
-                    DesignSystem.Colors.background,
-                    DesignSystem.Colors.oceanDeep.opacity(0.02)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
+    }
+    
+    private var filteredItems: [LibraryModel] {
+        switch selectedFilter {
+        case .all:
+            return viewModel.library
+        case .checklists:
+            return viewModel.checklists
+        case .guides:
+            return viewModel.guides
+        case .decks:
+            return viewModel.decks
+        }
+    }
+    
+    private var contentList: some View {
+        VStack(spacing: DesignSystem.Spacing.md) {
+            Picker(L10n.Library.filterAccessibilityLabel, selection: $selectedFilter) {
+                ForEach(ContentFilter.allCases) { filter in
+                    Text(filter.title).tag(filter)
+                }
+            }
+            .pickerStyle(.segmented)
+            .padding(.horizontal, DesignSystem.Spacing.lg)
+            
+            List {
+                ForEach(filteredItems) { item in
+                    LibraryItemRow(
+                        item: item,
+                        contentType: item.type,
+                        onTap: { }
+                    )
+                    .listRowInsets(EdgeInsets(
+                        top: DesignSystem.Spacing.sm,
+                        leading: DesignSystem.Spacing.lg,
+                        bottom: DesignSystem.Spacing.sm,
+                        trailing: DesignSystem.Spacing.lg
+                    ))
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
+                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                        Button(role: .destructive) {
+                            Task {
+                                do {
+                                    try await viewModel.deleteContent(item)
+                                } catch {
+                                    AppLogger.view.error("Failed to delete content: \(error.localizedDescription)")
+                                }
+                            }
+                        } label: {
+                            Label(L10n.Library.actionDelete, systemImage: "trash")
+                        }
+                        
+                        Button {
+                            switch item.type {
+                            case .checklist:
+                                viewModel.onEditChecklistTapped(item.id)
+                            case .practiceGuide:
+                                viewModel.onEditGuideTapped(item.id)
+                            case .flashcardDeck:
+                                viewModel.onEditDeckTapped(item.id)
+                            }
+                        } label: {
+                            Label(L10n.Library.actionEdit, systemImage: "pencil")
+                        }
+                        .tint(.gray)
+                        
+                        Button {
+                            Task {
+                                await viewModel.togglePin(for: item)
+                            }
+                        } label: {
+                            Label(
+                                item.isPinned ? L10n.Library.actionUnpin : L10n.Library.actionPin,
+                                systemImage: item.isPinned ? "pin.slash" : "pin"
+                            )
+                        }
+                        .tint(DesignSystem.Colors.primary)
+                    }
+                }
+            }
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
+            .background(
+                LinearGradient(
+                    colors: [
+                        DesignSystem.Colors.background,
+                        DesignSystem.Colors.oceanDeep.opacity(0.02)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
             )
-            .ignoresSafeArea()
-        )
+        }
     }
 }
 
@@ -403,30 +338,9 @@ struct LibraryItemRow: View {
                     Spacer()
                     
                     // Updated Date
-                    Text("Updated \(item.updatedAt.formatted(.relative(presentation: .named)))")
+                    Text("\(L10n.Library.updatedPrefix) \(item.updatedAt.formatted(.relative(presentation: .named)))")
                         .font(.system(size: 12, weight: .regular))
                         .foregroundColor(DesignSystem.Colors.textSecondary)
-                }
-                
-                // Tags
-                if !item.tags.isEmpty {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: DesignSystem.Spacing.xs) {
-                            ForEach(item.tags.prefix(5), id: \.self) { tag in
-                                Text(tag)
-                                    .font(.system(size: 11, weight: .medium))
-                                    .foregroundColor(DesignSystem.Colors.primary)
-                                    .padding(.horizontal, DesignSystem.Spacing.sm)
-                                    .padding(.vertical, DesignSystem.Spacing.xs)
-                                    .background(
-                                        Capsule()
-                                            .fill(DesignSystem.Colors.primary.opacity(0.1))
-                                    )
-                            }
-                        }
-                    }
-                    .padding(.leading, -DesignSystem.Spacing.lg)
-                    .padding(.trailing, DesignSystem.Spacing.lg)
                 }
             }
             .padding(.horizontal, DesignSystem.Spacing.lg)
