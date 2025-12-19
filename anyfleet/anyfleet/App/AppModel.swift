@@ -30,7 +30,7 @@ final class AppCoordinator: ObservableObject {
     @Published var libraryPath: [AppRoute] = []
     //@Published var discoverPath = NavigationPath()
     @Published var chartersPath: [AppRoute] = []
-    //@Published var profilePath = NavigationPath()
+    @Published var profilePath: [AppRoute] = []
     
     // Tab selection state
     @Published var selectedTab: AppView.Tab = .home
@@ -53,8 +53,8 @@ final class AppCoordinator: ObservableObject {
             //discoverPath.append(route)
         case .charters:
             chartersPath.append(route)
-        //case .profile:
-            //profilePath.append(route)
+        case .profile:
+            profilePath.append(route)
         }
     }
     
@@ -72,9 +72,9 @@ final class AppCoordinator: ObservableObject {
         case .charters:
             guard !chartersPath.isEmpty else { return }
             chartersPath.removeLast()
-        //case .profile:
-            //guard !profilePath.isEmpty else { return }
-            //profilePath.removeLast()
+        case .profile:
+            guard !profilePath.isEmpty else { return }
+            profilePath.removeLast()
         }
     }
     
@@ -88,8 +88,8 @@ final class AppCoordinator: ObservableObject {
             //discoverPath.removeLast(discoverPath.count)
         case .charters:
             chartersPath.removeLast(chartersPath.count)
-        //case .profile:
-            //profilePath.removeLast(profilePath.count)
+        case .profile:
+            profilePath.removeLast(profilePath.count)
         }
     }
     

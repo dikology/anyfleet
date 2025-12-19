@@ -148,3 +148,40 @@
 "sectionEditor.chooseIconTitle" = "Choose Icon";
 "sectionEditor.done" = "Done";
 "sectionEditor.none" = "None";
+
+"profile.welcomeTitle" = "Welcome to Anyfleet";
+"profile.welcomeSubtitle" = "Sign in with Apple to sync your data across devices and access your account.";
+"profile.signOut" = "Sign Out";
+"profile.signedInAs" = "Signed in as: %@";
+
+"error.generic" = "Unknown error: %@";
+"error.notFound" = "%@ with ID %@ not found";
+"error.validationFailed" = "%@: %@";
+"error.databaseError" = "Database error: %@";
+
+"error.network.offline" = "No internet connection";
+"error.network.timedOut" = "Request timed out";
+"error.network.connectionRefused" = "Could not connect to server";
+"error.network.unreachableHost" = "Server is unreachable";
+"error.network.unknown" = "Network error: %@";
+
+"error.network.offline.recovery" = "Check your internet connection and try again.";
+"error.network.timedOut.recovery" = "The request took too long. Please try again.";
+"error.network.connectionRefused.recovery" = "The server is not available. Please check if the server is running and try again.";
+"error.network.unreachableHost.recovery" = "Unable to reach the server. Please check your connection and try again.";
+"error.network.unknown.recovery" = "A network error occurred. Please try again later.";
+
+"error.auth.invalidToken" = "Invalid authentication token";
+"error.auth.networkError" = "Network connection failed";
+"error.auth.invalidResponse" = "Invalid server response";
+"error.auth.unauthorized" = "Unauthorized access";
+
+"error.auth.invalidToken.recovery" = "Please try signing in again.";
+"error.auth.networkError.recovery" = "Check your internet connection and try again.";
+"error.auth.invalidResponse.recovery" = "The server returned an unexpected response. Please try again later.";
+"error.auth.unauthorized.recovery" = "Your session has expired. Please sign in again.";
+
+"error.notFound.recovery" = "The requested item was not found.";
+"error.validationFailed.recovery" = "The input failed validation. Please check the fields and try again.";
+"error.databaseError.recovery" = "The database operation failed. Please try again later.";
+"error.unknown.recovery" = "An unknown error occurred. Please try again later.";

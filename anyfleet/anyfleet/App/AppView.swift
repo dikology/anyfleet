@@ -9,7 +9,7 @@ struct AppView: View {
         case library
         //case discover
         case charters
-        //case profile
+        case profile
     }
     
     var body: some View {
@@ -62,6 +62,18 @@ struct AppView: View {
                 Label(L10n.Library.myLibrary, systemImage: "book.fill")
             }
             .tag(Tab.library)
+            
+            // Profile Tab
+            NavigationStack(path: $coordinator.profilePath) {
+                ProfileView()
+                    .navigationDestination(for: AppRoute.self) { route in
+                        coordinator.destination(for: route)
+                    }
+            }
+            .tabItem {
+                Label(L10n.ProfileTab, systemImage: "person.fill")
+            }
+            .tag(Tab.profile)
         }
     }
 }

@@ -148,3 +148,19 @@
 "sectionEditor.chooseIconTitle" = "Выбрать иконку";
 "sectionEditor.done" = "Готово";
 "sectionEditor.none" = "Нет";
+
+"profile.welcomeTitle" = "Добро пожаловать";
+"profile.welcomeSubtitle" = "Войдите, чтобы иметь доступ к общему контенту";
+"profile.signOut" = "Выйти";
+"profile.signedInAs" = "%@";
+
+"error.generic" = "Неизвестная ошибка: %@";
+"error.notFound" = "%@ с ID %@ не найден";
+"error.validationFailed" = "%@: %@";
+"error.databaseError" = "Ошибка базы данных: %@";
+
+"error.network.offline" = "Нет интернет-соединения";
+"error.network.timedOut" = "Запрос превысил время ожидания";
+"error.network.connectionRefused" = "Не удалось подключиться к серверу";
+"error.network.unreachableHost" = "Сервер недоступен";
+"error.network.unknown" = "Сетевая ошибка: %@";

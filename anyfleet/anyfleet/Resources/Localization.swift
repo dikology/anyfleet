@@ -137,11 +137,201 @@ enum L10n {
         comment: "Title for the charters tab"
     )
     
-    static let Profile = NSLocalizedString(
+    static let ProfileTab = NSLocalizedString(
         "profile",
         tableName: "Localizable",
         comment: "Title for the profile tab"
     )
+    
+    enum Profile {
+        static let welcomeTitle = NSLocalizedString(
+            "profile.welcomeTitle",
+            tableName: "Localizable",
+            comment: "Welcome title on profile screen when not signed in"
+        )
+        
+        static let welcomeSubtitle = NSLocalizedString(
+            "profile.welcomeSubtitle",
+            tableName: "Localizable",
+            comment: "Welcome subtitle explaining sign-in on profile screen"
+        )
+        
+        static let signOut = NSLocalizedString(
+            "profile.signOut",
+            tableName: "Localizable",
+            comment: "Sign out button label"
+        )
+        
+        static let signedInAs = NSLocalizedString(
+            "profile.signedInAs",
+            tableName: "Localizable",
+            comment: "Label showing signed in user (e.g., 'Signed in as: username')"
+        )
+    }
+    
+    enum Error {
+        // Generic errors
+        static let generic = NSLocalizedString(
+            "error.generic",
+            tableName: "Localizable",
+            comment: "Generic error message"
+        )
+        
+        static let notFound = NSLocalizedString(
+            "error.notFound",
+            tableName: "Localizable",
+            comment: "Item not found error"
+        )
+        
+        static let validationFailed = NSLocalizedString(
+            "error.validationFailed",
+            tableName: "Localizable",
+            comment: "Validation failed error"
+        )
+        
+        static let databaseError = NSLocalizedString(
+            "error.databaseError",
+            tableName: "Localizable",
+            comment: "Database error"
+        )
+        
+        // Network errors
+        static let networkOffline = NSLocalizedString(
+            "error.network.offline",
+            tableName: "Localizable",
+            comment: "No internet connection error"
+        )
+        
+        static let networkTimedOut = NSLocalizedString(
+            "error.network.timedOut",
+            tableName: "Localizable",
+            comment: "Request timeout error"
+        )
+        
+        static let networkConnectionRefused = NSLocalizedString(
+            "error.network.connectionRefused",
+            tableName: "Localizable",
+            comment: "Server connection refused error"
+        )
+        
+        static let networkUnreachableHost = NSLocalizedString(
+            "error.network.unreachableHost",
+            tableName: "Localizable",
+            comment: "Server unreachable error"
+        )
+        
+        static let networkUnknown = NSLocalizedString(
+            "error.network.unknown",
+            tableName: "Localizable",
+            comment: "Unknown network error"
+        )
+        
+        // Network recovery suggestions
+        static let networkOfflineRecovery = NSLocalizedString(
+            "error.network.offline.recovery",
+            tableName: "Localizable",
+            comment: "Recovery suggestion for offline error"
+        )
+        
+        static let networkTimedOutRecovery = NSLocalizedString(
+            "error.network.timedOut.recovery",
+            tableName: "Localizable",
+            comment: "Recovery suggestion for timeout error"
+        )
+        
+        static let networkConnectionRefusedRecovery = NSLocalizedString(
+            "error.network.connectionRefused.recovery",
+            tableName: "Localizable",
+            comment: "Recovery suggestion for connection refused error"
+        )
+        
+        static let networkUnreachableHostRecovery = NSLocalizedString(
+            "error.network.unreachableHost.recovery",
+            tableName: "Localizable",
+            comment: "Recovery suggestion for unreachable host error"
+        )
+        
+        static let networkUnknownRecovery = NSLocalizedString(
+            "error.network.unknown.recovery",
+            tableName: "Localizable",
+            comment: "Recovery suggestion for unknown network error"
+        )
+        
+        // Authentication errors
+        static let authInvalidToken = NSLocalizedString(
+            "error.auth.invalidToken",
+            tableName: "Localizable",
+            comment: "Invalid authentication token error"
+        )
+        
+        static let authNetworkError = NSLocalizedString(
+            "error.auth.networkError",
+            tableName: "Localizable",
+            comment: "Authentication network error"
+        )
+        
+        static let authInvalidResponse = NSLocalizedString(
+            "error.auth.invalidResponse",
+            tableName: "Localizable",
+            comment: "Invalid server response error"
+        )
+        
+        static let authUnauthorized = NSLocalizedString(
+            "error.auth.unauthorized",
+            tableName: "Localizable",
+            comment: "Unauthorized access error"
+        )
+        
+        // Authentication recovery suggestions
+        static let authInvalidTokenRecovery = NSLocalizedString(
+            "error.auth.invalidToken.recovery",
+            tableName: "Localizable",
+            comment: "Recovery suggestion for invalid token"
+        )
+        
+        static let authNetworkErrorRecovery = NSLocalizedString(
+            "error.auth.networkError.recovery",
+            tableName: "Localizable",
+            comment: "Recovery suggestion for auth network error"
+        )
+        
+        static let authInvalidResponseRecovery = NSLocalizedString(
+            "error.auth.invalidResponse.recovery",
+            tableName: "Localizable",
+            comment: "Recovery suggestion for invalid response"
+        )
+        
+        static let authUnauthorizedRecovery = NSLocalizedString(
+            "error.auth.unauthorized.recovery",
+            tableName: "Localizable",
+            comment: "Recovery suggestion for unauthorized error"
+        )
+        
+        // General recovery suggestions
+        static let notFoundRecovery = NSLocalizedString(
+            "error.notFound.recovery",
+            tableName: "Localizable",
+            comment: "Recovery suggestion for not found error"
+        )
+        
+        static let validationFailedRecovery = NSLocalizedString(
+            "error.validationFailed.recovery",
+            tableName: "Localizable",
+            comment: "Recovery suggestion for validation failed error"
+        )
+        
+        static let databaseErrorRecovery = NSLocalizedString(
+            "error.databaseError.recovery",
+            tableName: "Localizable",
+            comment: "Recovery suggestion for database error"
+        )
+        
+        static let unknownRecovery = NSLocalizedString(
+            "error.unknown.recovery",
+            tableName: "Localizable",
+            comment: "Recovery suggestion for unknown error"
+        )
+    }
     
     static let homeCreateCharterTitle = NSLocalizedString(
         "home.createCharter.title",
