@@ -28,6 +28,9 @@ enum AppLogger {
     
     /// View-related logging
     static let view = Logger(subsystem: "com.anyfleet.app", category: "View")
+    
+    /// Auth-related logging
+    static let auth = Logger(subsystem: "com.anyfleet.app", category: "Auth")
 }
 
 // MARK: - Convenience Extensions
