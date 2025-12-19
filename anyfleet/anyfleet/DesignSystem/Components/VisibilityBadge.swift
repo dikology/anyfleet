@@ -10,16 +10,13 @@ import SwiftUI
 /// Badge component that displays the visibility state of library content
 struct VisibilityBadge: View {
     let visibility: ContentVisibility
-    let viewCount: Int?
     let authorUsername: String?
     
     init(
         visibility: ContentVisibility,
-        viewCount: Int? = nil,
         authorUsername: String? = nil
     ) {
         self.visibility = visibility
-        self.viewCount = viewCount
         self.authorUsername = authorUsername
     }
     
@@ -31,11 +28,9 @@ struct VisibilityBadge: View {
             Text(visibility.displayName.lowercased())
                 .font(DesignSystem.Typography.caption)
             
-            if visibility == .public, let viewCount = viewCount {
+            if visibility == .public {
                 Text("·")
                     .foregroundColor(DesignSystem.Colors.textSecondary)
-                Text("\(viewCount) views")
-                    .font(DesignSystem.Typography.caption)
             }
         }
         .padding(.horizontal, DesignSystem.Spacing.sm)
@@ -76,8 +71,8 @@ struct VisibilityBadge: View {
     VStack(spacing: DesignSystem.Spacing.md) {
         VisibilityBadge(visibility: .private)
         VisibilityBadge(visibility: .unlisted)
-        VisibilityBadge(visibility: .public, viewCount: 234)
-        VisibilityBadge(visibility: .public, viewCount: 89, authorUsername: "SailorMaria")
+        VisibilityBadge(visibility: .public)
+        VisibilityBadge(visibility: .public, authorUsername: "SailorMaria")
     }
     .padding()
     .background(DesignSystem.Colors.background)

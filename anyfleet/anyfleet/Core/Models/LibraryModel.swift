@@ -86,7 +86,6 @@ nonisolated struct PublicMetadata: Codable, Equatable, Hashable, Sendable {
     let publicID: String // URL-friendly slug
     let canFork: Bool
     let authorUsername: String
-    let viewCount: Int
 }
 
 // MARK: - Content Type

@@ -118,32 +118,6 @@
   - [x] Body: Opens content reader
   - [x] Publish button: Shows confirmation
 
-### LibraryListView Refactoring
-- [ ] Create `ContentFilter` enum
-  ```swift
-  enum ContentFilter: CaseIterable {
-      case all, local, public_only
-  }
-  ```
-
-- [ ] Add filter picker
-  - [ ] Segmented control (recommended)
-  - [ ] Show above list
-
-- [ ] Section-based list structure
-  - [ ] "🔒 Local Content" section
-  - [ ] "🌐 Public Content" section
-  - [ ] Conditional section display based on filter
-
-- [ ] Add sheet presentations
-  - [ ] Publish confirmation modal
-  - [ ] Sign-in modal
-
-- [ ] Empty states by filter
-  - [ ] All empty
-  - [ ] Local empty
-  - [ ] Public empty
-
 ---
 
 ## PHASE 3: DATABASE LAYER (Week 2)
@@ -156,7 +130,6 @@
     - [ ] `published_at` (DATETIME, nullable)
     - [ ] `public_id` (TEXT, nullable)
     - [ ] `author_id` (TEXT, nullable)
-    - [ ] `view_count` (INTEGER, default 0)
     - [ ] `can_fork` (BOOLEAN, default true)
 
   - [ ] Create `public_content` table
@@ -320,6 +293,60 @@
   - [ ] Mark item with error state
   - [ ] Show retry option
   - [ ] Log for debugging
+
+---
+
+## PHASE 8: SYNC SERVICE IMPLEMENTATION (Week 3-4)
+
+**See:** [Sync Service Implementation Guide](./sync_service_implementation.md) for detailed architecture.
+
+### Database Layer
+- [ ] Create `sync_queue` table migration
+  - [ ] Table schema (content_id, operation, visibility_state, payload, retry_count, etc.)
+  - [ ] Indexes for performance
+  - [ ] Foreign key constraints
+
+- [ ] Create `SyncQueueRecord` GRDB record type
+  - [ ] FetchableRecord + PersistableRecord
+  - [ ] Helper methods (enqueue, dequeue, markFailed, etc.)
+
+### Service Layer
+- [ ] Create `ContentSyncService` class
+  - [ ] Enqueue operations (publish, unpublish)
+  - [ ] Process sync queue (FIFO)
+  - [ ] Retry logic with exponential backoff
+  - [ ] Error classification (retryable vs terminal)
+  - [ ] Update sync status on LibraryModel
+
+- [ ] Update `VisibilityService` to enqueue operations
+  - [ ] Call `syncService.enqueuePublish()` after local save
+  - [ ] Call `syncService.enqueueUnpublish()` after local save
+
+- [ ] Create background sync trigger
+  - [ ] Timer-based sync (every 5 seconds when active)
+  - [ ] App lifecycle hooks (didBecomeActive)
+  - [ ] Network reachability checks
+
+### API Integration
+- [ ] Implement `APIClient.publishContent()` method
+  - [ ] POST /api/content/share endpoint
+  - [ ] Request/response models
+  - [ ] Error handling
+
+- [ ] Implement `APIClient.unpublishContent()` method
+  - [ ] DELETE /api/content/:publicID endpoint
+  - [ ] Error handling
+
+### UI Integration
+- [ ] Create `SyncStatusIndicator` component
+  - [ ] Icons for pending, syncing, synced, failed states
+  - [ ] Tooltips/help text
+  - [ ] Accessibility labels
+
+- [ ] Update `LibraryItemRow` to show sync status
+  - [ ] Display indicator next to visibility badge
+  - [ ] Only show for non-private items
+  - [ ] Tap to retry on failed items
 
 ### Localization
 - [ ] Add new strings to L10n

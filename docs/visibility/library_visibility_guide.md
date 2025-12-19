@@ -125,7 +125,6 @@ extension LibraryModel {
             let publicID: String  // URL-friendly slug
             let canFork: Bool
             let authorUsername: String
-            let viewCount: Int
         }
     }
     

@@ -138,8 +138,7 @@ final class VisibilityService {
             publishedAt: publishedAt,
             publicID: publicID,
             canFork: true, // Default to allowing forks
-            authorUsername: currentUser.username ?? currentUser.email,
-            viewCount: 0
+            authorUsername: currentUser.username ?? currentUser.email
         )
         
         // Update item with public visibility

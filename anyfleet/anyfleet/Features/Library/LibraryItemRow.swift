@@ -117,13 +117,17 @@ struct LibraryItemRow: View {
             .padding(.horizontal, DesignSystem.Spacing.lg)
             .padding(.top, DesignSystem.Spacing.md)
             
-            // Footer Section - Visibility Badge + Publish Action
+            // Footer Section - Visibility Badge + Sync Status + Publish Action
             HStack(spacing: DesignSystem.Spacing.md) {
                 VisibilityBadge(
                     visibility: item.visibility,
-                    viewCount: item.publicMetadata?.viewCount,
                     authorUsername: item.publicMetadata?.authorUsername
                 )
+                
+                // Sync Status Indicator (only show for non-private items)
+                if item.visibility != .private {
+                    SyncStatusIndicator(syncStatus: item.syncStatus)
+                }
                 
                 Spacer()
                 
@@ -181,7 +185,7 @@ struct LibraryItemRow: View {
             onSignInRequired: {}
         )
         
-        // Public item
+        // Public item (synced)
         LibraryItemRow(
             item: LibraryModel(
                 title: "Heavy Weather Tactics",
@@ -189,15 +193,63 @@ struct LibraryItemRow: View {
                 type: .practiceGuide,
                 visibility: .public,
                 creatorID: UUID(),
+                syncStatus: .synced,
                 publicMetadata: PublicMetadata(
                     publishedAt: Date(),
                     publicID: "heavy-weather-tactics",
                     canFork: true,
-                    authorUsername: "SailorMaria",
-                    viewCount: 234
+                    authorUsername: "SailorMaria"
                 )
             ),
             contentType: .practiceGuide,
+            isSignedIn: true,
+            onTap: {},
+            onPublish: {},
+            onUnpublish: {},
+            onSignInRequired: {}
+        )
+        
+        // Public item (pending sync)
+        LibraryItemRow(
+            item: LibraryModel(
+                title: "Navigation Basics",
+                description: "Essential navigation techniques for coastal sailing.",
+                type: .practiceGuide,
+                visibility: .public,
+                creatorID: UUID(),
+                syncStatus: .pending,
+                publicMetadata: PublicMetadata(
+                    publishedAt: Date(),
+                    publicID: "navigation-basics",
+                    canFork: true,
+                    authorUsername: "CaptainJohn"
+                )
+            ),
+            contentType: .practiceGuide,
+            isSignedIn: true,
+            onTap: {},
+            onPublish: {},
+            onUnpublish: {},
+            onSignInRequired: {}
+        )
+        
+        // Public item (failed sync)
+        LibraryItemRow(
+            item: LibraryModel(
+                title: "Engine Troubleshooting",
+                description: "Common engine issues and how to fix them.",
+                type: .checklist,
+                visibility: .public,
+                creatorID: UUID(),
+                syncStatus: .failed,
+                publicMetadata: PublicMetadata(
+                    publishedAt: Date(),
+                    publicID: "engine-troubleshooting",
+                    canFork: true,
+                    authorUsername: "EngineerMike"
+                )
+            ),
+            contentType: .checklist,
             isSignedIn: true,
             onTap: {},
             onPublish: {},
