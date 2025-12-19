@@ -32,17 +32,20 @@ struct AuthServiceTests {
     
     // MARK: - Initialization Tests
     
-    @Test("AuthService initialization - no stored tokens")
+    @Test("AuthService initialization - singleton access")
     @MainActor
-    func testInitialization_NoStoredTokens() async throws {
-        // Test that AuthService initializes correctly when no tokens are stored
-        // Note: This tests the singleton pattern and initial state
-        let service = AuthService.shared
+    func testInitialization_SingletonAccess() async throws {
+        // Test that AuthService singleton can be accessed
+        // Note: This tests the singleton pattern
+        let service1 = AuthService.shared
+        let service2 = AuthService.shared
         
-        // If no tokens are stored, isAuthenticated should be false
-        // However, since we can't easily mock KeychainService in this test,
-        // we're just verifying the service can be accessed
-        #expect(service != nil)
+        // Verify it's the same instance (singleton pattern)
+        #expect(service1 === service2)
+        
+        // Verify service has expected properties
+        // Note: Actual authentication state depends on KeychainService which we can't easily mock
+        #expect(type(of: service1.isAuthenticated) == Bool.self)
     }
     
     // MARK: - Error Conversion Tests

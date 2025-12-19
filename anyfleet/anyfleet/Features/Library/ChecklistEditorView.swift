@@ -581,7 +581,7 @@ private struct ItemRow: View {
         let dependencies = try! AppDependencies.makeForTesting()
         
         // Create a sample checklist with sections and items
-        var sampleChecklist = Checklist(
+        let sampleChecklist = Checklist(
             title: "Pre-Departure Safety Checklist",
             description: "Essential safety checks before leaving port",
             sections: [

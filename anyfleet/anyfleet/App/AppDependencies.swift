@@ -72,6 +72,12 @@ final class AppDependencies {
     /// Localization service for managing app language
     let localizationService: LocalizationService
     
+    /// Visibility service for managing content publishing
+    let visibilityService: VisibilityService
+    
+    /// Auth state observer for UI consumption
+    let authStateObserver: AuthStateObserver
+    
     // MARK: - Initialization
     
     /// Creates the dependency container with default production dependencies.
@@ -91,8 +97,14 @@ final class AppDependencies {
         // Initialize stores
         self.charterStore = CharterStore(repository: repository)
         self.libraryStore = LibraryStore(repository: repository)
+        
         // Initialize services
         self.localizationService = LocalizationService()
+        self.authStateObserver = AuthStateObserver(authService: AuthService.shared)
+        self.visibilityService = VisibilityService(
+            libraryStore: libraryStore,
+            authService: AuthService.shared
+        )
         
         AppLogger.dependencies.info("AppDependencies initialized successfully")
     }
@@ -100,6 +112,9 @@ final class AppDependencies {
     /// Creates a test dependency container with injectable dependencies.
     ///
     /// Use this initializer in tests to provide mock implementations.
+    /// - Parameters:
+    ///   - database: The database instance to use
+    ///   - repository: The repository instance to use
     ///
     /// - Parameters:
     ///   - database: Test database instance (defaults to in-memory database)
@@ -125,7 +140,14 @@ final class AppDependencies {
         self.repository = repository
         self.charterStore = CharterStore(repository: repository)
         self.libraryStore = LibraryStore(repository: repository)
+        
+        // Initialize services
         self.localizationService = LocalizationService()
+        self.authStateObserver = AuthStateObserver(authService: AuthService.shared)
+        self.visibilityService = VisibilityService(
+            libraryStore: libraryStore,
+            authService: AuthService.shared
+        )
         
         AppLogger.dependencies.info("Test AppDependencies initialized successfully")
     }
@@ -167,7 +189,7 @@ extension AppDependencies {
             repository: LocalRepository(database: testDatabase)
         )
         // Replace the store with one using the mock repository
-        let mockStore = CharterStore(repository: mockRepository)
+        _ = CharterStore(repository: mockRepository)
         // Note: We can't reassign let properties, so this approach needs adjustment
         // For now, we'll document that tests should create stores directly
         return dependencies
@@ -177,7 +199,7 @@ extension AppDependencies {
 // MARK: - Environment Key
 
 private struct AppDependenciesKey: EnvironmentKey {
-    nonisolated(unsafe) static let defaultValue: AppDependencies = MainActor.assumeIsolated {
+    static let defaultValue: AppDependencies = MainActor.assumeIsolated {
         AppDependencies()
     }
 }

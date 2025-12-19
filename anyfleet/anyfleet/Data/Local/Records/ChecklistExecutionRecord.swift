@@ -164,7 +164,7 @@ extension ChecklistExecutionRecord {
         _ state: ChecklistExecutionState,
         db: Database
     ) throws {
-        var record = try ChecklistExecutionRecord(from: state)
+        let record = try ChecklistExecutionRecord(from: state)
         try record.save(db)
     }
     
