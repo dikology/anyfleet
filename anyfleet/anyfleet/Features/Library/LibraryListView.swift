@@ -3,6 +3,8 @@ import SwiftUI
 struct LibraryListView: View {
     @State private var viewModel: LibraryListViewModel
     @State private var selectedFilter: ContentFilter = .all
+    @State private var showingPublishConfirmation = false
+    @State private var showingSignInModal = false
     @Environment(\.appDependencies) private var dependencies
     @Environment(\.appCoordinator) private var coordinator
     
@@ -50,6 +52,45 @@ struct LibraryListView: View {
         }
         .refreshable {
             await viewModel.refresh()
+        }
+        .sheet(isPresented: $showingPublishConfirmation) {
+            if let item = viewModel.pendingPublishItem {
+                PublishConfirmationModal(
+                    item: item,
+                    isLoading: viewModel.isLoading,
+                    error: viewModel.publishError,
+                    onConfirm: {
+                        Task {
+                            await viewModel.confirmPublish()
+                            if viewModel.publishError == nil {
+                                showingPublishConfirmation = false
+                            }
+                        }
+                    },
+                    onCancel: {
+                        viewModel.cancelPublish()
+                        showingPublishConfirmation = false
+                    },
+                    onRetry: {
+                        Task {
+                            await viewModel.confirmPublish()
+                        }
+                    }
+                )
+            }
+        }
+        .sheet(isPresented: $showingSignInModal) {
+            SignInModalView(
+                onSuccess: {
+                    showingSignInModal = false
+                },
+                onDismiss: {
+                    showingSignInModal = false
+                }
+            )
+        }
+        .onChange(of: viewModel.pendingPublishItem) { oldValue, newValue in
+            showingPublishConfirmation = newValue != nil
         }
     }
     
@@ -158,6 +199,7 @@ struct LibraryListView: View {
                     LibraryItemRow(
                         item: item,
                         contentType: item.type,
+                        isSignedIn: viewModel.isSignedIn,
                         onTap: {
                             switch item.type {
                             case .checklist:
@@ -168,6 +210,17 @@ struct LibraryListView: View {
                                 // TODO: Implement deck reader when ready
                                 break
                             }
+                        },
+                        onPublish: {
+                            viewModel.initiatePublish(item)
+                        },
+                        onUnpublish: {
+                            Task {
+                                await viewModel.unpublish(item)
+                            }
+                        },
+                        onSignInRequired: {
+                            showingSignInModal = true
                         }
                     )
                     .listRowInsets(EdgeInsets(
@@ -232,137 +285,6 @@ struct LibraryListView: View {
                 )
                 .ignoresSafeArea()
             )
-        }
-    }
-}
-
-// MARK: - Library Item Row
-
-struct LibraryItemRow: View {
-    let item: LibraryModel
-    let contentType: ContentType
-    let onTap: () -> Void
-    @State private var isPressed = false
-    
-    private var dateFormatter: DateFormatter {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .none
-        return formatter
-    }
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            // Hero Section - Focal Point
-            VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
-                // Content Title - Primary Focal Element
-                HStack(alignment: .top, spacing: DesignSystem.Spacing.md) {
-                    // Type Icon
-                    ZStack {
-                        Circle()
-                            .fill(
-                                LinearGradient(
-                                    colors: [
-                                        DesignSystem.Colors.primary.opacity(0.15),
-                                        DesignSystem.Colors.primary.opacity(0.08)
-                                    ],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            .frame(width: 40, height: 40)
-                        
-                        Image(systemName: contentType.icon)
-                            .font(.system(size: 18, weight: .semibold))
-                            .foregroundColor(DesignSystem.Colors.primary)
-                    }
-                    
-                    VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
-                        Text(item.title)
-                            .font(.system(size: 20, weight: .bold))
-                            .foregroundStyle(
-                                LinearGradient(
-                                    colors: [
-                                        DesignSystem.Colors.textPrimary,
-                                        DesignSystem.Colors.textPrimary.opacity(0.8)
-                                    ],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            )
-                            .lineLimit(2)
-                            .fixedSize(horizontal: false, vertical: true)
-                        
-                        // Type Badge
-                        HStack(spacing: DesignSystem.Spacing.xs) {
-                            Text(contentType.displayName)
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(DesignSystem.Colors.textSecondary)
-                        }
-                        .padding(.horizontal, DesignSystem.Spacing.sm)
-                        .padding(.vertical, DesignSystem.Spacing.xs)
-                        .background(
-                            Capsule()
-                                .fill(DesignSystem.Colors.primary.opacity(0.1))
-                        )
-                    }
-                    
-                    Spacer()
-                }
-                
-                // Description
-                if let description = item.description, !description.isEmpty {
-                    Text(description)
-                        .font(.system(size: 14, weight: .regular))
-                        .foregroundColor(DesignSystem.Colors.textSecondary)
-                        .lineLimit(2)
-                        .padding(.leading, 56) // Align with title
-                }
-            }
-            .padding(.horizontal, DesignSystem.Spacing.lg)
-            .padding(.top, DesignSystem.Spacing.lg)
-            .padding(.bottom, DesignSystem.Spacing.md)
-            .focalHighlight()
-            
-            Divider()
-                .background(DesignSystem.Colors.border.opacity(0.5))
-                .padding(.horizontal, DesignSystem.Spacing.lg)
-            
-            // Metadata Section
-            VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
-                HStack(spacing: DesignSystem.Spacing.md) {
-                    // Visibility Badge
-                    HStack(spacing: DesignSystem.Spacing.xs) {
-                        Image(systemName: item.visibility.icon)
-                            .font(.system(size: 11))
-                            .foregroundColor(DesignSystem.Colors.textSecondary)
-                        Text(item.visibility.displayName)
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(DesignSystem.Colors.textSecondary)
-                    }
-                    .padding(.horizontal, DesignSystem.Spacing.sm)
-                    .padding(.vertical, DesignSystem.Spacing.xs)
-                    .background(
-                        Capsule()
-                            .fill(DesignSystem.Colors.border.opacity(0.3))
-                    )
-                    
-                    Spacer()
-                    
-                    // Updated Date
-                    Text("\(L10n.Library.updatedPrefix) \(item.updatedAt.formatted(.relative(presentation: .named)))")
-                        .font(.system(size: 12, weight: .regular))
-                        .foregroundColor(DesignSystem.Colors.textSecondary)
-                }
-            }
-            .padding(.horizontal, DesignSystem.Spacing.lg)
-            .padding(.vertical, DesignSystem.Spacing.md)
-        }
-        .heroCardStyle(elevation: .medium)
-        .scaleEffect(isPressed ? 0.98 : 1.0)
-        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isPressed)
-        .onTapGesture {
-            onTap()
         }
     }
 }

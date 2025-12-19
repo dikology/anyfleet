@@ -72,51 +72,51 @@
 ## PHASE 2: UI COMPONENTS (Week 1-2)
 
 ### Reusable Components
-- [ ] Create `VisibilityBadge` component
-  - [ ] Handle all three visibility states
-  - [ ] Show view count for public items
-  - [ ] Proper color coding
-  - [ ] Optional author display
+- [x] Create `VisibilityBadge` component
+  - [x] Handle all three visibility states
+  - [x] Show view count for public items
+  - [x] Proper color coding
+  - [x] Optional author display
 
-- [ ] Create `PublishConfirmationModal` component
-  - [ ] Title with item name
-  - [ ] Explanation text
-  - [ ] Info box about permanence
-  - [ ] Confirm/Cancel buttons
-  - [ ] Loading state handling
-  - [ ] Error state display
-  - [ ] Auto-dismiss on success
+- [x] Create `PublishConfirmationModal` component
+  - [x] Title with item name
+  - [x] Explanation text
+  - [x] Info box about permanence
+  - [x] Confirm/Cancel buttons
+  - [x] Loading state handling
+  - [x] Error state display
+  - [x] Auto-dismiss on success
 
-- [ ] Create `PublishActionView` component
-  - [ ] Show [Publish] when signed in
-  - [ ] Show [Unpublish] when published
-  - [ ] Show disabled state with sign-in prompt when unsigned
-  - [ ] Disabled styling and cursor
+- [x] Create `PublishActionView` component
+  - [x] Show [Publish] when signed in
+  - [x] Show [Unpublish] when published
+  - [x] Show disabled state with sign-in prompt when unsigned
+  - [x] Disabled styling and cursor
 
-- [ ] Create `SignInModalView` component
-  - [ ] Sign In with Apple button
-  - [ ] Optional email fallback
-  - [ ] Close button (✕)
-  - [ ] Success callback
-  - [ ] Error handling
+- [x] Create `SignInModalView` component
+  - [x] Sign In with Apple button
+  - [x] Optional email fallback
+  - [x] Close button (✕)
+  - [x] Success callback
+  - [x] Error handling
 
 ### LibraryItemRow Refactoring
-- [ ] Extract row into separate file
-  - [ ] Keep structure but extract from nested struct
+- [x] Extract row into separate file
+  - [x] Keep structure but extract from nested struct
 
-- [ ] Update row layout
-  - [ ] Keep hero section (title, icon, type)
-  - [ ] Keep metadata section (updated date)
-  - [ ] NEW: Add footer section with visibility badge + publish action
-  - [ ] Background color for published items
+- [x] Update row layout
+  - [x] Keep hero section (title, icon, type)
+  - [x] Keep metadata section (updated date)
+  - [x] NEW: Add footer section with visibility badge + publish action
+  - [x] Background color for published items
 
-- [ ] Swipe actions
-  - [ ] Keep: Delete, Edit, Pin
-  - [ ] Remove: Publish (move to footer button)
+- [x] Swipe actions
+  - [x] Keep: Delete, Edit, Pin
+  - [x] Remove: Publish (move to footer button)
 
-- [ ] Tap behavior
-  - [ ] Body: Opens content reader
-  - [ ] Publish button: Shows confirmation
+- [x] Tap behavior
+  - [x] Body: Opens content reader
+  - [x] Publish button: Shows confirmation
 
 ### LibraryListView Refactoring
 - [ ] Create `ContentFilter` enum
