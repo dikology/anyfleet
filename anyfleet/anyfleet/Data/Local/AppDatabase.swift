@@ -190,6 +190,18 @@ final class AppDatabase: Sendable {
             AppLogger.database.info("Migration v1.4.0_createPracticeGuidesTable completed successfully")
         }
         
+        migrator.registerMigration("v1.5.0_addVisibilityFields") { db in
+            AppLogger.database.debug("Running migration: v1.5.0_addVisibilityFields")
+            
+            try db.alter(table: "library_content") { t in
+                t.add(column: "publishedAt", .datetime)
+                t.add(column: "publicID", .text)
+                t.add(column: "publicMetadata", .text) // JSON for PublicMetadata
+            }
+            
+            AppLogger.database.info("Migration v1.5.0_addVisibilityFields completed successfully")
+        }
+        
         return migrator
     }
     

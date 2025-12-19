@@ -51,6 +51,8 @@ struct AppView: View {
                 LibraryListView(
                     viewModel: LibraryListViewModel(
                         libraryStore: dependencies.libraryStore,
+                        visibilityService: dependencies.visibilityService,
+                        authObserver: dependencies.authStateObserver,
                         coordinator: coordinator
                     )
                 )

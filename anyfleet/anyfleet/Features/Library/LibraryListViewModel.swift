@@ -7,12 +7,16 @@ final class LibraryListViewModel {
     // MARK: - Dependencies
     
     private let libraryStore: LibraryStore
+    private let visibilityService: VisibilityService
+    private let authObserver: AuthStateObserver
     private let coordinator: AppCoordinator
 
     // MARK: - State
     
     var isLoading = false
     var loadError: Error?
+    var pendingPublishItem: LibraryModel?
+    var publishError: Error?
     
     // MARK: - Computed Properties
     
@@ -36,10 +40,48 @@ final class LibraryListViewModel {
         library.isEmpty
     }
     
+    // MARK: - Visibility Computed Properties
+    
+    /// Whether the user is currently signed in
+    var isSignedIn: Bool {
+        authObserver.isSignedIn
+    }
+    
+    /// Local content (private or unlisted)
+    var localContent: [LibraryModel] {
+        library.filter { item in
+            item.visibility == .private || item.visibility == .unlisted
+        }
+    }
+    
+    /// Public content (published)
+    var publicContent: [LibraryModel] {
+        library.filter { item in
+            item.visibility == .public
+        }
+    }
+    
+    /// Whether there is any local content
+    var hasLocalContent: Bool {
+        !localContent.isEmpty
+    }
+    
+    /// Whether there is any public content
+    var hasPublicContent: Bool {
+        !publicContent.isEmpty
+    }
+    
     // MARK: - Initialization
     
-    init(libraryStore: LibraryStore, coordinator: AppCoordinator) {
+    init(
+        libraryStore: LibraryStore,
+        visibilityService: VisibilityService,
+        authObserver: AuthStateObserver,
+        coordinator: AppCoordinator
+    ) {
         self.libraryStore = libraryStore
+        self.visibilityService = visibilityService
+        self.authObserver = authObserver
         self.coordinator = coordinator
     }
     
@@ -128,5 +170,60 @@ final class LibraryListViewModel {
     /// Toggle pinned state for a library item
     func togglePin(for item: LibraryModel) async {
         await libraryStore.togglePin(for: item)
+    }
+    
+    // MARK: - Visibility Actions
+    
+    /// Initiate the publish flow for an item
+    /// Sets the item as pending and should trigger a confirmation modal
+    /// - Parameter item: The library item to publish
+    func initiatePublish(_ item: LibraryModel) {
+        AppLogger.view.info("Initiate publish for item: \(item.id)")
+        pendingPublishItem = item
+        publishError = nil
+    }
+    
+    /// Confirm and execute the publish action
+    /// This should be called after user confirms in the modal
+    func confirmPublish() async {
+        guard let item = pendingPublishItem else {
+            AppLogger.view.warning("confirmPublish called but no pending item")
+            return
+        }
+        
+        AppLogger.view.info("Confirming publish for item: \(item.id)")
+        publishError = nil
+        
+        do {
+            try await visibilityService.publishContent(item)
+            pendingPublishItem = nil
+            await loadLibrary()
+            AppLogger.view.info("Publish confirmed and completed for item: \(item.id)")
+        } catch {
+            AppLogger.view.error("Publish failed", error: error)
+            publishError = error
+        }
+    }
+    
+    /// Cancel the pending publish action
+    func cancelPublish() {
+        AppLogger.view.info("Cancelling publish")
+        pendingPublishItem = nil
+        publishError = nil
+    }
+    
+    /// Unpublish an item (make it private)
+    /// - Parameter item: The library item to unpublish
+    func unpublish(_ item: LibraryModel) async {
+        AppLogger.view.info("Unpublishing item: \(item.id)")
+        
+        do {
+            try await visibilityService.unpublishContent(item)
+            await loadLibrary()
+            AppLogger.view.info("Unpublish completed for item: \(item.id)")
+        } catch {
+            AppLogger.view.error("Unpublish failed", error: error)
+            publishError = error
+        }
     }
 }

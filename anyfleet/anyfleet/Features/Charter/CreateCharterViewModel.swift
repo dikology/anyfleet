@@ -61,15 +61,15 @@ final class CreateCharterViewModel {
     /// - Parameters:
     ///   - charterStore: The charter store for saving charters
     ///   - onDismiss: Callback to dismiss the view after successful save
-    ///   - initialForm: Initial form state (defaults to empty form)
+    ///   - initialForm: Initial form state (if nil, creates empty form)
     init(
         charterStore: CharterStore,
         onDismiss: @escaping () -> Void,
-        initialForm: CharterFormState = .init()
+        initialForm: CharterFormState? = nil
     ) {
         self.charterStore = charterStore
         self.onDismiss = onDismiss
-        self.form = initialForm
+        self.form = initialForm ?? CharterFormState()
     }
     
     // MARK: - Actions

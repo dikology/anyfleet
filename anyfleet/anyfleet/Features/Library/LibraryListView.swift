@@ -11,9 +11,12 @@ struct LibraryListView: View {
             _viewModel = State(initialValue: viewModel)
         } else {
             // Placeholder - will be replaced in body with proper dependencies
+            let deps = AppDependencies()
             _viewModel = State(initialValue: LibraryListViewModel(
-                libraryStore: LibraryStore(repository: LocalRepository()),
-                coordinator: AppCoordinator(dependencies: AppDependencies())
+                libraryStore: deps.libraryStore,
+                visibilityService: deps.visibilityService,
+                authObserver: deps.authStateObserver,
+                coordinator: AppCoordinator(dependencies: deps)
             ))
         }
     }
@@ -53,9 +56,8 @@ struct LibraryListView: View {
     // MARK: - ViewModel Update
     
     private func updateViewModelIfNeeded() {
-        // Check if viewModel was created with placeholder dependencies
-        // If so, update it with proper dependencies from environment
-        // This is a workaround for SwiftUI initialization limitations
+        // ViewModel is initialized with proper dependencies in init or from AppView
+        // This method is kept for potential future use if dynamic updates are needed
     }
     
     // MARK: - Create Menu
@@ -408,6 +410,8 @@ struct LibraryItemRow: View {
     let coordinator = AppCoordinator(dependencies: dependencies)
     let viewModel = LibraryListViewModel(
         libraryStore: libraryStore,
+        visibilityService: dependencies.visibilityService,
+        authObserver: dependencies.authStateObserver,
         coordinator: coordinator
     )
 

@@ -26,6 +26,11 @@ nonisolated struct LibraryModel: Identifiable, Hashable, Sendable {
     var updatedAt: Date
     var syncStatus: ContentSyncStatus = .pending
     
+    // Visibility metadata (for public content)
+    var publishedAt: Date?
+    var publicID: String? // URL-friendly slug
+    var publicMetadata: PublicMetadata?
+    
     // MARK: - Initialization
     
     init(
@@ -45,7 +50,10 @@ nonisolated struct LibraryModel: Identifiable, Hashable, Sendable {
         pinnedOrder: Int? = nil,
         createdAt: Date = Date(),
         updatedAt: Date = Date(),
-        syncStatus: ContentSyncStatus = .pending
+        syncStatus: ContentSyncStatus = .pending,
+        publishedAt: Date? = nil,
+        publicID: String? = nil,
+        publicMetadata: PublicMetadata? = nil
     ) {
         self.id = id
         self.title = title
@@ -64,7 +72,21 @@ nonisolated struct LibraryModel: Identifiable, Hashable, Sendable {
         self.createdAt = createdAt
         self.updatedAt = updatedAt
         self.syncStatus = syncStatus
+        self.publishedAt = publishedAt
+        self.publicID = publicID
+        self.publicMetadata = publicMetadata
     }
+}
+
+// MARK: - Public Metadata
+
+/// Metadata for publicly published content
+nonisolated struct PublicMetadata: Codable, Equatable, Hashable, Sendable {
+    let publishedAt: Date
+    let publicID: String // URL-friendly slug
+    let canFork: Bool
+    let authorUsername: String
+    let viewCount: Int
 }
 
 // MARK: - Content Type
@@ -95,7 +117,7 @@ enum ContentType: String, Codable, CaseIterable, Sendable, Hashable {
 // MARK: - Content Visibility
 
 /// Visibility level for library content
-enum ContentVisibility: String, Codable, CaseIterable, Sendable {
+enum ContentVisibility: String, Codable, CaseIterable, Hashable, Sendable {
     case `private` = "private"
     case unlisted = "unlisted"
     case `public` = "public"
@@ -128,9 +150,27 @@ enum ContentVisibility: String, Codable, CaseIterable, Sendable {
 // MARK: - Sync Status
 
 /// Sync status for offline-first content management
-enum ContentSyncStatus: String, Codable, CaseIterable, Sendable {
+enum ContentSyncStatus: String, Codable, CaseIterable, Hashable, Sendable {
     case pending
     case queued
     case synced
     case failed
+    
+    /// Maps to the new SyncState enum for Phase 2 compatibility
+    var toSyncState: SyncState {
+        switch self {
+        case .pending: return .pending
+        case .queued: return .pending
+        case .synced: return .published
+        case .failed: return .error
+        }
+    }
+}
+
+/// Sync state for content (Phase 2 structure)
+enum SyncState: String, Codable, CaseIterable, Sendable {
+    case local      // Never published
+    case published  // Published, all synced
+    case pending    // Publish action in progress
+    case error      // Sync failed, waiting retry
 }

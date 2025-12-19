@@ -191,6 +191,25 @@ final class LibraryStore {
         }
     }
     
+    // MARK: - Metadata Updates
+    
+    /// Update library metadata (e.g., visibility, sync status)
+    /// - Parameter item: The updated library item metadata
+    /// - Throws: Error if update fails
+    @MainActor
+    func updateLibraryMetadata(_ item: LibraryModel) async throws {
+        // Update in-memory collection
+        if let index = library.firstIndex(where: { $0.id == item.id }) {
+            library[index] = item
+        } else {
+            // If not found, add it
+            library.append(item)
+        }
+        
+        // Persist to database
+        try await repository.updateLibraryMetadata(item)
+    }
+    
     // MARK: - Pinning
     
     /// Toggle pinned state for a library item and update its order.

@@ -29,6 +29,9 @@ nonisolated struct LibraryModelRecord: Codable, FetchableRecord, PersistableReco
     var createdAt: Date
     var updatedAt: Date
     var syncStatus: String
+    var publishedAt: Date?
+    var publicID: String?
+    var publicMetadata: String? // JSON for PublicMetadata
     
     // MARK: - Column Definitions
     
@@ -38,6 +41,7 @@ nonisolated struct LibraryModelRecord: Codable, FetchableRecord, PersistableReco
         case ratingAverage, ratingCount, tags, language
         case isPinned, pinnedOrder
         case createdAt, updatedAt, syncStatus
+        case publishedAt, publicID, publicMetadata
     }
     
     // MARK: - Initialization
@@ -59,7 +63,10 @@ nonisolated struct LibraryModelRecord: Codable, FetchableRecord, PersistableReco
         pinnedOrder: Int? = nil,
         createdAt: Date = Date(),
         updatedAt: Date = Date(),
-        syncStatus: String = "pending"
+        syncStatus: String = "pending",
+        publishedAt: Date? = nil,
+        publicID: String? = nil,
+        publicMetadata: String? = nil
     ) {
         self.id = id
         self.title = title
@@ -78,6 +85,9 @@ nonisolated struct LibraryModelRecord: Codable, FetchableRecord, PersistableReco
         self.createdAt = createdAt
         self.updatedAt = updatedAt
         self.syncStatus = syncStatus
+        self.publishedAt = publishedAt
+        self.publicID = publicID
+        self.publicMetadata = publicMetadata
     }
     
     // MARK: - Conversion from Domain Model
@@ -99,6 +109,8 @@ nonisolated struct LibraryModelRecord: Codable, FetchableRecord, PersistableReco
         self.createdAt = model.createdAt
         self.updatedAt = model.updatedAt
         self.syncStatus = model.syncStatus.rawValue
+        self.publishedAt = model.publishedAt
+        self.publicID = model.publicID
         
         // Encode tags as JSON
         if let tagsData = try? JSONEncoder().encode(model.tags),
@@ -106,6 +118,13 @@ nonisolated struct LibraryModelRecord: Codable, FetchableRecord, PersistableReco
             self.tags = tagsString
         } else {
             self.tags = "[]"
+        }
+        
+        // Encode publicMetadata as JSON
+        if let metadata = model.publicMetadata {
+            self.publicMetadata = Self.encodePublicMetadata(metadata)
+        } else {
+            self.publicMetadata = nil
         }
     }
     
@@ -124,6 +143,14 @@ nonisolated struct LibraryModelRecord: Codable, FetchableRecord, PersistableReco
         let visibility = ContentVisibility(rawValue: self.visibility) ?? .private
         let syncStatus = ContentSyncStatus(rawValue: self.syncStatus) ?? .pending
         
+        // Decode publicMetadata
+        var decodedMetadata: PublicMetadata? = nil
+        if let metadataString = publicMetadata,
+           let metadataData = metadataString.data(using: .utf8) {
+            // Decode in nonisolated context to avoid main actor isolation issues
+            decodedMetadata = Self.decodePublicMetadata(from: metadataData)
+        }
+        
         return LibraryModel(
             id: UUID(uuidString: id) ?? UUID(),
             title: title,
@@ -141,7 +168,10 @@ nonisolated struct LibraryModelRecord: Codable, FetchableRecord, PersistableReco
             pinnedOrder: pinnedOrder,
             createdAt: createdAt,
             updatedAt: updatedAt,
-            syncStatus: syncStatus
+            syncStatus: syncStatus,
+            publishedAt: publishedAt,
+            publicID: publicID,
+            publicMetadata: decodedMetadata
         )
     }
 }
@@ -149,6 +179,19 @@ nonisolated struct LibraryModelRecord: Codable, FetchableRecord, PersistableReco
 // MARK: - Database Operations
 
 extension LibraryModelRecord {
+    /// Encode PublicMetadata in a nonisolated context
+    nonisolated private static func encodePublicMetadata(_ metadata: PublicMetadata) -> String? {
+        guard let data = try? JSONEncoder().encode(metadata),
+              let string = String(data: data, encoding: .utf8) else {
+            return nil
+        }
+        return string
+    }
+    
+    /// Decode PublicMetadata in a nonisolated context
+    nonisolated private static func decodePublicMetadata(from data: Data) -> PublicMetadata? {
+        try? JSONDecoder().decode(PublicMetadata.self, from: data)
+    }
     /// Fetch all library content
     nonisolated static func fetchAll(db: Database) throws -> [LibraryModelRecord] {
         try LibraryModelRecord

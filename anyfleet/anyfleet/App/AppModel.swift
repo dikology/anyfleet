@@ -243,7 +243,7 @@ final class AppCoordinator: ObservableObject {
 // MARK: - Environment Key
 
 private struct AppCoordinatorKey: EnvironmentKey {
-    nonisolated(unsafe) static let defaultValue: AppCoordinator = MainActor.assumeIsolated {
+    static let defaultValue: AppCoordinator = MainActor.assumeIsolated {
         AppCoordinator(dependencies: AppDependencies())
     }
 }
