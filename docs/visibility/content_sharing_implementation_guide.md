@@ -1169,10 +1169,29 @@ psql anyfleet_db -c "\d shared_content"
 uvicorn app.main:app --reload
 
 # Test with curl (need auth token first)
-# 1. Sign in with Apple (or test token)
+
+# Option 1: Use test endpoint (development only)
+# This bypasses Apple validation and creates a test user
+curl -X POST "http://localhost:8000/api/v1/auth/test-signin?email=test@example.com"
+
+# This returns:
+# {
+#   "access_token": "eyJ...",
+#   "refresh_token": "eyJ...",
+#   "token_type": "bearer",
+#   "expires_in": 1800,
+#   "user": {...}
+# }
+#
+# Copy the access_token for use in subsequent requests
+
+# Option 2: Use real Apple Sign-in (requires iOS app)
+# 1. Sign in with Apple in the iOS app
+# 2. Copy the identity_token from the app logs
+# 3. Use it in the curl command:
 curl -X POST http://localhost:8000/api/v1/auth/apple-signin \
   -H "Content-Type: application/json" \
-  -d '{"identity_token": "test_token"}'
+  -d '{"identity_token": "YOUR_REAL_APPLE_IDENTITY_TOKEN"}'
 
 # 2. Publish content
 curl -X POST http://localhost:8000/api/v1/content/share \
@@ -1184,10 +1203,10 @@ curl -X POST http://localhost:8000/api/v1/content/share \
 curl http://localhost:8000/api/v1/content/public
 
 # 4. Get specific content
-curl http://localhost:8000/api/v1/content/safety-checklist-abc123
+curl http://localhost:8000/api/v1/content/pre-charter-safety-abc12345
 
 # 5. Unpublish
-curl -X DELETE http://localhost:8000/api/v1/content/safety-checklist-abc123 \
+curl -X DELETE http://localhost:8000/api/v1/content/pre-charter-safety-abc12345 \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
