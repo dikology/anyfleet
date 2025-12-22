@@ -164,3 +164,11 @@
 "error.network.connectionRefused" = "Не удалось подключиться к серверу";
 "error.network.unreachableHost" = "Сервер недоступен";
 "error.network.unknown" = "Сетевая ошибка: %@";
+
+"charter.detail.title" = "Чартер";
+"charter.detail.checkInChecklist.title" = "Чек-лист приёмки";
+"charter.detail.checkInChecklist.subtitle" = "Выполните это перед прибытием гостей, чтобы убедиться, что лодка действительно готова.";
+"charter.detail.checkInChecklist.button.title" = "Предварительная регистрация";
+"charter.detail.checkInChecklist.button.description" = "Пройдитесь по чек-листу шаг за шагом перед посадкой гостей.";
+"charter.detail.checkInChecklist.empty.title" = "Чек-лист приёмки еще не создан";
+"charter.detail.checkInChecklist.empty.description" = "Создайте чек-лист приёмки в вашей Библиотеке, и он автоматически появится здесь для этого чартера.";
