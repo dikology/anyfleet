@@ -4,12 +4,26 @@ struct DateRangeSection: View {
     @Binding var startDate: Date
     @Binding var endDate: Date
     let nights: Int
-    
+
+    @State private var showingStartPicker = false
+    @State private var showingEndPicker = false
+
+    private var dateFormatter: DateFormatter {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        return formatter
+    }
+
     var body: some View {
         VStack(spacing: DesignSystem.Spacing.lg) {
             HStack(alignment: .center, spacing: DesignSystem.Spacing.md) {
-                dateColumn(title: L10n.charterCreateFrom, date: startDate, alignment: .leading)
-                
+                Button {
+                    showingStartPicker = true
+                } label: {
+                    dateColumn(title: L10n.charterCreateFrom, date: startDate, alignment: .leading)
+                }
+                .buttonStyle(.plain)
+
                 VStack(spacing: 4) {
                     Text("\(nights)")
                         .font(.system(size: 26, weight: .bold))
@@ -19,30 +33,29 @@ struct DateRangeSection: View {
                         .foregroundColor(DesignSystem.Colors.textSecondary)
                 }
                 
-                dateColumn(title: L10n.charterCreateTo, date: endDate, alignment: .trailing)
+                Button {
+                    showingEndPicker = true
+                } label: {
+                    dateColumn(title: L10n.charterCreateTo, date: endDate, alignment: .trailing)
+                }
+                .buttonStyle(.plain)
             }
             .padding(DesignSystem.Spacing.md)
             .background(DesignSystem.Colors.surfaceAlt)
             .cornerRadius(12)
 
-            // TODO: date pickers should be in a modal, open on tap of the date column
-            
-            // VStack(spacing: DesignSystem.Spacing.md) {
-            //     DatePicker(
-            //         L10n.charterCreateStartDate,
-            //         selection: $startDate,
-            //         displayedComponents: .date
-            //     )
-            //     .datePickerStyle(.graphical)
-                
-            //     DatePicker(
-            //         L10n.charterCreateEndDate,
-            //         selection: $endDate,
-            //         in: startDate...,
-            //         displayedComponents: .date
-            //     )
-            //     .datePickerStyle(.graphical)
-            // }
+        }
+        .sheet(isPresented: $showingStartPicker) {
+            DatePickerModal(
+                title: "Select Departure Date",
+                selectedDate: $startDate
+            )
+        }
+        .sheet(isPresented: $showingEndPicker) {
+            DatePickerModal(
+                title: "Select Return Date", 
+                selectedDate: $endDate
+            )
         }
     }
     
@@ -56,6 +69,40 @@ struct DateRangeSection: View {
                 .foregroundColor(DesignSystem.Colors.textPrimary)
         }
         .frame(maxWidth: .infinity, alignment: alignment)
+    }
+}
+
+struct DatePickerModal: View {
+    let title: String
+    @Binding var selectedDate: Date
+    @Environment(\.dismiss) private var dismiss
+    
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: DesignSystem.Spacing.xl) {
+                DatePicker(
+                    "",
+                    selection: $selectedDate,
+                    displayedComponents: [.date]
+                )
+                .datePickerStyle(.graphical)
+                .padding()
+                
+                Spacer()
+            }
+            .navigationTitle(title)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                    .foregroundColor(DesignSystem.Colors.primary)
+                }
+            }
+            .background(DesignSystem.Colors.background)
+        }
+        .presentationDetents([.medium])
     }
 }
 
