@@ -9,7 +9,7 @@ struct CharterListView: View {
         if let viewModel = viewModel {
             _viewModel = State(initialValue: viewModel)
         } else {
-            // Create a placeholder - will be replaced in body with proper dependencies
+            // Create a placeholder for previews and testing
             let deps = AppDependencies()
             _viewModel = State(initialValue: CharterListViewModel(
                 charterStore: CharterStore(repository: LocalRepository()),
@@ -19,9 +19,6 @@ struct CharterListView: View {
     }
     
     var body: some View {
-        // Initialize ViewModel with proper dependencies if needed
-        let _ = updateViewModelIfNeeded()
-        
         Group {
             if viewModel.isEmpty {
                 emptyState
@@ -124,12 +121,6 @@ struct CharterListView: View {
             )
             .ignoresSafeArea()
         )
-    }
-    
-    private func updateViewModelIfNeeded() {
-        // Check if viewModel was created with placeholder dependencies
-        // If so, update it with proper dependencies from environment
-        // This is a workaround for SwiftUI initialization limitations
     }
 
     private var createMenu: some View {
