@@ -11,6 +11,14 @@ import Testing
 
 @Suite("CharterListViewModel Tests")
 struct CharterListViewModelTests {
+
+    // MARK: - Test Helpers
+
+    @MainActor
+    private func makeTestCoordinator() -> AppCoordinator {
+        let dependencies = AppDependencies()
+        return AppCoordinator(dependencies: dependencies)
+    }
     
     @Test("Initialize with empty store")
     @MainActor
@@ -18,13 +26,14 @@ struct CharterListViewModelTests {
         // Arrange
         let mockRepository = MockLocalRepository()
         let store = CharterStore(repository: mockRepository)
-        
+        let coordinator = makeTestCoordinator()
+
         // Act
-        let viewModel = CharterListViewModel(charterStore: store)
+        let viewModel = CharterListViewModel(charterStore: store, coordinator: coordinator)
         
         // Assert
         #expect(viewModel.isLoading == false)
-        #expect(viewModel.error == nil)
+        #expect(viewModel.currentError == nil)
         #expect(viewModel.isEmpty == true)
         #expect(viewModel.charters.isEmpty == true)
     }
@@ -35,7 +44,8 @@ struct CharterListViewModelTests {
         // Arrange
         let mockRepository = MockLocalRepository()
         let store = CharterStore(repository: mockRepository)
-        let viewModel = CharterListViewModel(charterStore: store)
+        let coordinator = makeTestCoordinator()
+        let viewModel = CharterListViewModel(charterStore: store, coordinator: coordinator)
         
         let testCharters = [
             CharterModel(
@@ -78,7 +88,8 @@ struct CharterListViewModelTests {
         // Arrange
         let mockRepository = MockLocalRepository()
         let store = CharterStore(repository: mockRepository)
-        let viewModel = CharterListViewModel(charterStore: store)
+        let coordinator = makeTestCoordinator()
+        let viewModel = CharterListViewModel(charterStore: store, coordinator: coordinator)
         
         let testError = NSError(domain: "TestError", code: 1)
         mockRepository.fetchAllChartersResult = .failure(testError)
@@ -99,7 +110,8 @@ struct CharterListViewModelTests {
         // Arrange
         let mockRepository = MockLocalRepository()
         let store = CharterStore(repository: mockRepository)
-        let viewModel = CharterListViewModel(charterStore: store)
+        let coordinator = makeTestCoordinator()
+        let viewModel = CharterListViewModel(charterStore: store, coordinator: coordinator)
         
         mockRepository.fetchAllChartersResult = .success([])
         
@@ -120,7 +132,8 @@ struct CharterListViewModelTests {
         // Arrange
         let mockRepository = MockLocalRepository()
         let store = CharterStore(repository: mockRepository)
-        let viewModel = CharterListViewModel(charterStore: store)
+        let coordinator = makeTestCoordinator()
+        let viewModel = CharterListViewModel(charterStore: store, coordinator: coordinator)
         
         mockRepository.fetchAllChartersResult = .success([])
         
@@ -137,7 +150,8 @@ struct CharterListViewModelTests {
         // Arrange
         let mockRepository = MockLocalRepository()
         let store = CharterStore(repository: mockRepository)
-        let viewModel = CharterListViewModel(charterStore: store)
+        let coordinator = makeTestCoordinator()
+        let viewModel = CharterListViewModel(charterStore: store, coordinator: coordinator)
         
         let now = Date()
         let yesterday = now.addingTimeInterval(-86400)
@@ -195,7 +209,8 @@ struct CharterListViewModelTests {
         // Arrange
         let mockRepository = MockLocalRepository()
         let store = CharterStore(repository: mockRepository)
-        let viewModel = CharterListViewModel(charterStore: store)
+        let coordinator = makeTestCoordinator()
+        let viewModel = CharterListViewModel(charterStore: store, coordinator: coordinator)
         
         let now = Date()
         let yesterday = now.addingTimeInterval(-86400)
@@ -241,7 +256,8 @@ struct CharterListViewModelTests {
         // Arrange
         let mockRepository = MockLocalRepository()
         let store = CharterStore(repository: mockRepository)
-        let viewModel = CharterListViewModel(charterStore: store)
+        let coordinator = makeTestCoordinator()
+        let viewModel = CharterListViewModel(charterStore: store, coordinator: coordinator)
         
         let now = Date()
         let yesterday = now.addingTimeInterval(-86400)
@@ -287,7 +303,8 @@ struct CharterListViewModelTests {
         // Arrange
         let mockRepository = MockLocalRepository()
         let store = CharterStore(repository: mockRepository)
-        let viewModel = CharterListViewModel(charterStore: store)
+        let coordinator = makeTestCoordinator()
+        let viewModel = CharterListViewModel(charterStore: store, coordinator: coordinator)
         
         mockRepository.fetchAllChartersResult = .success([])
         await viewModel.loadCharters()
@@ -302,7 +319,8 @@ struct CharterListViewModelTests {
         // Arrange
         let mockRepository = MockLocalRepository()
         let store = CharterStore(repository: mockRepository)
-        let viewModel = CharterListViewModel(charterStore: store)
+        let coordinator = makeTestCoordinator()
+        let viewModel = CharterListViewModel(charterStore: store, coordinator: coordinator)
         
         let testCharters = [
             CharterModel(
@@ -330,7 +348,8 @@ struct CharterListViewModelTests {
         // Arrange
         let mockRepository = MockLocalRepository()
         let store = CharterStore(repository: mockRepository)
-        let viewModel = CharterListViewModel(charterStore: store)
+        let coordinator = makeTestCoordinator()
+        let viewModel = CharterListViewModel(charterStore: store, coordinator: coordinator)
         
         let charter1 = CharterModel(
             id: UUID(),
@@ -376,7 +395,8 @@ struct CharterListViewModelTests {
         // Arrange
         let mockRepository = MockLocalRepository()
         let store = CharterStore(repository: mockRepository)
-        let viewModel = CharterListViewModel(charterStore: store)
+        let coordinator = makeTestCoordinator()
+        let viewModel = CharterListViewModel(charterStore: store, coordinator: coordinator)
         
         let charter = CharterModel(
             id: UUID(),
@@ -410,7 +430,8 @@ struct CharterListViewModelTests {
         // Arrange
         let mockRepository = MockLocalRepository()
         let store = CharterStore(repository: mockRepository)
-        let viewModel = CharterListViewModel(charterStore: store)
+        let coordinator = makeTestCoordinator()
+        let viewModel = CharterListViewModel(charterStore: store, coordinator: coordinator)
         
         let charter = CharterModel(
             id: UUID(),

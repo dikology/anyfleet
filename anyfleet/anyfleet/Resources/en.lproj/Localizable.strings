@@ -185,3 +185,11 @@
 "error.validationFailed.recovery" = "The input failed validation. Please check the fields and try again.";
 "error.databaseError.recovery" = "The database operation failed. Please try again later.";
 "error.unknown.recovery" = "An unknown error occurred. Please try again later.";
+
+"charter.detail.title" = "Charter";
+"charter.detail.checkInChecklist.title" = "Check-In Checklist";
+"charter.detail.checkInChecklist.subtitle" = "Run this before guests arrive to make sure the boat is truly ready.";
+"charter.detail.checkInChecklist.button.title" = "Pre-arrival check-in";
+"charter.detail.checkInChecklist.button.description" = "Walk through the checklist step-by-step before guests step aboard.";
+"charter.detail.checkInChecklist.empty.title" = "No check-in checklist yet";
+"charter.detail.checkInChecklist.empty.description" = "Create a checklist of type \"Check-In\" in your Library and it will automatically appear here for this charter.";

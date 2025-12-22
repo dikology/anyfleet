@@ -25,10 +25,12 @@ import Observation
 /// ```
 @MainActor
 @Observable
-final class CharterListViewModel {
+final class CharterListViewModel: ErrorHandling {
+    private let coordinator: AppCoordinator
+
     // MARK: - State
-    var error: AppError?
-    var showError: Bool = false
+    var currentError: AppError?
+    var showErrorBanner: Bool = false
     
     // MARK: - Dependencies
     
@@ -52,8 +54,10 @@ final class CharterListViewModel {
     /// Creates a new CharterListViewModel.
     ///
     /// - Parameter charterStore: The charter store for accessing charters
-    init(charterStore: CharterStore) {
+    init(charterStore: CharterStore, 
+        coordinator: AppCoordinator) {
         self.charterStore = charterStore
+        self.coordinator = coordinator
     }
     
     // MARK: - Actions
@@ -73,13 +77,17 @@ final class CharterListViewModel {
             AppLogger.view.info("Loaded \(charters.count) charters")
         } catch let error as AppError {
             isLoading = false
-            self.error = error
-            self.showError = true
+            handleError(error)
         } catch {
             isLoading = false
-            self.error = .unknown(error)
-            self.showError = true
+            handleError(error)
         }
+    }
+    
+    /// Handles the create charter action by navigating to the charter editor.
+    func onCreateCharterTapped() {
+        AppLogger.view.info("Create charter tapped from charter list")
+        coordinator.createCharter()
     }
     
     /// Refreshes the charter list.

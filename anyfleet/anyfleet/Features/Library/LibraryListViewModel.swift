@@ -3,20 +3,21 @@ import Observation
 
 @MainActor
 @Observable
-final class LibraryListViewModel {
+final class LibraryListViewModel: ErrorHandling {
     // MARK: - Dependencies
-    
+
     private let libraryStore: LibraryStore
     private let visibilityService: VisibilityService
     private let authObserver: AuthStateObserver
     private let coordinator: AppCoordinator
 
     // MARK: - State
-    
+
     var isLoading = false
-    var loadError: Error?
     var pendingPublishItem: LibraryModel?
     var publishError: Error?
+    var currentError: AppError?
+    var showErrorBanner: Bool = false
     
     // MARK: - Computed Properties
     
@@ -148,7 +149,7 @@ final class LibraryListViewModel {
         
         AppLogger.view.startOperation("Load Library")
         isLoading = true
-        loadError = nil
+        clearError()
         
         await libraryStore.loadLibrary()
         
@@ -180,7 +181,7 @@ final class LibraryListViewModel {
     func initiatePublish(_ item: LibraryModel) {
         AppLogger.view.info("Initiate publish for item: \(item.id)")
         pendingPublishItem = item
-        publishError = nil
+        clearError()
     }
     
     /// Confirm and execute the publish action
@@ -192,8 +193,8 @@ final class LibraryListViewModel {
         }
         
         AppLogger.view.info("Confirming publish for item: \(item.id)")
-        publishError = nil
-        
+        clearError()
+
         do {
             try await visibilityService.publishContent(item)
             pendingPublishItem = nil
@@ -209,7 +210,7 @@ final class LibraryListViewModel {
     func cancelPublish() {
         AppLogger.view.info("Cancelling publish")
         pendingPublishItem = nil
-        publishError = nil
+        clearError()
     }
     
     /// Unpublish an item (make it private)

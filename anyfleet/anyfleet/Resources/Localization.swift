@@ -1010,4 +1010,60 @@ enum L10n {
             comment: "None option label in icon picker"
         )
     }
+
+    enum Charter {
+        static let newCharter = NSLocalizedString(
+            "charter.newCharter",
+            tableName: "Localizable",
+            comment: "Label for creating a new charter"
+        )
+
+        static let detailTitle = NSLocalizedString(
+            "charter.detail.title",
+            tableName: "Localizable",
+            comment: "Navigation title for charter detail view"
+        )
+
+        enum CheckInChecklist {
+            static let title = NSLocalizedString(
+                "charter.detail.checkInChecklist.title",
+                tableName: "Localizable",
+                comment: "Title for the check-in checklist section"
+            )
+
+            static let subtitle = NSLocalizedString(
+                "charter.detail.checkInChecklist.subtitle",
+                tableName: "Localizable",
+                comment: "Subtitle explaining the check-in checklist purpose"
+            )
+
+            enum Button {
+                static let title = NSLocalizedString(
+                    "charter.detail.checkInChecklist.button.title",
+                    tableName: "Localizable",
+                    comment: "Title for the check-in checklist button"
+                )
+
+                static let description = NSLocalizedString(
+                    "charter.detail.checkInChecklist.button.description",
+                    tableName: "Localizable",
+                    comment: "Description for the check-in checklist button"
+                )
+            }
+
+            enum Empty {
+                static let title = NSLocalizedString(
+                    "charter.detail.checkInChecklist.empty.title",
+                    tableName: "Localizable",
+                    comment: "Title when no check-in checklist exists"
+                )
+
+                static let description = NSLocalizedString(
+                    "charter.detail.checkInChecklist.empty.description",
+                    tableName: "Localizable",
+                    comment: "Description explaining how to create a check-in checklist"
+                )
+            }
+        }
+    }
 }

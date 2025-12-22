@@ -35,7 +35,7 @@ struct AppView: View {
             // Charters Tab
             NavigationStack(path: $coordinator.chartersPath) {
                 CharterListView(
-                    viewModel: CharterListViewModel(charterStore: dependencies.charterStore)
+                    viewModel: CharterListViewModel(charterStore: dependencies.charterStore, coordinator: coordinator)
                 )
                     .navigationDestination(for: AppRoute.self) { route in
                         coordinator.destination(for: route)

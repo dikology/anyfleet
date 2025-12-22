@@ -55,7 +55,7 @@ struct CharterDetailView: View {
                 .frame(maxWidth: .infinity)
             }
         }
-        .navigationTitle("Charter")
+        .navigationTitle(L10n.Charter.detailTitle)
         .navigationBarTitleDisplayMode(.inline)
         .task {
             await viewModel.load()
@@ -105,14 +105,16 @@ struct CharterDetailView: View {
                 }
             }
         }
+        .padding(.horizontal, DesignSystem.Spacing.lg)
+        .padding(.vertical, DesignSystem.Spacing.md)
         .heroCardStyle(elevation: .medium)
     }
     
     private func checkInChecklistSection(for charter: CharterModel) -> some View {
         VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
             DesignSystem.SectionHeader(
-                "Check-In Checklist",
-                subtitle: "Run this before guests arrive to make sure the boat is truly ready."
+                L10n.Charter.CheckInChecklist.title,
+                subtitle: L10n.Charter.CheckInChecklist.subtitle
             )
             
             if let checklistID = viewModel.checkInChecklistID {
@@ -143,10 +145,10 @@ struct CharterDetailView: View {
                         }
                         
                         VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
-                            Text("Pre-arrival check-in")
+                            Text(L10n.Charter.CheckInChecklist.Button.title)
                                 .font(.system(size: 16, weight: .semibold))
                                 .foregroundColor(DesignSystem.Colors.textPrimary)
-                            Text("Walk through the checklist step-by-step before guests step aboard.")
+                            Text(L10n.Charter.CheckInChecklist.Button.description)
                                 .font(DesignSystem.Typography.caption)
                                 .foregroundColor(DesignSystem.Colors.textSecondary)
                                 .lineLimit(2)
@@ -169,10 +171,10 @@ struct CharterDetailView: View {
                 .buttonStyle(.plain)
             } else {
                 VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
-                    Text("No check-in checklist yet")
+                    Text(L10n.Charter.CheckInChecklist.Empty.title)
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(DesignSystem.Colors.textPrimary)
-                    Text("Create a checklist of type “Check-In” in your Library and it will automatically appear here for this charter.")
+                    Text(L10n.Charter.CheckInChecklist.Empty.description)
                         .font(DesignSystem.Typography.caption)
                         .foregroundColor(DesignSystem.Colors.textSecondary)
                 }

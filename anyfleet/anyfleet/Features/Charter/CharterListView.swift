@@ -9,33 +9,51 @@ struct CharterListView: View {
         if let viewModel = viewModel {
             _viewModel = State(initialValue: viewModel)
         } else {
-            // Create a placeholder - will be replaced in body with proper dependencies
+            // Create a placeholder for previews and testing
+            let deps = AppDependencies()
             _viewModel = State(initialValue: CharterListViewModel(
-                charterStore: CharterStore(repository: LocalRepository())
+                charterStore: CharterStore(repository: LocalRepository()),
+                coordinator: AppCoordinator(dependencies: deps)
             ))
         }
     }
     
     var body: some View {
-        // Initialize ViewModel with proper dependencies if needed
-        let _ = updateViewModelIfNeeded()
-        
-        Group {
-            if viewModel.isEmpty {
-                emptyState
-            } else {
-                charterList
+        ZStack {
+            Group {
+                if viewModel.isEmpty {
+                    emptyState
+                } else {
+                    charterList
+                }
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .background(DesignSystem.Colors.background.ignoresSafeArea())
+
+            // Error Banner
+            if viewModel.showErrorBanner, let error = viewModel.currentError {
+                VStack {
+                    Spacer()
+                    ErrorBanner(
+                        error: error,
+                        onDismiss: { viewModel.clearError() },
+                        onRetry: { Task { await viewModel.loadCharters() } }
+                    )
+                    .padding(.horizontal)
+                    .padding(.bottom, 20)
+                }
+                .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
-        .navigationTitle("Charters")
-        .background(DesignSystem.Colors.background.ignoresSafeArea())
-        .overlay(alignment: .top) {
-            if viewModel.showError, let error = viewModel.error {
-                ErrorBanner(
-                    error: error,
-                    onDismiss: { viewModel.showError = false },
-                    onRetry: { Task { await viewModel.loadCharters() } }
-                )
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                Text(L10n.Charters)
+                    .font(DesignSystem.Typography.headline)
+                    .foregroundColor(DesignSystem.Colors.textPrimary)
+            }
+            
+            ToolbarItem(placement: .primaryAction) {
+                createMenu
             }
         }
         .task {
@@ -121,13 +139,18 @@ struct CharterListView: View {
             .ignoresSafeArea()
         )
     }
-    
-    private func updateViewModelIfNeeded() {
-        // Check if viewModel was created with placeholder dependencies
-        // If so, update it with proper dependencies from environment
-        // This is a workaround for SwiftUI initialization limitations
+
+    private var createMenu: some View {
+        Button {
+            viewModel.onCreateCharterTapped()
+        } label: {
+            Image(systemName: "plus.circle.fill")
+                .font(.system(size: 22))
+                .foregroundColor(DesignSystem.Colors.primary)
+        }
     }
 }
+
 
 struct CharterRowView: View {
     let charter: CharterModel
@@ -303,8 +326,9 @@ struct CharterRowView: View {
 #Preview {
     MainActor.assumeIsolated {
         let dependencies = try! AppDependencies.makeForTesting()
+        let coordinator = AppCoordinator(dependencies: dependencies)
         return CharterListView(
-            viewModel: CharterListViewModel(charterStore: dependencies.charterStore)
+            viewModel: CharterListViewModel(charterStore: dependencies.charterStore, coordinator: coordinator)
         )
         .environment(\.appDependencies, dependencies)
     }

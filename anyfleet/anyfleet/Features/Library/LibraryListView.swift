@@ -12,7 +12,7 @@ struct LibraryListView: View {
         if let viewModel = viewModel {
             _viewModel = State(initialValue: viewModel)
         } else {
-            // Placeholder - will be replaced in body with proper dependencies
+            // Create a placeholder for previews and testing
             let deps = AppDependencies()
             _viewModel = State(initialValue: LibraryListViewModel(
                 libraryStore: deps.libraryStore,
@@ -24,18 +24,32 @@ struct LibraryListView: View {
     }
 
     var body: some View {
-        // Initialize ViewModel with proper dependencies if needed
-        let _ = updateViewModelIfNeeded()
-        
-        Group {
-            if viewModel.isEmpty && !viewModel.isLoading {
-                emptyState
-            } else {
-                contentList
+        ZStack {
+            Group {
+                if viewModel.isEmpty && !viewModel.isLoading {
+                    emptyState
+                } else {
+                    contentList
+                }
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .background(DesignSystem.Colors.background.ignoresSafeArea())
+
+            // Error Banner
+            if viewModel.showErrorBanner, let error = viewModel.currentError {
+                VStack {
+                    Spacer()
+                    ErrorBanner(
+                        error: error,
+                        onDismiss: { viewModel.clearError() },
+                        onRetry: { Task { await viewModel.loadLibrary() } }
+                    )
+                    .padding(.horizontal)
+                    .padding(.bottom, 20)
+                }
+                .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
-        .navigationBarTitleDisplayMode(.inline)
-        .background(DesignSystem.Colors.background.ignoresSafeArea())
         .toolbar {
             ToolbarItem(placement: .principal) {
                 Text(L10n.Library.myLibrary)
@@ -94,12 +108,6 @@ struct LibraryListView: View {
         }
     }
     
-    // MARK: - ViewModel Update
-    
-    private func updateViewModelIfNeeded() {
-        // ViewModel is initialized with proper dependencies in init or from AppView
-        // This method is kept for potential future use if dynamic updates are needed
-    }
     
     // MARK: - Create Menu
     
