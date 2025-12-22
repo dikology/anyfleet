@@ -179,11 +179,38 @@ platform :ios do
     upload_to_testflight(upload_options)
   end
 
+  desc "Capture screenshots for App Store"
+  lane :screenshots do
+    capture_screenshots(
+      project: "anyfleet/anyfleet.xcodeproj",
+      scheme: "anyfleet",
+      output_directory: "./fastlane/screenshots",
+      clear_previous_screenshots: true,
+      skip_open_summary: true
+    )
+  end
+
+  desc "Upload screenshots and metadata to App Store"
+  lane :upload_screenshots do
+    # First capture screenshots
+    screenshots
+
+    # Upload to App Store
+    upload_to_app_store(
+      app_identifier: "com.dikology.anyfleet",
+      screenshots_path: "./fastlane/screenshots",
+      skip_binary_upload: true,
+      skip_metadata: false,
+      skip_screenshots: false,
+      force: true
+    )
+  end
+
   desc "Run tests and upload to TestFlight if on main branch"
   lane :ci do
     # Always run tests
     test
-    
+
     # Only deploy to TestFlight if on main branch and label is present
     if git_branch == "main" && ENV["DEPLOY_TO_TESTFLIGHT"] == "true"
       beta

@@ -26,16 +26,59 @@ final class anyfleetUITests: XCTestCase {
     func testExample() throws {
         // UI tests must launch the application that they test.
         let app = XCUIApplication()
+        setupSnapshot(app)
         app.launch()
+
+        // Take screenshot of launch screen
+        snapshot("01Launch")
 
         // Use XCTAssert and related functions to verify your tests produce the correct results.
     }
 
     @MainActor
-    func testLaunchPerformance() throws {
-        // This measures how long it takes to launch your application.
-        measure(metrics: [XCTApplicationLaunchMetric()]) {
-            XCUIApplication().launch()
+    func testScreenshots() throws {
+        let app = XCUIApplication()
+        setupSnapshot(app)
+        app.launch()
+
+        // Wait for app to load
+        sleep(2)
+
+        // Screenshot 1: Main screen (assuming it's the charter list or home screen)
+        snapshot("01Home")
+
+        // Try to navigate to different screens - adjust these based on your app's actual UI
+        // This is a basic template - you'll need to customize based on your app's navigation
+
+        // Example: If there's a tab bar or navigation
+        // Look for common UI elements that might exist in your app
+
+        // Screenshot 2: Charter list (if accessible)
+        if app.buttons["Charters"].exists || app.staticTexts["Charters"].exists {
+            snapshot("02CharterList")
+        }
+
+        // Screenshot 3: Library (if accessible)
+        if app.buttons["Library"].exists || app.staticTexts["Library"].exists {
+            app.buttons["Library"].tap()
+            sleep(1)
+            snapshot("03Library")
+        }
+
+        // Screenshot 4: Create/Add screen (if accessible)
+        if app.buttons["Add"].exists || app.buttons["Create"].exists || app.buttons["New"].exists {
+            app.buttons["Add"].tap()
+            sleep(1)
+            snapshot("04Create")
         }
     }
+
+    // Disabled for screenshot automation - only testScreenshots should run
+    // @MainActor
+    // func testLaunchPerformance() throws {
+    //     // This measures how long it takes to launch your application.
+    //     measure(metrics: [XCTApplicationLaunchMetric()]) {
+    //         XCUIApplication().launch()
+    //     }
+    // }
 }
