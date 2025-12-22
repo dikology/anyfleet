@@ -97,6 +97,44 @@ final class LocalRepository: Sendable {
         }
     }
     
+    /// Update charter with new values
+    func updateCharter(_ charterID: UUID, name: String, boatName: String?, location: String?, startDate: Date, endDate: Date, checkInChecklistID: UUID?) async throws -> CharterModel {
+        AppLogger.repository.startOperation("Update Charter")
+        defer { AppLogger.repository.completeOperation("Update Charter") }
+        
+        AppLogger.repository.debug("Updating charter with ID: \(charterID.uuidString)")
+        
+        do {
+            // Fetch existing charter to preserve metadata
+            guard let existingCharter = try await fetchCharter(id: charterID) else {
+                throw AppError.notFound(entity: "Charter", id: charterID)
+            }
+            
+            // Create updated charter model preserving existing metadata
+            let updatedCharter = CharterModel(
+                id: charterID,
+                name: name,
+                boatName: boatName,
+                location: location,
+                startDate: startDate,
+                endDate: endDate,
+                createdAt: existingCharter.createdAt,
+                checkInChecklistID: checkInChecklistID
+            )
+            
+            // Save the updated charter
+            try await database.dbWriter.write { db in
+                _ = try CharterRecord.saveCharter(updatedCharter, db: db)
+            }
+            
+            AppLogger.repository.info("Charter updated successfully - ID: \(charterID.uuidString)")
+            return updatedCharter
+        } catch {
+            AppLogger.repository.failOperation("Update Charter", error: error)
+            throw error
+        }
+    }
+    
     /// Delete charter
     func deleteCharter(_ charterID: UUID) async throws {
         AppLogger.repository.startOperation("Delete Charter")

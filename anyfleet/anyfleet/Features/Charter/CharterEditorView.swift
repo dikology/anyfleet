@@ -1,27 +1,15 @@
 import SwiftUI
 
-struct CreateCharterView: View {
-    @State private var viewModel: CreateCharterViewModel
+struct CharterEditorView: View {
+    @State private var viewModel: CharterEditorViewModel
     @Environment(\.dismiss) private var dismiss
     @Environment(\.appDependencies) private var dependencies
     
-    init(viewModel: CreateCharterViewModel? = nil, form: CharterFormState = .init()) {
-        if let viewModel = viewModel {
-            _viewModel = State(initialValue: viewModel)
-        } else {
-            // Create a placeholder - will be replaced in body with proper dependencies
-            _viewModel = State(initialValue: CreateCharterViewModel(
-                charterStore: CharterStore(repository: LocalRepository()),
-                onDismiss: {},
-                initialForm: form
-            ))
-        }
+    init(viewModel: CharterEditorViewModel) {
+        _viewModel = State(initialValue: viewModel)
     }
     
     var body: some View {
-        // Initialize ViewModel with proper dependencies if needed
-        let _ = updateViewModelIfNeeded()
-        
         ZStack(alignment: .top) {
             ScrollView {
                 VStack(spacing: DesignSystem.Spacing.xl) {
@@ -90,31 +78,16 @@ struct CreateCharterView: View {
             }
             .background(DesignSystem.Colors.background.ignoresSafeArea())
         }
-    }
-    
-    private func updateViewModelIfNeeded() {
-        // Check if viewModel was created with placeholder dependencies
-        // If so, update it with proper dependencies from environment
-        // This is a workaround for SwiftUI initialization limitations
-    }
-}
-
-#Preview {
-    MainActor.assumeIsolated {
-        let dependencies = try! AppDependencies.makeForTesting()
-        return CreateCharterView(
-            viewModel: CreateCharterViewModel(
-                charterStore: dependencies.charterStore,
-                onDismiss: {}
-            )
-        )
-        .environment(\.appDependencies, dependencies)
+        .navigationTitle(viewModel.isNewCharter ? "New Charter" : "Edit Charter")
+        .task {
+            await viewModel.loadCharter()
+        }
     }
 }
 
 // MARK: - Subviews
 
-private extension CreateCharterView {
+private extension CharterEditorView {
     var hero: some View {
         DesignSystem.Form.Hero(
             title: L10n.charterCreateSetSailOnYourNextAdventure,
@@ -123,12 +96,27 @@ private extension CreateCharterView {
     }
 }
 
+#Preview {
+    MainActor.assumeIsolated {
+        let dependencies = try! AppDependencies.makeForTesting()
+        return CharterEditorView(
+            viewModel: CharterEditorViewModel(
+                charterStore: dependencies.charterStore,
+                charterID: nil,
+                onDismiss: {}
+            )
+        )
+        .environment(\.appDependencies, dependencies)
+    }
+}
+
 #Preview("With Mock Form") {
     MainActor.assumeIsolated {
         let dependencies = try! AppDependencies.makeForTesting()
-        return CreateCharterView(
-            viewModel: CreateCharterViewModel(
+        return CharterEditorView(
+            viewModel: CharterEditorViewModel(
                 charterStore: dependencies.charterStore,
+                charterID: nil,
                 onDismiss: {},
                 initialForm: .mock
             )
