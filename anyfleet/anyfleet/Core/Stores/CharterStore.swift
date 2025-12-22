@@ -104,6 +104,26 @@ final class CharterStore {
             throw error
         }
     }
+
+    @MainActor
+    func fetchCharter(_ charterID: UUID) async throws -> CharterModel {
+        AppLogger.store.startOperation("Fetch Charter")
+        AppLogger.store.info("Fetching charter with ID: \(charterID.uuidString)")
+        
+        do {
+            guard let charter = try await repository.fetchCharter(id: charterID) else {
+                throw AppError.notFound(entity: "Charter", id: charterID)
+            }
+            
+            AppLogger.store.info("Charter fetched successfully with ID: \(charter.id.uuidString)")
+            AppLogger.store.completeOperation("Fetch Charter")
+            
+            return charter
+        } catch {
+            AppLogger.store.failOperation("Fetch Charter", error: error)
+            throw error
+        }
+    }
     
     /// Save/update an existing charter (or append if not already cached)
     @MainActor
@@ -124,6 +144,22 @@ final class CharterStore {
             AppLogger.store.completeOperation("Save Charter")
         } catch {
             AppLogger.store.failOperation("Save Charter", error: error)
+            throw error
+        }
+    }
+
+    @MainActor
+    func updateCharter(_ charterID: UUID, name: String, boatName: String?, location: String?, startDate: Date, endDate: Date, checkInChecklistID: UUID?) async throws -> CharterModel {
+        AppLogger.store.startOperation("Update Charter")
+        AppLogger.store.info("Updating charter with ID: \(charterID.uuidString)")
+        
+        do {
+            let charter = try await repository.updateCharter(charterID, name: name, boatName: boatName, location: location, startDate: startDate, endDate: endDate, checkInChecklistID: checkInChecklistID)
+            AppLogger.store.info("Charter updated successfully with ID: \(charter.id.uuidString)")
+            AppLogger.store.completeOperation("Update Charter")
+            return charter
+        } catch {
+            AppLogger.store.failOperation("Update Charter", error: error)
             throw error
         }
     }

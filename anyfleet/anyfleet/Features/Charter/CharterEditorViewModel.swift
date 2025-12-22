@@ -1,23 +1,23 @@
 //
-//  CreateCharterViewModel.swift
+//  CharterEditorViewModel.swift
 //  anyfleet
 //
-//  ViewModel for charter creation flow.
+//  ViewModel for charter editing flow.
 //
 
 import Foundation
 import Observation
 
-/// ViewModel managing the charter creation flow.
+/// ViewModel managing the charter editing flow.
 ///
 /// Handles form state, validation, progress tracking, and save operations
-/// for creating new charters.
+/// for editing charters.
 ///
 /// ## Usage
 ///
 /// ```swift
-/// struct CreateCharterView: View {
-///     @State private var viewModel: CreateCharterViewModel
+/// struct CharterEditorView: View {
+///     @State private var viewModel: CharterEditorViewModel
 ///
 ///     var body: some View {
 ///         // View implementation
@@ -26,10 +26,11 @@ import Observation
 /// ```
 @MainActor
 @Observable
-final class CreateCharterViewModel {
+final class CharterEditorViewModel {
     // MARK: - Dependencies
     
     private let charterStore: CharterStore
+    private let charterID: UUID?
     private let onDismiss: () -> Void
     
     // MARK: - State
@@ -39,6 +40,12 @@ final class CreateCharterViewModel {
     
     /// Whether a save operation is in progress
     var isSaving = false
+
+    /// Whether a load operation is in progress
+    var isLoading = false
+    
+    /// Error that occurred during load, if any
+    var loadError: Error?
     
     /// Error that occurred during save, if any
     var saveError: Error?
@@ -46,6 +53,11 @@ final class CreateCharterViewModel {
     /// Progress through the form (0.0 to 1.0)
     var completionProgress: Double {
         calculateProgress()
+    }
+
+    /// Whether the charter is new
+    var isNewCharter: Bool {
+        charterID == nil
     }
     
     /// Whether the form is valid and can be saved
@@ -56,23 +68,47 @@ final class CreateCharterViewModel {
     
     // MARK: - Initialization
     
-    /// Creates a new CreateCharterViewModel.
+    /// Creates a new CharterEditorViewModel.
     ///
     /// - Parameters:
-    ///   - charterStore: The charter store for saving charters
+    ///   - charterStore: The charter store for editing charters
+    ///   - charterID: The ID of the charter to edit
     ///   - onDismiss: Callback to dismiss the view after successful save
     ///   - initialForm: Initial form state (if nil, creates empty form)
     init(
         charterStore: CharterStore,
+        charterID: UUID? = nil,
         onDismiss: @escaping () -> Void,
         initialForm: CharterFormState? = nil
     ) {
         self.charterStore = charterStore
+        self.charterID = charterID
         self.onDismiss = onDismiss
         self.form = initialForm ?? CharterFormState()
     }
     
     // MARK: - Actions
+
+    /// Loads the charter from the charter store.
+    func loadCharter() async {
+        guard let charterID = charterID, !isNewCharter else { return }
+        isLoading = true
+        loadError = nil
+        
+        do {
+            let charter = try await charterStore.fetchCharter(charterID)
+            // Map charter to form
+            form.name = charter.name
+            form.startDate = charter.startDate
+            form.endDate = charter.endDate
+            form.destination = charter.location ?? ""
+            form.vessel = charter.boatName ?? ""
+        } catch {
+            loadError = error
+        }
+        
+        isLoading = false
+    }
     
     /// Saves the charter and dismisses the view on success.
     func saveCharter() async {
@@ -87,6 +123,7 @@ final class CreateCharterViewModel {
         saveError = nil
         
         do {
+            if isNewCharter {
             // Generate a name if not provided
             let charterName = form.name.isEmpty 
                 ? "\(form.destination.isEmpty ? "Charter" : form.destination) - \(form.dateSummary)"
@@ -110,6 +147,23 @@ final class CreateCharterViewModel {
             // Reset saving state before dismissing
             isSaving = false
             onDismiss()
+            } else {
+                guard let charterID = charterID else { return }
+                let charter = try await charterStore.updateCharter(charterID,
+                name: form.name,
+                boatName: form.vessel.isEmpty ? nil : form.vessel,
+                location: form.destination.isEmpty ? nil : form.destination,
+                startDate: form.startDate,
+                endDate: form.endDate,
+                checkInChecklistID: nil)
+
+                AppLogger.view.info("Charter updated successfully with ID: \(charter.id.uuidString)")
+                AppLogger.view.completeOperation("Save Charter")
+                
+                // Reset saving state before dismissing
+                isSaving = false
+                onDismiss()
+            }
         } catch {
             AppLogger.view.failOperation("Save Charter", error: error)
             saveError = error

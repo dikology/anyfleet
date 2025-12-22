@@ -17,6 +17,7 @@ final class MockLocalRepository: CharterRepository, @unchecked Sendable {
     var fetchCharterResult: Result<CharterModel?, Error> = .success(nil)
     var createCharterResult: Result<Void, Error> = .success(())
     var saveCharterResult: Result<Void, Error> = .success(())
+    var updateCharterResult: Result<CharterModel, Error> = .success(CharterModel(id: UUID(), name: "", boatName: nil, location: nil, startDate: Date(), endDate: Date(), createdAt: Date(), checkInChecklistID: nil))
     var deleteCharterResult: Result<Void, Error> = .success(())
     var markChartersSyncedResult: Result<Void, Error> = .success(())
     
@@ -65,5 +66,9 @@ final class MockLocalRepository: CharterRepository, @unchecked Sendable {
     
     func markChartersSynced(_ ids: [UUID]) async throws {
         try markChartersSyncedResult.get()
+    }
+
+    func updateCharter(_ charterID: UUID, name: String, boatName: String?, location: String?, startDate: Date, endDate: Date, checkInChecklistID: UUID?) async throws -> CharterModel {
+        return try updateCharterResult.get()
     }
 }

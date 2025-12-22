@@ -5,6 +5,7 @@ enum AppRoute: Hashable {
     // Charters
     case createCharter
     case charterDetail(UUID)
+    case editCharter(UUID)
     case checklistExecution(charterID: UUID, checklistID: UUID)
     
     // Library Content
@@ -103,6 +104,10 @@ final class AppCoordinator: ObservableObject {
         chartersPath.append(.charterDetail(id))
     }
     
+    func editCharter(_ id: UUID) {
+        chartersPath.append(.editCharter(id))
+    }
+    
     // MARK: - Library Navigation
     
     /// Navigate to checklist editor (create new or edit existing)
@@ -172,10 +177,12 @@ final class AppCoordinator: ObservableObject {
     func destination(for route: AppRoute) -> some View {
         switch route {
         case .createCharter:
-            CreateCharterView(
-                viewModel: CreateCharterViewModel(
+            CharterEditorView(
+                viewModel: CharterEditorViewModel(
                     charterStore: dependencies.charterStore,
-                    onDismiss: { self.pop(from: .charters) }
+                    charterID: nil,
+                    onDismiss: { self.pop(from: .charters) },
+                    initialForm: CharterFormState()
                 )
             )
         case .charterDetail(let id):
@@ -184,6 +191,15 @@ final class AppCoordinator: ObservableObject {
                     charterID: id,
                     charterStore: dependencies.charterStore,
                     libraryStore: dependencies.libraryStore
+                )
+            )
+        case .editCharter(let id):
+            CharterEditorView(
+                viewModel: CharterEditorViewModel(
+                    charterStore: dependencies.charterStore,
+                    charterID: id,
+                    onDismiss: { self.pop(from: .charters) },
+                    initialForm: CharterFormState()
                 )
             )
         case .checklistEditor(let checklistID):

@@ -3,6 +3,7 @@ import SwiftUI
 struct CharterListView: View {
     @State private var viewModel: CharterListViewModel
     @Environment(\.appDependencies) private var dependencies
+    @EnvironmentObject private var coordinator: AppCoordinator
     
     init(viewModel: CharterListViewModel? = nil) {
         if let viewModel = viewModel {
@@ -68,18 +69,22 @@ struct CharterListView: View {
     private var charterList: some View {
         List {
             ForEach(viewModel.charters) { charter in
-                NavigationLink(value: AppRoute.charterDetail(charter.id)) {
-                    CharterRowView(charter: charter)
-                }
-                    .listRowInsets(EdgeInsets(
-                        top: DesignSystem.Spacing.sm,
-                        leading: DesignSystem.Spacing.lg,
-                        bottom: DesignSystem.Spacing.sm,
-                        trailing: DesignSystem.Spacing.lg
-                    ))
-                    .listRowSeparator(.hidden)
-                    .listRowBackground(Color.clear)
-                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                CharterRowView(
+                    charter: charter,
+                    onTap: {
+                        coordinator.viewCharter(charter.id)
+                        AppLogger.view.info("Navigating to charter: \(charter.id.uuidString)")
+                    }
+                )
+                .listRowInsets(EdgeInsets(
+                    top: DesignSystem.Spacing.sm,
+                    leading: DesignSystem.Spacing.lg,
+                    bottom: DesignSystem.Spacing.sm,
+                    trailing: DesignSystem.Spacing.lg
+                ))
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
+                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                         Button(role: .destructive) {
                             Task {
                                 do {
@@ -91,6 +96,14 @@ struct CharterListView: View {
                         } label: {
                             Label("Delete", systemImage: "trash")
                         }
+
+                        Button {
+                            coordinator.editCharter(charter.id)
+                            AppLogger.view.info("Navigating to edit charter: \(charter.id.uuidString)")
+                        } label: {
+                            Label("Edit", systemImage: "pencil")
+                        }
+                        .tint(.gray)
                     }
             }
         }
@@ -118,7 +131,7 @@ struct CharterListView: View {
 
 struct CharterRowView: View {
     let charter: CharterModel
-    @State private var isPressed = false
+    let onTap: () -> Void
     
     private var dateFormatter: DateFormatter {
         let formatter = DateFormatter()
@@ -281,16 +294,9 @@ struct CharterRowView: View {
             .padding(.vertical, DesignSystem.Spacing.md)
         }
         .heroCardStyle(elevation: isUpcoming ? .high : .medium)
-        .scaleEffect(isPressed ? 0.98 : 1.0)
-        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isPressed)
         .onTapGesture {
-            // Handle tap if needed
+            onTap()
         }
-        // .simultaneousGesture(
-        //     DragGesture(minimumDistance: 0)
-        //         .onChanged { _ in isPressed = true }
-        //         .onEnded { _ in isPressed = false }
-        // )
     }
 }
 

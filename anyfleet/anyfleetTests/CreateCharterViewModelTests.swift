@@ -2,27 +2,28 @@
 //  CreateCharterViewModelTests.swift
 //  anyfleetTests
 //
-//  Unit tests for CreateCharterViewModel using Swift Testing
+//  Unit tests for CharterEditorViewModel using Swift Testing
 //
 
 import Foundation
 import Testing
 @testable import anyfleet
 
-@Suite("CreateCharterViewModel Tests")
-struct CreateCharterViewModelTests {
+@Suite("CharterEditorViewModel Tests")
+struct CharterEditorViewModelTests {
     
-    @Test("Initialize with default form")
+    @Test("Initialize with default form - create mode")
     @MainActor
-    func testInitialization() async throws {
+    func testInitialization_CreateMode() async throws {
         // Arrange
         let mockRepository = MockLocalRepository()
         let store = CharterStore(repository: mockRepository)
         var didDismiss = false
         
         // Act
-        let viewModel = CreateCharterViewModel(
+        let viewModel = CharterEditorViewModel(
             charterStore: store,
+            charterID: nil,
             onDismiss: { didDismiss = true }
         )
         
@@ -30,12 +31,13 @@ struct CreateCharterViewModelTests {
         #expect(viewModel.form.name.isEmpty)
         #expect(viewModel.isSaving == false)
         #expect(viewModel.saveError == nil)
+        #expect(viewModel.isNewCharter == true)
         #expect(didDismiss == false)
     }
     
-    @Test("Initialize with custom form")
+    @Test("Initialize with custom form - create mode")
     @MainActor
-    func testInitializationWithCustomForm() async throws {
+    func testInitializationWithCustomForm_CreateMode() async throws {
         // Arrange
         let mockRepository = MockLocalRepository()
         let store = CharterStore(repository: mockRepository)
@@ -46,8 +48,9 @@ struct CreateCharterViewModelTests {
         )
         
         // Act
-        let viewModel = CreateCharterViewModel(
+        let viewModel = CharterEditorViewModel(
             charterStore: store,
+            charterID: nil,
             onDismiss: {},
             initialForm: customForm
         )
@@ -56,6 +59,28 @@ struct CreateCharterViewModelTests {
         #expect(viewModel.form.name == "Test Charter")
         #expect(viewModel.form.vessel == "Test Boat")
         #expect(viewModel.form.destination == "Test Location")
+        #expect(viewModel.isNewCharter == true)
+    }
+    
+    @Test("Initialize - edit mode")
+    @MainActor
+    func testInitialization_EditMode() async throws {
+        // Arrange
+        let mockRepository = MockLocalRepository()
+        let store = CharterStore(repository: mockRepository)
+        let charterID = UUID()
+        
+        // Act
+        let viewModel = CharterEditorViewModel(
+            charterStore: store,
+            charterID: charterID,
+            onDismiss: {}
+        )
+        
+        // Assert
+        #expect(viewModel.isNewCharter == false)
+        #expect(viewModel.isLoading == false)
+        #expect(viewModel.loadError == nil)
     }
     
     @Test("Completion progress - default form")
@@ -64,8 +89,9 @@ struct CreateCharterViewModelTests {
         // Arrange
         let mockRepository = MockLocalRepository()
         let store = CharterStore(repository: mockRepository)
-        let viewModel = CreateCharterViewModel(
+        let viewModel = CharterEditorViewModel(
             charterStore: store,
+            charterID: nil,
             onDismiss: {}
         )
         
@@ -82,8 +108,9 @@ struct CreateCharterViewModelTests {
         // Arrange
         let mockRepository = MockLocalRepository()
         let store = CharterStore(repository: mockRepository)
-        let viewModel = CreateCharterViewModel(
+        let viewModel = CharterEditorViewModel(
             charterStore: store,
+            charterID: nil,
             onDismiss: {}
         )
         
@@ -107,8 +134,9 @@ struct CreateCharterViewModelTests {
         // Arrange
         let mockRepository = MockLocalRepository()
         let store = CharterStore(repository: mockRepository)
-        let viewModel = CreateCharterViewModel(
+        let viewModel = CharterEditorViewModel(
             charterStore: store,
+            charterID: nil,
             onDismiss: {}
         )
         
@@ -129,8 +157,9 @@ struct CreateCharterViewModelTests {
         // Arrange
         let mockRepository = MockLocalRepository()
         let store = CharterStore(repository: mockRepository)
-        let viewModel = CreateCharterViewModel(
+        let viewModel = CharterEditorViewModel(
             charterStore: store,
+            charterID: nil,
             onDismiss: {}
         )
         
@@ -154,8 +183,9 @@ struct CreateCharterViewModelTests {
         // Arrange
         let mockRepository = MockLocalRepository()
         let store = CharterStore(repository: mockRepository)
-        let viewModel = CreateCharterViewModel(
+        let viewModel = CharterEditorViewModel(
             charterStore: store,
+            charterID: nil,
             onDismiss: {}
         )
         
@@ -174,8 +204,9 @@ struct CreateCharterViewModelTests {
         // Arrange
         let mockRepository = MockLocalRepository()
         let store = CharterStore(repository: mockRepository)
-        let viewModel = CreateCharterViewModel(
+        let viewModel = CharterEditorViewModel(
             charterStore: store,
+            charterID: nil,
             onDismiss: {}
         )
         
@@ -194,8 +225,9 @@ struct CreateCharterViewModelTests {
         // Arrange
         let mockRepository = MockLocalRepository()
         let store = CharterStore(repository: mockRepository)
-        let viewModel = CreateCharterViewModel(
+        let viewModel = CharterEditorViewModel(
             charterStore: store,
+            charterID: nil,
             onDismiss: {}
         )
         
@@ -214,8 +246,9 @@ struct CreateCharterViewModelTests {
         // Arrange
         let mockRepository = MockLocalRepository()
         let store = CharterStore(repository: mockRepository)
-        let viewModel = CreateCharterViewModel(
+        let viewModel = CharterEditorViewModel(
             charterStore: store,
+            charterID: nil,
             onDismiss: {}
         )
         
@@ -228,16 +261,17 @@ struct CreateCharterViewModelTests {
         #expect(viewModel.isValid == false)
     }
     
-    @Test("Save charter - success")
+    @Test("Save charter - create success")
     @MainActor
-    func testSaveCharter_Success() async throws {
+    func testSaveCharter_CreateSuccess() async throws {
         // Arrange
         let mockRepository = MockLocalRepository()
         let store = CharterStore(repository: mockRepository)
         var didDismiss = false
         
-        let viewModel = CreateCharterViewModel(
+        let viewModel = CharterEditorViewModel(
             charterStore: store,
+            charterID: nil,
             onDismiss: { didDismiss = true }
         )
         
@@ -270,8 +304,9 @@ struct CreateCharterViewModelTests {
         let store = CharterStore(repository: mockRepository)
         var didDismiss = false
         
-        let viewModel = CreateCharterViewModel(
+        let viewModel = CharterEditorViewModel(
             charterStore: store,
+            charterID: nil,
             onDismiss: { didDismiss = true }
         )
         
@@ -291,16 +326,17 @@ struct CreateCharterViewModelTests {
         #expect(didDismiss == true)
     }
     
-    @Test("Save charter - failure propagates error")
+    @Test("Save charter - create failure propagates error")
     @MainActor
-    func testSaveCharter_Failure() async throws {
+    func testSaveCharter_CreateFailure() async throws {
         // Arrange
         let mockRepository = MockLocalRepository()
         let store = CharterStore(repository: mockRepository)
         var didDismiss = false
         
-        let viewModel = CreateCharterViewModel(
+        let viewModel = CharterEditorViewModel(
             charterStore: store,
+            charterID: nil,
             onDismiss: { didDismiss = true }
         )
         
@@ -325,8 +361,9 @@ struct CreateCharterViewModelTests {
         let mockRepository = MockLocalRepository()
         let store = CharterStore(repository: mockRepository)
         
-        let viewModel = CreateCharterViewModel(
+        let viewModel = CharterEditorViewModel(
             charterStore: store,
+            charterID: nil,
             onDismiss: {}
         )
         
@@ -351,8 +388,9 @@ struct CreateCharterViewModelTests {
         let mockRepository = MockLocalRepository()
         let store = CharterStore(repository: mockRepository)
         
-        let viewModel = CreateCharterViewModel(
+        let viewModel = CharterEditorViewModel(
             charterStore: store,
+            charterID: nil,
             onDismiss: {}
         )
         
@@ -368,6 +406,206 @@ struct CreateCharterViewModelTests {
         // Assert
         #expect(mockRepository.lastCreatedCharter?.boatName == nil)
         #expect(mockRepository.lastCreatedCharter?.location == nil)
+    }
+    
+    // MARK: - Edit Mode Tests
+    
+    @Test("Load charter - success")
+    @MainActor
+    func testLoadCharter_Success() async throws {
+        // Arrange
+        let mockRepository = MockLocalRepository()
+        let store = CharterStore(repository: mockRepository)
+        let charterID = UUID()
+        let testCharter = CharterModel(
+            id: charterID,
+            name: "Test Charter",
+            boatName: "Test Boat",
+            location: "Test Location",
+            startDate: Date(),
+            endDate: Date().addingTimeInterval(86400),
+            createdAt: Date(),
+            checkInChecklistID: nil
+        )
+        
+        mockRepository.fetchCharterResult = .success(testCharter)
+        
+        let viewModel = CharterEditorViewModel(
+            charterStore: store,
+            charterID: charterID,
+            onDismiss: {}
+        )
+        
+        // Act
+        await viewModel.loadCharter()
+        
+        // Assert
+        #expect(viewModel.form.name == "Test Charter")
+        #expect(viewModel.form.vessel == "Test Boat")
+        #expect(viewModel.form.destination == "Test Location")
+        #expect(viewModel.isLoading == false)
+        #expect(viewModel.loadError == nil)
+    }
+    
+    @Test("Load charter - does not load for new charter")
+    @MainActor
+    func testLoadCharter_DoesNotLoadForNewCharter() async throws {
+        // Arrange
+        let mockRepository = MockLocalRepository()
+        let store = CharterStore(repository: mockRepository)
+        
+        let viewModel = CharterEditorViewModel(
+            charterStore: store,
+            charterID: nil,
+            onDismiss: {}
+        )
+        
+        // Act
+        await viewModel.loadCharter()
+        
+        // Assert
+        // Should not call fetchCharter for new charters
+        // We can't easily verify this without a call count, but we can verify
+        // that isLoading remains false and form is unchanged
+        #expect(viewModel.isLoading == false)
+    }
+    
+    @Test("Load charter - handles error")
+    @MainActor
+    func testLoadCharter_HandlesError() async throws {
+        // Arrange
+        let mockRepository = MockLocalRepository()
+        let store = CharterStore(repository: mockRepository)
+        let charterID = UUID()
+        let testError = NSError(domain: "TestError", code: 1)
+        
+        mockRepository.fetchCharterResult = .failure(testError)
+        
+        let viewModel = CharterEditorViewModel(
+            charterStore: store,
+            charterID: charterID,
+            onDismiss: {}
+        )
+        
+        // Act
+        await viewModel.loadCharter()
+        
+        // Assert
+        #expect(viewModel.isLoading == false)
+        #expect(viewModel.loadError != nil)
+    }
+    
+    @Test("Save charter - update success")
+    @MainActor
+    func testSaveCharter_UpdateSuccess() async throws {
+        // Arrange
+        let mockRepository = MockLocalRepository()
+        let store = CharterStore(repository: mockRepository)
+        let charterID = UUID()
+        var didDismiss = false
+        
+        let updatedCharter = CharterModel(
+            id: charterID,
+            name: "Updated Charter",
+            boatName: "Updated Boat",
+            location: "Updated Location",
+            startDate: Date(),
+            endDate: Date().addingTimeInterval(86400),
+            createdAt: Date(),
+            checkInChecklistID: nil
+        )
+        
+        mockRepository.updateCharterResult = .success(updatedCharter)
+        
+        let viewModel = CharterEditorViewModel(
+            charterStore: store,
+            charterID: charterID,
+            onDismiss: { didDismiss = true }
+        )
+        
+        viewModel.form.name = "Updated Charter"
+        viewModel.form.vessel = "Updated Boat"
+        viewModel.form.destination = "Updated Location"
+        viewModel.form.startDate = Date()
+        viewModel.form.endDate = Date().addingTimeInterval(86400)
+        
+        // Act
+        await viewModel.saveCharter()
+        
+        // Assert
+        #expect(viewModel.isSaving == false)
+        #expect(viewModel.saveError == nil)
+        #expect(didDismiss == true)
+    }
+    
+    @Test("Save charter - update failure propagates error")
+    @MainActor
+    func testSaveCharter_UpdateFailure() async throws {
+        // Arrange
+        let mockRepository = MockLocalRepository()
+        let store = CharterStore(repository: mockRepository)
+        let charterID = UUID()
+        var didDismiss = false
+        
+        let testError = NSError(domain: "TestError", code: 1)
+        mockRepository.updateCharterResult = .failure(testError)
+        
+        let viewModel = CharterEditorViewModel(
+            charterStore: store,
+            charterID: charterID,
+            onDismiss: { didDismiss = true }
+        )
+        
+        viewModel.form.name = "Test"
+        viewModel.form.startDate = Date()
+        viewModel.form.endDate = Date().addingTimeInterval(86400)
+        
+        // Act
+        await viewModel.saveCharter()
+        
+        // Assert
+        #expect(viewModel.isSaving == false)
+        #expect(viewModel.saveError != nil)
+        #expect(didDismiss == false)
+    }
+    
+    @Test("Save charter - update does not call create")
+    @MainActor
+    func testSaveCharter_UpdateDoesNotCallCreate() async throws {
+        // Arrange
+        let mockRepository = MockLocalRepository()
+        let store = CharterStore(repository: mockRepository)
+        let charterID = UUID()
+        
+        let updatedCharter = CharterModel(
+            id: charterID,
+            name: "Updated",
+            boatName: nil,
+            location: nil,
+            startDate: Date(),
+            endDate: Date().addingTimeInterval(86400),
+            createdAt: Date(),
+            checkInChecklistID: nil
+        )
+        
+        mockRepository.updateCharterResult = .success(updatedCharter)
+        
+        let viewModel = CharterEditorViewModel(
+            charterStore: store,
+            charterID: charterID,
+            onDismiss: {}
+        )
+        
+        viewModel.form.name = "Updated"
+        viewModel.form.startDate = Date()
+        viewModel.form.endDate = Date().addingTimeInterval(86400)
+        
+        // Act
+        await viewModel.saveCharter()
+        
+        // Assert
+        // Should not call createCharter when updating
+        #expect(mockRepository.createCharterCallCount == 0)
     }
 }
 
