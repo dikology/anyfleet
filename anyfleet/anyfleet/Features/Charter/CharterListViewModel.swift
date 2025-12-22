@@ -25,12 +25,12 @@ import Observation
 /// ```
 @MainActor
 @Observable
-final class CharterListViewModel {
+final class CharterListViewModel: ErrorHandling {
     private let coordinator: AppCoordinator
 
     // MARK: - State
-    var error: AppError?
-    var showError: Bool = false
+    var currentError: AppError?
+    var showErrorBanner: Bool = false
     
     // MARK: - Dependencies
     
@@ -77,12 +77,10 @@ final class CharterListViewModel {
             AppLogger.view.info("Loaded \(charters.count) charters")
         } catch let error as AppError {
             isLoading = false
-            self.error = error
-            self.showError = true
+            handleError(error)
         } catch {
             isLoading = false
-            self.error = .unknown(error)
-            self.showError = true
+            handleError(error)
         }
     }
     

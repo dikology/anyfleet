@@ -19,15 +19,32 @@ struct CharterListView: View {
     }
     
     var body: some View {
-        Group {
-            if viewModel.isEmpty {
-                emptyState
-            } else {
-                charterList
+        ZStack {
+            Group {
+                if viewModel.isEmpty {
+                    emptyState
+                } else {
+                    charterList
+                }
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .background(DesignSystem.Colors.background.ignoresSafeArea())
+
+            // Error Banner
+            if viewModel.showErrorBanner, let error = viewModel.currentError {
+                VStack {
+                    Spacer()
+                    ErrorBanner(
+                        error: error,
+                        onDismiss: { viewModel.clearError() },
+                        onRetry: { Task { await viewModel.loadCharters() } }
+                    )
+                    .padding(.horizontal)
+                    .padding(.bottom, 20)
+                }
+                .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
-        .navigationBarTitleDisplayMode(.inline)
-        .background(DesignSystem.Colors.background.ignoresSafeArea())
         .toolbar {
             ToolbarItem(placement: .principal) {
                 Text(L10n.Charters)
