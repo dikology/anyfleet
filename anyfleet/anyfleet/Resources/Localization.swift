@@ -1010,4 +1010,12 @@ enum L10n {
             comment: "None option label in icon picker"
         )
     }
+
+    enum Charter {
+        static let newCharter = NSLocalizedString(
+            "charter.newCharter",
+            tableName: "Localizable",
+            comment: "Label for creating a new charter"
+        )
+    }
 }

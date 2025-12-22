@@ -115,7 +115,7 @@ ForEach(viewModel.charters) { charter in
 
 Update `CharterRowView` to remove the commented tap gesture code since the entire card is now tappable.[1]
 
-## Extract Navigation Titles to Design System -- 22dec --
+## Extract Navigation Titles to Design System
 
 Create a centralized navigation titles namespace in your Design System:[12]
 
