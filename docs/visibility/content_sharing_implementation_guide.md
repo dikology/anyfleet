@@ -1430,7 +1430,7 @@ enum SyncError: LocalizedError {
 - Verify sync_queue has records
 - Verify syncStatus is `.queued`
 
-### Phase 3: iOS API Client (Week 2, Days 1-2)
+### Phase 3: iOS API Client (Week 2, Days 1-2) -- 23 dec --
 
 **Goal:** Connect iOS to backend
 

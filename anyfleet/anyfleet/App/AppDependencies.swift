@@ -56,6 +56,12 @@ final class AppDependencies {
     
     /// Shared library store instance
     let libraryStore: LibraryStore
+
+    /// Shared content sync service instance
+    let contentSyncService: ContentSyncService
+
+    /// Shared API client instance (nil until Phase 3)
+    // let apiClient: APIClient? // TODO: Uncomment in Phase 3
     
     // MARK: - Repository Access
     
@@ -97,15 +103,24 @@ final class AppDependencies {
         // Initialize stores
         self.charterStore = CharterStore(repository: repository)
         self.libraryStore = LibraryStore(repository: repository)
+        self.contentSyncService = ContentSyncService(
+            repository: repository,
+            // apiClient: nil, // TODO: Add in Phase 3
+            libraryStore: libraryStore
+        )
         
         // Initialize services
         self.localizationService = LocalizationService()
         self.authStateObserver = AuthStateObserver(authService: AuthService.shared)
         self.visibilityService = VisibilityService(
             libraryStore: libraryStore,
-            authService: AuthService.shared
+            authService: AuthService.shared,
+            syncService: contentSyncService
         )
-        
+
+        // API client not yet implemented (Phase 3)
+        // self.apiClient = nil // TODO: Uncomment in Phase 3
+
         AppLogger.dependencies.info("AppDependencies initialized successfully")
     }
     
@@ -140,15 +155,24 @@ final class AppDependencies {
         self.repository = repository
         self.charterStore = CharterStore(repository: repository)
         self.libraryStore = LibraryStore(repository: repository)
+        self.contentSyncService = ContentSyncService(
+            repository: repository,
+            // apiClient: nil, // TODO: Add in Phase 3
+            libraryStore: libraryStore
+        )
         
         // Initialize services
         self.localizationService = LocalizationService()
         self.authStateObserver = AuthStateObserver(authService: AuthService.shared)
         self.visibilityService = VisibilityService(
             libraryStore: libraryStore,
-            authService: AuthService.shared
+            authService: AuthService.shared,
+            syncService: contentSyncService
         )
-        
+
+        // API client not yet implemented (Phase 3)
+        // self.apiClient = nil // TODO: Uncomment in Phase 3
+
         AppLogger.dependencies.info("Test AppDependencies initialized successfully")
     }
 }

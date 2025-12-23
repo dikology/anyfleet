@@ -1,0 +1,416 @@
+//
+//  LocalRepositorySyncQueueIntegrationTests.swift
+//  anyfleetTests
+//
+//  Integration tests for LocalRepository sync queue operations
+//
+
+import Foundation
+import Testing
+@testable import anyfleet
+
+@Suite("LocalRepository Sync Queue Integration Tests")
+struct LocalRepositorySyncQueueIntegrationTests {
+
+    // Each test gets its own fresh in-memory database to avoid cross-test
+    // contamination and ensure a clean state.
+    private func makeRepository() throws -> LocalRepository {
+        let database = try AppDatabase.makeEmpty()
+        return LocalRepository(database: database)
+    }
+
+    @Test("Enqueue sync operation - publish success")
+    func testEnqueueSyncOperation_Publish() async throws {
+        // Arrange
+        let repository = try makeRepository()
+        let contentID = UUID()
+        let visibility = ContentVisibility.public
+        let operation = SyncOperation.publish
+        let testPayload = "test payload".data(using: .utf8)!
+
+        // Act
+        try await repository.enqueueSyncOperation(
+            contentID: contentID,
+            operation: operation,
+            visibility: visibility,
+            payload: testPayload
+        )
+
+        // Assert - Verify operation was enqueued by fetching it back
+        let pending = try await repository.getPendingSyncOperations(maxRetries: 3)
+        #expect(pending.count == 1)
+        #expect(pending[0].contentID == contentID)
+        #expect(pending[0].operation == operation)
+        #expect(pending[0].visibility == visibility)
+        #expect(pending[0].payload == testPayload)
+        #expect(pending[0].retryCount == 0)
+        #expect(pending[0].lastError == nil)
+        #expect(pending[0].id > 0)
+    }
+
+    @Test("Basic smoke test - can create repository")
+    func testBasicRepositoryCreation() async throws {
+        // Arrange & Act
+        let repository = try makeRepository()
+
+        // Assert - Just verify we can create it and call a method
+        let counts = try await repository.getSyncQueueCounts()
+        #expect(counts.pending == 0)
+        #expect(counts.failed == 0)
+    }
+
+    @Test("Enqueue sync operation - unpublish success")
+    func testEnqueueSyncOperation_Unpublish() async throws {
+        // Arrange
+        let repository = try makeRepository()
+        let contentID = UUID()
+        let visibility = ContentVisibility.private
+        let operation = SyncOperation.unpublish
+
+        // Act
+        try await repository.enqueueSyncOperation(
+            contentID: contentID,
+            operation: operation,
+            visibility: visibility,
+            payload: nil
+        )
+
+        // Assert
+        let pending = try await repository.getPendingSyncOperations(maxRetries: 3)
+        #expect(pending.count == 1)
+        #expect(pending[0].contentID == contentID)
+        #expect(pending[0].operation == operation)
+        #expect(pending[0].visibility == visibility)
+        #expect(pending[0].payload == nil)
+    }
+
+    @Test("Enqueue sync operation - multiple operations")
+    func testEnqueueSyncOperation_MultipleOperations() async throws {
+        // Arrange
+        let repository = try makeRepository()
+        let contentID1 = UUID()
+        let contentID2 = UUID()
+
+        // Act
+        try await repository.enqueueSyncOperation(
+            contentID: contentID1,
+            operation: .publish,
+            visibility: .public,
+            payload: "payload1".data(using: .utf8)
+        )
+
+        try await repository.enqueueSyncOperation(
+            contentID: contentID2,
+            operation: .unpublish,
+            visibility: .private,
+            payload: nil
+        )
+
+        // Assert
+        let pending = try await repository.getPendingSyncOperations(maxRetries: 3)
+        #expect(pending.count == 2)
+
+        let publishOp = pending.first { $0.contentID == contentID1 }
+        let unpublishOp = pending.first { $0.contentID == contentID2 }
+
+        #expect(publishOp != nil)
+        #expect(unpublishOp != nil)
+        #expect(publishOp?.operation == .publish)
+        #expect(unpublishOp?.operation == .unpublish)
+    }
+
+    @Test("Get pending sync operations - filters by retry count")
+    func testGetPendingSyncOperations_FiltersByRetryCount() async throws {
+        // Arrange
+        let repository = try makeRepository()
+        let contentID = UUID()
+
+        // Enqueue operation
+        try await repository.enqueueSyncOperation(
+            contentID: contentID,
+            operation: .publish,
+            visibility: .public,
+            payload: nil
+        )
+
+        // Manually increment retry count to max (3)
+        let operations = try await repository.getPendingSyncOperations(maxRetries: 3)
+        #expect(operations.count == 1)
+        let operationID = operations[0].id
+
+        // Increment retry count 3 times
+        for _ in 0..<3 {
+            try await repository.incrementSyncRetryCount(operationID, error: "Test error")
+        }
+
+        // Act - Should not return operations with max retries
+        let pendingAfterRetries = try await repository.getPendingSyncOperations(maxRetries: 3)
+
+        // Assert - Should be empty since operation exceeded max retries
+        #expect(pendingAfterRetries.isEmpty)
+    }
+
+    @Test("Mark sync operation complete - success")
+    func testMarkSyncOperationComplete_Success() async throws {
+        // Arrange
+        let repository = try makeRepository()
+        let contentID = UUID()
+
+        // Enqueue operation
+        try await repository.enqueueSyncOperation(
+            contentID: contentID,
+            operation: .publish,
+            visibility: .public,
+            payload: nil
+        )
+
+        let operations = try await repository.getPendingSyncOperations(maxRetries: 3)
+        #expect(operations.count == 1)
+        let operationID = operations[0].id
+
+        // Act
+        try await repository.markSyncOperationComplete(operationID)
+
+        // Assert - Should not appear in pending operations
+        let pendingAfterComplete = try await repository.getPendingSyncOperations(maxRetries: 3)
+        #expect(pendingAfterComplete.isEmpty)
+    }
+
+    @Test("Mark sync operation complete - non-existent operation")
+    func testMarkSyncOperationComplete_NonExistent() async throws {
+        // Arrange
+        let repository = try makeRepository()
+
+        // Act & Assert - Should not throw error for non-existent operation
+        try await repository.markSyncOperationComplete(99999)
+        let pending = try await repository.getPendingSyncOperations(maxRetries: 3)
+        #expect(pending.isEmpty)
+    }
+
+    @Test("Increment sync retry count - success")
+    func testIncrementSyncRetryCount_Success() async throws {
+        // Arrange
+        let repository = try makeRepository()
+        let contentID = UUID()
+        let errorMessage = "Network timeout"
+
+        // Enqueue operation
+        try await repository.enqueueSyncOperation(
+            contentID: contentID,
+            operation: .publish,
+            visibility: .public,
+            payload: nil
+        )
+
+        let operations = try await repository.getPendingSyncOperations(maxRetries: 3)
+        #expect(operations.count == 1)
+        #expect(operations[0].retryCount == 0)
+        #expect(operations[0].lastError == nil)
+
+        let operationID = operations[0].id
+
+        // Act
+        try await repository.incrementSyncRetryCount(operationID, error: errorMessage)
+
+        // Assert
+        let operationsAfterRetry = try await repository.getPendingSyncOperations(maxRetries: 3)
+        #expect(operationsAfterRetry.count == 1)
+        #expect(operationsAfterRetry[0].retryCount == 1)
+        #expect(operationsAfterRetry[0].lastError == errorMessage)
+    }
+
+    @Test("Increment sync retry count - multiple increments")
+    func testIncrementSyncRetryCount_MultipleIncrements() async throws {
+        // Arrange
+        let repository = try makeRepository()
+        let contentID = UUID()
+
+        try await repository.enqueueSyncOperation(
+            contentID: contentID,
+            operation: .publish,
+            visibility: .public,
+            payload: nil
+        )
+
+        let operations = try await repository.getPendingSyncOperations(maxRetries: 3)
+        let operationID = operations[0].id
+
+        // Act - Increment multiple times
+        try await repository.incrementSyncRetryCount(operationID, error: "Error 1")
+        try await repository.incrementSyncRetryCount(operationID, error: "Error 2")
+        try await repository.incrementSyncRetryCount(operationID, error: "Error 3")
+
+        // Assert
+        let operationsAfterRetries = try await repository.getPendingSyncOperations(maxRetries: 3)
+        #expect(operationsAfterRetries.count == 1)
+        #expect(operationsAfterRetries[0].retryCount == 3)
+        #expect(operationsAfterRetries[0].lastError == "Error 3") // Last error should be stored
+    }
+
+    @Test("Get sync queue counts - empty queue")
+    func testGetSyncQueueCounts_EmptyQueue() async throws {
+        // Arrange
+        let repository = try makeRepository()
+
+        // Act
+        let counts = try await repository.getSyncQueueCounts()
+
+        // Assert
+        #expect(counts.pending == 0)
+        #expect(counts.failed == 0)
+    }
+
+    @Test("Get sync queue counts - with operations")
+    func testGetSyncQueueCounts_WithOperations() async throws {
+        // Arrange
+        let repository = try makeRepository()
+
+        // Enqueue 2 pending operations
+        try await repository.enqueueSyncOperation(
+            contentID: UUID(),
+            operation: .publish,
+            visibility: .public,
+            payload: nil
+        )
+
+        try await repository.enqueueSyncOperation(
+            contentID: UUID(),
+            operation: .unpublish,
+            visibility: .private,
+            payload: nil
+        )
+
+        // Create a failed operation (retry count >= 3)
+        try await repository.enqueueSyncOperation(
+            contentID: UUID(),
+            operation: .publish,
+            visibility: .public,
+            payload: nil
+        )
+
+        // Make it failed by incrementing retries to max
+        let operations = try await repository.getPendingSyncOperations(maxRetries: 3)
+        let failedOperationID = operations.first { $0.retryCount == 0 }!.id
+
+        for _ in 0..<3 {
+            try await repository.incrementSyncRetryCount(failedOperationID, error: "Test error")
+        }
+
+        // Act
+        let counts = try await repository.getSyncQueueCounts()
+
+        // Assert
+        #expect(counts.pending == 2) // 2 operations still within retry limit
+        #expect(counts.failed == 1) // 1 operation exceeded retry limit
+    }
+
+    @Test("Get sync queue counts - mixed states")
+    func testGetSyncQueueCounts_MixedStates() async throws {
+        // Arrange
+        let repository = try makeRepository()
+
+        // Enqueue operations
+        try await repository.enqueueSyncOperation(
+            contentID: UUID(),
+            operation: .publish,
+            visibility: .public,
+            payload: nil
+        )
+
+        try await repository.enqueueSyncOperation(
+            contentID: UUID(),
+            operation: .unpublish,
+            visibility: .private,
+            payload: nil
+        )
+
+        let operations = try await repository.getPendingSyncOperations(maxRetries: 3)
+        let operationID1 = operations[0].id
+        let operationID2 = operations[1].id
+
+        // Mark one as completed
+        try await repository.markSyncOperationComplete(operationID1)
+
+        // Make one failed
+        for _ in 0..<3 {
+            try await repository.incrementSyncRetryCount(operationID2, error: "Test error")
+        }
+
+        // Act
+        let counts = try await repository.getSyncQueueCounts()
+
+        // Assert
+        #expect(counts.pending == 0) // None pending after marking complete and failing one
+        #expect(counts.failed == 1) // One failed operation
+    }
+
+    @Test("Sync queue operations - FIFO order")
+    func testSyncQueueOperations_FIFOOrder() async throws {
+        // Arrange
+        let repository = try makeRepository()
+
+        // Enqueue operations in specific order
+        let contentID1 = UUID()
+        let contentID2 = UUID()
+        let contentID3 = UUID()
+
+        try await repository.enqueueSyncOperation(
+            contentID: contentID1,
+            operation: .publish,
+            visibility: .public,
+            payload: nil
+        )
+
+        try await repository.enqueueSyncOperation(
+            contentID: contentID2,
+            operation: .unpublish,
+            visibility: .private,
+            payload: nil
+        )
+
+        try await repository.enqueueSyncOperation(
+            contentID: contentID3,
+            operation: .publish,
+            visibility: .unlisted,
+            payload: nil
+        )
+
+        // Act
+        let pending = try await repository.getPendingSyncOperations(maxRetries: 3)
+
+        // Assert - Should be returned in FIFO order (oldest first)
+        #expect(pending.count == 3)
+        #expect(pending[0].contentID == contentID1)
+        #expect(pending[1].contentID == contentID2)
+        #expect(pending[2].contentID == contentID3)
+    }
+
+    @Test("Sync queue operations - creation timestamps")
+    func testSyncQueueOperations_CreationTimestamps() async throws {
+        // Arrange
+        let repository = try makeRepository()
+        let beforeEnqueue = Date()
+
+        // Wait a tiny bit to ensure timestamp difference
+        try await Task.sleep(for: .milliseconds(10))
+
+        // Act
+        try await repository.enqueueSyncOperation(
+            contentID: UUID(),
+            operation: .publish,
+            visibility: .public,
+            payload: nil
+        )
+
+        try await Task.sleep(for: .milliseconds(10))
+        let afterEnqueue = Date()
+
+        // Assert
+        let pending = try await repository.getPendingSyncOperations(maxRetries: 3)
+        #expect(pending.count == 1)
+
+        let operation = pending[0]
+        #expect(operation.createdAt >= beforeEnqueue)
+        #expect(operation.createdAt <= afterEnqueue)
+    }
+}
