@@ -4,7 +4,7 @@ import Foundation
 /// Database record for sync queue operations
 nonisolated struct SyncQueueRecord: Codable, FetchableRecord, PersistableRecord {
     static let databaseTableName = "sync_queue"
-    
+
     var id: Int64?
     var contentID: String
     var operation: String // "publish" or "unpublish"
@@ -14,11 +14,10 @@ nonisolated struct SyncQueueRecord: Codable, FetchableRecord, PersistableRecord 
     var retryCount: Int
     var lastError: String?
     var syncedAt: Date?
-    
+
     enum Columns: String, ColumnExpression {
-        case id, contentID = "content_id", operation, visibilityState = "visibility_state"
-        case payload, createdAt = "created_at", retryCount = "retry_count"
-        case lastError = "last_error", syncedAt = "synced_at"
+        case id, contentID, operation, visibilityState
+        case payload, createdAt, retryCount, lastError, syncedAt
     }
 }
 
@@ -64,15 +63,15 @@ extension SyncQueueRecord {
     /// Mark operation as synced
     nonisolated static func markSynced(id: Int64, db: Database) throws {
         try db.execute(
-            sql: "UPDATE sync_queue SET synced_at = ? WHERE id = ?",
+            sql: "UPDATE sync_queue SET syncedAt = ? WHERE id = ?",
             arguments: [Date(), id]
         )
     }
-    
+
     /// Increment retry count and store error
     nonisolated static func incrementRetry(id: Int64, error: String, db: Database) throws {
         try db.execute(
-            sql: "UPDATE sync_queue SET retry_count = retry_count + 1, last_error = ? WHERE id = ?",
+            sql: "UPDATE sync_queue SET retryCount = retryCount + 1, lastError = ? WHERE id = ?",
             arguments: [error, id]
         )
     }

@@ -1,0 +1,809 @@
+{
+  "" : {
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/anyfleet-primary.dia",
+    "emit-module-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/anyfleet-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/anyfleet-primary-emit-module.dia",
+    "pch" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/anyfleet-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/anyfleet-primary.swiftdeps"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/App/AppDependencies.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AppDependencies.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AppDependencies.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AppDependencies.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AppDependencies.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AppDependencies.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AppDependencies.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AppDependencies.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AppDependencies~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/App/AppModel.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AppModel.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AppModel.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AppModel.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AppModel.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AppModel.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AppModel.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AppModel.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AppModel~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/App/AppView.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AppView.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AppView.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AppView.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AppView.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AppView.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AppView.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AppView.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AppView~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Core/Errors/AppError.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AppError.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AppError.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AppError.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AppError.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AppError.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AppError.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AppError.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AppError~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Core/Errors/ErrorHandling.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ErrorHandling.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ErrorHandling.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ErrorHandling.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ErrorHandling.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ErrorHandling.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ErrorHandling.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ErrorHandling.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ErrorHandling~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Core/Models/CharterModel.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterModel.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterModel.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterModel.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterModel.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterModel.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterModel.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterModel.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterModel~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Core/Models/Checklist.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/Checklist.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/Checklist.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/Checklist.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/Checklist.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/Checklist.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/Checklist.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/Checklist.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/Checklist~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Core/Models/ChecklistExecutionState.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistExecutionState.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistExecutionState.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistExecutionState.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistExecutionState.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistExecutionState.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistExecutionState.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistExecutionState.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistExecutionState~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Core/Models/LibraryModel.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryModel.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryModel.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryModel.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryModel.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryModel.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryModel.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryModel.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryModel~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Core/Stores/CharterStore.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterStore.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterStore.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterStore.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterStore.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterStore.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterStore.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterStore.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterStore~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Core/Stores/LibraryStore.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryStore.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryStore.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryStore.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryStore.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryStore.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryStore.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryStore.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryStore~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Core/Utilities/Logger.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/Logger.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/Logger.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/Logger.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/Logger.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/Logger.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/Logger.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/Logger.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/Logger~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Core/Utilities/MarkdownParser.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/MarkdownParser.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/MarkdownParser.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/MarkdownParser.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/MarkdownParser.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/MarkdownParser.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/MarkdownParser.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/MarkdownParser.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/MarkdownParser~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Data/Local/AppDatabase.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AppDatabase.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AppDatabase.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AppDatabase.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AppDatabase.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AppDatabase.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AppDatabase.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AppDatabase.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AppDatabase~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Data/Local/Records/CharterRecord.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterRecord.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterRecord.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterRecord.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterRecord.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterRecord.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterRecord.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterRecord.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterRecord~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Data/Local/Records/ChecklistExecutionRecord.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistExecutionRecord.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistExecutionRecord.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistExecutionRecord.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistExecutionRecord.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistExecutionRecord.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistExecutionRecord.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistExecutionRecord.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistExecutionRecord~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Data/Local/Records/ChecklistRecord.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistRecord.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistRecord.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistRecord.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistRecord.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistRecord.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistRecord.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistRecord.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistRecord~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Data/Local/Records/LibraryModelRecord.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryModelRecord.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryModelRecord.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryModelRecord.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryModelRecord.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryModelRecord.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryModelRecord.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryModelRecord.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryModelRecord~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Data/Local/Records/PracticeGuideRecord.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PracticeGuideRecord.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PracticeGuideRecord.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PracticeGuideRecord.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PracticeGuideRecord.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PracticeGuideRecord.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PracticeGuideRecord.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PracticeGuideRecord.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PracticeGuideRecord~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Data/Local/Records/SyncQueueRecord.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/SyncQueueRecord.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/SyncQueueRecord.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/SyncQueueRecord.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/SyncQueueRecord.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/SyncQueueRecord.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/SyncQueueRecord.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/SyncQueueRecord.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/SyncQueueRecord~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Data/Repositories/CharterRepository.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterRepository.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterRepository.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterRepository.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterRepository.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterRepository.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterRepository.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterRepository.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterRepository~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Data/Repositories/ChecklistExecutionRepository.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistExecutionRepository.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistExecutionRepository.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistExecutionRepository.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistExecutionRepository.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistExecutionRepository.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistExecutionRepository.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistExecutionRepository.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistExecutionRepository~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Data/Repositories/LibraryRepository.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryRepository.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryRepository.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryRepository.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryRepository.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryRepository.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryRepository.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryRepository.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryRepository~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Data/Repositories/LocalRepository.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LocalRepository.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LocalRepository.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LocalRepository.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LocalRepository.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LocalRepository.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LocalRepository.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LocalRepository.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LocalRepository~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/DesignSystem/Components/ActionCard.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ActionCard.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ActionCard.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ActionCard.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ActionCard.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ActionCard.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ActionCard.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ActionCard.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ActionCard~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/DesignSystem/Components/ErrorBanner.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ErrorBanner.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ErrorBanner.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ErrorBanner.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ErrorBanner.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ErrorBanner.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ErrorBanner.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ErrorBanner.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ErrorBanner~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/DesignSystem/Components/FormKit.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/FormKit.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/FormKit.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/FormKit.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/FormKit.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/FormKit.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/FormKit.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/FormKit.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/FormKit~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/DesignSystem/Components/InfoPill.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/InfoPill.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/InfoPill.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/InfoPill.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/InfoPill.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/InfoPill.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/InfoPill.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/InfoPill.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/InfoPill~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/DesignSystem/Components/PublishActionView.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PublishActionView.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PublishActionView.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PublishActionView.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PublishActionView.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PublishActionView.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PublishActionView.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PublishActionView.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PublishActionView~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/DesignSystem/Components/PublishConfirmationModal.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PublishConfirmationModal.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PublishConfirmationModal.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PublishConfirmationModal.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PublishConfirmationModal.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PublishConfirmationModal.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PublishConfirmationModal.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PublishConfirmationModal.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PublishConfirmationModal~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/DesignSystem/Components/SelectableCard.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/SelectableCard.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/SelectableCard.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/SelectableCard.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/SelectableCard.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/SelectableCard.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/SelectableCard.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/SelectableCard.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/SelectableCard~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/DesignSystem/Components/SignInModalView.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/SignInModalView.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/SignInModalView.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/SignInModalView.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/SignInModalView.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/SignInModalView.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/SignInModalView.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/SignInModalView.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/SignInModalView~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/DesignSystem/Components/SyncStatusIndicator.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/SyncStatusIndicator.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/SyncStatusIndicator.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/SyncStatusIndicator.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/SyncStatusIndicator.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/SyncStatusIndicator.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/SyncStatusIndicator.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/SyncStatusIndicator.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/SyncStatusIndicator~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/DesignSystem/Components/VisibilityBadge.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/VisibilityBadge.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/VisibilityBadge.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/VisibilityBadge.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/VisibilityBadge.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/VisibilityBadge.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/VisibilityBadge.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/VisibilityBadge.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/VisibilityBadge~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/DesignSystem/DesignSystem.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/DesignSystem.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/DesignSystem.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/DesignSystem.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/DesignSystem.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/DesignSystem.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/DesignSystem.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/DesignSystem.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/DesignSystem~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/DesignSystem/DesignSystemColors.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/DesignSystemColors.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/DesignSystemColors.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/DesignSystemColors.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/DesignSystemColors.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/DesignSystemColors.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/DesignSystemColors.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/DesignSystemColors.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/DesignSystemColors~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/DesignSystem/DesignSystemExports.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/DesignSystemExports.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/DesignSystemExports.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/DesignSystemExports.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/DesignSystemExports.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/DesignSystemExports.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/DesignSystemExports.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/DesignSystemExports.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/DesignSystemExports~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/DesignSystem/DesignSystemSpacing.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/DesignSystemSpacing.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/DesignSystemSpacing.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/DesignSystemSpacing.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/DesignSystemSpacing.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/DesignSystemSpacing.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/DesignSystemSpacing.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/DesignSystemSpacing.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/DesignSystemSpacing~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/DesignSystem/DesignSystemTypography.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/DesignSystemTypography.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/DesignSystemTypography.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/DesignSystemTypography.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/DesignSystemTypography.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/DesignSystemTypography.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/DesignSystemTypography.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/DesignSystemTypography.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/DesignSystemTypography~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Features/Auth/SignInView.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/SignInView.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/SignInView.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/SignInView.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/SignInView.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/SignInView.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/SignInView.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/SignInView.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/SignInView~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Features/Charter/CharterDetailView.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterDetailView.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterDetailView.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterDetailView.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterDetailView.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterDetailView.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterDetailView.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterDetailView.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterDetailView~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Features/Charter/CharterDetailViewModel.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterDetailViewModel.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterDetailViewModel.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterDetailViewModel.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterDetailViewModel.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterDetailViewModel.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterDetailViewModel.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterDetailViewModel.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterDetailViewModel~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Features/Charter/CharterEditorView.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterEditorView.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterEditorView.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterEditorView.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterEditorView.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterEditorView.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterEditorView.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterEditorView.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterEditorView~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Features/Charter/CharterEditorViewModel.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterEditorViewModel.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterEditorViewModel.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterEditorViewModel.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterEditorViewModel.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterEditorViewModel.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterEditorViewModel.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterEditorViewModel.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterEditorViewModel~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Features/Charter/CharterFormState.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterFormState.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterFormState.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterFormState.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterFormState.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterFormState.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterFormState.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterFormState.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterFormState~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Features/Charter/CharterListView.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterListView.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterListView.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterListView.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterListView.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterListView.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterListView.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterListView.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterListView~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Features/Charter/CharterListViewModel.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterListViewModel.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterListViewModel.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterListViewModel.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterListViewModel.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterListViewModel.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterListViewModel.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterListViewModel.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterListViewModel~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Features/Charter/Components/BudgetSection.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/BudgetSection.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/BudgetSection.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/BudgetSection.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/BudgetSection.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/BudgetSection.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/BudgetSection.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/BudgetSection.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/BudgetSection~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Features/Charter/Components/CharterSummaryCard.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterSummaryCard.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterSummaryCard.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterSummaryCard.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterSummaryCard.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterSummaryCard.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterSummaryCard.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterSummaryCard.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CharterSummaryCard~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Features/Charter/Components/CrewSection.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CrewSection.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CrewSection.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CrewSection.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CrewSection.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CrewSection.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CrewSection.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CrewSection.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/CrewSection~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Features/Charter/Components/DateRangeSection.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/DateRangeSection.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/DateRangeSection.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/DateRangeSection.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/DateRangeSection.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/DateRangeSection.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/DateRangeSection.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/DateRangeSection.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/DateRangeSection~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Features/Charter/Components/RegionPickerSection.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/RegionPickerSection.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/RegionPickerSection.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/RegionPickerSection.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/RegionPickerSection.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/RegionPickerSection.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/RegionPickerSection.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/RegionPickerSection.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/RegionPickerSection~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Features/Charter/Components/VesselPickerSection.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/VesselPickerSection.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/VesselPickerSection.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/VesselPickerSection.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/VesselPickerSection.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/VesselPickerSection.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/VesselPickerSection.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/VesselPickerSection.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/VesselPickerSection~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Features/Checklist/ChecklistExecutionView.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistExecutionView.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistExecutionView.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistExecutionView.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistExecutionView.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistExecutionView.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistExecutionView.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistExecutionView.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistExecutionView~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Features/Checklist/ChecklistExecutionViewModel.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistExecutionViewModel.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistExecutionViewModel.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistExecutionViewModel.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistExecutionViewModel.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistExecutionViewModel.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistExecutionViewModel.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistExecutionViewModel.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistExecutionViewModel~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Features/Home/HomeView.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/HomeView.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/HomeView.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/HomeView.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/HomeView.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/HomeView.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/HomeView.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/HomeView.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/HomeView~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Features/Home/HomeViewModel.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/HomeViewModel.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/HomeViewModel.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/HomeViewModel.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/HomeViewModel.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/HomeViewModel.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/HomeViewModel.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/HomeViewModel.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/HomeViewModel~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Features/Library/ChecklistEditorView.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistEditorView.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistEditorView.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistEditorView.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistEditorView.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistEditorView.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistEditorView.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistEditorView.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistEditorView~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Features/Library/ChecklistEditorViewModel.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistEditorViewModel.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistEditorViewModel.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistEditorViewModel.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistEditorViewModel.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistEditorViewModel.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistEditorViewModel.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistEditorViewModel.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistEditorViewModel~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Features/Library/ChecklistReaderView.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistReaderView.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistReaderView.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistReaderView.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistReaderView.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistReaderView.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistReaderView.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistReaderView.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistReaderView~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Features/Library/ChecklistReaderViewModel.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistReaderViewModel.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistReaderViewModel.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistReaderViewModel.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistReaderViewModel.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistReaderViewModel.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistReaderViewModel.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistReaderViewModel.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ChecklistReaderViewModel~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Features/Library/ItemEditorSheet.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ItemEditorSheet.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ItemEditorSheet.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ItemEditorSheet.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ItemEditorSheet.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ItemEditorSheet.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ItemEditorSheet.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ItemEditorSheet.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ItemEditorSheet~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Features/Library/LibraryItemRow.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryItemRow.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryItemRow.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryItemRow.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryItemRow.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryItemRow.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryItemRow.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryItemRow.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryItemRow~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Features/Library/LibraryListView.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryListView.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryListView.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryListView.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryListView.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryListView.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryListView.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryListView.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryListView~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Features/Library/LibraryListViewModel.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryListViewModel.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryListViewModel.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryListViewModel.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryListViewModel.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryListViewModel.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryListViewModel.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryListViewModel.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LibraryListViewModel~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Features/Library/PracticeGuideEditorView.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PracticeGuideEditorView.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PracticeGuideEditorView.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PracticeGuideEditorView.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PracticeGuideEditorView.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PracticeGuideEditorView.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PracticeGuideEditorView.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PracticeGuideEditorView.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PracticeGuideEditorView~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Features/Library/PracticeGuideEditorViewModel.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PracticeGuideEditorViewModel.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PracticeGuideEditorViewModel.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PracticeGuideEditorViewModel.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PracticeGuideEditorViewModel.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PracticeGuideEditorViewModel.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PracticeGuideEditorViewModel.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PracticeGuideEditorViewModel.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PracticeGuideEditorViewModel~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Features/Library/PracticeGuideReaderView.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PracticeGuideReaderView.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PracticeGuideReaderView.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PracticeGuideReaderView.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PracticeGuideReaderView.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PracticeGuideReaderView.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PracticeGuideReaderView.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PracticeGuideReaderView.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PracticeGuideReaderView~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Features/Library/PracticeGuideReaderViewModel.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PracticeGuideReaderViewModel.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PracticeGuideReaderViewModel.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PracticeGuideReaderViewModel.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PracticeGuideReaderViewModel.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PracticeGuideReaderViewModel.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PracticeGuideReaderViewModel.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PracticeGuideReaderViewModel.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/PracticeGuideReaderViewModel~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Features/Library/SectionEditorSheet.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/SectionEditorSheet.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/SectionEditorSheet.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/SectionEditorSheet.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/SectionEditorSheet.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/SectionEditorSheet.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/SectionEditorSheet.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/SectionEditorSheet.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/SectionEditorSheet~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Features/Profile/ProfileView.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ProfileView.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ProfileView.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ProfileView.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ProfileView.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ProfileView.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ProfileView.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ProfileView.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ProfileView~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Resources/Localization.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/Localization.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/Localization.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/Localization.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/Localization.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/Localization.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/Localization.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/Localization.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/Localization~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Services/AuthService.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AuthService.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AuthService.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AuthService.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AuthService.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AuthService.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AuthService.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AuthService.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AuthService~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Services/AuthStateObserver.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AuthStateObserver.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AuthStateObserver.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AuthStateObserver.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AuthStateObserver.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AuthStateObserver.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AuthStateObserver.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AuthStateObserver.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/AuthStateObserver~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Services/ContentSyncService.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ContentSyncService.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ContentSyncService.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ContentSyncService.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ContentSyncService.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ContentSyncService.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ContentSyncService.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ContentSyncService.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/ContentSyncService~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Services/KeychainService.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/KeychainService.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/KeychainService.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/KeychainService.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/KeychainService.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/KeychainService.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/KeychainService.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/KeychainService.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/KeychainService~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Services/LocalizationService.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LocalizationService.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LocalizationService.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LocalizationService.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LocalizationService.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LocalizationService.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LocalizationService.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LocalizationService.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/LocalizationService~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/Services/VisibilityService.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/VisibilityService.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/VisibilityService.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/VisibilityService.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/VisibilityService.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/VisibilityService.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/VisibilityService.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/VisibilityService.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/VisibilityService~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/anyfleet/anyfleetApp.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/anyfleetApp.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/anyfleetApp.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/anyfleetApp.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/anyfleetApp.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/anyfleetApp.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/anyfleetApp.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/anyfleetApp.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/anyfleetApp~partial.swiftmodule"
+  },
+  "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/DerivedSources/GeneratedAssetSymbols.swift" : {
+    "const-values" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/GeneratedAssetSymbols.swiftconstvalues",
+    "dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/GeneratedAssetSymbols.d",
+    "diagnostics" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/GeneratedAssetSymbols.dia",
+    "index-unit-output-path" : "/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/GeneratedAssetSymbols.o",
+    "llvm-bc" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/GeneratedAssetSymbols.bc",
+    "object" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/GeneratedAssetSymbols.o",
+    "swift-dependencies" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/GeneratedAssetSymbols.swiftdeps",
+    "swiftmodule" : "/Users/dikology/repos/anyfleet/anyfleet/build/anyfleet.build/Debug-iphoneos/anyfleet.build/Objects-normal/arm64/GeneratedAssetSymbols~partial.swiftmodule"
+  }
+}

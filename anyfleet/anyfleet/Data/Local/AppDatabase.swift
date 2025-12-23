@@ -207,26 +207,26 @@ final class AppDatabase: Sendable {
             
             try db.create(table: "sync_queue") { t in
                 t.autoIncrementedPrimaryKey("id")
-                t.column("content_id", .text).notNull()
+                t.column("contentID", .text).notNull()
                 t.column("operation", .text).notNull()
-                t.column("visibility_state", .text).notNull()
+                t.column("visibilityState", .text).notNull()
                 t.column("payload", .text) // JSON
-                t.column("created_at", .datetime).notNull()
-                t.column("retry_count", .integer).notNull().defaults(to: 0)
-                t.column("last_error", .text)
-                t.column("synced_at", .datetime)
-                
-                t.foreignKey(["content_id"], references: "library_content", onDelete: .cascade)
+                t.column("createdAt", .datetime).notNull()
+                t.column("retryCount", .integer).notNull().defaults(to: 0)
+                t.column("lastError", .text)
+                t.column("syncedAt", .datetime)
+
+                t.foreignKey(["contentID"], references: "library_content", onDelete: .cascade)
             }
-            
+
             // Partial index for pending items only
             try db.execute(sql: """
-                CREATE INDEX idx_sync_queue_pending 
-                ON sync_queue(created_at) 
-                WHERE synced_at IS NULL
+                CREATE INDEX idx_sync_queue_pending
+                ON sync_queue(createdAt)
+                WHERE syncedAt IS NULL
             """)
-            
-            try db.create(index: "idx_sync_queue_content", on: "sync_queue", columns: ["content_id"])
+
+            try db.create(index: "idx_sync_queue_content", on: "sync_queue", columns: ["contentID"])
             
             AppLogger.database.info("Migration v1.6.0_createSyncQueueTable completed successfully")
         }
