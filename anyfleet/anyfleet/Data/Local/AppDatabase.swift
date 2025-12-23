@@ -201,6 +201,35 @@ final class AppDatabase: Sendable {
             
             AppLogger.database.info("Migration v1.5.0_addVisibilityFields completed successfully")
         }
+
+        migrator.registerMigration("v1.6.0_createSyncQueueTable") { db in
+            AppLogger.database.debug("Running migration: v1.6.0_createSyncQueueTable")
+            
+            try db.create(table: "sync_queue") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("contentID", .text).notNull()
+                t.column("operation", .text).notNull()
+                t.column("visibilityState", .text).notNull()
+                t.column("payload", .text) // JSON
+                t.column("createdAt", .datetime).notNull()
+                t.column("retryCount", .integer).notNull().defaults(to: 0)
+                t.column("lastError", .text)
+                t.column("syncedAt", .datetime)
+
+                t.foreignKey(["contentID"], references: "library_content", onDelete: .cascade)
+            }
+
+            // Partial index for pending items only
+            try db.execute(sql: """
+                CREATE INDEX idx_sync_queue_pending
+                ON sync_queue(createdAt)
+                WHERE syncedAt IS NULL
+            """)
+
+            try db.create(index: "idx_sync_queue_content", on: "sync_queue", columns: ["contentID"])
+            
+            AppLogger.database.info("Migration v1.6.0_createSyncQueueTable completed successfully")
+        }
         
         return migrator
     }

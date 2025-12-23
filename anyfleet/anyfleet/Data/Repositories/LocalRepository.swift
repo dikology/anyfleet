@@ -579,3 +579,65 @@ extension LocalRepository {
         }
     }
 }
+
+// MARK: - Sync Queue Operations
+
+extension LocalRepository {
+    /// Enqueue a sync operation
+    func enqueueSyncOperation(
+        contentID: UUID,
+        operation: SyncOperation,
+        visibility: ContentVisibility,
+        payload: Data?
+    ) async throws {
+        try await database.dbWriter.write { db in
+            try SyncQueueRecord.enqueue(
+                contentID: contentID,
+                operation: operation,
+                visibility: visibility,
+                payload: payload,
+                db: db
+            )
+        }
+    }
+    
+    /// Get pending sync operations
+    func getPendingSyncOperations(maxRetries: Int) async throws -> [SyncQueueOperation] {
+        try await database.dbWriter.read { db in
+            let records = try SyncQueueRecord.fetchPending(maxRetries: maxRetries, db: db)
+            return records.map { record in
+                SyncQueueOperation(
+                    id: record.id!,
+                    contentID: UUID(uuidString: record.contentID)!,
+                    operation: SyncOperation(rawValue: record.operation)!,
+                    visibility: ContentVisibility(rawValue: record.visibilityState)!,
+                    payload: record.payload?.data(using: .utf8),
+                    retryCount: record.retryCount,
+                    lastError: record.lastError,
+                    createdAt: record.createdAt
+                )
+            }
+        }
+    }
+    
+    /// Mark operation as synced
+    func markSyncOperationComplete(_ operationID: Int64) async throws {
+        try await database.dbWriter.write { db in
+            try SyncQueueRecord.markSynced(id: operationID, db: db)
+        }
+    }
+    
+    /// Increment retry count
+    func incrementSyncRetryCount(_ operationID: Int64, error: String) async throws {
+        try await database.dbWriter.write { db in
+            try SyncQueueRecord.incrementRetry(id: operationID, error: error, db: db)
+        }
+    }
+    
+    /// Get sync queue counts
+    func getSyncQueueCounts() async throws -> (pending: Int, failed: Int) {
+        try await database.dbWriter.read { db in
+            try SyncQueueRecord.getCounts(db: db)
+        }
+    }
+}

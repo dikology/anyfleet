@@ -15,7 +15,9 @@ import OSLog
 final class VisibilityService {
     private let libraryStore: LibraryStore
     private let authService: AuthService
-    
+
+    private let syncService: ContentSyncService
+
     /// Errors that can occur during publishing operations
     enum PublishError: LocalizedError {
         case notAuthenticated
@@ -49,10 +51,12 @@ final class VisibilityService {
     
     init(
         libraryStore: LibraryStore,
-        authService: AuthService
+        authService: AuthService,
+        syncService: ContentSyncService
     ) {
         self.libraryStore = libraryStore
         self.authService = authService
+        self.syncService = syncService
         AppLogger.auth.debug("VisibilityService initialized")
     }
     
@@ -156,6 +160,12 @@ final class VisibilityService {
             // Save to local database
             try await libraryStore.updateLibraryMetadata(updated)
             
+            let payload = try await encodeContentForSync(updated)
+            try await syncService.enqueuePublish(
+                contentID: updated.id,
+                visibility: .public,
+                payload: payload
+            )
             AppLogger.auth.completeOperation("Publish Content")
             AppLogger.auth.info("Content published successfully: \(item.id)")
         } catch {
@@ -197,6 +207,12 @@ final class VisibilityService {
             // Save to local database
             try await libraryStore.updateLibraryMetadata(updated)
             
+            if let publicID = item.publicID {
+                try await syncService.enqueueUnpublish(
+                    contentID: updated.id,
+                    publicID: publicID
+                )
+            }
             AppLogger.auth.completeOperation("Unpublish Content")
             AppLogger.auth.info("Content unpublished successfully: \(item.id)")
         } catch {
@@ -223,5 +239,83 @@ final class VisibilityService {
         
         AppLogger.auth.completeOperation("Make Unlisted")
     }
+    
+    private func encodeContentForSync(_ item: LibraryModel) async throws -> Data {
+            // Fetch full content based on type
+            let payload: ContentPublishPayload
+            
+            switch item.type {
+            case .checklist:
+                guard let checklist = try await libraryStore.fetchChecklist(item.id) else {
+                    throw PublishError.validationError("Checklist not found")
+                }
+                payload = ContentPublishPayload(
+                    title: item.title,
+                    description: item.description,
+                    contentType: "checklist",
+                    contentData: try encodeChecklist(checklist),
+                    tags: item.tags,
+                    language: item.language
+                )
+                
+            case .practiceGuide:
+                guard let guide = try await libraryStore.fetchGuide(item.id) else {
+                    throw PublishError.validationError("Guide not found")
+                }
+                payload = ContentPublishPayload(
+                    title: item.title,
+                    description: item.description,
+                    contentType: "practice_guide",
+                    contentData: try encodeGuide(guide),
+                    tags: item.tags,
+                    language: item.language
+                )
+                
+            case .flashcardDeck:
+                throw PublishError.validationError("Flashcard decks not yet supported")
+            }
+            
+            return try JSONEncoder().encode(payload)
+        }
+        
+        private func encodeChecklist(_ checklist: Checklist) throws -> [String: Any] {
+            // Convert Checklist to JSON-serializable dict
+            let data = try JSONEncoder().encode(checklist)
+            let json = try JSONSerialization.jsonObject(with: data)
+            return json as! [String: Any]
+        }
+        
+        private func encodeGuide(_ guide: PracticeGuide) throws -> [String: Any] {
+            let data = try JSONEncoder().encode(guide)
+            let json = try JSONSerialization.jsonObject(with: data)
+            return json as! [String: Any]
+        }
 }
 
+struct ContentPublishPayload: Encodable {
+    let title: String
+    let description: String?
+    let contentType: String
+    let contentData: [String: Any]
+    let tags: [String]
+    let language: String
+    
+    enum CodingKeys: String, CodingKey {
+        case title, description, contentType = "content_type"
+        case contentData = "content_data", tags, language
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(title, forKey: .title)
+        try container.encodeIfPresent(description, forKey: .description)
+        try container.encode(contentType, forKey: .contentType)
+        try container.encode(tags, forKey: .tags)
+        try container.encode(language, forKey: .language)
+        
+        // Encode contentData as nested JSON
+        let jsonData = try JSONSerialization.data(withJSONObject: contentData)
+        let jsonString = String(data: jsonData, encoding: .utf8)!
+        try container.encode(jsonString, forKey: .contentData)
+    }
+}
