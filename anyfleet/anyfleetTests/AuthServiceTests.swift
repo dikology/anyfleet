@@ -48,8 +48,18 @@ struct AuthServiceTests {
         #expect(type(of: service1.isAuthenticated) == Bool.self)
     }
     
+    @Test("AuthService conforms to AuthServiceProtocol")
+    func testAuthServiceProtocolConformance() {
+        // Arrange
+        let authService = AuthService.shared
+
+        // Act & Assert - Should be able to use as protocol
+        let protocolService: AuthServiceProtocol = authService
+        #expect(protocolService != nil)
+    }
+
     // MARK: - Error Conversion Tests
-    
+
     @Test("Error conversion - AuthError to AppError")
     func testErrorConversion_AuthError() {
         let authError = AuthError.invalidToken

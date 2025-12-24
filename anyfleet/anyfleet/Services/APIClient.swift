@@ -1,14 +1,37 @@
 import Foundation
 
+/// Protocol for authentication service functionality needed by APIClient
+protocol AuthServiceProtocol {
+    var isAuthenticated: Bool { get }
+    var currentUser: UserInfo? { get }
+    func getAccessToken() async throws -> String
+}
+
+/// Protocol for API client functionality for testing
+protocol APIClientProtocol {
+    func publishContent(
+        title: String,
+        description: String?,
+        contentType: String,
+        contentData: [String: Any],
+        tags: [String],
+        language: String,
+        publicID: String,
+        canFork: Bool
+    ) async throws -> PublishContentResponse
+
+    func unpublishContent(publicID: String) async throws
+}
+
 /// API client for authenticated requests to backend
-final class APIClient {
+final class APIClient: APIClientProtocol {
     private let baseURL: URL
-    private let authService: AuthService
+    private let authService: AuthServiceProtocol
     private let session: URLSession
     private let decoder: JSONDecoder
     private let encoder: JSONEncoder
-    
-    init(authService: AuthService) {
+
+    init(authService: AuthServiceProtocol) {
         // Environment-based URL
         #if DEBUG
         self.baseURL = URL(string: "http://127.0.0.1:8000/api/v1")!

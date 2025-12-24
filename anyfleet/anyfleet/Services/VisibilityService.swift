@@ -14,7 +14,7 @@ import OSLog
 @Observable
 final class VisibilityService {
     private let libraryStore: LibraryStore
-    private let authService: AuthService
+    private let authService: AuthServiceProtocol
 
     private let syncService: ContentSyncService
 
@@ -51,7 +51,7 @@ final class VisibilityService {
     
     init(
         libraryStore: LibraryStore,
-        authService: AuthService,
+        authService: AuthServiceProtocol,
         syncService: ContentSyncService
     ) {
         self.libraryStore = libraryStore

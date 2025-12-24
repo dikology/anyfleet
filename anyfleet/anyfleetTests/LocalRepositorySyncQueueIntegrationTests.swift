@@ -677,4 +677,227 @@ struct LocalRepositorySyncQueueIntegrationTests {
         #expect(operation.createdAt >= beforeEnqueue)
         #expect(operation.createdAt <= afterEnqueue)
     }
+
+    @Test("Enqueue publish operation with ContentPublishPayload")
+    func testEnqueuePublishOperationWithContentPayload() async throws {
+        // Arrange
+        let repository = try makeRepository()
+        let contentID = UUID()
+
+        // Create ContentPublishPayload
+        let payload = ContentPublishPayload(
+            title: "Payload Test Checklist",
+            description: "Test checklist with complex payload",
+            contentType: "checklist",
+            contentData: [
+                "id": "payload-test-123",
+                "title": "Payload Test Checklist",
+                "sections": [
+                    [
+                        "id": "section-1",
+                        "title": "Test Section",
+                        "items": [
+                            ["id": "item-1", "title": "Test Item", "isCompleted": false]
+                        ]
+                    ]
+                ],
+                "tags": ["payload", "test"],
+                "checklistType": "general",
+                "createdAt": "2024-12-24T10:00:00Z",
+                "updatedAt": "2024-12-24T10:00:00Z",
+                "syncStatus": "pending"
+            ],
+            tags: ["payload", "integration"],
+            language: "en",
+            publicID: "payload-test-checklist-abc123"
+        )
+
+        let encoder = JSONEncoder()
+        let payloadData = try encoder.encode(payload)
+
+        // Create library content record
+        let libraryModel = LibraryModel(
+            id: contentID,
+            title: "Payload Test Checklist",
+            description: "Test checklist with complex payload",
+            type: .checklist,
+            visibility: .private,
+            creatorID: UUID(),
+            tags: ["payload", "integration"],
+            language: "en",
+            createdAt: Date(),
+            updatedAt: Date(),
+            syncStatus: .pending
+        )
+        try await repository.updateLibraryMetadata(libraryModel)
+
+        // Act
+        try await repository.enqueueSyncOperation(
+            contentID: contentID,
+            operation: .publish,
+            visibility: .public,
+            payload: payloadData
+        )
+
+        // Assert
+        let pending = try await repository.getPendingSyncOperations(maxRetries: 3)
+        #expect(pending.count == 1)
+
+        let operation = pending[0]
+        #expect(operation.operation == .publish)
+        #expect(operation.contentID == contentID)
+        #expect(operation.payload != nil)
+
+        // Verify payload can be decoded back
+        let decoder = JSONDecoder()
+        let decodedPayload = try decoder.decode(ContentPublishPayload.self, from: operation.payload!)
+
+        #expect(decodedPayload.title == "Payload Test Checklist")
+        #expect(decodedPayload.contentType == "checklist")
+        #expect(decodedPayload.publicID == "payload-test-checklist-abc123")
+        #expect(decodedPayload.tags == ["payload", "integration"])
+
+        // Verify contentData structure
+        let contentData = decodedPayload.contentData
+        #expect(contentData["id"] as? String == "payload-test-123")
+        #expect(contentData["tags"] as? [String] == ["payload", "test"])
+        #expect(contentData["sections"] as? [[String: Any]] != nil)
+    }
+
+    @Test("Enqueue unpublish operation with UnpublishPayload")
+    func testEnqueueUnpublishOperationWithUnpublishPayload() async throws {
+        // Arrange
+        let repository = try makeRepository()
+        let contentID = UUID()
+        let publicID = "test-unpublish-payload-456"
+
+        // Create UnpublishPayload
+        let unpublishPayload = UnpublishPayload(publicID: publicID)
+        let encoder = JSONEncoder()
+        let payloadData = try encoder.encode(unpublishPayload)
+
+        // Create library content record
+        let libraryModel = LibraryModel(
+            id: contentID,
+            title: "Unpublish Payload Test",
+            type: .checklist,
+            visibility: .public, // Must be public to unpublish
+            creatorID: UUID(),
+            tags: [],
+            language: "en",
+            createdAt: Date(),
+            updatedAt: Date(),
+            syncStatus: .synced,
+            publishedAt: Date(),
+            publicID: publicID
+        )
+        try await repository.updateLibraryMetadata(libraryModel)
+
+        // Act
+        try await repository.enqueueSyncOperation(
+            contentID: contentID,
+            operation: .unpublish,
+            visibility: .private,
+            payload: payloadData
+        )
+
+        // Assert
+        let pending = try await repository.getPendingSyncOperations(maxRetries: 3)
+        #expect(pending.count == 1)
+
+        let operation = pending[0]
+        #expect(operation.operation == .unpublish)
+        #expect(operation.contentID == contentID)
+        #expect(operation.payload != nil)
+
+        // Verify payload can be decoded back
+        let decoder = JSONDecoder()
+        let decodedPayload = try decoder.decode(UnpublishPayload.self, from: operation.payload!)
+
+        #expect(decodedPayload.publicID == publicID)
+    }
+
+    @Test("Sync queue payload encoding/decoding consistency")
+    func testSyncQueuePayloadEncodingConsistency() async throws {
+        // Arrange
+        let repository = try makeRepository()
+        let contentID = UUID()
+
+        // Create original payload
+        let originalPayload = ContentPublishPayload(
+            title: "Encoding Consistency Test",
+            description: "Test that encoding/decoding preserves data",
+            contentType: "checklist",
+            contentData: [
+                "id": "consistency-test-789",
+                "title": "Encoding Consistency Test",
+                "sections": [],
+                "tags": ["consistency"],
+                "checklistType": "general",
+                "createdAt": "2024-12-24T12:00:00Z",
+                "updatedAt": "2024-12-24T12:00:00Z",
+                "syncStatus": "pending"
+            ],
+            tags: ["test", "consistency"],
+            language: "en",
+            publicID: "consistency-test-def456"
+        )
+
+        // Encode to JSON
+        let encoder = JSONEncoder()
+        let jsonData = try encoder.encode(originalPayload)
+
+        // Verify JSON structure (should use snake_case)
+        let jsonString = String(data: jsonData, encoding: .utf8)!
+        #expect(jsonString.contains("\"title\":\"Encoding Consistency Test\""))
+        #expect(jsonString.contains("\"content_type\":\"checklist\""))
+        #expect(jsonString.contains("\"public_id\":\"consistency-test-def456\""))
+        #expect(jsonString.contains("\"content_data\":{"))
+
+        // Create library content
+        let libraryModel = LibraryModel(
+            id: contentID,
+            title: "Encoding Consistency Test",
+            description: "Test that encoding/decoding preserves data",
+            type: .checklist,
+            visibility: .private,
+            creatorID: UUID(),
+            tags: ["test", "consistency"],
+            language: "en",
+            createdAt: Date(),
+            updatedAt: Date(),
+            syncStatus: .pending
+        )
+        try await repository.updateLibraryMetadata(libraryModel)
+
+        // Act - Store in sync queue
+        try await repository.enqueueSyncOperation(
+            contentID: contentID,
+            operation: .publish,
+            visibility: .public,
+            payload: jsonData
+        )
+
+        // Retrieve from sync queue
+        let pending = try await repository.getPendingSyncOperations(maxRetries: 3)
+        #expect(pending.count == 1)
+        let retrievedData = pending[0].payload!
+
+        // Assert - Decode retrieved data matches original
+        let decoder = JSONDecoder()
+        let retrievedPayload = try decoder.decode(ContentPublishPayload.self, from: retrievedData)
+
+        #expect(retrievedPayload.title == originalPayload.title)
+        #expect(retrievedPayload.description == originalPayload.description)
+        #expect(retrievedPayload.contentType == originalPayload.contentType)
+        #expect(retrievedPayload.publicID == originalPayload.publicID)
+        #expect(retrievedPayload.tags == originalPayload.tags)
+        #expect(retrievedPayload.language == originalPayload.language)
+
+        // Verify contentData is preserved
+        let originalContentData = originalPayload.contentData
+        let retrievedContentData = retrievedPayload.contentData
+        #expect(retrievedContentData["id"] as? String == originalContentData["id"] as? String)
+        #expect(retrievedContentData["tags"] as? [String] == originalContentData["tags"] as? [String])
+    }
 }

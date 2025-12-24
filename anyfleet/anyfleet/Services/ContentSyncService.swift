@@ -6,20 +6,20 @@ import OSLog
 @Observable
 final class ContentSyncService {
     private let repository: LocalRepository
-    private let apiClient: APIClient
+    private let apiClient: APIClientProtocol
     private let libraryStore: LibraryStore
-    
+
     // Configuration
     private let maxRetries = 3
-    
+
     // State
     var isSyncing = false
     var pendingCount: Int = 0
     var failedCount: Int = 0
-    
+
     init(
         repository: LocalRepository,
-        apiClient: APIClient,
+        apiClient: APIClientProtocol,
         libraryStore: LibraryStore
     ) {
         self.repository = repository
@@ -157,7 +157,7 @@ final class ContentSyncService {
         return summary
     }
 
-    private func processOperation(_ operation: SyncQueueOperation, apiClient: APIClient) async throws {
+    private func processOperation(_ operation: SyncQueueOperation, apiClient: APIClientProtocol) async throws {
         switch operation.operation {
         case .publish:
             try await handlePublish(operation, apiClient: apiClient)
@@ -166,7 +166,7 @@ final class ContentSyncService {
         }
     }
 
-    private func handlePublish(_ operation: SyncQueueOperation, apiClient: APIClient) async throws {
+    private func handlePublish(_ operation: SyncQueueOperation, apiClient: APIClientProtocol) async throws {
         guard let payload = operation.payload else {
             throw SyncError.invalidPayload
         }
@@ -222,7 +222,7 @@ final class ContentSyncService {
         try await libraryStore.updateLibraryMetadata(item)
     }
 
-    private func handleUnpublish(_ operation: SyncQueueOperation, apiClient: APIClient) async throws {
+    private func handleUnpublish(_ operation: SyncQueueOperation, apiClient: APIClientProtocol) async throws {
         // Get publicID from payload, not from item
         guard let payloadData = operation.payload else {
             throw SyncError.invalidPayload
