@@ -21,11 +21,11 @@ final class APIClient {
         
         self.decoder = JSONDecoder()
         self.decoder.dateDecodingStrategy = .iso8601
-        self.decoder.keyDecodingStrategy = .convertFromSnakeCase
+        self.decoder.keyDecodingStrategy = .convertFromSnakeCase  // Keep for responses
         
         self.encoder = JSONEncoder()
         self.encoder.dateEncodingStrategy = .iso8601
-        self.encoder.keyEncodingStrategy = .convertToSnakeCase
+        // REMOVED: keyEncodingStrategy - we use explicit CodingKeys instead
     }
     
     // MARK: - Content Endpoints
@@ -200,9 +200,12 @@ struct PublishContentRequest: Encodable {
     let canFork: Bool
 
     enum CodingKeys: String, CodingKey {
-        case title, description, tags, language
+        case title
+        case description
         case contentType = "content_type"
         case contentData = "content_data"
+        case tags
+        case language
         case publicID = "public_id"
         case canFork = "can_fork"
     }
@@ -217,7 +220,7 @@ struct PublishContentRequest: Encodable {
         try container.encode(publicID, forKey: .publicID)
         try container.encode(canFork, forKey: .canFork)
         
-        // Encode contentData as nested JSON
+        // Encode contentData as nested JSON object (same as SyncPayloads)
         let jsonData = try JSONSerialization.data(withJSONObject: contentData)
         let decoder = JSONDecoder()
         let json = try decoder.decode(AnyCodable.self, from: jsonData)
@@ -233,55 +236,7 @@ struct PublishContentResponse: Codable {
     let canFork: Bool
 }
 
-// Helper for dynamic JSON
-struct AnyCodable: Codable {
-    let value: Any
-    
-    init(_ value: Any) {
-        self.value = value
-    }
-    
-    init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        
-        if let int = try? container.decode(Int.self) {
-            value = int
-        } else if let double = try? container.decode(Double.self) {
-            value = double
-        } else if let string = try? container.decode(String.self) {
-            value = string
-        } else if let bool = try? container.decode(Bool.self) {
-            value = bool
-        } else if let array = try? container.decode([AnyCodable].self) {
-            value = array.map { $0.value }
-        } else if let dict = try? container.decode([String: AnyCodable].self) {
-            value = dict.mapValues { $0.value }
-        } else {
-            value = NSNull()
-        }
-    }
-    
-    func encode(to encoder: Encoder) throws {
-        var container = encoder.singleValueContainer()
-        
-        switch value {
-        case let int as Int:
-            try container.encode(int)
-        case let double as Double:
-            try container.encode(double)
-        case let string as String:
-            try container.encode(string)
-        case let bool as Bool:
-            try container.encode(bool)
-        case let array as [Any]:
-            try container.encode(array.map { AnyCodable($0) })
-        case let dict as [String: Any]:
-            try container.encode(dict.mapValues { AnyCodable($0) })
-        default:
-            try container.encodeNil()
-        }
-    }
-}
+// AnyCodable is now defined in SyncPayloads.swift and shared across the module
 
 enum APIError: LocalizedError {
     case unauthorized

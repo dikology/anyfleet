@@ -59,11 +59,15 @@ final class ContentSyncService {
     ) async throws {
         AppLogger.auth.info("Enqueuing unpublish operation for content: \(contentID)")
         
+        // Create payload with publicID
+        let unpublishPayload = UnpublishPayload(publicID: publicID)
+        let payloadData = try JSONEncoder().encode(unpublishPayload)
+        
         try await repository.enqueueSyncOperation(
             contentID: contentID,
             operation: .unpublish,
             visibility: .private,
-            payload: nil
+            payload: payloadData
         )
         
         await updateSyncState(contentID: contentID, status: .queued)
@@ -172,10 +176,10 @@ final class ContentSyncService {
             AppLogger.auth.debug("Decoding payload for publish operation: \(payloadString)")
         }
 
-        let contentPayload: ContentPublishPayload
+        // Remove decoder strategy - use explicit CodingKeys
         let decoder = JSONDecoder()
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
-
+        
+        let contentPayload: ContentPublishPayload
         do {
             contentPayload = try decoder.decode(ContentPublishPayload.self, from: payload)
         } catch let decodingError as DecodingError {
@@ -219,10 +223,12 @@ final class ContentSyncService {
     }
 
     private func handleUnpublish(_ operation: SyncQueueOperation, apiClient: APIClient) async throws {
-        guard let item = libraryStore.library.first(where: { $0.id == operation.contentID }),
-            let publicID = item.publicID else {
-            throw SyncError.missingPublicID
+        // Get publicID from payload, not from item
+        guard let payloadData = operation.payload else {
+            throw SyncError.invalidPayload
         }
+        
+        let unpublishPayload = try JSONDecoder().decode(UnpublishPayload.self, from: payloadData)
 
         // Check if this content was ever successfully published by looking for completed publish operations
         let hasSuccessfulPublish = try? await repository.hasSuccessfulPublishOperation(for: operation.contentID)
@@ -234,8 +240,8 @@ final class ContentSyncService {
             return
         }
 
-        // Call backend API
-        try await apiClient.unpublishContent(publicID: publicID)
+        // Use publicID from payload
+        try await apiClient.unpublishContent(publicID: unpublishPayload.publicID)
 
         // Update local model
         if var updated = libraryStore.library.first(where: { $0.id == operation.contentID }) {
