@@ -65,29 +65,12 @@ struct ContentPublishPayload: Codable {
     
     init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        
-        // Debug: Check what keys are available
-        let allKeys = container.allKeys.map { $0.stringValue }.joined(separator: ", ")
-        print("DEBUG: Available keys in container: \(allKeys)")
-        
         title = try container.decode(String.self, forKey: .title)
         description = try container.decodeIfPresent(String.self, forKey: .description)
         contentType = try container.decode(String.self, forKey: .contentType)
         tags = try container.decode([String].self, forKey: .tags)
         language = try container.decode(String.self, forKey: .language)
-        
-        // Debug: Check if publicID key exists
-        if container.contains(.publicID) {
-            print("DEBUG: publicID key found in container")
-            publicID = try container.decode(String.self, forKey: .publicID)
-        } else {
-            print("DEBUG: publicID key NOT found in container")
-            print("DEBUG: CodingKey .publicID has stringValue: \(CodingKeys.publicID.stringValue)")
-            throw DecodingError.keyNotFound(
-                CodingKeys.publicID,
-                DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "publicID key not found in payload")
-            )
-        }
+        publicID = try container.decode(String.self, forKey: .publicID)
         
         // Decode contentData as nested JSON object
         let json = try container.decode(AnyCodable.self, forKey: .contentData)

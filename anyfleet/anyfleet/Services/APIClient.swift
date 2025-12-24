@@ -21,7 +21,7 @@ final class APIClient {
         
         self.decoder = JSONDecoder()
         self.decoder.dateDecodingStrategy = .iso8601
-        self.decoder.keyDecodingStrategy = .convertFromSnakeCase  // Keep for responses
+        // REMOVED: keyDecodingStrategy - we use explicit CodingKeys everywhere
         
         self.encoder = JSONEncoder()
         self.encoder.dateEncodingStrategy = .iso8601
@@ -234,6 +234,14 @@ struct PublishContentResponse: Codable {
     let publishedAt: Date
     let authorUsername: String?
     let canFork: Bool
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case publicID = "public_id"
+        case publishedAt = "published_at"
+        case authorUsername = "author_username"
+        case canFork = "can_fork"
+    }
 }
 
 // AnyCodable is now defined in SyncPayloads.swift and shared across the module

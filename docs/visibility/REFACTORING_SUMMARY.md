@@ -30,7 +30,9 @@ I've completely refactored the sync service to fix all payload encoding/decoding
 
 4. **`APIClient.swift`**
    - ✅ Removed `encoder.keyEncodingStrategy = .convertToSnakeCase`
+   - ✅ Removed `decoder.keyDecodingStrategy = .convertFromSnakeCase`
    - ✅ Updated `PublishContentRequest` - explicit CodingKeys only
+   - ✅ Updated `PublishContentResponse` - explicit CodingKeys added
    - ✅ ContentData encoded as JSON object (not string!)
 
 ### Documentation Created
@@ -92,17 +94,18 @@ decoder.keyDecodingStrategy = .convertFromSnakeCase
 
 **After:**
 ```swift
-// No encoder strategy!
-// No decoder strategy!
+// ✅ No encoder strategy!
+// ✅ No decoder strategy!
+// ✅ Explicit CodingKeys everywhere - requests AND responses
 
-// Explicit CodingKeys in each struct
+// In every struct (requests and responses):
 enum CodingKeys: String, CodingKey {
     case publicID = "public_id"
     case contentType = "content_type"
     case contentData = "content_data"
 }
 
-// Result: Explicit, predictable, consistent
+// Result: Explicit, predictable, consistent everywhere
 ```
 
 ### 2. ContentData as JSON Object (Not String)

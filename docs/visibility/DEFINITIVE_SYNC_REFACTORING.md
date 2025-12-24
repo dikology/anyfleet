@@ -466,7 +466,7 @@ struct PublishContentRequest: Encodable {
 }
 ```
 
-**Update** APIClient init - remove encoder strategy:
+**Update** APIClient init - remove both encoder and decoder strategies:
 
 ```swift
 init(authService: AuthService) {
@@ -474,12 +474,31 @@ init(authService: AuthService) {
     
     self.decoder = JSONDecoder()
     self.decoder.dateDecodingStrategy = .iso8601
-    self.decoder.keyDecodingStrategy = .convertFromSnakeCase  // ✅ Keep for responses
+    // ✅ REMOVED: keyDecodingStrategy - we use explicit CodingKeys everywhere
     
     self.encoder = JSONEncoder()
     self.encoder.dateEncodingStrategy = .iso8601
-    // ✅ REMOVE: self.encoder.keyEncodingStrategy = .convertToSnakeCase
-    // We use explicit CodingKeys instead
+    // ✅ REMOVED: keyEncodingStrategy - we use explicit CodingKeys everywhere
+}
+```
+
+**Add** explicit CodingKeys to `PublishContentResponse`:
+
+```swift
+struct PublishContentResponse: Codable {
+    let id: UUID
+    let publicID: String
+    let publishedAt: Date
+    let authorUsername: String?
+    let canFork: Bool
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case publicID = "public_id"
+        case publishedAt = "published_at"
+        case authorUsername = "author_username"
+        case canFork = "can_fork"
+    }
 }
 ```
 
