@@ -55,7 +55,13 @@ final class AuthService: AuthServiceProtocol {
     var isAuthenticated = false
     var currentUser: UserInfo?
     
-    private let baseURL = "http://localhost:8000/api/v1"
+    private let baseURL: String = {
+        #if targetEnvironment(simulator)
+        return "http://127.0.0.1:8000/api/v1"
+        #else
+        return "https://elegant-empathy-production-583b.up.railway.app/api/v1"
+        #endif
+    }()
     private let keychain = KeychainService.shared
     
     private init() {

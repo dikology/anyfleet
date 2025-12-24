@@ -35,10 +35,10 @@ final class APIClient: APIClientProtocol {
 
     init(authService: AuthServiceProtocol) {
         // Environment-based URL
-        #if DEBUG
+        #if targetEnvironment(simulator)
         self.baseURL = URL(string: "http://127.0.0.1:8000/api/v1")!
         #else
-        self.baseURL = URL(string: "https://api.anyfleet.app/api/v1")!
+        self.baseURL = URL(string: "https://elegant-empathy-production-583b.up.railway.app/api/v1")!
         #endif
         
         self.authService = authService
