@@ -198,7 +198,7 @@ struct PublishContentRequest: Encodable {
     let language: String
     let publicID: String
     let canFork: Bool
-    
+
     enum CodingKeys: String, CodingKey {
         case title, description, tags, language
         case contentType = "content_type"

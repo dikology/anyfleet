@@ -59,8 +59,7 @@ struct PublishActionView: View {
                 .foregroundColor(isSignedIn ? .white : DesignSystem.Colors.textSecondary)
                 .cornerRadius(8)
             }
-            .disabled(!isSignedIn)
-            .opacity(isSignedIn ? 1.0 : 0.5)
+            .opacity(isSignedIn ? 1.0 : 0.7)
             .buttonStyle(PlainButtonStyle())
         }
     }

@@ -640,4 +640,41 @@ extension LocalRepository {
             try SyncQueueRecord.getCounts(db: db)
         }
     }
+
+    /// Check if there's a successful publish operation for the given content ID
+    func hasSuccessfulPublishOperation(for contentID: UUID) async throws -> Bool {
+        try await database.dbWriter.read { db in
+            try SyncQueueRecord
+                .filter(SyncQueueRecord.Columns.contentID == contentID.uuidString)
+                .filter(SyncQueueRecord.Columns.operation == SyncOperation.publish.rawValue)
+                .filter(SyncQueueRecord.Columns.syncedAt != nil)
+                .fetchCount(db) > 0
+        }
+    }
+
+    /// Cancel pending operations for the given content ID and operation type
+    func cancelPendingOperations(contentID: UUID, operation: SyncOperation) async throws {
+        try await database.dbWriter.write { db in
+            try SyncQueueRecord
+                .filter(SyncQueueRecord.Columns.contentID == contentID.uuidString)
+                .filter(SyncQueueRecord.Columns.operation == operation.rawValue)
+                .filter(SyncQueueRecord.Columns.syncedAt == nil)
+                .deleteAll(db)
+        }
+    }
+
+    /// Cancel all pending operations for the given content ID (except the current operation)
+    func cancelDuplicateOperations(for contentID: UUID, excluding operationID: Int64? = nil) async throws {
+        try await database.dbWriter.write { db in
+            var query = SyncQueueRecord
+                .filter(SyncQueueRecord.Columns.contentID == contentID.uuidString)
+                .filter(SyncQueueRecord.Columns.syncedAt == nil)
+
+            if let operationID = operationID {
+                query = query.filter(SyncQueueRecord.Columns.id != operationID)
+            }
+
+            try query.deleteAll(db)
+        }
+    }
 }

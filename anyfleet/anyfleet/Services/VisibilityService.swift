@@ -249,18 +249,25 @@ final class VisibilityService {
                 guard let checklist = try await libraryStore.fetchChecklist(item.id) else {
                     throw PublishError.validationError("Checklist not found")
                 }
+                guard let publicID = item.publicID else {
+                    throw PublishError.validationError("Missing public ID")
+                }
                 payload = ContentPublishPayload(
                     title: item.title,
                     description: item.description,
                     contentType: "checklist",
                     contentData: try encodeChecklist(checklist),
                     tags: item.tags,
-                    language: item.language
+                    language: item.language,
+                    publicID: publicID
                 )
                 
             case .practiceGuide:
                 guard let guide = try await libraryStore.fetchGuide(item.id) else {
                     throw PublishError.validationError("Guide not found")
+                }
+                guard let publicID = item.publicID else {
+                    throw PublishError.validationError("Missing public ID")
                 }
                 payload = ContentPublishPayload(
                     title: item.title,
@@ -268,7 +275,8 @@ final class VisibilityService {
                     contentType: "practice_guide",
                     contentData: try encodeGuide(guide),
                     tags: item.tags,
-                    language: item.language
+                    language: item.language,
+                    publicID: publicID
                 )
                 
             case .flashcardDeck:
@@ -299,19 +307,20 @@ struct ContentPublishPayload: Codable {
     let contentData: [String: Any]
     let tags: [String]
     let language: String
-    
+    let publicID: String
+
     enum CodingKeys: String, CodingKey {
-        case title, description, contentType = "content_type"
-        case contentData = "content_data", tags, language
+        case title, description, contentType, contentData, tags, language, publicID
     }
 
-    init(title: String, description: String?, contentType: String, contentData: [String: Any], tags: [String], language: String) {
+    init(title: String, description: String?, contentType: String, contentData: [String: Any], tags: [String], language: String, publicID: String) {
         self.title = title
         self.description = description
         self.contentType = contentType
         self.contentData = contentData
         self.tags = tags
         self.language = language
+        self.publicID = publicID
     }
     
     func encode(to encoder: Encoder) throws {
@@ -321,7 +330,8 @@ struct ContentPublishPayload: Codable {
         try container.encode(contentType, forKey: .contentType)
         try container.encode(tags, forKey: .tags)
         try container.encode(language, forKey: .language)
-        
+        try container.encode(publicID, forKey: .publicID)
+
         // Encode contentData as nested JSON
         let jsonData = try JSONSerialization.data(withJSONObject: contentData)
         let jsonString = String(data: jsonData, encoding: .utf8)!
@@ -335,6 +345,7 @@ struct ContentPublishPayload: Codable {
         contentType = try container.decode(String.self, forKey: .contentType)
         tags = try container.decode([String].self, forKey: .tags)
         language = try container.decode(String.self, forKey: .language)
+        publicID = try container.decode(String.self, forKey: .publicID)
 
         // Decode contentData from nested JSON string
         let jsonString = try container.decode(String.self, forKey: .contentData)

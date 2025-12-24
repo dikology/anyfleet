@@ -115,16 +115,19 @@ final class ContentSyncService {
                 // Mark as synced
                 try await repository.markSyncOperationComplete(operation.id)
                 await updateSyncState(contentID: operation.contentID, status: .synced)
-                
+
+                // Clean up any duplicate pending operations for this content
+                try? await repository.cancelDuplicateOperations(for: operation.contentID, excluding: operation.id)
+
                 AppLogger.auth.info("Sync succeeded for content: \(operation.contentID)")
                 
             } catch {
                 summary.failed += 1
                 AppLogger.auth.error("Sync failed for content: \(operation.contentID), error: \(error)")
-                
+
                 // Check if we should retry
-                let shouldRetry = operation.retryCount < maxRetries && isRetryableError(error)
-                
+                let shouldRetry = operation.retryCount < maxRetries && isRetryableError(error, operation: operation.operation)
+
                 if shouldRetry {
                     // Increment retry count
                     try? await repository.incrementSyncRetryCount(
@@ -135,6 +138,12 @@ final class ContentSyncService {
                 } else {
                     // Max retries exceeded or terminal error
                     await updateSyncState(contentID: operation.contentID, status: .failed)
+
+                    // If this was a publish operation that failed permanently,
+                    // cancel any pending unpublish operations for the same content
+                    if operation.operation == .publish {
+                        await cancelPendingUnpublishOperations(for: operation.contentID)
+                    }
                 }
             }
         }
@@ -157,12 +166,32 @@ final class ContentSyncService {
         guard let payload = operation.payload else {
             throw SyncError.invalidPayload
         }
-        
-        let contentPayload = try JSONDecoder().decode(ContentPublishPayload.self, from: payload)
-        
-        // Get current item to ensure we have latest publicID
-        guard var item = libraryStore.library.first(where: { $0.id == operation.contentID }),
-            let publicID = item.publicID else {
+
+        // Debug: log the payload content
+        if let payloadString = String(data: payload, encoding: .utf8) {
+            AppLogger.auth.debug("Decoding payload for publish operation: \(payloadString)")
+        }
+
+        let contentPayload: ContentPublishPayload
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+
+        do {
+            contentPayload = try decoder.decode(ContentPublishPayload.self, from: payload)
+        } catch let decodingError as DecodingError {
+            AppLogger.auth.error("Failed to decode ContentPublishPayload: \(decodingError)")
+            // Log the payload content for debugging
+            if let payloadString = String(data: payload, encoding: .utf8) {
+                AppLogger.auth.error("Payload content: \(payloadString)")
+            }
+            throw decodingError
+        } catch {
+            AppLogger.auth.error("Unexpected error decoding payload: \(error)")
+            throw error
+        }
+
+        // Get current item
+        guard var item = libraryStore.library.first(where: { $0.id == operation.contentID }) else {
             throw SyncError.missingPublicID
         }
         
@@ -174,7 +203,7 @@ final class ContentSyncService {
             contentData: contentPayload.contentData,
             tags: contentPayload.tags,
             language: contentPayload.language,
-            publicID: publicID,
+            publicID: contentPayload.publicID,
             canFork: true
         )
         
@@ -194,10 +223,20 @@ final class ContentSyncService {
             let publicID = item.publicID else {
             throw SyncError.missingPublicID
         }
-        
+
+        // Check if this content was ever successfully published by looking for completed publish operations
+        let hasSuccessfulPublish = try? await repository.hasSuccessfulPublishOperation(for: operation.contentID)
+
+        // If there's no record of successful publish, skip the unpublish operation
+        // This can happen when publish failed but unpublish was still enqueued
+        guard hasSuccessfulPublish == true else {
+            AppLogger.auth.info("Skipping unpublish for \(operation.contentID) - no successful publish found")
+            return
+        }
+
         // Call backend API
         try await apiClient.unpublishContent(publicID: publicID)
-        
+
         // Update local model
         if var updated = libraryStore.library.first(where: { $0.id == operation.contentID }) {
             updated.syncStatus = .synced
@@ -211,18 +250,27 @@ final class ContentSyncService {
         return true // For now, assume reachable
     }
 
-    private func isRetryableError(_ error: Error) -> Bool {
+    private func isRetryableError(_ error: Error, operation: SyncOperation) -> Bool {
         if let apiError = error as? APIError {
             switch apiError {
             case .networkError, .serverError:
                 return true
-            case .unauthorized, .forbidden, .notFound, .conflict, .clientError:
+            case .unauthorized, .forbidden:
+                return false
+            case .notFound:
+                // For unpublish operations, 404 means the content was never published or already deleted
+                // This is not retryable
+                return operation != .unpublish
+            case .conflict:
+                // For publish operations, 409 means duplicate public_id - not retryable
+                return operation != .publish
+            case .clientError:
                 return false
             case .invalidResponse:
                 return true
             }
         }
-        
+
         // Network errors from URLSession
         if let urlError = error as? URLError {
             switch urlError.code {
@@ -232,7 +280,7 @@ final class ContentSyncService {
                 return false
             }
         }
-        
+
         return true // Unknown errors: retry once
     }
     
@@ -251,6 +299,18 @@ final class ContentSyncService {
         let counts = try? await repository.getSyncQueueCounts()
         pendingCount = counts?.pending ?? 0
         failedCount = counts?.failed ?? 0
+    }
+
+    private func cancelPendingUnpublishOperations(for contentID: UUID) async {
+        do {
+            try await repository.cancelPendingOperations(
+                contentID: contentID,
+                operation: .unpublish
+            )
+            AppLogger.auth.info("Cancelled pending unpublish operations for content: \(contentID)")
+        } catch {
+            AppLogger.auth.error("Failed to cancel pending unpublish operations for \(contentID): \(error)")
+        }
     }
 }
 
