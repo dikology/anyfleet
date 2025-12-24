@@ -292,7 +292,7 @@ final class VisibilityService {
         }
 }
 
-struct ContentPublishPayload: Encodable {
+struct ContentPublishPayload: Codable {
     let title: String
     let description: String?
     let contentType: String
@@ -303,6 +303,15 @@ struct ContentPublishPayload: Encodable {
     enum CodingKeys: String, CodingKey {
         case title, description, contentType = "content_type"
         case contentData = "content_data", tags, language
+    }
+
+    init(title: String, description: String?, contentType: String, contentData: [String: Any], tags: [String], language: String) {
+        self.title = title
+        self.description = description
+        self.contentType = contentType
+        self.contentData = contentData
+        self.tags = tags
+        self.language = language
     }
     
     func encode(to encoder: Encoder) throws {
@@ -317,5 +326,19 @@ struct ContentPublishPayload: Encodable {
         let jsonData = try JSONSerialization.data(withJSONObject: contentData)
         let jsonString = String(data: jsonData, encoding: .utf8)!
         try container.encode(jsonString, forKey: .contentData)
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        title = try container.decode(String.self, forKey: .title)
+        description = try container.decodeIfPresent(String.self, forKey: .description)
+        contentType = try container.decode(String.self, forKey: .contentType)
+        tags = try container.decode([String].self, forKey: .tags)
+        language = try container.decode(String.self, forKey: .language)
+
+        // Decode contentData from nested JSON string
+        let jsonString = try container.decode(String.self, forKey: .contentData)
+        let jsonData = jsonString.data(using: .utf8)!
+        contentData = try JSONSerialization.jsonObject(with: jsonData) as! [String: Any]
     }
 }

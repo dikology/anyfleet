@@ -203,8 +203,27 @@ final class AuthService {
         currentUser = tokenResponse.user
     }
     
+    // MARK: - Token Access
+
+    func getAccessToken() async throws -> String {
+        // Try to get current token
+        if let token = keychain.getAccessToken() {
+            return token
+        }
+
+        // If no token, try to refresh (this will throw if refresh fails)
+        try await refreshAccessToken()
+
+        // After refresh, get the new token
+        guard let token = keychain.getAccessToken() else {
+            throw AuthError.unauthorized
+        }
+
+        return token
+    }
+
     // MARK: - Authenticated Requests
-    
+
     func makeAuthenticatedRequest(to endpoint: String) async throws -> Data {
         guard var accessToken = keychain.getAccessToken() else {
             throw AuthError.unauthorized

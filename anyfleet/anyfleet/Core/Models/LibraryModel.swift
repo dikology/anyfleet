@@ -152,6 +152,7 @@ enum ContentVisibility: String, Codable, CaseIterable, Hashable, Sendable {
 enum ContentSyncStatus: String, Codable, CaseIterable, Hashable, Sendable {
     case pending
     case queued
+    case syncing
     case synced
     case failed
     
@@ -160,6 +161,7 @@ enum ContentSyncStatus: String, Codable, CaseIterable, Hashable, Sendable {
         switch self {
         case .pending: return .pending
         case .queued: return .pending
+        case .syncing: return .pending
         case .synced: return .published
         case .failed: return .error
         }

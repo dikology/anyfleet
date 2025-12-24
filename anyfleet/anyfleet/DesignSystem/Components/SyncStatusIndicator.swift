@@ -19,8 +19,13 @@ struct SyncStatusIndicator: View {
                 Image(systemName: "clock.fill")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundColor(DesignSystem.Colors.warning)
-                    .help("Syncing...")
-                
+                    .help("Waiting to sync")
+
+            case .syncing:
+                ProgressView()
+                    .scaleEffect(0.7)
+                    .help("Syncing to server...")
+
             case .synced:
                 Image(systemName: "checkmark.circle.fill")
                     .font(.system(size: 12, weight: .medium))
@@ -50,7 +55,12 @@ struct SyncStatusIndicator: View {
             Text("Queued:")
             SyncStatusIndicator(syncStatus: .queued)
         }
-        
+
+        HStack(spacing: DesignSystem.Spacing.sm) {
+            Text("Syncing:")
+            SyncStatusIndicator(syncStatus: .syncing)
+        }
+
         HStack(spacing: DesignSystem.Spacing.sm) {
             Text("Synced:")
             SyncStatusIndicator(syncStatus: .synced)
