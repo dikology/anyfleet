@@ -14,7 +14,10 @@ enum AppRoute: Hashable {
     case deckEditor(UUID?)
     case checklistDetail(UUID)
     case guideDetail(UUID)
-    
+
+    // Discover Content
+    case discoverContent(String) // publicID
+
     // TODO: Add more routes as features are implemented
     // case deckDetail(UUID)
     // case profileUser(UUID)
@@ -31,7 +34,7 @@ final class AppCoordinator: ObservableObject {
     // Individual navigation paths per tab
     @Published var homePath: [AppRoute] = []
     @Published var libraryPath: [AppRoute] = []
-    //@Published var discoverPath = NavigationPath()
+    @Published var discoverPath: [AppRoute] = []
     @Published var chartersPath: [AppRoute] = []
     @Published var profilePath: [AppRoute] = []
     
@@ -74,8 +77,8 @@ final class AppCoordinator: ObservableObject {
             homePath.append(route)
         case .library:
             libraryPath.append(route)
-        //case .discover:
-            //discoverPath.append(route)
+        case .discover:
+            discoverPath.append(route)
         case .charters:
             chartersPath.append(route)
         case .profile:
@@ -91,9 +94,9 @@ final class AppCoordinator: ObservableObject {
         case .library:
             guard !libraryPath.isEmpty else { return }
             libraryPath.removeLast()
-        //case .discover:
-            //guard !discoverPath.isEmpty else { return }
-            //discoverPath.removeLast()
+        case .discover:
+            guard !discoverPath.isEmpty else { return }
+            discoverPath.removeLast()
         case .charters:
             guard !chartersPath.isEmpty else { return }
             chartersPath.removeLast()
@@ -109,8 +112,8 @@ final class AppCoordinator: ObservableObject {
             homePath.removeLast(homePath.count)
         case .library:
             libraryPath.removeLast(libraryPath.count)
-        //case .discover:
-            //discoverPath.removeLast(discoverPath.count)
+        case .discover:
+            discoverPath.removeLast(discoverPath.count)
         case .charters:
             chartersPath.removeLast(chartersPath.count)
         case .profile:
@@ -276,6 +279,11 @@ final class AppCoordinator: ObservableObject {
                     checklistID: checklistID
                 )
             )
+        case .discoverContent(let publicID):
+            // TODO: Implement discover content reader when ready
+            // For MVP, this will navigate to appropriate reader based on content type
+            Text("Discover Content: \(publicID)")
+                .navigationTitle("Content")
         }
     }
 }
