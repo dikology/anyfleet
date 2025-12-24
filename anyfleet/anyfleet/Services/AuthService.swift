@@ -49,7 +49,7 @@ struct UserInfo: Codable {
 
 @MainActor
 @Observable
-final class AuthService {
+final class AuthService: AuthServiceProtocol {
     static let shared = AuthService()
     
     var isAuthenticated = false

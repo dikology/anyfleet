@@ -14,7 +14,7 @@ import OSLog
 @Observable
 final class VisibilityService {
     private let libraryStore: LibraryStore
-    private let authService: AuthService
+    private let authService: AuthServiceProtocol
 
     private let syncService: ContentSyncService
 
@@ -51,7 +51,7 @@ final class VisibilityService {
     
     init(
         libraryStore: LibraryStore,
-        authService: AuthService,
+        authService: AuthServiceProtocol,
         syncService: ContentSyncService
     ) {
         self.libraryStore = libraryStore
@@ -192,6 +192,11 @@ final class VisibilityService {
             throw PublishError.notAuthenticated
         }
         
+        // Capture publicID BEFORE clearing it
+        guard let publicIDToUnpublish = item.publicID else {
+            throw PublishError.validationError("Cannot unpublish content without publicID")
+        }
+        
         AppLogger.auth.info("Unpublishing content: \(item.id)")
         
         // Update item to private
@@ -207,12 +212,12 @@ final class VisibilityService {
             // Save to local database
             try await libraryStore.updateLibraryMetadata(updated)
             
-            if let publicID = item.publicID {
-                try await syncService.enqueueUnpublish(
-                    contentID: updated.id,
-                    publicID: publicID
-                )
-            }
+            // Pass captured publicID
+            try await syncService.enqueueUnpublish(
+                contentID: updated.id,
+                publicID: publicIDToUnpublish
+            )
+            
             AppLogger.auth.completeOperation("Unpublish Content")
             AppLogger.auth.info("Content unpublished successfully: \(item.id)")
         } catch {
@@ -241,49 +246,42 @@ final class VisibilityService {
     }
     
     private func encodeContentForSync(_ item: LibraryModel) async throws -> Data {
-            // Fetch full content based on type
-            let payload: ContentPublishPayload
+            let contentDict: [String: Any]
             
             switch item.type {
             case .checklist:
                 guard let checklist = try await libraryStore.fetchChecklist(item.id) else {
                     throw PublishError.validationError("Checklist not found")
                 }
-                guard let publicID = item.publicID else {
-                    throw PublishError.validationError("Missing public ID")
-                }
-                payload = ContentPublishPayload(
-                    title: item.title,
-                    description: item.description,
-                    contentType: "checklist",
-                    contentData: try encodeChecklist(checklist),
-                    tags: item.tags,
-                    language: item.language,
-                    publicID: publicID
-                )
+                contentDict = try encodeChecklist(checklist)
                 
             case .practiceGuide:
                 guard let guide = try await libraryStore.fetchGuide(item.id) else {
                     throw PublishError.validationError("Guide not found")
                 }
-                guard let publicID = item.publicID else {
-                    throw PublishError.validationError("Missing public ID")
-                }
-                payload = ContentPublishPayload(
-                    title: item.title,
-                    description: item.description,
-                    contentType: "practice_guide",
-                    contentData: try encodeGuide(guide),
-                    tags: item.tags,
-                    language: item.language,
-                    publicID: publicID
-                )
+                contentDict = try encodeGuide(guide)
                 
             case .flashcardDeck:
                 throw PublishError.validationError("Flashcard decks not yet supported")
             }
             
-            return try JSONEncoder().encode(payload)
+            guard let publicID = item.publicID else {
+                throw PublishError.validationError("Missing public ID")
+            }
+            
+            let payload = ContentPublishPayload(
+                title: item.title,
+                description: item.description,
+                contentType: item.type == .checklist ? "checklist" : "practice_guide",
+                contentData: contentDict,
+                tags: item.tags,
+                language: item.language,
+                publicID: publicID
+            )
+            
+            // Encode with NO key strategy
+            let encoder = JSONEncoder()
+            return try encoder.encode(payload)
         }
         
         private func encodeChecklist(_ checklist: Checklist) throws -> [String: Any] {
@@ -298,58 +296,4 @@ final class VisibilityService {
             let json = try JSONSerialization.jsonObject(with: data)
             return json as! [String: Any]
         }
-}
-
-struct ContentPublishPayload: Codable {
-    let title: String
-    let description: String?
-    let contentType: String
-    let contentData: [String: Any]
-    let tags: [String]
-    let language: String
-    let publicID: String
-
-    enum CodingKeys: String, CodingKey {
-        case title, description, contentType, contentData, tags, language, publicID
-    }
-
-    init(title: String, description: String?, contentType: String, contentData: [String: Any], tags: [String], language: String, publicID: String) {
-        self.title = title
-        self.description = description
-        self.contentType = contentType
-        self.contentData = contentData
-        self.tags = tags
-        self.language = language
-        self.publicID = publicID
-    }
-    
-    func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(title, forKey: .title)
-        try container.encodeIfPresent(description, forKey: .description)
-        try container.encode(contentType, forKey: .contentType)
-        try container.encode(tags, forKey: .tags)
-        try container.encode(language, forKey: .language)
-        try container.encode(publicID, forKey: .publicID)
-
-        // Encode contentData as nested JSON
-        let jsonData = try JSONSerialization.data(withJSONObject: contentData)
-        let jsonString = String(data: jsonData, encoding: .utf8)!
-        try container.encode(jsonString, forKey: .contentData)
-    }
-
-    init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        title = try container.decode(String.self, forKey: .title)
-        description = try container.decodeIfPresent(String.self, forKey: .description)
-        contentType = try container.decode(String.self, forKey: .contentType)
-        tags = try container.decode([String].self, forKey: .tags)
-        language = try container.decode(String.self, forKey: .language)
-        publicID = try container.decode(String.self, forKey: .publicID)
-
-        // Decode contentData from nested JSON string
-        let jsonString = try container.decode(String.self, forKey: .contentData)
-        let jsonData = jsonString.data(using: .utf8)!
-        contentData = try JSONSerialization.jsonObject(with: jsonData) as! [String: Any]
-    }
 }

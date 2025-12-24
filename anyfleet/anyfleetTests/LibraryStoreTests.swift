@@ -60,6 +60,10 @@ struct LibraryStoreTests {
             fetchUserLibraryCallCount += 1
             return libraryResult
         }
+
+        func fetchLibraryItem(_ id: UUID) async throws -> LibraryModel? {
+            return libraryResult.first { $0.id == id }
+        }
         
         func fetchUserChecklists() async throws -> [Checklist] {
             fetchUserChecklistsCallCount += 1
