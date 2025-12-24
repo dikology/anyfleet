@@ -194,8 +194,8 @@ final class ContentSyncService {
             throw error
         }
 
-        // Get current item
-        guard var item = libraryStore.library.first(where: { $0.id == operation.contentID }) else {
+        // Get current item from repository (not in-memory cache which can be stale)
+        guard var item = try await libraryStore.fetchLibraryItem(operation.contentID) else {
             throw SyncError.missingPublicID
         }
         

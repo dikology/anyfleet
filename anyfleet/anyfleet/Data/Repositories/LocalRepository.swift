@@ -179,13 +179,25 @@ final class LocalRepository: Sendable {
     func fetchUserLibrary() async throws -> [LibraryModel] {
         AppLogger.repository.startOperation("Fetch User Library")
         defer { AppLogger.repository.completeOperation("Fetch User Library") }
-        
+
         return try await database.dbWriter.read { db in
             try LibraryModelRecord.fetchAll(db: db)
                 .map { $0.toDomainModel() }
         }
     }
-    
+
+    func fetchLibraryItem(_ id: UUID) async throws -> LibraryModel? {
+        AppLogger.repository.startOperation("Fetch Library Item")
+        defer { AppLogger.repository.completeOperation("Fetch Library Item") }
+
+        return try await database.dbWriter.read { db in
+            try LibraryModelRecord
+                .filter(LibraryModelRecord.Columns.id == id.uuidString)
+                .fetchOne(db)?
+                .toDomainModel()
+        }
+    }
+
     // MARK: - Full Model Queries
     
     /// Fetch all full checklist models

@@ -364,6 +364,10 @@ private struct PreviewLibraryRepository: LibraryRepository {
         sampleLibrary
     }
 
+    func fetchLibraryItem(_ id: UUID) async throws -> LibraryModel? {
+        sampleLibrary.first { $0.id == id }
+    }
+
     // MARK: - Full Models
     func fetchUserChecklists() async throws -> [Checklist] { [] }
     func fetchUserGuides() async throws -> [PracticeGuide] { [] }

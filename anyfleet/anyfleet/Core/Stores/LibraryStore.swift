@@ -72,7 +72,13 @@ final class LibraryStore {
     }
     
     // MARK: - Loading Content
-    
+
+    /// Fetch a single library item by ID
+    @MainActor
+    func fetchLibraryItem(_ id: UUID) async throws -> LibraryModel? {
+        return try await repository.fetchLibraryItem(id)
+    }
+
     /// Load all library content
     @MainActor
     func loadLibrary() async {

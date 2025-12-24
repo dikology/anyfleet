@@ -6,6 +6,9 @@ protocol LibraryRepository: Sendable {
     
     /// Fetch all library content metadata
     func fetchUserLibrary() async throws -> [LibraryModel]
+
+    /// Fetch a single library item by ID
+    func fetchLibraryItem(_ id: UUID) async throws -> LibraryModel?
     
     // MARK: - Full Model Queries
     

@@ -23,6 +23,8 @@ struct ContentPublishPayload: Codable {
         case publicID = "public_id"
     }
     
+    // MARK: - Initializer
+    
     init(
         title: String,
         description: String?,
@@ -41,8 +43,9 @@ struct ContentPublishPayload: Codable {
         self.publicID = publicID
     }
     
-    // Custom encoding to handle [String: Any]
-    func encode(to encoder: Encoder) throws {
+    // MARK: - Encoding
+    
+    func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(title, forKey: .title)
         try container.encodeIfPresent(description, forKey: .description)
@@ -53,20 +56,38 @@ struct ContentPublishPayload: Codable {
         
         // Encode contentData as nested JSON object (not string!)
         let jsonData = try JSONSerialization.data(withJSONObject: contentData)
-        let decoder = JSONDecoder()
-        let json = try decoder.decode(AnyCodable.self, from: jsonData)
+        let jsonDecoder = JSONDecoder()
+        let json = try jsonDecoder.decode(AnyCodable.self, from: jsonData)
         try container.encode(json, forKey: .contentData)
     }
     
-    // Custom decoding to handle [String: Any]
-    init(from decoder: Decoder) throws {
+    // MARK: - Decoding
+    
+    init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        // Debug: Check what keys are available
+        let allKeys = container.allKeys.map { $0.stringValue }.joined(separator: ", ")
+        print("DEBUG: Available keys in container: \(allKeys)")
+        
         title = try container.decode(String.self, forKey: .title)
         description = try container.decodeIfPresent(String.self, forKey: .description)
         contentType = try container.decode(String.self, forKey: .contentType)
         tags = try container.decode([String].self, forKey: .tags)
         language = try container.decode(String.self, forKey: .language)
-        publicID = try container.decode(String.self, forKey: .publicID)
+        
+        // Debug: Check if publicID key exists
+        if container.contains(.publicID) {
+            print("DEBUG: publicID key found in container")
+            publicID = try container.decode(String.self, forKey: .publicID)
+        } else {
+            print("DEBUG: publicID key NOT found in container")
+            print("DEBUG: CodingKey .publicID has stringValue: \(CodingKeys.publicID.stringValue)")
+            throw DecodingError.keyNotFound(
+                CodingKeys.publicID,
+                DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "publicID key not found in payload")
+            )
+        }
         
         // Decode contentData as nested JSON object
         let json = try container.decode(AnyCodable.self, forKey: .contentData)
@@ -83,11 +104,16 @@ struct UnpublishPayload: Codable {
     enum CodingKeys: String, CodingKey {
         case publicID = "public_id"
     }
+    
+    // REQUIRED: Initializer to create instances
+    init(publicID: String) {
+        self.publicID = publicID
+    }
 }
 
 // MARK: - Helper for Dynamic JSON
 
-/// Helper to encode/decode dynamic JSON structures
+/// Helper to encode/decode dynamic JSON structures like [String: Any]
 struct AnyCodable: Codable {
     let value: Any
     
@@ -117,7 +143,6 @@ struct AnyCodable: Codable {
     
     func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
-        
         switch value {
         case let int as Int:
             try container.encode(int)
@@ -136,4 +161,3 @@ struct AnyCodable: Codable {
         }
     }
 }
-
