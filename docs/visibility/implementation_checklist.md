@@ -1,476 +1,491 @@
-# Implementation Checklist - Library Visibility Feature
+# Sync Service Refactoring - Implementation Checklist
 
-**Estimated effort:** 2-3 weeks for complete implementation  
-**Priority:** HIGH - Foundational for Phase 2
-
----
-
-## PHASE 1: FOUNDATION (Week 1)
-
-### Data Model Extensions
-- [x] Add `VisibilityState` enum to `LibraryModel`
-  ```swift
-  enum VisibilityState: Codable, Equatable {
-      case `private`
-      case unlisted
-      case `public`(PublicMetadata)
-  }
-  ```
-  
-- [x] Add `SyncState` enum to `LibraryModel`
-  ```swift
-  enum SyncState: String, Codable {
-      case local
-      case published
-      case pending
-      case error
-  }
-  ```
-  
-- [x] Add visibility fields to `LibraryModel`
-  - [x] `visibilityState: VisibilityState`
-  - [x] `syncState: SyncState`
-  - [x] `publishedAt: Date?`
-  - [x] `publicID: String?` (URL slug)
-
-### Service Layer
-- [x] Create `VisibilityService` class
-  - [x] `canToggleVisibility() -> Bool`
-  - [x] `publishContent(_ item: LibraryModel) async throws`
-  - [x] `unpublishContent(_ item: LibraryModel) async throws`
-  - [x] Input validation methods
-
-- [x] Create `AuthStateObserver` class
-  - [x] Observe `AuthService` state changes
-  - [x] Expose `isSignedIn` and `currentUser`
-  - [x] Add to `AppDependencies`
-
-### ViewModel Refactoring
-- [x] Inject dependencies into `LibraryListViewModel`
-  - [x] `visibilityService: VisibilityService`
-  - [x] `authObserver: AuthStateObserver`
-  
-- [x] Add computed properties
-  - [x] `isSignedIn: Bool`
-  - [x] `localContent: [LibraryModel]`
-  - [x] `publicContent: [LibraryModel]`
-  - [x] `hasLocalContent: Bool`
-  - [x] `hasPublicContent: Bool`
-
-- [x] Add state properties
-  - [x] `pendingPublishItem: LibraryModel?`
-  - [x] `publishError: Error?`
-
-- [x] Add action methods
-  - [x] `initiatePublish(_ item: LibraryModel)`
-  - [x] `confirmPublish() async`
-  - [x] `cancelPublish()`
-  - [x] `unpublish(_ item: LibraryModel) async`
+**Status:** Ready to Implement  
+**Created:** December 24, 2024  
+**Est. Time:** 2-3 days
 
 ---
 
-## PHASE 2: UI COMPONENTS (Week 1-2)
+## Overview
 
-### Reusable Components
-- [x] Create `VisibilityBadge` component
-  - [x] Handle all three visibility states
-  - [x] Show view count for public items
-  - [x] Proper color coding
-  - [x] Optional author display
+This checklist consolidates the refactoring guides into actionable tasks. Follow in order for safest implementation.
 
-- [x] Create `PublishConfirmationModal` component
-  - [x] Title with item name
-  - [x] Explanation text
-  - [x] Info box about permanence
-  - [x] Confirm/Cancel buttons
-  - [x] Loading state handling
-  - [x] Error state display
-  - [x] Auto-dismiss on success
-
-- [x] Create `PublishActionView` component
-  - [x] Show [Publish] when signed in
-  - [x] Show [Unpublish] when published
-  - [x] Show disabled state with sign-in prompt when unsigned
-  - [x] Disabled styling and cursor
-
-- [x] Create `SignInModalView` component
-  - [x] Sign In with Apple button
-  - [x] Optional email fallback
-  - [x] Close button (✕)
-  - [x] Success callback
-  - [x] Error handling
-
-### LibraryItemRow Refactoring
-- [x] Extract row into separate file
-  - [x] Keep structure but extract from nested struct
-
-- [x] Update row layout
-  - [x] Keep hero section (title, icon, type)
-  - [x] Keep metadata section (updated date)
-  - [x] NEW: Add footer section with visibility badge + publish action
-  - [x] Background color for published items
-
-- [x] Swipe actions
-  - [x] Keep: Delete, Edit, Pin
-  - [x] Remove: Publish (move to footer button)
-
-- [x] Tap behavior
-  - [x] Body: Opens content reader
-  - [x] Publish button: Shows confirmation
+**Related Documents:**
+- [iOS Refactoring Guide](./sync_service_refactoring_guide.md) - Detailed iOS changes
+- [Backend Refactoring Guide](../../anyfleet-backend/docs/sync_api_refactoring_guide.md) - Backend API changes
 
 ---
 
-## PHASE 3: DATABASE LAYER (Week 2)
+## Pre-Implementation (30 minutes)
 
-### GRDB Schema
-- [ ] Create migration `2.0.0`
-  - [ ] Add columns to `library_content` table
-    - [ ] `visibility_state` (TEXT, default "private")
-    - [ ] `sync_state` (TEXT, default "local")
-    - [ ] `published_at` (DATETIME, nullable)
-    - [ ] `public_id` (TEXT, nullable)
-    - [ ] `author_id` (TEXT, nullable)
-    - [ ] `can_fork` (BOOLEAN, default true)
+### Backup & Safety
+- [ ] Commit all current changes
+- [ ] Create feature branch: `git checkout -b fix/sync-service-refactoring`
+- [ ] Export published content from database (if any)
+- [ ] Document current behavior (screenshots/logs)
 
-  - [ ] Create `public_content` table
-  - [ ] Create `visibility_changes` table
-
-### Record Types
-- [ ] Update `LibraryModelRecord`
-  - [ ] Add new columns
-  - [ ] Add conversion logic to domain model `toDomain()`
-
-- [ ] Create `PublicContentRecord`
-  - [ ] All fields as per schema
-  - [ ] FetchableRecord + PersistableRecord
-
-- [ ] Create `VisibilityChangeRecord`
-  - [ ] All fields as per schema
-  - [ ] FetchableRecord + PersistableRecord
-
-### Repository Methods
-- [ ] Implement `updateVisibility(contentID, newState) async throws`
-- [ ] Implement `getPendingVisibilityChanges() async throws`
-- [ ] Implement `markVisibilityChangeAsSynced(_ recordID) async throws`
-- [ ] Implement `markVisibilityChangeAsFailed(_ recordID, error) async throws`
+### Environment Setup
+- [ ] Backend server running locally (port 8000)
+- [ ] iOS simulator running
+- [ ] Database accessible
+- [ ] Test user authenticated
 
 ---
 
-## PHASE 4: AUTH INTEGRATION (Week 2)
+## Day 1: Critical Fixes (4-5 hours)
 
-### ProfileView Integration
-- [ ] Ensure AuthService properly triggers observable updates
-  - [ ] After sign in succeeds
-  - [ ] After sign out succeeds
+### Part 1: Create New Payload Models (1 hour)
 
-- [ ] Test that `AuthStateObserver` receives updates
+#### iOS: Create SyncPayloads.swift
+- [ ] Create file: `anyfleet/anyfleet/anyfleet/Core/Models/SyncPayloads.swift`
+- [ ] Copy payload structs from refactoring guide:
+  - [ ] `ContentPublishPayload`
+  - [ ] `UnpublishPayload`
+  - [ ] Helper extensions
+- [ ] Build project, fix any import errors
+- [ ] Verify no compilation errors
 
-### SignInModalView Creation
-- [ ] Design modal UI
-  - [ ] Sign In with Apple button
-  - [ ] Proper styling
-  - [ ] Close button
-  - [ ] Error display
+**Test:**
+```swift
+// Quick sanity test in a test file
+let payload = ContentPublishPayload(
+    title: "Test",
+    description: nil,
+    contentType: "checklist",
+    contentDataJSON: "{}",
+    tags: [],
+    language: "en",
+    publicID: "test-123"
+)
+let data = try JSONEncoder().encode(payload)
+let decoded = try JSONDecoder().decode(ContentPublishPayload.self, from: data)
+assert(decoded.publicID == "test-123")
+```
 
-- [ ] Implement sign-in flow
-  - [ ] Call `authService.handleAppleSignIn()`
-  - [ ] Track loading state
-  - [ ] Handle errors
-  - [ ] Dismiss on success
-  - [ ] Call success callback
+### Part 2: Fix VisibilityService (1 hour)
 
-### LibraryListView Auth Integration
-- [ ] Observe `viewModel.isSignedIn`
-  - [ ] Update publish button states
-  - [ ] Show/hide sign-in prompts
+#### Update VisibilityService.swift
+- [ ] Import `SyncPayloads`
+- [ ] Replace `encodeContentForSync()` method
+- [ ] Update `unpublishContent()` to capture publicID before clearing
+- [ ] Remove old `ContentPublishPayload` struct
+- [ ] Remove `encodeChecklist()` and `encodeGuide()` helpers
+- [ ] Build and fix any errors
 
-- [ ] Connect sign-in modal
-  - [ ] Show when publish tapped while unsigned
-  - [ ] Dismiss after successful sign-in
-  - [ ] Auto-retry publish if item was pending
+**Test:**
+- [ ] Create a checklist
+- [ ] Try to publish it
+- [ ] Check logs for "Publishing content" message
+- [ ] Verify no crash
 
----
+### Part 3: Fix ContentSyncService (1.5 hours)
 
-## PHASE 5: TESTING (Week 2-3)
+#### Update ContentSyncService.swift
+- [ ] Import `SyncPayloads`
+- [ ] Update `enqueueUnpublish()` signature to accept publicID
+- [ ] Create `UnpublishPayload` in enqueue method
+- [ ] Update `handlePublish()`:
+  - [ ] Remove `convertFromSnakeCase` decoder strategy
+  - [ ] Update to use `contentDataJSON`
+  - [ ] Add better error logging
+- [ ] Update `handleUnpublish()`:
+  - [ ] Decode `UnpublishPayload` from operation.payload
+  - [ ] Use publicID from payload
+- [ ] Add `contentNotFound` error case
+- [ ] Build and fix any errors
 
-### Unit Tests
-- [ ] `VisibilityService` tests
-  - [ ] `canToggleVisibility()` returns correct auth state
-  - [ ] `publishContent()` validation
-  - [ ] `unpublishContent()` state changes
-  - [ ] Error handling
-
-- [ ] `LibraryListViewModel` tests
-  - [ ] Filter computed properties
-  - [ ] Publish/unpublish state management
-  - [ ] Pending item tracking
-
-- [ ] GRDB migration tests
-  - [ ] Schema created correctly
-  - [ ] Data persisted correctly
-
-### Integration Tests
-- [ ] Publish flow end-to-end
-  - [ ] Local content → pending → published
-  - [ ] Data persisted to GRDB
-
-- [ ] Unpublish flow
-  - [ ] Public content → private
-  - [ ] Data updated in GRDB
-
-- [ ] Filter behavior
-  - [ ] "All" shows everything
-  - [ ] "Local" shows only private/unlisted
-  - [ ] "Public" shows only public items
-
-### UI Tests (SwiftUI Preview)
-- [ ] `LibraryItemRow` with different states
-  - [ ] Private content
-  - [ ] Public content
-  - [ ] Unsigned user (disabled publish)
-  - [ ] Signed user (enabled publish)
-
-- [ ] `PublishConfirmationModal`
-  - [ ] Initial state
-  - [ ] Loading state
-  - [ ] Success state
-  - [ ] Error state
-
-- [ ] `LibraryListView`
-  - [ ] Empty states
-  - [ ] All/Local/Public filters
-  - [ ] Section visibility
-
----
-
-## PHASE 6: POLISH & OPTIMIZATION (Week 3)
-
-### Accessibility
-- [ ] VoiceOver labels
-  - [ ] Visibility badges
-  - [ ] Publish buttons
-  - [ ] Filter options
-  - [ ] Error messages
-
-- [ ] Focus management
-  - [ ] Proper tab order
-  - [ ] Focus visible states
-  - [ ] Modal focus trap
-
-- [ ] Color contrast
-  - [ ] Visibility badges (4.5:1 minimum)
-  - [ ] All text (WCAG AA)
-  - [ ] Test with Color Contrast Analyzer
-
-### Performance
-- [ ] Profile library loading
-  - [ ] Large libraries (1000+ items)
-  - [ ] Filter performance
-  - [ ] Memory usage
-
-- [ ] Database queries
-  - [ ] Index visibility_state column
-  - [ ] Index sync_state column
-  - [ ] Pagination for large lists
-
-- [ ] Animations
-  - [ ] Smooth transitions
-  - [ ] No janky list scrolling
-  - [ ] Loading state UX
-
-### Error Handling
-- [ ] Network errors
-  - [ ] Show clear message
-  - [ ] Provide retry button
-  - [ ] Save to pending queue
-
-- [ ] Validation errors
-  - [ ] Clear user messaging
-  - [ ] Suggest fixes
-  - [ ] Don't dismiss modal
-
-- [ ] Sync failures
-  - [ ] Mark item with error state
-  - [ ] Show retry option
-  - [ ] Log for debugging
-
----
-
-## PHASE 8: SYNC SERVICE IMPLEMENTATION (Week 3-4)
-
-**See:** [Sync Service Implementation Guide](./sync_service_implementation.md) for detailed architecture.
-
-### Database Layer
-- [ ] Create `sync_queue` table migration
-  - [ ] Table schema (content_id, operation, visibility_state, payload, retry_count, etc.)
-  - [ ] Indexes for performance
-  - [ ] Foreign key constraints
-
-- [ ] Create `SyncQueueRecord` GRDB record type
-  - [ ] FetchableRecord + PersistableRecord
-  - [ ] Helper methods (enqueue, dequeue, markFailed, etc.)
-
-### Service Layer
-- [ ] Create `ContentSyncService` class
-  - [ ] Enqueue operations (publish, unpublish)
-  - [ ] Process sync queue (FIFO)
-  - [ ] Retry logic with exponential backoff
-  - [ ] Error classification (retryable vs terminal)
-  - [ ] Update sync status on LibraryModel
-
-- [ ] Update `VisibilityService` to enqueue operations
-  - [ ] Call `syncService.enqueuePublish()` after local save
-  - [ ] Call `syncService.enqueueUnpublish()` after local save
-
-- [ ] Create background sync trigger
-  - [ ] Timer-based sync (every 5 seconds when active)
-  - [ ] App lifecycle hooks (didBecomeActive)
-  - [ ] Network reachability checks
-
-### API Integration
-- [ ] Implement `APIClient.publishContent()` method
-  - [ ] POST /api/content/share endpoint
-  - [ ] Request/response models
-  - [ ] Error handling
-
-- [ ] Implement `APIClient.unpublishContent()` method
-  - [ ] DELETE /api/content/:publicID endpoint
-  - [ ] Error handling
-
-### UI Integration
-- [ ] Create `SyncStatusIndicator` component
-  - [ ] Icons for pending, syncing, synced, failed states
-  - [ ] Tooltips/help text
-  - [ ] Accessibility labels
-
-- [ ] Update `LibraryItemRow` to show sync status
-  - [ ] Display indicator next to visibility badge
-  - [ ] Only show for non-private items
-  - [ ] Tap to retry on failed items
-
-### Localization
-- [ ] Add new strings to L10n
-- [ ] Test with Russian localization
-  - [ ] Text wrapping
-  - [ ] Button sizing
-  - [ ] Modal layout
-
----
-
-## PHASE 7: HANDOFF TO PHASE 2 BACKEND (End of Week 3)
-
-- [ ] Visibility state properly versioned
-- [ ] Public metadata ready for server
-- [ ] Sync queue operational
-- [ ] Update Phase 1 spec with new features
-- [ ] Document database schema changes
-- [ ] Create Phase 2 backend integration spec
-
----
-
-## TESTING CHECKLIST - Manual Testing
-
-### Signed-Out User
-- [ ] View library with local content
-  - [ ] See 🔒 private badges
-  - [ ] See filter options
-  - [ ] See "Local" section populated
-  - [ ] No "Public" section visible
-
-- [ ] Tap publish button
-  - [ ] See sign-in modal
-  - [ ] Can't proceed without signing in
-  - [ ] Sign-in works
-  - [ ] Modal closes
-
-- [ ] After sign-in, retry publish
-  - [ ] See confirmation modal
-  - [ ] Tap confirm
-  - [ ] Content moves to "Public" section
-  - [ ] Badge changes to 🌐 public
-
-### Signed-In User
-- [ ] Create new content (appears as 🔒 private)
+**Test:**
+- [ ] Run app
 - [ ] Publish content
-  - [ ] See confirmation
-  - [ ] Content marked as ⏳ publishing
-  - [ ] Completes to 🌐 public
-  - [ ] Badge shows view count
+- [ ] Check sync_queue table for payload format
+- [ ] Verify payload has proper snake_case keys
 
+### Part 4: Fix APIClient (1 hour)
+
+#### Update APIClient.swift
+- [ ] Update `publishContent()` signature to accept `contentDataJSON: String`
+- [ ] Update `PublishContentRequest` struct:
+  - [ ] Change `contentData` to `contentDataJSON: String`
+  - [ ] Remove custom `encode(to:)` method (use default Codable)
+  - [ ] Verify CodingKeys are correct
+- [ ] Remove `AnyCodable` struct entirely
+- [ ] Build and fix any errors
+
+**Test:**
+- [ ] Create test request payload
+- [ ] Encode it
+- [ ] Print JSON to console
+- [ ] Verify format matches backend expectations
+
+### Part 5: Test End-to-End (30 minutes)
+
+#### Manual Test Flow
+- [ ] Delete app from simulator
+- [ ] Clean build folder
+- [ ] Install fresh app
+- [ ] Sign in
+- [ ] Create new checklist with some items
+- [ ] Publish checklist
+- [ ] Watch logs - should see:
+  ```
+  Publishing content: <uuid>, publicID: <slug>
+  Enqueuing publish operation
+  Processing 1 sync operations
+  Sync succeeded for content: <uuid>
+  ```
+- [ ] Verify in database:
+  ```sql
+  SELECT id, public_id, title, content_type FROM shared_content ORDER BY created_at DESC LIMIT 1;
+  ```
 - [ ] Unpublish content
-  - [ ] See confirmation
-  - [ ] Content moves back to local
-  - [ ] Badge changes to 🔒 private
+- [ ] Watch logs - should see:
+  ```
+  Unpublishing content: <uuid>
+  Enqueuing unpublish operation
+  Processing 1 sync operations
+  Sync succeeded for content: <uuid>
+  ```
+- [ ] Verify deleted in database:
+  ```sql
+  SELECT deleted_at FROM shared_content WHERE public_id = '<your_slug>';
+  ```
 
-### Filters
-- [ ] "All" shows private + public
-- [ ] "Local" shows only private
-- [ ] "Public" shows only public
-- [ ] Switch between filters smoothly
+**Expected Results:**
+- ✅ Publish succeeds
+- ✅ Unpublish succeeds
+- ✅ No "keyNotFound" errors
+- ✅ No "missingPublicID" errors
+- ✅ API returns 201
+- ✅ UI shows "Public" badge
 
-### Error Scenarios
-- [ ] Publish with empty title
-  - [ ] Shows validation error
-  - [ ] Doesn't dismiss modal
-  - [ ] Can fix and retry
-
-- [ ] Network error during publish
-  - [ ] Shows error message
-  - [ ] Retry button available
-  - [ ] Marked as pending in list
-  - [ ] Can retry later
-
-- [ ] Sign-in cancelled
-  - [ ] Publish action cancelled
-  - [ ] Modal dismisses cleanly
-  - [ ] No errors in logs
+**If tests fail:** Check logs, compare with expected format, debug payload encoding.
 
 ---
 
-## DEPLOYMENT CHECKLIST
+## Day 2: Backend Updates & Testing (3-4 hours)
 
+### Part 1: Update Backend Schemas (1 hour)
+
+#### Update app/schemas/content.py
+- [ ] Add imports: `json`, `logging`
+- [ ] Update `PublishContentRequest`:
+  - [ ] Add `field_validator` for `content_data`
+  - [ ] Add `model_validator` for structure validation
+  - [ ] Add validation methods: `_validate_checklist_structure()`, etc.
+- [ ] Add `ContentErrorDetail` schema
+- [ ] Run backend tests: `pytest tests/`
+- [ ] Fix any errors
+
+**Test:**
+```bash
+# Test that schema accepts both formats
+python -c "
+from app.schemas.content import PublishContentRequest
+import json
+
+# Test with dict
+r1 = PublishContentRequest(
+    title='Test',
+    content_type='checklist',
+    content_data={'id': '123', 'title': 'Test', 'sections': []},
+    tags=[],
+    language='en',
+    public_id='test-1'
+)
+print('Dict format: OK')
+
+# Test with JSON string
+r2 = PublishContentRequest(
+    title='Test',
+    content_type='checklist',
+    content_data=json.dumps({'id': '123', 'title': 'Test', 'sections': []}),
+    tags=[],
+    language='en',
+    public_id='test-2'
+)
+print('String format: OK')
+"
+```
+
+### Part 2: Update Backend Endpoints (1 hour)
+
+#### Update app/api/v1/content.py
+- [ ] Add detailed error responses
+- [ ] Update `publish_content()` endpoint
+- [ ] Update `unpublish_content()` endpoint
+- [ ] Add better logging
+- [ ] Restart backend server
+- [ ] Check logs for startup errors
+
+**Test with curl:**
+```bash
+# Get auth token first
+TOKEN="your_token_here"
+
+# Test publish with JSON string (as iOS sends)
+curl -X POST http://localhost:8000/api/v1/content/share \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Test Checklist",
+    "content_type": "checklist",
+    "content_data": "{\"id\":\"test-123\",\"title\":\"Test\",\"sections\":[]}",
+    "tags": ["test"],
+    "language": "en",
+    "public_id": "test-curl-123",
+    "can_fork": true
+  }' | jq
+
+# Should return 201 with response
+```
+
+### Part 3: Backend Testing (1.5 hours)
+
+#### Create test files
+- [ ] Create `tests/test_content_payloads.py`
+- [ ] Copy tests from refactoring guide
+- [ ] Create `tests/test_content_validation.py`
+- [ ] Copy validation tests from guide
+- [ ] Run tests: `pytest tests/test_content*.py -v`
+- [ ] Fix any failures
+
+**Expected:** All tests pass
+
+### Part 4: Integration Testing (30 minutes)
+
+#### iOS -> Backend Flow
+- [ ] Start backend server
+- [ ] Start iOS simulator
+- [ ] Sign in to iOS app
+- [ ] Create new checklist
+- [ ] Publish from iOS
+- [ ] Check backend logs:
+  ```
+  INFO: Publish content request from user: <uuid>, type: checklist, public_id: <slug>
+  INFO: Content published successfully: <id>, public_id: <slug>
+  ```
+- [ ] Query database:
+  ```sql
+  SELECT 
+    public_id,
+    title,
+    content_type,
+    jsonb_pretty(content_data::jsonb) as content
+  FROM shared_content
+  WHERE deleted_at IS NULL
+  ORDER BY created_at DESC
+  LIMIT 1;
+  ```
+- [ ] Verify content_data is properly stored as JSONB
+- [ ] Unpublish from iOS
+- [ ] Verify soft deleted in database
+
+**Expected:**
+- ✅ Backend receives request
+- ✅ Content stored correctly
+- ✅ iOS shows success
+- ✅ Unpublish works
+
+---
+
+## Day 3: Comprehensive Testing & Polish (2-3 hours)
+
+### Part 1: Unit Tests (1.5 hours)
+
+#### iOS Unit Tests
+- [ ] Create `anyfleetTests/Services/ContentSyncPayloadTests.swift`
+- [ ] Copy tests from refactoring guide
+- [ ] Run tests: `Cmd+U`
+- [ ] All tests should pass
+
+#### iOS Integration Tests
+- [ ] Create `anyfleetTests/Integration/ContentSyncIntegrationTests.swift`
+- [ ] Copy tests from guide
+- [ ] Run tests: `Cmd+U`
+- [ ] Fix any failures
+
+### Part 2: Edge Case Testing (1 hour)
+
+#### Test Scenarios
+- [ ] **Offline Publish:**
+  - [ ] Turn off network
+  - [ ] Publish content
+  - [ ] Verify queued
+  - [ ] Turn on network
+  - [ ] Verify syncs
+  
+- [ ] **Large Content:**
+  - [ ] Create checklist with 50+ items
+  - [ ] Publish
+  - [ ] Verify succeeds
+  
+- [ ] **Concurrent Operations:**
+  - [ ] Publish multiple items quickly
+  - [ ] Verify all sync
+  
+- [ ] **Retry Logic:**
+  - [ ] Stop backend server
+  - [ ] Try to publish
+  - [ ] Verify retry attempts
+  - [ ] Start backend
+  - [ ] Verify eventual success
+  
+- [ ] **Duplicate publicID:**
+  - [ ] Force duplicate public_id
+  - [ ] Verify 409 error
+  - [ ] Verify marked as failed
+
+### Part 3: Performance Testing (30 minutes)
+
+#### Metrics to Check
+- [ ] Measure publish latency (should be < 2 seconds)
+- [ ] Measure unpublish latency
+- [ ] Check sync queue processing speed
+- [ ] Monitor memory usage during sync
+- [ ] Check database query performance
+
+**Tools:**
+- Xcode Instruments
+- Backend timing logs
+- Database EXPLAIN queries
+
+---
+
+## Production Deployment (30 minutes)
+
+### Pre-Deploy
 - [ ] All tests passing
-- [ ] Code review completed
-- [ ] No console warnings/errors
-- [ ] Performance profiling shows no regressions
-- [ ] Accessibility audit passed
-- [ ] Localization strings complete
-- [ ] Database migration tested on fresh install
-- [ ] Database migration tested on upgrade
-- [ ] Sign-in flow works end-to-end
-- [ ] All states tested on physical device
-- [ ] Screenshots updated for App Store
-- [ ] Release notes prepared
-- [ ] Analytics events tracked
+- [ ] No linter errors
+- [ ] Code reviewed
+- [ ] Changelog updated
+
+### Deploy Backend
+- [ ] Merge to main branch
+- [ ] Deploy to production server
+- [ ] Run migrations (if any)
+- [ ] Verify health endpoint
+- [ ] Check logs for startup errors
+
+### Deploy iOS
+- [ ] Archive app
+- [ ] Upload to TestFlight
+- [ ] Add release notes
+- [ ] Deploy to internal testers
+- [ ] Monitor crash reports
+- [ ] After 24h, deploy to beta testers
+
+### Post-Deploy Monitoring
+- [ ] Monitor error rates
+- [ ] Check sync success rate
+- [ ] Review user feedback
+- [ ] Monitor performance metrics
 
 ---
 
-## TIME BREAKDOWN
+## Rollback Plan
 
-| Phase | Component | Hours |
-|-------|-----------|-------|
-| 1 | Models + Services | 8 |
-| 1 | ViewModel updates | 6 |
-| 2 | Components | 10 |
-| 2 | View refactoring | 12 |
-| 3 | Database | 8 |
-| 4 | Auth integration | 6 |
-| 5 | Testing | 16 |
-| 6 | Polish | 8 |
-| 7 | Handoff | 4 |
-| **Total** | | **78 hours** |
+### If iOS issues detected:
+1. Revert to previous TestFlight build
+2. Investigate logs
+3. Fix issues in development
+4. Re-test thoroughly
+5. Re-deploy
 
-**Estimate: 2-3 weeks depending on team size**
+### If Backend issues detected:
+1. Roll back to previous version
+2. Check database state
+3. Fix issues locally
+4. Re-test with curl
+5. Re-deploy
 
 ---
 
-## SUCCESS CRITERIA
+## Success Criteria
 
-✅ Users can see clear distinction between local and public content  
-✅ Publishing requires sign-in with clear UX  
-✅ Confirmation modal prevents accidental publishes  
-✅ Visibility state persists in GRDB  
-✅ All tests passing  
-✅ Accessibility audit passed  
-✅ App Store ready for submission  
-✅ Phase 2 backend team has clear sync interface
+### Technical
+- ✅ All unit tests pass
+- ✅ All integration tests pass
+- ✅ Sync success rate > 99%
+- ✅ Average sync latency < 2s
+- ✅ Zero payload encoding errors
+- ✅ Zero "keyNotFound" errors
+- ✅ Zero "missingPublicID" errors
+
+### User-Facing
+- ✅ Published content appears in backend
+- ✅ Unpublished content removed from backend
+- ✅ Works offline (queues operations)
+- ✅ Clear error messages
+- ✅ No data loss
+
+---
+
+## Troubleshooting
+
+### "keyNotFound: publicID" Error
+**Cause:** Payload stored with wrong keys or decoder using wrong strategy  
+**Fix:** Check ContentPublishPayload CodingKeys, remove convertFromSnakeCase
+
+### "missingPublicID" on Unpublish
+**Cause:** publicID cleared before sync operation  
+**Fix:** Capture publicID before clearing, pass to enqueueUnpublish
+
+### API Returns 400 "Invalid JSON"
+**Cause:** contentData not properly formatted  
+**Fix:** Check that JSON string is valid, use JSONEncoder.encode
+
+### Backend Returns 409 Duplicate
+**Cause:** publicID already exists  
+**Fix:** Generate new publicID with different suffix
+
+### Sync Never Completes
+**Cause:** Background sync not triggering  
+**Fix:** Check ContentSyncService.syncPending() is called, check network reachability
+
+---
+
+## Reference Commands
+
+### iOS
+```bash
+# Clean build
+rm -rf ~/Library/Developer/Xcode/DerivedData
+xcodebuild clean
+
+# Run tests
+xcodebuild test -scheme anyfleet -destination 'platform=iOS Simulator,name=iPhone 15 Pro'
+
+# View database
+sqlite3 ~/Library/Developer/CoreSimulator/Devices/<DEVICE_ID>/data/Containers/Data/Application/<APP_ID>/Library/Application\ Support/Database/anyfleet.sqlite
+
+# Check sync queue
+sqlite3 <path_to_db> "SELECT * FROM sync_queue WHERE syncedAt IS NULL;"
+```
+
+### Backend
+```bash
+# Run server
+cd anyfleet-backend
+uvicorn app.main:app --reload
+
+# Run tests
+pytest tests/ -v
+
+# Check database
+psql anyfleet_db -c "SELECT public_id, title, content_type, deleted_at FROM shared_content ORDER BY created_at DESC LIMIT 10;"
+
+# View logs
+tail -f /var/log/anyfleet-backend.log
+```
+
+---
+
+## Next Steps
+
+1. ✅ Review this checklist
+2. ⬜ Start Day 1 implementation
+3. ⬜ Complete Day 2 backend updates
+4. ⬜ Finish Day 3 testing
+5. ⬜ Deploy to production
+
+Good luck! 🚀
