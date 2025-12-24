@@ -25,6 +25,8 @@ enum AppRoute: Hashable {
 @MainActor
 final class AppCoordinator: ObservableObject {
     private let dependencies: AppDependencies
+    private let syncService: ContentSyncService
+    private var syncTimer: Timer?
     
     // Individual navigation paths per tab
     @Published var homePath: [AppRoute] = []
@@ -40,6 +42,28 @@ final class AppCoordinator: ObservableObject {
     
     init(dependencies: AppDependencies) {
         self.dependencies = dependencies
+        self.syncService = dependencies.contentSyncService
+        startBackgroundSync()
+    }
+
+    private func startBackgroundSync() {
+        // Sync every 10 seconds when app is active
+        syncTimer = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: true) { [weak self] _ in
+            Task { @MainActor in
+                await self?.syncService.syncPending()
+            }
+        }
+    }
+    
+    func applicationDidBecomeActive() {
+        // Trigger immediate sync when app becomes active
+        Task { @MainActor in
+            await syncService.syncPending()
+        }
+    }
+    
+    deinit {
+        syncTimer?.invalidate()
     }
     
     // MARK: - Tab-Specific Navigation

@@ -60,8 +60,8 @@ final class AppDependencies {
     /// Shared content sync service instance
     let contentSyncService: ContentSyncService
 
-    /// Shared API client instance (nil until Phase 3)
-    // let apiClient: APIClient? // TODO: Uncomment in Phase 3
+    /// Shared API client instance
+    let apiClient: APIClient
     
     // MARK: - Repository Access
     
@@ -99,16 +99,19 @@ final class AppDependencies {
         // Initialize data layer
         self.database = .shared
         self.repository = LocalRepository(database: database)
-        
+
+        // API client (needed by contentSyncService)
+        self.apiClient = APIClient(authService: AuthService.shared)
+
         // Initialize stores
         self.charterStore = CharterStore(repository: repository)
         self.libraryStore = LibraryStore(repository: repository)
         self.contentSyncService = ContentSyncService(
             repository: repository,
-            // apiClient: nil, // TODO: Add in Phase 3
+            apiClient: apiClient,
             libraryStore: libraryStore
         )
-        
+
         // Initialize services
         self.localizationService = LocalizationService()
         self.authStateObserver = AuthStateObserver(authService: AuthService.shared)
@@ -117,9 +120,6 @@ final class AppDependencies {
             authService: AuthService.shared,
             syncService: contentSyncService
         )
-
-        // API client not yet implemented (Phase 3)
-        // self.apiClient = nil // TODO: Uncomment in Phase 3
 
         AppLogger.dependencies.info("AppDependencies initialized successfully")
     }
@@ -153,14 +153,18 @@ final class AppDependencies {
         
         self.database = database
         self.repository = repository
+
+        // API client (needed by contentSyncService)
+        self.apiClient = APIClient(authService: AuthService.shared)
+
         self.charterStore = CharterStore(repository: repository)
         self.libraryStore = LibraryStore(repository: repository)
         self.contentSyncService = ContentSyncService(
             repository: repository,
-            // apiClient: nil, // TODO: Add in Phase 3
+            apiClient: apiClient,
             libraryStore: libraryStore
         )
-        
+
         // Initialize services
         self.localizationService = LocalizationService()
         self.authStateObserver = AuthStateObserver(authService: AuthService.shared)
@@ -169,9 +173,6 @@ final class AppDependencies {
             authService: AuthService.shared,
             syncService: contentSyncService
         )
-
-        // API client not yet implemented (Phase 3)
-        // self.apiClient = nil // TODO: Uncomment in Phase 3
 
         AppLogger.dependencies.info("Test AppDependencies initialized successfully")
     }

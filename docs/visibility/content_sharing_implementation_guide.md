@@ -1936,12 +1936,12 @@ final class AppModel {
 #### Test Scenarios
 
 1. **Happy Path - Publish**
-   - [ ] User signs in
-   - [ ] User creates checklist
-   - [ ] User taps Publish
-   - [ ] Sees confirmation modal
-   - [ ] Confirms
-   - [ ] Content marked as pending
+   - [x] User signs in
+   - [x] User creates checklist
+   - [x] User taps Publish
+   - [x] Sees confirmation modal
+   - [x] Confirms
+   - [x] Content marked as pending
    - [ ] Sync service processes queue
    - [ ] Backend receives request
    - [ ] Content marked as synced

@@ -1,0 +1,319 @@
+import Foundation
+
+/// API client for authenticated requests to backend
+final class APIClient {
+    private let baseURL: URL
+    private let authService: AuthService
+    private let session: URLSession
+    private let decoder: JSONDecoder
+    private let encoder: JSONEncoder
+    
+    init(authService: AuthService) {
+        // Environment-based URL
+        #if DEBUG
+        self.baseURL = URL(string: "http://127.0.0.1:8000/api/v1")!
+        #else
+        self.baseURL = URL(string: "https://api.anyfleet.app/api/v1")!
+        #endif
+        
+        self.authService = authService
+        self.session = URLSession.shared
+        
+        self.decoder = JSONDecoder()
+        self.decoder.dateDecodingStrategy = .iso8601
+        self.decoder.keyDecodingStrategy = .convertFromSnakeCase
+        
+        self.encoder = JSONEncoder()
+        self.encoder.dateEncodingStrategy = .iso8601
+        self.encoder.keyEncodingStrategy = .convertToSnakeCase
+    }
+    
+    // MARK: - Content Endpoints
+    
+    func publishContent(
+        title: String,
+        description: String?,
+        contentType: String,
+        contentData: [String: Any],
+        tags: [String],
+        language: String,
+        publicID: String,
+        canFork: Bool
+    ) async throws -> PublishContentResponse {
+        let request = PublishContentRequest(
+            title: title,
+            description: description,
+            contentType: contentType,
+            contentData: contentData,
+            tags: tags,
+            language: language,
+            publicID: publicID,
+            canFork: canFork
+        )
+        
+        return try await post("/content/share", body: request)
+    }
+    
+    func unpublishContent(publicID: String) async throws {
+        try await delete("/content/\(publicID)")
+    }
+    
+    // MARK: - HTTP Methods
+    
+    private func post<T: Decodable, B: Encodable>(
+        _ path: String,
+        body: B
+    ) async throws -> T {
+        try await request(method: "POST", path: path, body: body)
+    }
+    
+    private func delete(_ path: String) async throws {
+        try await performRequest(method: "DELETE", path: path, body: EmptyBody())
+    }
+
+    private func performRequest<B: Encodable>(
+        method: String,
+        path: String,
+        body: B
+    ) async throws {
+        let url = baseURL.appendingPathComponent(path)
+        var urlRequest = URLRequest(url: url)
+        urlRequest.httpMethod = method
+        urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        urlRequest.setValue("application/json", forHTTPHeaderField: "Accept")
+
+        // Get access token (will refresh if needed)
+        let accessToken = try await authService.getAccessToken()
+
+        urlRequest.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+
+        // Encode body
+        if !(body is EmptyBody) {
+            urlRequest.httpBody = try encoder.encode(body)
+        }
+
+        // Perform request
+        let (_, response) = try await session.data(for: urlRequest)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw APIError.invalidResponse
+        }
+
+        // Handle status codes (only care about success/failure, no response body)
+        switch httpResponse.statusCode {
+        case 200...299:
+            return
+
+        case 401:
+            throw APIError.unauthorized
+
+        case 403:
+            throw APIError.forbidden
+
+        case 404:
+            throw APIError.notFound
+
+        case 409:
+            throw APIError.conflict
+
+        case 400...499:
+            throw APIError.clientError(httpResponse.statusCode)
+
+        case 500...599:
+            throw APIError.serverError
+
+        default:
+            throw APIError.invalidResponse
+        }
+    }
+
+    private func request<T: Decodable, B: Encodable>(
+        method: String,
+        path: String,
+        body: B
+    ) async throws -> T {
+        let url = baseURL.appendingPathComponent(path)
+        var urlRequest = URLRequest(url: url)
+        urlRequest.httpMethod = method
+        urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        urlRequest.setValue("application/json", forHTTPHeaderField: "Accept")
+        
+        // Get access token (will refresh if needed)
+        let accessToken = try await authService.getAccessToken()
+        
+        urlRequest.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        
+        // Encode body
+        if !(body is EmptyBody) {
+            urlRequest.httpBody = try encoder.encode(body)
+        }
+        
+        // Perform request
+        let (data, response) = try await session.data(for: urlRequest)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw APIError.invalidResponse
+        }
+        
+        // Handle status codes
+        switch httpResponse.statusCode {
+        case 200...299:
+            if T.self == EmptyResponse.self {
+                return EmptyResponse() as! T
+            }
+            return try decoder.decode(T.self, from: data)
+            
+        case 401:
+            throw APIError.unauthorized
+            
+        case 403:
+            throw APIError.forbidden
+            
+        case 404:
+            throw APIError.notFound
+            
+        case 409:
+            throw APIError.conflict
+            
+        case 400...499:
+            throw APIError.clientError(httpResponse.statusCode)
+            
+        case 500...599:
+            throw APIError.serverError
+            
+        default:
+            throw APIError.invalidResponse
+        }
+    }
+}
+
+// MARK: - Request/Response Types
+
+struct PublishContentRequest: Encodable {
+    let title: String
+    let description: String?
+    let contentType: String
+    let contentData: [String: Any]
+    let tags: [String]
+    let language: String
+    let publicID: String
+    let canFork: Bool
+
+    enum CodingKeys: String, CodingKey {
+        case title, description, tags, language
+        case contentType = "content_type"
+        case contentData = "content_data"
+        case publicID = "public_id"
+        case canFork = "can_fork"
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(title, forKey: .title)
+        try container.encodeIfPresent(description, forKey: .description)
+        try container.encode(contentType, forKey: .contentType)
+        try container.encode(tags, forKey: .tags)
+        try container.encode(language, forKey: .language)
+        try container.encode(publicID, forKey: .publicID)
+        try container.encode(canFork, forKey: .canFork)
+        
+        // Encode contentData as nested JSON
+        let jsonData = try JSONSerialization.data(withJSONObject: contentData)
+        let decoder = JSONDecoder()
+        let json = try decoder.decode(AnyCodable.self, from: jsonData)
+        try container.encode(json, forKey: .contentData)
+    }
+}
+
+struct PublishContentResponse: Codable {
+    let id: UUID
+    let publicID: String
+    let publishedAt: Date
+    let authorUsername: String?
+    let canFork: Bool
+}
+
+// Helper for dynamic JSON
+struct AnyCodable: Codable {
+    let value: Any
+    
+    init(_ value: Any) {
+        self.value = value
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        
+        if let int = try? container.decode(Int.self) {
+            value = int
+        } else if let double = try? container.decode(Double.self) {
+            value = double
+        } else if let string = try? container.decode(String.self) {
+            value = string
+        } else if let bool = try? container.decode(Bool.self) {
+            value = bool
+        } else if let array = try? container.decode([AnyCodable].self) {
+            value = array.map { $0.value }
+        } else if let dict = try? container.decode([String: AnyCodable].self) {
+            value = dict.mapValues { $0.value }
+        } else {
+            value = NSNull()
+        }
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        
+        switch value {
+        case let int as Int:
+            try container.encode(int)
+        case let double as Double:
+            try container.encode(double)
+        case let string as String:
+            try container.encode(string)
+        case let bool as Bool:
+            try container.encode(bool)
+        case let array as [Any]:
+            try container.encode(array.map { AnyCodable($0) })
+        case let dict as [String: Any]:
+            try container.encode(dict.mapValues { AnyCodable($0) })
+        default:
+            try container.encodeNil()
+        }
+    }
+}
+
+enum APIError: LocalizedError {
+    case unauthorized
+    case forbidden
+    case notFound
+    case conflict
+    case clientError(Int)
+    case serverError
+    case invalidResponse
+    case networkError(Error)
+    
+    var errorDescription: String? {
+        switch self {
+        case .unauthorized:
+            return "Authentication required"
+        case .forbidden:
+            return "Access forbidden"
+        case .notFound:
+            return "Resource not found"
+        case .conflict:
+            return "Resource already exists"
+        case .clientError(let code):
+            return "Client error: \(code)"
+        case .serverError:
+            return "Server error"
+        case .invalidResponse:
+            return "Invalid response from server"
+        case .networkError(let error):
+            return "Network error: \(error.localizedDescription)"
+        }
+    }
+}
+
+struct EmptyBody: Codable {}
+struct EmptyResponse: Codable {}
