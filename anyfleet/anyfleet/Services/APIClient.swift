@@ -21,6 +21,8 @@ protocol APIClientProtocol {
     ) async throws -> PublishContentResponse
 
     func unpublishContent(publicID: String) async throws
+
+    func fetchPublicContent() async throws -> [SharedContentSummary]
 }
 
 /// API client for authenticated requests to backend
@@ -33,10 +35,10 @@ final class APIClient: APIClientProtocol {
 
     init(authService: AuthServiceProtocol) {
         // Environment-based URL
-        #if DEBUG
+        #if targetEnvironment(simulator)
         self.baseURL = URL(string: "http://127.0.0.1:8000/api/v1")!
         #else
-        self.baseURL = URL(string: "https://api.anyfleet.app/api/v1")!
+        self.baseURL = URL(string: "https://elegant-empathy-production-583b.up.railway.app/api/v1")!
         #endif
         
         self.authService = authService
@@ -80,9 +82,27 @@ final class APIClient: APIClientProtocol {
     func unpublishContent(publicID: String) async throws {
         try await delete("/content/\(publicID)")
     }
+
+    func fetchPublicContent() async throws -> [SharedContentSummary] {
+        return try await getUnauthenticated("/content/public", body: EmptyBody())
+    }
     
     // MARK: - HTTP Methods
-    
+
+    private func get<T: Decodable>(
+        _ path: String,
+        body: EmptyBody = EmptyBody()
+    ) async throws -> T {
+        try await request(method: "GET", path: path, body: body)
+    }
+
+    private func getUnauthenticated<T: Decodable>(
+        _ path: String,
+        body: EmptyBody = EmptyBody()
+    ) async throws -> T {
+        try await requestUnauthenticated(method: "GET", path: path, body: body)
+    }
+
     private func post<T: Decodable, B: Encodable>(
         _ path: String,
         body: B
@@ -204,6 +224,62 @@ final class APIClient: APIClientProtocol {
         case 500...599:
             throw APIError.serverError
             
+        default:
+            throw APIError.invalidResponse
+        }
+    }
+
+    private func requestUnauthenticated<T: Decodable, B: Encodable>(
+        method: String,
+        path: String,
+        body: B
+    ) async throws -> T {
+        let url = baseURL.appendingPathComponent(path)
+        var urlRequest = URLRequest(url: url)
+        urlRequest.httpMethod = method
+        urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        urlRequest.setValue("application/json", forHTTPHeaderField: "Accept")
+
+        // No Authorization header for unauthenticated requests
+
+        // Encode body
+        if !(body is EmptyBody) {
+            urlRequest.httpBody = try encoder.encode(body)
+        }
+
+        // Perform request
+        let (data, response) = try await session.data(for: urlRequest)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw APIError.invalidResponse
+        }
+
+        // Handle status codes
+        switch httpResponse.statusCode {
+        case 200...299:
+            if T.self == EmptyResponse.self {
+                return EmptyResponse() as! T
+            }
+            return try decoder.decode(T.self, from: data)
+
+        case 401:
+            throw APIError.unauthorized
+
+        case 403:
+            throw APIError.forbidden
+
+        case 404:
+            throw APIError.notFound
+
+        case 409:
+            throw APIError.conflict
+
+        case 400...499:
+            throw APIError.clientError(httpResponse.statusCode)
+
+        case 500...599:
+            throw APIError.serverError
+
         default:
             throw APIError.invalidResponse
         }

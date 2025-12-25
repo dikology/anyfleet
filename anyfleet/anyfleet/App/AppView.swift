@@ -7,7 +7,7 @@ struct AppView: View {
     enum Tab: Hashable {
         case home
         case library
-        //case discover
+        case discover
         case charters
         case profile
     }
@@ -64,7 +64,24 @@ struct AppView: View {
                 Label(L10n.Library.myLibrary, systemImage: "book.fill")
             }
             .tag(Tab.library)
-            
+
+            // Discover Tab
+            NavigationStack(path: $coordinator.discoverPath) {
+                DiscoverView(
+                    viewModel: DiscoverViewModel(
+                        apiClient: dependencies.apiClient,
+                        coordinator: coordinator
+                    )
+                )
+                    .navigationDestination(for: AppRoute.self) { route in
+                        coordinator.destination(for: route)
+                    }
+            }
+            .tabItem {
+                Label("Discover", systemImage: "globe")
+            }
+            .tag(Tab.discover)
+
             // Profile Tab
             NavigationStack(path: $coordinator.profilePath) {
                 ProfileView()
