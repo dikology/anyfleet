@@ -411,6 +411,11 @@ class MockAPIClient: APIClientProtocol {
     func unpublishContent(publicID: String) async throws {
         // Mock implementation - do nothing for tests
     }
+
+    func fetchPublicContent() async throws -> [SharedContentSummary] {
+        // Mock implementation - return empty array for tests
+        return []
+    }
 }
 
 // MARK: - Mock Auth Service
