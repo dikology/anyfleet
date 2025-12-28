@@ -5,6 +5,10 @@ struct DiscoverView: View {
     @Environment(\.appDependencies) private var dependencies
     @Environment(\.appCoordinator) private var coordinator
 
+    // Modal state
+    @State private var showingAuthorProfile = false
+    @State private var selectedAuthorUsername: String?
+
     init(viewModel: DiscoverViewModel? = nil) {
         if let viewModel = viewModel {
             _viewModel = State(initialValue: viewModel)
@@ -45,9 +49,20 @@ struct DiscoverView: View {
                 .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
+        .sheet(isPresented: $showingAuthorProfile) {
+            if let username = selectedAuthorUsername {
+                AuthorProfileModal(
+                    username: username,
+                    onDismiss: {
+                        showingAuthorProfile = false
+                        selectedAuthorUsername = nil
+                    }
+                )
+            }
+        }
         .toolbar {
             ToolbarItem(placement: .principal) {
-                Text("Discover")
+                Text(L10n.Discover)
                     .font(DesignSystem.Typography.headline)
                     .foregroundColor(DesignSystem.Colors.textPrimary)
             }
@@ -65,8 +80,8 @@ struct DiscoverView: View {
     private var emptyState: some View {
         DesignSystem.EmptyStateHero(
             icon: "globe",
-            title: "Discover Sailing Knowledge",
-            message: "Browse checklists, guides, and flashcards shared by fellow sailors from around the world.",
+            title: L10n.DiscoverView.emptyStateTitle,
+            message: L10n.DiscoverView.emptyStateMessage,
             accentColor: DesignSystem.Colors.primary
         )
         .background(
@@ -91,6 +106,14 @@ struct DiscoverView: View {
                     content: content,
                     onTap: {
                         viewModel.onContentTapped(content)
+                    },
+                    onAuthorTapped: { username in
+                        selectedAuthorUsername = username
+                        showingAuthorProfile = true
+                        viewModel.onAuthorTapped(username)
+                    },
+                    onForkTapped: {
+                        //viewModel.onForkTapped(content)
                     }
                 )
                 .listRowInsets(EdgeInsets(

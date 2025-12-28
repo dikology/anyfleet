@@ -1,41 +1,78 @@
 import SwiftUI
 
-/// Row component for displaying discover content items
+/// Redesigned discover content row with modern UX/UI best practices
+/// - Clickable author avatar opening profile modal
+/// - Fork action via swipe gesture
+/// - Optimized information hierarchy
 struct DiscoverContentRow: View {
     let content: DiscoverContent
     let onTap: () -> Void
-
+    let onAuthorTapped: (String) -> Void  // NEW: Open author profile
+    let onForkTapped: () -> Void  // NEW: Fork action
+    
     @State private var isPressed = false
-
+    @State private var showSwipeActions = false
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Hero Section - Focal Point
-            VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
-                // Content Title - Primary Focal Element
-                HStack(alignment: .top, spacing: DesignSystem.Spacing.md) {
-                    // Type Icon
+            // SECTION 1: Author & Metadata Header
+            HStack(spacing: DesignSystem.Spacing.md) {
+                // Author Avatar - Clickable
+                if let author = content.authorUsername {
+                    Button(action: { onAuthorTapped(author) }) {
+                        authorAvatarView(username: author)
+                    }
+                } else {
+                    // Anonymous author fallback
                     ZStack {
                         Circle()
-                            .fill(
-                                LinearGradient(
-                                    colors: [
-                                        DesignSystem.Colors.primary.opacity(0.15),
-                                        DesignSystem.Colors.primary.opacity(0.08)
-                                    ],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            .frame(width: 40, height: 40)
-
-                        Image(systemName: content.contentType.icon)
-                            .font(.system(size: 18, weight: .semibold))
-                            .foregroundColor(DesignSystem.Colors.primary)
+                            .fill(DesignSystem.Colors.primary.opacity(0.1))
+                        
+                        Image(systemName: "questionmark.circle.fill")
+                            .font(.system(size: 20))
+                            .foregroundColor(DesignSystem.Colors.textSecondary)
                     }
-
-                    VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
+                    .frame(width: 36, height: 36)
+                }
+                
+                // Author Info
+                VStack(alignment: .leading, spacing: 2) {
+                    if let author = content.authorUsername {
+                        Text(author)
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(DesignSystem.Colors.textPrimary)
+                    } else {
+                        Text("Anonymous")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(DesignSystem.Colors.textSecondary)
+                    }
+                    
+                    Text(content.createdAt.formatted(.relative(presentation: .named)))
+                        .font(.system(size: 11, weight: .regular))
+                        .foregroundColor(DesignSystem.Colors.textSecondary)
+                }
+                
+                Spacer()
+                
+                // Content Type Badge
+                contentTypeBadge
+            }
+            .padding(.horizontal, DesignSystem.Spacing.lg)
+            .padding(.vertical, DesignSystem.Spacing.md)
+            
+            Divider()
+                .background(DesignSystem.Colors.border.opacity(0.3))
+                .padding(.horizontal, DesignSystem.Spacing.lg)
+            
+            // SECTION 2: Content (Title + Description)
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
+                // Icon + Title
+                HStack(alignment: .top, spacing: DesignSystem.Spacing.md) {
+                    contentTypeIcon
+                    
+                    VStack(alignment: .leading, spacing: 0) {
                         Text(content.title)
-                            .font(.system(size: 20, weight: .bold))
+                            .font(.system(size: 18, weight: .bold))
                             .foregroundStyle(
                                 LinearGradient(
                                     colors: [
@@ -48,115 +85,167 @@ struct DiscoverContentRow: View {
                             )
                             .lineLimit(2)
                             .fixedSize(horizontal: false, vertical: true)
-
-                        // Author and Type Badge
-                        HStack(spacing: DesignSystem.Spacing.xs) {
-                            if let author = content.authorUsername {
-                                Text("by \(author)")
-                                    .font(.system(size: 12, weight: .medium))
-                                    .foregroundColor(DesignSystem.Colors.primary)
-                            }
-
-                            Text(content.contentType.displayName)
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(DesignSystem.Colors.textSecondary)
-                        }
-                        .padding(.horizontal, DesignSystem.Spacing.sm)
-                        .padding(.vertical, DesignSystem.Spacing.xs)
-                        .background(
-                            Capsule()
-                                .fill(DesignSystem.Colors.primary.opacity(0.1))
-                        )
                     }
-
-                    Spacer()
                 }
-
+                
                 // Description
                 if let description = content.description, !description.isEmpty {
                     Text(description)
-                        .font(.system(size: 14, weight: .regular))
+                        .font(.system(size: 13, weight: .regular))
                         .foregroundColor(DesignSystem.Colors.textSecondary)
                         .lineLimit(2)
-                        .padding(.leading, 56) // Align with title
+                        .padding(.leading, 44) // Align with title
                 }
             }
             .padding(.horizontal, DesignSystem.Spacing.lg)
-            .padding(.top, DesignSystem.Spacing.lg)
-            .padding(.bottom, DesignSystem.Spacing.md)
-
+            .padding(.vertical, DesignSystem.Spacing.md)
+            
             Divider()
-                .background(DesignSystem.Colors.border.opacity(0.5))
+                .background(DesignSystem.Colors.border.opacity(0.3))
                 .padding(.horizontal, DesignSystem.Spacing.lg)
-
-            // Metadata Section
-            VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
-                HStack(spacing: DesignSystem.Spacing.md) {
-                    // Created Date
-                    Text(content.createdAt.formatted(.relative(presentation: .named)))
-                        .font(.system(size: 12, weight: .regular))
-                        .foregroundColor(DesignSystem.Colors.textSecondary)
-
-                    Spacer()
-
-                    // Tags
-                    if !content.tags.isEmpty {
-                        HStack(spacing: DesignSystem.Spacing.xs) {
-                            ForEach(content.tags.prefix(2), id: \.self) { tag in
-                                Text(tag)
-                                    .font(.system(size: 10, weight: .medium))
-                                    .foregroundColor(DesignSystem.Colors.primary)
-                                    .padding(.horizontal, DesignSystem.Spacing.sm)
-                                    .padding(.vertical, DesignSystem.Spacing.xs)
-                                    .background(
-                                        Capsule()
-                                            .fill(DesignSystem.Colors.primary.opacity(0.1))
-                                    )
-                            }
+            
+            // SECTION 3: Tags & Footer
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
+                // Tags
+                if !content.tags.isEmpty {
+                    HStack(spacing: DesignSystem.Spacing.xs) {
+                        ForEach(content.tags.prefix(3), id: \.self) { tag in
+                            Text(tag)
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(DesignSystem.Colors.primary)
+                                .padding(.horizontal, DesignSystem.Spacing.sm)
+                                .padding(.vertical, 4)
+                                .background(
+                                    Capsule()
+                                        .fill(DesignSystem.Colors.primary.opacity(0.08))
+                                )
+                        }
+                        
+                        if content.tags.count > 3 {
+                            Text("+\(content.tags.count - 3)")
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(DesignSystem.Colors.textSecondary)
+                        }
+                        
+                        Spacer()
+                        
+                        // Fork indicator (optional - can remove if using swipe action)
+                        HStack(spacing: 4) {
+                            Image(systemName: "arrow.triangle.branch")
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(DesignSystem.Colors.textSecondary)
+                            
+                            Text("\(content.forkCount)")
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(DesignSystem.Colors.textSecondary)
                         }
                     }
                 }
-
-                // Stats Row
-                HStack(spacing: DesignSystem.Spacing.md) {
-                    HStack(spacing: DesignSystem.Spacing.xs) {
-                        Image(systemName: "eye")
-                            .font(.system(size: 12))
-                            .foregroundColor(DesignSystem.Colors.textSecondary)
-                        Text("\(content.viewCount)")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(DesignSystem.Colors.textSecondary)
-                    }
-
-                    HStack(spacing: DesignSystem.Spacing.xs) {
-                        Image(systemName: "arrow.triangle.branch")
-                            .font(.system(size: 12))
-                            .foregroundColor(DesignSystem.Colors.textSecondary)
-                        Text("\(content.forkCount)")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(DesignSystem.Colors.textSecondary)
-                    }
-
-                    Spacer()
-                }
             }
             .padding(.horizontal, DesignSystem.Spacing.lg)
-            .padding(.top, DesignSystem.Spacing.md)
-            .padding(.bottom, DesignSystem.Spacing.md)
+            .padding(.vertical, DesignSystem.Spacing.md)
         }
-        .heroCardStyle(elevation: .medium)
-        .background(Color.clear)
+        .background(DesignSystem.Colors.surface)
+        .cornerRadius(DesignSystem.Spacing.md)
+        .overlay(
+            RoundedRectangle(cornerRadius: DesignSystem.Spacing.md)
+                .stroke(DesignSystem.Colors.border.opacity(0.3), lineWidth: 1)
+        )
+        .contentShape(Rectangle())
         .scaleEffect(isPressed ? 0.98 : 1.0)
         .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isPressed)
         .onTapGesture {
             onTap()
         }
+        // Swipe actions for fork
+        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+            Button(action: onForkTapped) {
+                Label("Fork", systemImage: "arrow.triangle.branch.fill")
+            }
+            .tint(DesignSystem.Colors.primary)
+        }
+    }
+    
+    // MARK: - Subviews
+    
+    private var contentTypeIcon: some View {
+        ZStack {
+            Circle()
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            DesignSystem.Colors.primary.opacity(0.12),
+                            DesignSystem.Colors.primary.opacity(0.06)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+            
+            Image(systemName: content.contentType.icon)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(DesignSystem.Colors.primary)
+        }
+        .frame(width: 36, height: 36)
+        //.flexibleFrame(alignment: .top)
+    }
+    
+    private var contentTypeBadge: some View {
+        Text(content.contentType.displayName)
+            .font(.system(size: 11, weight: .semibold))
+            .foregroundColor(DesignSystem.Colors.primary)
+            .padding(.horizontal, DesignSystem.Spacing.sm)
+            .padding(.vertical, 4)
+            .background(
+                Capsule()
+                    .fill(DesignSystem.Colors.primary.opacity(0.12))
+            )
+    }
+    
+    private func authorAvatarView(username: String) -> some View {
+        ZStack {
+            // Avatar circle with gradient background
+            Circle()
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            hashColor(username).opacity(0.7),
+                            hashColor(username).opacity(0.5)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+            
+            // Initials or icon
+            Text(username.prefix(1).uppercased())
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(.white)
+        }
+        .frame(width: 36, height: 36)
+        .overlay(
+            Circle()
+                .stroke(DesignSystem.Colors.border.opacity(0.3), lineWidth: 1)
+        )
+    }
+    
+    /// Generate a consistent color based on username for avatar
+    private func hashColor(_ username: String) -> Color {
+        let colors: [Color] = [
+            DesignSystem.Colors.primary,
+            Color(red: 0.8, green: 0.5, blue: 0.3),
+            Color(red: 0.3, green: 0.7, blue: 0.8),
+            Color(red: 0.7, green: 0.3, blue: 0.6),
+            Color(red: 0.5, green: 0.7, blue: 0.3)
+        ]
+        let hash = username.utf8.reduce(0) { $0 &+ Int($1) }
+        return colors[abs(hash) % colors.count]
     }
 }
 
 // MARK: - Preview
 
-#Preview("Discover Content Row") {
+#Preview("Redesigned Discover Content Row") {
     VStack(spacing: DesignSystem.Spacing.lg) {
         DiscoverContentRow(
             content: DiscoverContent(
@@ -171,9 +260,15 @@ struct DiscoverContentRow: View {
                 forkCount: 8,
                 createdAt: Date().addingTimeInterval(-60 * 60 * 24 * 7)
             ),
-            onTap: {}
+            onTap: {},
+            onAuthorTapped: { username in
+                print("Tapped author: \(username)")
+            },
+            onForkTapped: {
+                print("Fork tapped")
+            }
         )
-
+        
         DiscoverContentRow(
             content: DiscoverContent(
                 id: UUID(),
@@ -187,9 +282,15 @@ struct DiscoverContentRow: View {
                 forkCount: 23,
                 createdAt: Date().addingTimeInterval(-60 * 60 * 24 * 14)
             ),
-            onTap: {}
+            onTap: {},
+            onAuthorTapped: { username in
+                print("Tapped author: \(username)")
+            },
+            onForkTapped: {
+                print("Fork tapped")
+            }
         )
-
+        
         DiscoverContentRow(
             content: DiscoverContent(
                 id: UUID(),
@@ -203,8 +304,16 @@ struct DiscoverContentRow: View {
                 forkCount: 15,
                 createdAt: Date().addingTimeInterval(-60 * 60 * 24 * 3)
             ),
-            onTap: {}
+            onTap: {},
+            onAuthorTapped: { username in
+                print("Tapped author: \(username)")
+            },
+            onForkTapped: {
+                print("Fork tapped")
+            }
         )
+        
+        Spacer()
     }
     .padding()
     .background(DesignSystem.Colors.background)

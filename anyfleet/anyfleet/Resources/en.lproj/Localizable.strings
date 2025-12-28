@@ -58,6 +58,10 @@
 "home" = "Home";
 "library" = "Library";
 "discover" = "Discover";
+
+"discover.emptyState.title" = "Discover Sailing Knowledge";
+"discover.emptyState.message" = "Browse checklists, guides, and flashcards shared by fellow sailors from around the world.";
+
 "charters" = "Charters";
 "profile" = "Profile";
 
@@ -193,3 +197,11 @@
 "charter.detail.checkInChecklist.button.description" = "Walk through the checklist step-by-step before guests step aboard.";
 "charter.detail.checkInChecklist.empty.title" = "No check-in checklist yet";
 "charter.detail.checkInChecklist.empty.description" = "Create a checklist of type \"Check-In\" in your Library and it will automatically appear here for this charter.";
+
+// Common
+"common.close" = "Close";
+
+// Author Profile
+"authorProfile.title" = "Author Profile";
+"authorProfile.comingSoonTitle" = "Coming Soon";
+"authorProfile.comingSoonMessage" = "Author profiles with detailed information, content listings, and more features are coming in a future update.";
