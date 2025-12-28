@@ -54,6 +54,10 @@
 "home" = "Home";
 "library" = "Library";
 "discover" = "Discover";
+
+"discover.emptyState.title" = "Discover Sailing Knowledge";
+"discover.emptyState.message" = "Browse checklists, guides, and flashcards shared by fellow sailors from around the world.";
+
 "charters" = "Charters";
 "profile" = "Profile";
 

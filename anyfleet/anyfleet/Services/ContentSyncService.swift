@@ -227,7 +227,7 @@ final class ContentSyncService {
         guard let payloadData = operation.payload else {
             throw SyncError.invalidPayload
         }
-        
+
         let unpublishPayload = try JSONDecoder().decode(UnpublishPayload.self, from: payloadData)
 
         // Check if this content was ever successfully published by looking for completed publish operations
@@ -241,9 +241,15 @@ final class ContentSyncService {
         }
 
         // Use publicID from payload
-        try await apiClient.unpublishContent(publicID: unpublishPayload.publicID)
+        do {
+            try await apiClient.unpublishContent(publicID: unpublishPayload.publicID)
+        } catch APIError.notFound {
+            // Content doesn't exist (404) - this means it's already unpublished
+            // Treat this as successful
+            AppLogger.auth.info("Content \(unpublishPayload.publicID) not found during unpublish - treating as successful (already unpublished)")
+        }
 
-        // Update local model
+        // Update local model - content is now unpublished (whether it existed or not)
         if var updated = libraryStore.library.first(where: { $0.id == operation.contentID }) {
             updated.syncStatus = .synced
             try await libraryStore.updateLibraryMetadata(updated)

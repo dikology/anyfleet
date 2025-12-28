@@ -130,7 +130,21 @@ enum L10n {
         tableName: "Localizable",
         comment: "Title for the discover tab"
     )
-    
+
+    enum DiscoverView {
+        static let emptyStateTitle = NSLocalizedString(
+            "discover.emptyState.title",
+            tableName: "Localizable",
+            comment: "Title for the discover empty state"
+        )
+
+        static let emptyStateMessage = NSLocalizedString(
+            "discover.emptyState.message",
+            tableName: "Localizable",
+            comment: "Message for the discover empty state"
+        )
+    }
+
     static let Charters = NSLocalizedString(
         "charters",
         tableName: "Localizable",
@@ -1065,5 +1079,33 @@ enum L10n {
                 )
             }
         }
+    }
+
+    enum Common {
+        static let close = NSLocalizedString(
+            "common.close",
+            tableName: "Localizable",
+            comment: "Close button text"
+        )
+    }
+
+    enum AuthorProfile {
+        static let title = NSLocalizedString(
+            "authorProfile.title",
+            tableName: "Localizable",
+            comment: "Title for author profile modal"
+        )
+
+        static let comingSoonTitle = NSLocalizedString(
+            "authorProfile.comingSoonTitle",
+            tableName: "Localizable",
+            comment: "Coming soon section title"
+        )
+
+        static let comingSoonMessage = NSLocalizedString(
+            "authorProfile.comingSoonMessage",
+            tableName: "Localizable",
+            comment: "Coming soon message explaining future features"
+        )
     }
 }

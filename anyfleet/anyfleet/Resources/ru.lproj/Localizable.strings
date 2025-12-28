@@ -57,11 +57,15 @@
 
 "home" = "Главная";
 "library" = "Библиотека";
-"discover" = "Открыть";
+"discover" = "Открытия";
+
+"discover.emptyState.title" = "Откройте Знания о Судоходстве";
+"discover.emptyState.message" = "Просматривайте чек-листы, руководства и карточки, которыми делятся другие моряки со всего мира.";
+
 "charters" = "Чартеры";
 "profile" = "Профиль";
 
-"library.myLibrary" = "Моя библиотека";
+"library.myLibrary" = "Библиотека";
 "library.myLibraryDescription" = "Ваши чек-листы, колоды и руководства";
 "library.newChecklist" = "Новый чек-лист";
 "library.newFlashcardDeck" = "Новая колода карточек";
@@ -172,3 +176,11 @@
 "charter.detail.checkInChecklist.button.description" = "Пройдитесь по чек-листу шаг за шагом перед посадкой гостей.";
 "charter.detail.checkInChecklist.empty.title" = "Чек-лист приёмки еще не создан";
 "charter.detail.checkInChecklist.empty.description" = "Создайте чек-лист приёмки в вашей Библиотеке, и он автоматически появится здесь для этого чартера.";
+
+// Common
+"common.close" = "Закрыть";
+
+// Author Profile
+"authorProfile.title" = "Профиль автора";
+"authorProfile.comingSoonTitle" = "Скоро появится";
+"authorProfile.comingSoonMessage" = "Профили авторов с подробной информацией, списком контента и другими функциями появятся в будущем обновлении.";

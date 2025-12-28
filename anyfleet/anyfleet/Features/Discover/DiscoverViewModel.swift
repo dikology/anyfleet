@@ -72,4 +72,11 @@ final class DiscoverViewModel: ErrorHandling {
         // This will show a placeholder until readers are implemented
         coordinator.push(.discoverContent(content.publicID), to: .discover)
     }
+
+    /// Handle tapping on an author name
+    func onAuthorTapped(_ username: String) {
+        AppLogger.view.info("Author tapped: \(username)")
+        // TODO: Implement author profile navigation/modal
+        // For now, this is a placeholder for future implementation
+    }
 }
