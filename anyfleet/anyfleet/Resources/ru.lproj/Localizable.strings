@@ -61,7 +61,7 @@
 "charters" = "Чартеры";
 "profile" = "Профиль";
 
-"library.myLibrary" = "Моя библиотека";
+"library.myLibrary" = "Библиотека";
 "library.myLibraryDescription" = "Ваши чек-листы, колоды и руководства";
 "library.newChecklist" = "Новый чек-лист";
 "library.newFlashcardDeck" = "Новая колода карточек";
