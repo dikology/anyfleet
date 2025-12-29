@@ -153,6 +153,11 @@
 "profile.welcomeSubtitle" = "Sign in with Apple to sync your data across devices and access your account.";
 "profile.signOut" = "Sign Out";
 "profile.signedInAs" = "Signed in as: %@";
+"profile.accountTitle" = "Account";
+"profile.accountSubtitle" = "Manage your account settings";
+"profile.getStartedTitle" = "Get Started";
+"profile.getStartedSubtitle" = "Sign in to access your profile and content";
+"profile.memberSincePrefix" = "Member since";
 
 "error.generic" = "Unknown error: %@";
 "error.notFound" = "%@ with ID %@ not found";

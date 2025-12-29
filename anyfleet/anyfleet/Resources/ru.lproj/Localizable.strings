@@ -157,6 +157,11 @@
 "profile.welcomeSubtitle" = "Войдите, чтобы иметь доступ к общему контенту";
 "profile.signOut" = "Выйти";
 "profile.signedInAs" = "%@";
+"profile.accountTitle" = "Аккаунт";
+"profile.accountSubtitle" = "Управляйте настройками аккаунта";
+"profile.getStartedTitle" = "Начнем";
+"profile.getStartedSubtitle" = "Войдите, чтобы получить доступ к профилю и контенту";
+"profile.memberSincePrefix" = "Участник с";
 
 "error.generic" = "Неизвестная ошибка: %@";
 "error.notFound" = "%@ с ID %@ не найден";

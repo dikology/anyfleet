@@ -181,6 +181,36 @@ enum L10n {
             tableName: "Localizable",
             comment: "Label showing signed in user (e.g., 'Signed in as: username')"
         )
+
+        static let accountTitle = NSLocalizedString(
+            "profile.accountTitle",
+            tableName: "Localizable",
+            comment: "Title for the account settings section"
+        )
+
+        static let accountSubtitle = NSLocalizedString(
+            "profile.accountSubtitle",
+            tableName: "Localizable",
+            comment: "Subtitle explaining the account settings section"
+        )
+
+        static let getStartedTitle = NSLocalizedString(
+            "profile.getStartedTitle",
+            tableName: "Localizable",
+            comment: "Title for the get started section when not signed in"
+        )
+
+        static let getStartedSubtitle = NSLocalizedString(
+            "profile.getStartedSubtitle",
+            tableName: "Localizable",
+            comment: "Subtitle explaining the get started section"
+        )
+
+        static let memberSincePrefix = NSLocalizedString(
+            "profile.memberSincePrefix",
+            tableName: "Localizable",
+            comment: "Prefix text for member since date (e.g., 'Member since')"
+        )
     }
     
     enum Error {
