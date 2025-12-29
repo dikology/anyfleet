@@ -118,6 +118,38 @@ struct SharedContentDetail: Codable {
         case updatedAt = "updated_at"
     }
 
+    // MARK: - Memberwise Initializer
+
+    init(
+        id: UUID,
+        title: String,
+        description: String?,
+        contentType: String,
+        contentData: [String: Any],
+        tags: [String],
+        publicID: String,
+        canFork: Bool,
+        authorUsername: String?,
+        viewCount: Int,
+        forkCount: Int,
+        createdAt: Date,
+        updatedAt: Date
+    ) {
+        self.id = id
+        self.title = title
+        self.description = description
+        self.contentType = contentType
+        self.contentData = contentData
+        self.tags = tags
+        self.publicID = publicID
+        self.canFork = canFork
+        self.authorUsername = authorUsername
+        self.viewCount = viewCount
+        self.forkCount = forkCount
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+    }
+
     // MARK: - Custom Decoding for contentData
 
     init(from decoder: Decoder) throws {
