@@ -114,6 +114,7 @@ struct ProfileView: View {
                 )
                 .signInWithAppleButtonStyle(.black)
                 .frame(height: 50)
+                .frame(maxWidth: 375)
                 .disabled(isLoading)
                 
                 if isLoading {

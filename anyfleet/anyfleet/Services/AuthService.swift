@@ -47,6 +47,22 @@ struct UserInfo: Codable {
     }
 }
 
+struct AppleSignInRequest: Encodable {
+    let identityToken: String
+    let userInfo: [String: AnyCodable]?
+
+    enum CodingKeys: String, CodingKey {
+        case identityToken = "identity_token"
+        case userInfo = "user_info"
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(identityToken, forKey: .identityToken)
+        try container.encodeIfPresent(userInfo, forKey: .userInfo)
+    }
+}
+
 @MainActor
 @Observable
 final class AuthService: AuthServiceProtocol {
@@ -92,9 +108,34 @@ final class AuthService: AuthServiceProtocol {
                 AppLogger.auth.error("Failed to extract identity token from Apple credential")
                 throw AuthError.invalidToken
             }
-            
-            AppLogger.auth.debug("Identity token extracted, sending to backend")
-            try await signInWithBackend(identityToken: tokenString)
+
+            // Extract user info including full name
+            var userInfo: [String: Any] = [:]
+
+            AppLogger.auth.debug("Apple credential - fullName: \(appleIDCredential.fullName != nil ? "available" : "nil"), email: \(appleIDCredential.email != nil ? "available" : "nil")")
+
+            // Add full name if available
+            if let fullName = appleIDCredential.fullName {
+                AppLogger.auth.debug("Full name available: givenName=\(fullName.givenName ?? "nil"), familyName=\(fullName.familyName ?? "nil")")
+                var nameComponents: [String: String] = [:]
+                if let givenName = fullName.givenName {
+                    nameComponents["firstName"] = givenName
+                }
+                if let familyName = fullName.familyName {
+                    nameComponents["lastName"] = familyName
+                }
+                if !nameComponents.isEmpty {
+                    userInfo["name"] = nameComponents
+                }
+            }
+
+            // Add email if available (backup)
+            if let email = appleIDCredential.email {
+                userInfo["email"] = email
+            }
+
+            AppLogger.auth.debug("Identity token extracted, userInfo: \(userInfo.isEmpty ? "empty" : "contains \(userInfo.count) fields"), sending to backend")
+            try await signInWithBackend(identityToken: tokenString, userInfo: userInfo.isEmpty ? nil : userInfo.mapValues { AnyCodable($0) })
             AppLogger.auth.completeOperation("Apple Sign In")
             
         case .failure(let error):
@@ -103,14 +144,14 @@ final class AuthService: AuthServiceProtocol {
         }
     }
     
-    private func signInWithBackend(identityToken: String) async throws {
+    private func signInWithBackend(identityToken: String, userInfo: [String: AnyCodable]?) async throws {
         AppLogger.auth.debug("Signing in with backend")
         let url = URL(string: "\(baseURL)/auth/apple-signin")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
-        let body = ["identity_token": identityToken]
+        let body = AppleSignInRequest(identityToken: identityToken, userInfo: userInfo)
         request.httpBody = try JSONEncoder().encode(body)
         
         let (data, response): (Data, URLResponse)
@@ -155,7 +196,8 @@ final class AuthService: AuthServiceProtocol {
         // Update state
         currentUser = tokenResponse.user
         isAuthenticated = true
-        AppLogger.auth.info("Sign-in successful for user: \(tokenResponse.user.email)")
+        let usernameInfo = tokenResponse.user.username != nil ? " (username: \(tokenResponse.user.username!))" : " (no username)"
+        AppLogger.auth.info("Sign-in successful for user: \(tokenResponse.user.email)\(usernameInfo)")
     }
     
     // MARK: - Token Management

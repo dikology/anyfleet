@@ -66,6 +66,7 @@ struct SignInModalView: View {
                     )
                     .signInWithAppleButtonStyle(.black)
                     .frame(height: 50)
+                    .frame(maxWidth: 375)
                     .disabled(isLoading)
                     .cornerRadius(12)
                     
