@@ -7,6 +7,7 @@ extension DesignSystem {
         static let success = Color(red: 0.133, green: 0.773, blue: 0.369) // #22C55E
         static let warning = Color(red: 0.902, green: 0.506, blue: 0.380) // #E68161
         static let error = Color(red: 1.0, green: 0.329, blue: 0.349) // #FF5459
+        static let info = Color(red: 0.192, green: 0.463, blue: 0.776) // #3176C6
         static let gold = Color(red: 0.98, green: 0.82, blue: 0.45) // accent for highlights
         static let oceanDeep = Color(red: 0.02, green: 0.28, blue: 0.36)
         

@@ -360,3 +360,16 @@ final class AuthService: AuthServiceProtocol {
         AppLogger.auth.info("Logout complete")
     }
 }
+
+// MARK: - Environment Key
+
+private struct AuthServiceKey: EnvironmentKey {
+    static let defaultValue: AuthService = .shared
+}
+
+extension EnvironmentValues {
+    var authService: AuthService {
+        get { self[AuthServiceKey.self] }
+        set { self[AuthServiceKey.self] = newValue }
+    }
+}

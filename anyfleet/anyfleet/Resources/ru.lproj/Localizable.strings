@@ -162,6 +162,25 @@
 "profile.getStartedTitle" = "Начнем";
 "profile.getStartedSubtitle" = "Войдите, чтобы получить доступ к профилю и контенту";
 "profile.memberSincePrefix" = "Участник с";
+"profile.reputationTitle" = "Репутация";
+"profile.reputationSubtitle" = "Ваша репутация и вклад в сообщество";
+"profile.contentOwnershipTitle" = "Контент";
+"profile.contentOwnershipSubtitle" = "Ваш созданный и опубликованный контент";
+"profile.verificationTierLabel" = "Уровень верификации";
+"profile.verificationTier.new" = "Новый моряк";
+"profile.verificationTier.contributor" = "Участник";
+"profile.verificationTier.trusted" = "Надежный моряк";
+"profile.verificationTier.expert" = "Эксперт";
+"profile.contributions" = "Вклад";
+"profile.communityRating" = "Рейтинг сообщества";
+"profile.totalForks" = "Всего форков";
+"profile.created" = "Создано";
+"profile.forked" = "Форкнуто";
+"profile.imported" = "Импортировано";
+"profile.privacySettings" = "Настройки приватности";
+"profile.exportData" = "Экспорт данных";
+"profile.activityLog" = "Журнал активности";
+"profile.deleteAccount" = "Удалить аккаунт";
 
 "error.generic" = "Неизвестная ошибка: %@";
 "error.notFound" = "%@ с ID %@ не найден";
