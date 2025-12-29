@@ -17,6 +17,7 @@ struct DiscoverView: View {
             let deps = AppDependencies()
             _viewModel = State(initialValue: DiscoverViewModel(
                 apiClient: deps.apiClient,
+                libraryStore: deps.libraryStore,
                 coordinator: AppCoordinator(dependencies: deps)
             ))
         }
@@ -113,7 +114,9 @@ struct DiscoverView: View {
                         viewModel.onAuthorTapped(username)
                     },
                     onForkTapped: {
-                        //viewModel.onForkTapped(content)
+                        Task {
+                            await viewModel.onForkTapped(content)
+                        }
                     }
                 )
                 .listRowInsets(EdgeInsets(
@@ -188,6 +191,7 @@ struct DiscoverView: View {
     let coordinator = AppCoordinator(dependencies: dependencies)
     let viewModel = DiscoverViewModel(
         apiClient: dependencies.apiClient,
+        libraryStore: dependencies.libraryStore,
         coordinator: coordinator
     )
     // For preview, inject sample data

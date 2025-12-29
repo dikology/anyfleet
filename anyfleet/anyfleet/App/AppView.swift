@@ -70,6 +70,7 @@ struct AppView: View {
                 DiscoverView(
                     viewModel: DiscoverViewModel(
                         apiClient: dependencies.apiClient,
+                        libraryStore: dependencies.libraryStore,
                         coordinator: coordinator
                     )
                 )

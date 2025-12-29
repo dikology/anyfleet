@@ -416,6 +416,29 @@ class MockAPIClient: APIClientProtocol {
         // Mock implementation - return empty array for tests
         return []
     }
+
+    func fetchPublicContent(publicID: String) async throws -> SharedContentDetail {
+        // Mock implementation - return mock content detail for tests
+        return SharedContentDetail(
+            id: UUID(),
+            title: "Mock Content",
+            description: "Mock description",
+            contentType: "checklist",
+            contentData: [:],
+            tags: [],
+            publicID: publicID,
+            canFork: true,
+            authorUsername: "mockauthor",
+            viewCount: 0,
+            forkCount: 0,
+            createdAt: Date(),
+            updatedAt: Date()
+        )
+    }
+
+    func incrementForkCount(publicID: String) async throws {
+        // Mock implementation - do nothing for tests
+    }
 }
 
 // MARK: - Mock Auth Service

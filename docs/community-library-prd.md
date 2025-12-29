@@ -147,7 +147,7 @@ Fork relationships are not visualized. Users can't easily see content evolution 
 - Fork shows full attribution chain in Library view
 
 **Acceptance Criteria**:
-- [ ] Fork button visible on Discover content detail view
+- [ ] Fork button visible on Discover content detail view (swipe gesture)
 - [ ] Fork creates accurate copy with `forkedFromID` set
 - [ ] `forkCount` increments on original content
 - [ ] Forked content appears in personal Library immediately

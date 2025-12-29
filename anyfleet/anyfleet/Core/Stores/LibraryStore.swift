@@ -132,6 +132,83 @@ final class LibraryStore {
         // Reload library to reflect the new content
         await loadLibrary()
     }
+
+    /// Fork content from public shared content
+    @MainActor
+    func forkContent(from sharedContent: SharedContentDetail) async throws {
+        let contentData = sharedContent.contentData
+
+        switch sharedContent.contentType {
+        case "checklist":
+            let checklistData = try JSONSerialization.data(withJSONObject: contentData)
+            var checklist = try JSONDecoder().decode(Checklist.self, from: checklistData)
+
+            // Update metadata for forked content
+            checklist.title = sharedContent.title
+            checklist.description = sharedContent.description
+            checklist.tags = sharedContent.tags
+
+            // Create the checklist (this will handle ID assignment and metadata)
+            try await createChecklist(checklist)
+
+            // Update the metadata to include fork attribution
+            if let lastCreated = library.last, lastCreated.title == sharedContent.title {
+                var updatedMetadata = lastCreated
+                updatedMetadata.forkedFromID = sharedContent.id
+                updatedMetadata.originalAuthorUsername = sharedContent.authorUsername
+                updatedMetadata.originalContentPublicID = sharedContent.publicID
+                try await repository.updateLibraryMetadata(updatedMetadata)
+
+                // Update in-memory cache
+                if let index = library.firstIndex(where: { $0.id == updatedMetadata.id }) {
+                    library[index] = updatedMetadata
+                }
+            }
+
+        case "practice_guide":
+            let guideData = try JSONSerialization.data(withJSONObject: contentData)
+            var guide = try JSONDecoder().decode(PracticeGuide.self, from: guideData)
+
+            // Update metadata for forked content
+            guide.title = sharedContent.title
+            guide.description = sharedContent.description
+            guide.tags = sharedContent.tags
+
+            // Create the guide (this will handle ID assignment and metadata)
+            try await createGuide(guide)
+
+            // Update the metadata to include fork attribution
+            if let lastCreated = library.last, lastCreated.title == sharedContent.title {
+                var updatedMetadata = lastCreated
+                updatedMetadata.forkedFromID = sharedContent.id
+                updatedMetadata.originalAuthorUsername = sharedContent.authorUsername
+                updatedMetadata.originalContentPublicID = sharedContent.publicID
+                try await repository.updateLibraryMetadata(updatedMetadata)
+
+                // Update in-memory cache
+                if let index = library.firstIndex(where: { $0.id == updatedMetadata.id }) {
+                    library[index] = updatedMetadata
+                }
+            }
+
+        case "flashcard_deck":
+            throw NSError(domain: "LibraryStore", code: 1, userInfo: [NSLocalizedDescriptionKey: "Flashcard deck forking not yet implemented"])
+
+        default:
+            throw NSError(domain: "LibraryStore", code: 1, userInfo: [NSLocalizedDescriptionKey: "Unknown content type: \(sharedContent.contentType)"])
+        }
+
+        // Increment fork count on original content (best effort, don't fail fork if this fails)
+        do {
+            // TODO: Get apiClient from dependencies instead of hardcoding
+            // For now, this is a placeholder - the API call should be made
+            // apiClient.incrementForkCount(sharedContent.publicID)
+            AppLogger.view.info("Would increment fork count for original content: \(sharedContent.publicID)")
+        } catch {
+            // Don't fail the fork if incrementing fork count fails
+            AppLogger.view.error("Failed to increment fork count for \(sharedContent.publicID)", error: error)
+        }
+    }
     
     // MARK: - Updating Content
     

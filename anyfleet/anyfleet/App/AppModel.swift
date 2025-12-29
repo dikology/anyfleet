@@ -70,7 +70,11 @@ final class AppCoordinator: ObservableObject {
     }
     
     // MARK: - Tab-Specific Navigation
-    
+
+    func navigateToLibrary() {
+        selectedTab = .library
+    }
+
     func push(_ route: AppRoute, to tab: AppView.Tab) {
         switch tab {
         case .home:

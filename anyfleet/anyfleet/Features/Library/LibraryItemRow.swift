@@ -13,6 +13,7 @@ struct LibraryItemRow: View {
     let contentType: ContentType
     let isSignedIn: Bool
     let onTap: () -> Void
+    let onAuthorTapped: (String) -> Void  // NEW: For viewing original author profile on forked content
     let onPublish: () -> Void
     let onUnpublish: () -> Void
     let onSignInRequired: () -> Void
@@ -68,11 +69,26 @@ struct LibraryItemRow: View {
                             .lineLimit(2)
                             .fixedSize(horizontal: false, vertical: true)
                         
-                        // Type Badge
+                        // Type Badge + Fork Attribution
                         HStack(spacing: DesignSystem.Spacing.xs) {
                             Text(contentType.displayName)
                                 .font(.system(size: 12, weight: .medium))
                                 .foregroundColor(DesignSystem.Colors.textSecondary)
+
+                            // Fork attribution
+                            if item.forkedFromID != nil {
+                                Text("•")
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundColor(DesignSystem.Colors.textSecondary)
+
+                                Image(systemName: "arrow.triangle.branch")
+                                    .font(.system(size: 10, weight: .medium))
+                                    .foregroundColor(DesignSystem.Colors.primary)
+
+                                Text("Forked")
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundColor(DesignSystem.Colors.primary)
+                            }
                         }
                         .padding(.horizontal, DesignSystem.Spacing.sm)
                         .padding(.vertical, DesignSystem.Spacing.xs)
@@ -117,20 +133,29 @@ struct LibraryItemRow: View {
             .padding(.horizontal, DesignSystem.Spacing.lg)
             .padding(.top, DesignSystem.Spacing.md)
             
-            // Footer Section - Visibility Badge + Sync Status + Publish Action
+            // Footer Section - Attribution + Visibility Badge + Sync Status + Publish Action
             HStack(spacing: DesignSystem.Spacing.md) {
+                // Original author attribution for forked content
+                if item.forkedFromID != nil, let originalAuthor = item.originalAuthorUsername {
+                    Button(action: { onAuthorTapped(originalAuthor) }) {
+                        originalAuthorAvatarView(username: originalAuthor)
+                    }
+                    .buttonStyle(.plain)
+                    .contentShape(Circle())
+                }
+
                 VisibilityBadge(
                     visibility: item.visibility,
                     authorUsername: item.publicMetadata?.authorUsername
                 )
-                
+
                 // Sync Status Indicator (only show for non-private items)
                 if item.visibility != .private {
                     SyncStatusIndicator(syncStatus: item.syncStatus)
                 }
-                
+
                 Spacer()
-                
+
                 PublishActionView(
                     item: item,
                     isSignedIn: isSignedIn,
@@ -162,6 +187,46 @@ struct LibraryItemRow: View {
             return Color.clear
         }
     }
+
+    private func originalAuthorAvatarView(username: String) -> some View {
+        ZStack {
+            // Avatar circle with gradient background
+            Circle()
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            hashColor(username).opacity(0.7),
+                            hashColor(username).opacity(0.5)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+
+            // Initials or icon
+            Text(username.prefix(1).uppercased())
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(.white)
+        }
+        .frame(width: 28, height: 28)
+        .overlay(
+            Circle()
+                .stroke(DesignSystem.Colors.border.opacity(0.3), lineWidth: 1)
+        )
+    }
+
+    /// Generate a consistent color based on username for avatar
+    private func hashColor(_ username: String) -> Color {
+        let colors: [Color] = [
+            DesignSystem.Colors.primary,
+            Color(red: 0.8, green: 0.5, blue: 0.3),
+            Color(red: 0.3, green: 0.7, blue: 0.8),
+            Color(red: 0.7, green: 0.3, blue: 0.6),
+            Color(red: 0.5, green: 0.7, blue: 0.3)
+        ]
+        let hash = username.utf8.reduce(0) { $0 &+ Int($1) }
+        return colors[abs(hash) % colors.count]
+    }
 }
 
 // MARK: - Preview
@@ -180,6 +245,9 @@ struct LibraryItemRow: View {
             contentType: .checklist,
             isSignedIn: true,
             onTap: {},
+            onAuthorTapped: { username in
+                print("Tapped author: \(username)")
+            },
             onPublish: {},
             onUnpublish: {},
             onSignInRequired: {}
@@ -204,6 +272,9 @@ struct LibraryItemRow: View {
             contentType: .practiceGuide,
             isSignedIn: true,
             onTap: {},
+            onAuthorTapped: { username in
+                print("Tapped author: \(username)")
+            },
             onPublish: {},
             onUnpublish: {},
             onSignInRequired: {}
@@ -228,6 +299,9 @@ struct LibraryItemRow: View {
             contentType: .practiceGuide,
             isSignedIn: true,
             onTap: {},
+            onAuthorTapped: { username in
+                print("Tapped author: \(username)")
+            },
             onPublish: {},
             onUnpublish: {},
             onSignInRequired: {}
@@ -252,11 +326,37 @@ struct LibraryItemRow: View {
             contentType: .checklist,
             isSignedIn: true,
             onTap: {},
+            onAuthorTapped: { username in
+                print("Tapped author: \(username)")
+            },
             onPublish: {},
             onUnpublish: {},
             onSignInRequired: {}
         )
         
+        // Forked content with original author attribution
+        LibraryItemRow(
+            item: LibraryModel(
+                title: "Storm Preparation Guide",
+                description: "Complete guide for preparing your vessel for approaching storms.",
+                type: .practiceGuide,
+                visibility: .private,
+                creatorID: UUID(),
+                forkedFromID: UUID(),
+                originalAuthorUsername: "StormMaster",
+                originalContentPublicID: "storm-prep-guide"
+            ),
+            contentType: .practiceGuide,
+            isSignedIn: true,
+            onTap: {},
+            onAuthorTapped: { username in
+                print("Tapped original author: \(username)")
+            },
+            onPublish: {},
+            onUnpublish: {},
+            onSignInRequired: {}
+        )
+
         // Not signed in
         LibraryItemRow(
             item: LibraryModel(
@@ -269,6 +369,9 @@ struct LibraryItemRow: View {
             contentType: .flashcardDeck,
             isSignedIn: false,
             onTap: {},
+            onAuthorTapped: { username in
+                print("Tapped author: \(username)")
+            },
             onPublish: {},
             onUnpublish: {},
             onSignInRequired: {}
