@@ -23,6 +23,10 @@ protocol APIClientProtocol {
     func unpublishContent(publicID: String) async throws
 
     func fetchPublicContent() async throws -> [SharedContentSummary]
+
+    func fetchPublicContent(publicID: String) async throws -> SharedContentDetail
+
+    func incrementForkCount(publicID: String) async throws
 }
 
 /// API client for authenticated requests to backend
@@ -86,6 +90,14 @@ final class APIClient: APIClientProtocol {
     func fetchPublicContent() async throws -> [SharedContentSummary] {
         return try await getUnauthenticated("/content/public", body: EmptyBody())
     }
+
+    func fetchPublicContent(publicID: String) async throws -> SharedContentDetail {
+        return try await getUnauthenticated("/content/\(publicID)", body: EmptyBody())
+    }
+
+    func incrementForkCount(publicID: String) async throws {
+        try await postUnauthenticated("/content/\(publicID)/fork", body: EmptyBody())
+    }
     
     // MARK: - HTTP Methods
 
@@ -103,6 +115,13 @@ final class APIClient: APIClientProtocol {
         try await requestUnauthenticated(method: "GET", path: path, body: body)
     }
 
+    private func postUnauthenticated(
+        _ path: String,
+        body: EmptyBody = EmptyBody()
+    ) async throws {
+        try await performRequestUnauthenticated(method: "POST", path: path, body: body)
+    }
+
     private func post<T: Decodable, B: Encodable>(
         _ path: String,
         body: B
@@ -112,6 +131,54 @@ final class APIClient: APIClientProtocol {
     
     private func delete(_ path: String) async throws {
         try await performRequest(method: "DELETE", path: path, body: EmptyBody())
+    }
+
+    private func performRequestUnauthenticated<B: Encodable>(
+        method: String,
+        path: String,
+        body: B
+    ) async throws {
+        let url = baseURL.appendingPathComponent(path)
+        var urlRequest = URLRequest(url: url)
+        urlRequest.httpMethod = method
+        urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        urlRequest.setValue("application/json", forHTTPHeaderField: "Accept")
+
+        // No auth header for unauthenticated requests
+
+        // Encode body
+        if !(body is EmptyBody) {
+            urlRequest.httpBody = try encoder.encode(body)
+        }
+
+        // Perform request
+        let (_, response) = try await session.data(for: urlRequest)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw APIError.invalidResponse
+        }
+
+        // Handle status codes (only care about success/failure, no response body)
+        switch httpResponse.statusCode {
+        case 200...299:
+            return
+
+        case 401:
+            throw APIError.unauthorized
+
+        case 404:
+            throw APIError.notFound
+
+        case 409:
+            throw APIError.conflict
+
+        default:
+            if httpResponse.statusCode >= 400 && httpResponse.statusCode < 500 {
+                throw APIError.clientError(httpResponse.statusCode)
+            } else {
+                throw APIError.serverError
+            }
+        }
     }
 
     private func performRequest<B: Encodable>(

@@ -7,6 +7,7 @@ final class DiscoverViewModel: ErrorHandling {
     // MARK: - Dependencies
 
     private let apiClient: APIClientProtocol
+    private let libraryStore: LibraryStore
     private let coordinator: AppCoordinator
 
     // MARK: - State
@@ -26,9 +27,11 @@ final class DiscoverViewModel: ErrorHandling {
 
     init(
         apiClient: APIClientProtocol,
+        libraryStore: LibraryStore,
         coordinator: AppCoordinator
     ) {
         self.apiClient = apiClient
+        self.libraryStore = libraryStore
         self.coordinator = coordinator
     }
 
@@ -78,5 +81,29 @@ final class DiscoverViewModel: ErrorHandling {
         AppLogger.view.info("Author tapped: \(username)")
         // TODO: Implement author profile navigation/modal
         // For now, this is a placeholder for future implementation
+    }
+
+    /// Handle tapping on a fork button
+    func onForkTapped(_ content: DiscoverContent) async {
+        AppLogger.view.startOperation("Fork Content")
+        AppLogger.view.info("Fork tapped: \(content.publicID)")
+
+        do {
+            // Fetch full content from backend
+            let fullContent = try await apiClient.fetchPublicContent(publicID: content.publicID)
+            AppLogger.view.info("Fetched full content for fork: \(fullContent.title)")
+
+            // Create forked copy in library
+            try await libraryStore.forkContent(from: fullContent)
+
+            AppLogger.view.completeOperation("Fork Content")
+
+            // Navigate to library tab to show the newly forked content
+            coordinator.navigateToLibrary()
+
+        } catch {
+            AppLogger.view.error("Fork failed for content \(content.publicID)", error: error)
+            handleError(error)
+        }
     }
 }

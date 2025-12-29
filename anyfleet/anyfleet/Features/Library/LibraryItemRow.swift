@@ -68,11 +68,26 @@ struct LibraryItemRow: View {
                             .lineLimit(2)
                             .fixedSize(horizontal: false, vertical: true)
                         
-                        // Type Badge
+                        // Type Badge + Fork Attribution
                         HStack(spacing: DesignSystem.Spacing.xs) {
                             Text(contentType.displayName)
                                 .font(.system(size: 12, weight: .medium))
                                 .foregroundColor(DesignSystem.Colors.textSecondary)
+
+                            // Fork attribution
+                            if item.forkedFromID != nil {
+                                Text("•")
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundColor(DesignSystem.Colors.textSecondary)
+
+                                Image(systemName: "arrow.triangle.branch")
+                                    .font(.system(size: 10, weight: .medium))
+                                    .foregroundColor(DesignSystem.Colors.primary)
+
+                                Text("Forked")
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundColor(DesignSystem.Colors.primary)
+                            }
                         }
                         .padding(.horizontal, DesignSystem.Spacing.sm)
                         .padding(.vertical, DesignSystem.Spacing.xs)

@@ -15,56 +15,6 @@ struct DiscoverContentRow: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // SECTION 1: Author & Metadata Header
-            HStack(spacing: DesignSystem.Spacing.md) {
-                // Author Avatar - Clickable
-                if let author = content.authorUsername {
-                    Button(action: { onAuthorTapped(author) }) {
-                        authorAvatarView(username: author)
-                    }
-                    .buttonStyle(.plain)
-                    .contentShape(Circle())
-                } else {
-                    // Anonymous author fallback
-                    ZStack {
-                        Circle()
-                            .fill(DesignSystem.Colors.primary.opacity(0.1))
-                        
-                        Image(systemName: "questionmark.circle.fill")
-                            .font(.system(size: 20))
-                            .foregroundColor(DesignSystem.Colors.textSecondary)
-                    }
-                    .frame(width: 36, height: 36)
-                }
-                
-                // Author Info
-                VStack(alignment: .leading, spacing: 2) {
-                    if let author = content.authorUsername {
-                        Text(author)
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundColor(DesignSystem.Colors.textPrimary)
-                    } else {
-                        Text("Anonymous")
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundColor(DesignSystem.Colors.textSecondary)
-                    }
-                    
-                    Text(content.createdAt.formatted(.relative(presentation: .named)))
-                        .font(.system(size: 11, weight: .regular))
-                        .foregroundColor(DesignSystem.Colors.textSecondary)
-                }
-                
-                Spacer()
-                
-                // Content Type Badge
-                contentTypeBadge
-            }
-            .padding(.horizontal, DesignSystem.Spacing.lg)
-            .padding(.vertical, DesignSystem.Spacing.md)
-            
-            Divider()
-                .background(DesignSystem.Colors.border.opacity(0.3))
-                .padding(.horizontal, DesignSystem.Spacing.lg)
             
             // SECTION 2: Content (Title + Description)
             VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
@@ -135,16 +85,9 @@ struct DiscoverContentRow: View {
                         
                         Spacer()
                         
-                        // Fork indicator (optional - can remove if using swipe action)
-                        HStack(spacing: 4) {
-                            Image(systemName: "arrow.triangle.branch")
-                                .font(.system(size: 11, weight: .medium))
-                                .foregroundColor(DesignSystem.Colors.textSecondary)
-                            
-                            Text("\(content.forkCount)")
-                                .font(.system(size: 11, weight: .medium))
-                                .foregroundColor(DesignSystem.Colors.textSecondary)
-                        }
+                        // Content Type Badge
+                        contentTypeBadge
+                        
                     }
                 }
             }
@@ -154,6 +97,58 @@ struct DiscoverContentRow: View {
             .onTapGesture {
                 onTap()
             }
+
+            Divider()
+                .background(DesignSystem.Colors.border.opacity(0.3))
+                .padding(.horizontal, DesignSystem.Spacing.lg)
+
+            // SECTION 3: Author & Fork
+            HStack(spacing: DesignSystem.Spacing.md) {
+                // Author Avatar - Clickable
+                if let author = content.authorUsername {
+                    Button(action: { onAuthorTapped(author) }) {
+                        authorAvatarView(username: author)
+                    }
+                    .buttonStyle(.plain)
+                    .contentShape(Circle())
+                } else {
+                    // Anonymous author fallback
+                    ZStack {
+                        Circle()
+                            .fill(DesignSystem.Colors.primary.opacity(0.1))
+                        
+                        Image(systemName: "questionmark.circle.fill")
+                            .font(.system(size: 20))
+                            .foregroundColor(DesignSystem.Colors.textSecondary)
+                    }
+                    .frame(width: 36, height: 36)
+                }
+                
+                // Author Info
+                VStack(alignment: .leading, spacing: 2) {
+                    
+                    Text(content.createdAt.formatted(.relative(presentation: .named)))
+                        .font(.system(size: 11, weight: .regular))
+                        .foregroundColor(DesignSystem.Colors.textSecondary)
+                }
+                
+                Spacer()
+                
+                // Fork indicator
+                HStack(spacing: 4) {
+                    Image(systemName: "arrow.triangle.branch")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(DesignSystem.Colors.textSecondary)
+                    
+                    Text("\(content.forkCount)")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(DesignSystem.Colors.textSecondary)
+                }
+            }
+            .padding(.horizontal, DesignSystem.Spacing.lg)
+            .padding(.vertical, DesignSystem.Spacing.md)
+
+            
         }
         .background(DesignSystem.Colors.surface)
         .cornerRadius(DesignSystem.Spacing.md)
