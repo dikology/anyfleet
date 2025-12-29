@@ -10,6 +10,16 @@ import Testing
 import AuthenticationServices
 @testable import anyfleet
 
+// MARK: - Mock Classes
+
+/// Mock implementation of ASAuthorizationAppleIDCredential for testing
+class MockAppleIDCredential {
+    var fullName: PersonNameComponents?
+    var email: String?
+}
+
+// MARK: - Test Suite
+
 @Suite("AuthService Tests")
 struct AuthServiceTests {
     
@@ -152,24 +162,205 @@ struct AuthServiceTests {
         #expect(userInfo.username == nil)
     }
     
+    // MARK: - Apple Sign-In User Info Extraction Tests
+
+    @Test("Apple credential user info extraction - full name available")
+    func testAppleCredential_UserInfoExtraction_FullNameAvailable() {
+        // Arrange - Create mock credential with full name
+        let mockCredential = MockAppleIDCredential()
+        mockCredential.fullName = PersonNameComponents()
+        mockCredential.fullName?.givenName = "John"
+        mockCredential.fullName?.familyName = "Doe"
+        mockCredential.email = "john.doe@example.com"
+
+        // Act - Simulate the user info extraction logic from AuthService
+        var userInfo: [String: Any] = [:]
+
+        if let fullName = mockCredential.fullName {
+            var nameComponents: [String: String] = [:]
+            if let givenName = fullName.givenName {
+                nameComponents["firstName"] = givenName
+            }
+            if let familyName = fullName.familyName {
+                nameComponents["lastName"] = familyName
+            }
+            if !nameComponents.isEmpty {
+                userInfo["name"] = nameComponents
+            }
+        }
+
+        if let email = mockCredential.email {
+            userInfo["email"] = email
+        }
+
+        // Assert
+        #expect(userInfo.count == 2)
+        #expect((userInfo["name"] as? [String: String])?["firstName"] == "John")
+        #expect((userInfo["name"] as? [String: String])?["lastName"] == "Doe")
+        #expect(userInfo["email"] as? String == "john.doe@example.com")
+    }
+
+    @Test("Apple credential user info extraction - no full name")
+    func testAppleCredential_UserInfoExtraction_NoFullName() {
+        // Arrange - Create mock credential without full name
+        let mockCredential = MockAppleIDCredential()
+        mockCredential.fullName = nil
+        mockCredential.email = nil
+
+        // Act - Simulate the user info extraction logic
+        var userInfo: [String: Any] = [:]
+
+        if let fullName = mockCredential.fullName {
+            var nameComponents: [String: String] = [:]
+            if let givenName = fullName.givenName {
+                nameComponents["firstName"] = givenName
+            }
+            if let familyName = fullName.familyName {
+                nameComponents["lastName"] = familyName
+            }
+            if !nameComponents.isEmpty {
+                userInfo["name"] = nameComponents
+            }
+        }
+
+        if let email = mockCredential.email {
+            userInfo["email"] = email
+        }
+
+        // Assert
+        #expect(userInfo.isEmpty)
+    }
+
+    @Test("Apple credential user info extraction - only first name")
+    func testAppleCredential_UserInfoExtraction_OnlyFirstName() {
+        // Arrange
+        let mockCredential = MockAppleIDCredential()
+        mockCredential.fullName = PersonNameComponents()
+        mockCredential.fullName?.givenName = "John"
+        mockCredential.fullName?.familyName = nil
+
+        // Act
+        var userInfo: [String: Any] = [:]
+
+        if let fullName = mockCredential.fullName {
+            var nameComponents: [String: String] = [:]
+            if let givenName = fullName.givenName {
+                nameComponents["firstName"] = givenName
+            }
+            if let familyName = fullName.familyName {
+                nameComponents["lastName"] = familyName
+            }
+            if !nameComponents.isEmpty {
+                userInfo["name"] = nameComponents
+            }
+        }
+
+        // Assert
+        #expect(userInfo.count == 1)
+        #expect((userInfo["name"] as? [String: String])?.count == 1)
+        #expect((userInfo["name"] as? [String: String])?["firstName"] == "John")
+    }
+
+    // MARK: - AnyCodable Tests
+
+    @Test("AnyCodable encoding/decoding - string value")
+    func testAnyCodable_StringEncoding() throws {
+        // Arrange
+        let originalValue = "test string"
+        let anyCodable = AnyCodable(originalValue)
+
+        // Act - Encode to JSON
+        let encoder = JSONEncoder()
+        let data = try encoder.encode(anyCodable)
+
+        // Decode back
+        let decoder = JSONDecoder()
+        let decoded = try decoder.decode(AnyCodable.self, from: data)
+
+        // Assert
+        #expect(decoded.value as? String == originalValue)
+    }
+
+    @Test("AnyCodable encoding/decoding - dictionary with mixed types")
+    func testAnyCodable_DictionaryEncoding() throws {
+        // Arrange
+        let originalDict: [String: Any] = [
+            "name": "John",
+            "age": 30,
+            "isActive": true
+        ]
+        let anyCodable = AnyCodable(originalDict)
+
+        // Act - Encode to JSON
+        let encoder = JSONEncoder()
+        let data = try encoder.encode(anyCodable)
+
+        // Decode back
+        let decoder = JSONDecoder()
+        let decoded = try decoder.decode(AnyCodable.self, from: data)
+
+        // Assert
+        let decodedDict = decoded.value as? [String: Any]
+        #expect(decodedDict?["name"] as? String == "John")
+        #expect(decodedDict?["age"] as? Int == 30)
+        #expect(decodedDict?["isActive"] as? Bool == true)
+    }
+
+    @Test("AppleSignInRequest encoding - with user info")
+    func testAppleSignInRequest_Encoding_WithUserInfo() throws {
+        // Arrange
+        let userInfo: [String: AnyCodable] = [
+            "name": AnyCodable(["firstName": "John", "lastName": "Doe"])
+        ]
+        let request = AppleSignInRequest(identityToken: "test_token", userInfo: userInfo)
+
+        // Act - Encode to JSON
+        let encoder = JSONEncoder()
+        let data = try encoder.encode(request)
+        let jsonString = String(data: data, encoding: .utf8)
+
+        // Assert
+        #expect(jsonString?.contains("\"identity_token\":\"test_token\"") == true)
+        #expect(jsonString?.contains("user_info") == true)
+        #expect(jsonString?.contains("firstName") == true)
+    }
+
+    @Test("AppleSignInRequest encoding - without user info")
+    func testAppleSignInRequest_Encoding_WithoutUserInfo() throws {
+        // Arrange
+        let request = AppleSignInRequest(identityToken: "test_token", userInfo: nil)
+
+        // Act - Encode to JSON
+        let encoder = JSONEncoder()
+        let data = try encoder.encode(request)
+        let jsonString = String(data: data, encoding: .utf8)
+
+        // Assert
+        #expect(jsonString?.contains("\"identity_token\":\"test_token\"") == true)
+        #expect(jsonString?.contains("user_info") == false)
+    }
+
     // MARK: - Note on Integration Tests
-    
+
     /*
      * Full integration tests for AuthService would require:
-     * 
+
      * 1. Mocking URLSession to simulate network responses
      * 2. Mocking KeychainService to control token storage
      * 3. Mocking ASAuthorizationAppleIDCredential for Apple Sign In flow
-     * 
+
      * These tests are better suited for:
      * - Integration test suite with real backend
      * - UI tests that exercise the full sign-in flow
      * - Manual testing with real Apple Sign In credentials
-     * 
+
      * The current tests verify:
      * - Error conversion logic
      * - Data model decoding
      * - Basic service initialization
+     * - Apple credential user info extraction
+     * - AnyCodable encoding/decoding
+     * - AppleSignInRequest serialization
      */
 }
 

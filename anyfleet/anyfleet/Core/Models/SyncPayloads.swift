@@ -97,14 +97,14 @@ struct UnpublishPayload: Codable {
 // MARK: - Helper for Dynamic JSON
 
 /// Helper to encode/decode dynamic JSON structures like [String: Any]
-struct AnyCodable: Codable {
-    let value: Any
+public struct AnyCodable: Codable {
+    public let value: Any
     
-    init(_ value: Any) {
+    public init(_ value: Any) {
         self.value = value
     }
     
-    init(from decoder: Decoder) throws {
+    public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         
         if let int = try? container.decode(Int.self) {
@@ -124,7 +124,7 @@ struct AnyCodable: Codable {
         }
     }
     
-    func encode(to encoder: Encoder) throws {
+    public func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
         switch value {
         case let int as Int:

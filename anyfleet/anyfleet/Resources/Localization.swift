@@ -181,6 +181,158 @@ enum L10n {
             tableName: "Localizable",
             comment: "Label showing signed in user (e.g., 'Signed in as: username')"
         )
+
+        static let accountTitle = NSLocalizedString(
+            "profile.accountTitle",
+            tableName: "Localizable",
+            comment: "Title for the account settings section"
+        )
+
+        static let accountSubtitle = NSLocalizedString(
+            "profile.accountSubtitle",
+            tableName: "Localizable",
+            comment: "Subtitle explaining the account settings section"
+        )
+
+        static let getStartedTitle = NSLocalizedString(
+            "profile.getStartedTitle",
+            tableName: "Localizable",
+            comment: "Title for the get started section when not signed in"
+        )
+
+        static let getStartedSubtitle = NSLocalizedString(
+            "profile.getStartedSubtitle",
+            tableName: "Localizable",
+            comment: "Subtitle explaining the get started section"
+        )
+
+        static let memberSincePrefix = NSLocalizedString(
+            "profile.memberSincePrefix",
+            tableName: "Localizable",
+            comment: "Prefix text for member since date (e.g., 'Member since')"
+        )
+
+        // Reputation section
+        static let reputationTitle = NSLocalizedString(
+            "profile.reputationTitle",
+            tableName: "Localizable",
+            comment: "Title for the reputation section"
+        )
+
+        static let reputationSubtitle = NSLocalizedString(
+            "profile.reputationSubtitle",
+            tableName: "Localizable",
+            comment: "Subtitle for the reputation section"
+        )
+
+        // Content ownership section
+        static let contentOwnershipTitle = NSLocalizedString(
+            "profile.contentOwnershipTitle",
+            tableName: "Localizable",
+            comment: "Title for the content ownership section"
+        )
+
+        static let contentOwnershipSubtitle = NSLocalizedString(
+            "profile.contentOwnershipSubtitle",
+            tableName: "Localizable",
+            comment: "Subtitle for the content ownership section"
+        )
+
+        // Verification tiers
+        enum VerificationTier {
+            static let verificationTierLabel = NSLocalizedString(
+                "profile.verificationTierLabel",
+                tableName: "Localizable",
+                comment: "Label for verification tier display"
+            )
+
+            static let new = NSLocalizedString(
+                "profile.verificationTier.new",
+                tableName: "Localizable",
+                comment: "New sailor verification tier name"
+            )
+
+            static let contributor = NSLocalizedString(
+                "profile.verificationTier.contributor",
+                tableName: "Localizable",
+                comment: "Contributor verification tier name"
+            )
+
+            static let trusted = NSLocalizedString(
+                "profile.verificationTier.trusted",
+                tableName: "Localizable",
+                comment: "Trusted sailor verification tier name"
+            )
+
+            static let expert = NSLocalizedString(
+                "profile.verificationTier.expert",
+                tableName: "Localizable",
+                comment: "Expert verification tier name"
+            )
+        }
+
+        // Metrics labels
+        static let contributions = NSLocalizedString(
+            "profile.contributions",
+            tableName: "Localizable",
+            comment: "Label for contributions metric"
+        )
+
+        static let communityRating = NSLocalizedString(
+            "profile.communityRating",
+            tableName: "Localizable",
+            comment: "Label for community rating metric"
+        )
+
+        static let totalForks = NSLocalizedString(
+            "profile.totalForks",
+            tableName: "Localizable",
+            comment: "Label for total forks metric"
+        )
+
+        // Content types
+        static let created = NSLocalizedString(
+            "profile.created",
+            tableName: "Localizable",
+            comment: "Label for created content"
+        )
+
+        static let forked = NSLocalizedString(
+            "profile.forked",
+            tableName: "Localizable",
+            comment: "Label for forked content"
+        )
+
+        static let imported = NSLocalizedString(
+            "profile.imported",
+            tableName: "Localizable",
+            comment: "Label for imported content"
+        )
+
+        // Account management
+        static let privacySettings = NSLocalizedString(
+            "profile.privacySettings",
+            tableName: "Localizable",
+            comment: "Privacy settings button label"
+        )
+
+        static let exportData = NSLocalizedString(
+            "profile.exportData",
+            tableName: "Localizable",
+            comment: "Export data button label"
+        )
+
+        static let activityLog = NSLocalizedString(
+            "profile.activityLog",
+            tableName: "Localizable",
+            comment: "Activity log button label"
+        )
+
+        static let deleteAccount = NSLocalizedString(
+            "profile.deleteAccount",
+            tableName: "Localizable",
+            comment: "Delete account button label"
+        )
     }
     
     enum Error {

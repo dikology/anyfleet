@@ -9,8 +9,8 @@ extension DesignSystem {
         }
 
         // Display / headers using custom font
-        static let largeTitle = headerFont(size: 20, weight: .semibold)
-        static let title = headerFont(size: 16, weight: .semibold)
+        static let largeTitle = headerFont(size: 16, weight: .semibold)
+        static let title = headerFont(size: 14, weight: .semibold)
         static let headline = headerFont(size: 12, weight: .semibold)
 
         // Subheader
