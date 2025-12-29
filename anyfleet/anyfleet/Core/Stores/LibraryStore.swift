@@ -155,6 +155,8 @@ final class LibraryStore {
             if let lastCreated = library.last, lastCreated.title == sharedContent.title {
                 var updatedMetadata = lastCreated
                 updatedMetadata.forkedFromID = sharedContent.id
+                updatedMetadata.originalAuthorUsername = sharedContent.authorUsername
+                updatedMetadata.originalContentPublicID = sharedContent.publicID
                 try await repository.updateLibraryMetadata(updatedMetadata)
 
                 // Update in-memory cache
@@ -179,6 +181,8 @@ final class LibraryStore {
             if let lastCreated = library.last, lastCreated.title == sharedContent.title {
                 var updatedMetadata = lastCreated
                 updatedMetadata.forkedFromID = sharedContent.id
+                updatedMetadata.originalAuthorUsername = sharedContent.authorUsername
+                updatedMetadata.originalContentPublicID = sharedContent.publicID
                 try await repository.updateLibraryMetadata(updatedMetadata)
 
                 // Update in-memory cache

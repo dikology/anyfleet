@@ -219,6 +219,10 @@ struct LibraryListView: View {
                                 break
                             }
                         },
+                        onAuthorTapped: { username in
+                            // TODO: Implement author profile navigation for forked content
+                            print("Tapped original author: \(username)")
+                        },
                         onPublish: {
                             viewModel.initiatePublish(item)
                         },

@@ -16,6 +16,10 @@ nonisolated struct LibraryModel: Identifiable, Hashable, Sendable {
     var creatorID: UUID
     var forkedFromID: UUID?
     var forkCount: Int = 0
+
+    // Attribution for forked content
+    var originalAuthorUsername: String?
+    var originalContentPublicID: String?
     var ratingAverage: Double?
     var ratingCount: Int = 0
     var tags: [String] = []
@@ -42,6 +46,8 @@ nonisolated struct LibraryModel: Identifiable, Hashable, Sendable {
         creatorID: UUID,
         forkedFromID: UUID? = nil,
         forkCount: Int = 0,
+        originalAuthorUsername: String? = nil,
+        originalContentPublicID: String? = nil,
         ratingAverage: Double? = nil,
         ratingCount: Int = 0,
         tags: [String] = [],
@@ -63,6 +69,8 @@ nonisolated struct LibraryModel: Identifiable, Hashable, Sendable {
         self.creatorID = creatorID
         self.forkedFromID = forkedFromID
         self.forkCount = forkCount
+        self.originalAuthorUsername = originalAuthorUsername
+        self.originalContentPublicID = originalContentPublicID
         self.ratingAverage = ratingAverage
         self.ratingCount = ratingCount
         self.tags = tags
