@@ -22,6 +22,8 @@ struct DiscoverContentRow: View {
                     Button(action: { onAuthorTapped(author) }) {
                         authorAvatarView(username: author)
                     }
+                    .buttonStyle(.plain)
+                    .contentShape(Circle())
                 } else {
                     // Anonymous author fallback
                     ZStack {
@@ -99,6 +101,10 @@ struct DiscoverContentRow: View {
             }
             .padding(.horizontal, DesignSystem.Spacing.lg)
             .padding(.vertical, DesignSystem.Spacing.md)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                onTap()
+            }
             
             Divider()
                 .background(DesignSystem.Colors.border.opacity(0.3))
@@ -144,6 +150,10 @@ struct DiscoverContentRow: View {
             }
             .padding(.horizontal, DesignSystem.Spacing.lg)
             .padding(.vertical, DesignSystem.Spacing.md)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                onTap()
+            }
         }
         .background(DesignSystem.Colors.surface)
         .cornerRadius(DesignSystem.Spacing.md)
@@ -151,12 +161,8 @@ struct DiscoverContentRow: View {
             RoundedRectangle(cornerRadius: DesignSystem.Spacing.md)
                 .stroke(DesignSystem.Colors.border.opacity(0.3), lineWidth: 1)
         )
-        .contentShape(Rectangle())
         .scaleEffect(isPressed ? 0.98 : 1.0)
         .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isPressed)
-        .onTapGesture {
-            onTap()
-        }
         // Swipe actions for fork
         .swipeActions(edge: .trailing, allowsFullSwipe: false) {
             Button(action: onForkTapped) {
