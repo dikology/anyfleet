@@ -106,11 +106,16 @@ final class AppDependencies {
         // Initialize stores
         self.charterStore = CharterStore(repository: repository)
         self.libraryStore = LibraryStore(repository: repository)
+
+        // Initialize content sync service (depends on libraryStore)
         self.contentSyncService = ContentSyncService(
             repository: repository,
             apiClient: apiClient,
             libraryStore: libraryStore
         )
+
+        // Set content sync service on library store to enable automatic sync for published content
+        libraryStore.setContentSyncService(contentSyncService)
 
         // Initialize services
         self.localizationService = LocalizationService()
@@ -164,6 +169,9 @@ final class AppDependencies {
             apiClient: apiClient,
             libraryStore: libraryStore
         )
+
+        // Set content sync service on library store to enable automatic sync for published content
+        libraryStore.setContentSyncService(contentSyncService)
 
         // Initialize services
         self.localizationService = LocalizationService()

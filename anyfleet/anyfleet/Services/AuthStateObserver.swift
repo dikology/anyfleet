@@ -9,6 +9,13 @@ import Foundation
 import Observation
 import OSLog
 
+/// Protocol defining the interface for authentication state observation.
+/// Used for dependency injection and testing.
+protocol AuthStateObserverProtocol: AnyObject {
+    var isSignedIn: Bool { get }
+    var currentUserID: UUID? { get }
+}
+
 /// Observable wrapper that exposes AuthService state for UI consumption
 ///
 /// This class provides a clean interface for views to observe authentication state
@@ -16,7 +23,7 @@ import OSLog
 /// automatically notify SwiftUI views when authentication state changes.
 @MainActor
 @Observable
-final class AuthStateObserver {
+final class AuthStateObserver: AuthStateObserverProtocol {
     private let authService: AuthService
     
     /// Whether the user is currently signed in
@@ -37,6 +44,12 @@ final class AuthStateObserver {
     /// User's username, if available
     var username: String? {
         currentUser?.username
+    }
+
+    /// The current user's ID, if available
+    var currentUserID: UUID? {
+        guard let idString = currentUser?.id else { return nil }
+        return UUID(uuidString: idString)
     }
     
     // MARK: - Initialization

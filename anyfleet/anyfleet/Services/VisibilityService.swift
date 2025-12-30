@@ -9,10 +9,18 @@ import Foundation
 import Observation
 import OSLog
 
+/// Protocol defining the interface for visibility service operations.
+/// Used for dependency injection and testing.
+protocol VisibilityServiceProtocol: AnyObject {
+    func publishContent(_ item: LibraryModel) async throws
+    func unpublishContent(_ item: LibraryModel) async throws
+    func retrySync(for item: LibraryModel) async
+}
+
 /// Service for managing content visibility and publishing operations
 @MainActor
 @Observable
-final class VisibilityService {
+final class VisibilityService: VisibilityServiceProtocol {
     private let libraryStore: LibraryStore
     private let authService: AuthServiceProtocol
 
@@ -23,7 +31,7 @@ final class VisibilityService {
         case notAuthenticated
         case networkError(Error)
         case validationError(String)
-        
+
         var errorDescription: String? {
             switch self {
             case .notAuthenticated:
@@ -34,7 +42,7 @@ final class VisibilityService {
                 return message
             }
         }
-        
+
         var recoverySuggestion: String? {
             switch self {
             case .notAuthenticated:
@@ -46,7 +54,19 @@ final class VisibilityService {
             }
         }
     }
-    
+
+    /// Retry sync operations for a specific content item
+    /// - Parameter item: The library item to retry sync for
+    func retrySync(for item: LibraryModel) async {
+        AppLogger.auth.info("Retrying sync for item: \(item.id)")
+
+        // Find and retry any failed sync operations for this content
+        // This will trigger the sync service to attempt pending operations again
+        await syncService.syncPending()
+
+        AppLogger.auth.info("Sync retry initiated for item: \(item.id)")
+    }
+
     // MARK: - Initialization
     
     init(

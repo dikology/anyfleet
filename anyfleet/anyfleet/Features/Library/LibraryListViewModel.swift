@@ -6,10 +6,10 @@ import Observation
 final class LibraryListViewModel: ErrorHandling {
     // MARK: - Dependencies
 
-    private let libraryStore: LibraryStore
-    private let visibilityService: VisibilityService
-    private let authObserver: AuthStateObserver
-    private let coordinator: AppCoordinator
+    let libraryStore: LibraryStoreProtocol
+    let visibilityService: VisibilityServiceProtocol
+    let authObserver: AuthStateObserverProtocol
+    let coordinator: AppCoordinatorProtocol
 
     // MARK: - State
 
@@ -75,10 +75,10 @@ final class LibraryListViewModel: ErrorHandling {
     // MARK: - Initialization
     
     init(
-        libraryStore: LibraryStore,
-        visibilityService: VisibilityService,
-        authObserver: AuthStateObserver,
-        coordinator: AppCoordinator
+        libraryStore: LibraryStoreProtocol,
+        visibilityService: VisibilityServiceProtocol,
+        authObserver: AuthStateObserverProtocol,
+        coordinator: AppCoordinatorProtocol
     ) {
         self.libraryStore = libraryStore
         self.visibilityService = visibilityService
@@ -163,9 +163,31 @@ final class LibraryListViewModel: ErrorHandling {
         await loadLibrary()
     }
     
-    /// Delete content item
+    /// Delete content item with appropriate confirmation dialog
     func deleteContent(_ item: LibraryModel) async throws {
-        try await libraryStore.deleteContent(item)
+        // For published content, we need to handle unpublish operations
+        // The actual confirmation dialogs are handled in the view layer
+        AppLogger.view.info("Generic deleteContent called for item: \(item.id), publicID: \(item.publicID ?? "nil")")
+        try await libraryStore.deleteContent(item, shouldUnpublish: true)
+    }
+
+    /// Delete published content and unpublish from backend
+    /// Used for "Unpublish & Delete" option in published content deletion modal
+    func deleteAndUnpublishContent(_ item: LibraryModel) async throws {
+        AppLogger.view.info("Deleting and unpublishing content: \(item.id)")
+        try await libraryStore.deleteContent(item, shouldUnpublish: true)
+    }
+
+    /// Delete local copy of published content but keep it published on backend
+    /// Used for "Keep Published" option in published content deletion modal
+    func deleteLocalCopyKeepPublished(_ item: LibraryModel) async throws {
+        AppLogger.view.info("Deleting local copy but keeping published content: \(item.id)")
+        try await libraryStore.deleteContent(item, shouldUnpublish: false)
+    }
+
+    /// Check if content is published (has publicID)
+    func isPublishedContent(_ item: LibraryModel) -> Bool {
+        return item.publicID != nil
     }
     
     /// Toggle pinned state for a library item
@@ -217,7 +239,7 @@ final class LibraryListViewModel: ErrorHandling {
     /// - Parameter item: The library item to unpublish
     func unpublish(_ item: LibraryModel) async {
         AppLogger.view.info("Unpublishing item: \(item.id)")
-        
+
         do {
             try await visibilityService.unpublishContent(item)
             await loadLibrary()
@@ -226,5 +248,14 @@ final class LibraryListViewModel: ErrorHandling {
             AppLogger.view.error("Unpublish failed", error: error)
             publishError = error
         }
+    }
+
+    /// Retry sync operations for a failed content item
+    /// - Parameter item: The library item to retry sync for
+    func retrySync(for item: LibraryModel) async {
+        AppLogger.view.info("Retrying sync for item: \(item.id)")
+        await visibilityService.retrySync(for: item)
+        // Reload to get updated sync status
+        await loadLibrary()
     }
 }

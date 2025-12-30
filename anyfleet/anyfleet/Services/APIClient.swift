@@ -29,6 +29,16 @@ protocol APIClientProtocol {
     func fetchPublicContent(publicID: String) async throws -> SharedContentDetail
 
     func incrementForkCount(publicID: String) async throws
+
+    func updatePublishedContent(
+        publicID: String,
+        title: String,
+        description: String?,
+        contentType: String,
+        contentData: [String: Any],
+        tags: [String],
+        language: String
+    ) async throws -> UpdateContentResponse
 }
 
 /// API client for authenticated requests to backend
@@ -96,11 +106,40 @@ final class APIClient: APIClientProtocol {
     }
 
     func fetchPublicContent(publicID: String) async throws -> SharedContentDetail {
-        return try await getUnauthenticated("/content/\(publicID)", body: EmptyBody())
+        AppLogger.api.debug("Fetching public content: \(publicID)")
+        do {
+            let result: SharedContentDetail = try await getUnauthenticated("/content/\(publicID)", body: EmptyBody())
+            AppLogger.api.debug("Successfully fetched public content: \(publicID)")
+            return result
+        } catch {
+            AppLogger.api.error("Failed to fetch public content \(publicID)", error: error)
+            throw error
+        }
     }
 
     func incrementForkCount(publicID: String) async throws {
         try await postUnauthenticated("/content/\(publicID)/fork", body: EmptyBody())
+    }
+
+    func updatePublishedContent(
+        publicID: String,
+        title: String,
+        description: String?,
+        contentType: String,
+        contentData: [String: Any],
+        tags: [String],
+        language: String
+    ) async throws -> UpdateContentResponse {
+        let request = UpdateContentRequest(
+            title: title,
+            description: description,
+            contentType: contentType,
+            contentData: contentData,
+            tags: tags,
+            language: language
+        )
+
+        return try await put("/content/\(publicID)", body: request)
     }
     
     // MARK: - HTTP Methods
@@ -132,7 +171,14 @@ final class APIClient: APIClientProtocol {
     ) async throws -> T {
         try await request(method: "POST", path: path, body: body)
     }
-    
+
+    private func put<T: Decodable, B: Encodable>(
+        _ path: String,
+        body: B
+    ) async throws -> T {
+        try await request(method: "PUT", path: path, body: body)
+    }
+
     private func delete(_ path: String) async throws {
         try await performRequest(method: "DELETE", path: path, body: EmptyBody())
     }
@@ -407,13 +453,58 @@ struct PublishContentResponse: Codable {
     let publishedAt: Date
     let authorUsername: String?
     let canFork: Bool
-    
+
     enum CodingKeys: String, CodingKey {
         case id
         case publicID = "public_id"
         case publishedAt = "published_at"
         case authorUsername = "author_username"
         case canFork = "can_fork"
+    }
+}
+
+struct UpdateContentRequest: Encodable {
+    let title: String
+    let description: String?
+    let contentType: String
+    let contentData: [String: Any]
+    let tags: [String]
+    let language: String
+
+    enum CodingKeys: String, CodingKey {
+        case title
+        case description
+        case contentType = "content_type"
+        case contentData = "content_data"
+        case tags
+        case language
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(title, forKey: .title)
+        try container.encodeIfPresent(description, forKey: .description)
+        try container.encode(contentType, forKey: .contentType)
+        try container.encode(tags, forKey: .tags)
+        try container.encode(language, forKey: .language)
+
+        // Encode contentData as nested JSON object (same as SyncPayloads)
+        let jsonData = try JSONSerialization.data(withJSONObject: contentData)
+        let decoder = JSONDecoder()
+        let json = try decoder.decode(AnyCodable.self, from: jsonData)
+        try container.encode(json, forKey: .contentData)
+    }
+}
+
+struct UpdateContentResponse: Codable {
+    let id: UUID
+    let publicID: String
+    let updatedAt: Date?
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case publicID = "public_id"
+        case updatedAt = "updated_at"
     }
 }
 

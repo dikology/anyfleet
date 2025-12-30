@@ -13,6 +13,7 @@ extension DesignSystem {
         
         // Dynamic surfaces for light/dark
         static let background = Color(.systemGroupedBackground)
+        static let backgroundSecondary = Color(.secondarySystemGroupedBackground)
         static let surface = Color(.secondarySystemGroupedBackground)
         static let surfaceAlt = Color(.tertiarySystemGroupedBackground)
         

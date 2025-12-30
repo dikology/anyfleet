@@ -1,6 +1,19 @@
 import Foundation
 import SwiftUI
 
+/// Protocol defining the interface for library store operations.
+/// Used for dependency injection and testing.
+protocol LibraryStoreProtocol: AnyObject {
+    var library: [LibraryModel] { get }
+    var myChecklists: [LibraryModel] { get }
+    var myGuides: [LibraryModel] { get }
+    var myDecks: [LibraryModel] { get }
+
+    func loadLibrary() async
+    func deleteContent(_ item: LibraryModel, shouldUnpublish: Bool) async throws
+    func togglePin(for item: LibraryModel) async
+}
+
 /// Store managing library content state and operations across the application.
 ///
 /// `LibraryStore` serves as the single source of truth for library content (checklists, guides, decks)
@@ -28,7 +41,7 @@ import SwiftUI
 ///
 /// - Important: This class must be accessed from the main actor.
 @Observable
-final class LibraryStore {
+final class LibraryStore: LibraryStoreProtocol {
     // MARK: - Properties
     
     /// Unified content collection (metadata for all types)
@@ -47,6 +60,9 @@ final class LibraryStore {
     // Local repository for database operations
     // Sendable conformance required for Observable in Swift 6
     nonisolated private let repository: any LibraryRepository
+
+    // Content sync service for handling published content updates
+    private var contentSyncService: ContentSyncService?
     
     // MARK: - Computed Properties
     
@@ -67,8 +83,14 @@ final class LibraryStore {
     
     // MARK: - Initialization
 
-    nonisolated init(repository: any LibraryRepository) {
+    nonisolated init(repository: any LibraryRepository, contentSyncService: ContentSyncService? = nil) {
         self.repository = repository
+        self.contentSyncService = contentSyncService
+    }
+
+    /// Set the content sync service (for resolving circular dependencies)
+    nonisolated func setContentSyncService(_ service: ContentSyncService) {
+        self.contentSyncService = service
     }
     
     // MARK: - Loading Content
@@ -140,8 +162,14 @@ final class LibraryStore {
 
         switch sharedContent.contentType {
         case "checklist":
+            AppLogger.store.info("Forking checklist: \(sharedContent.title)")
             let checklistData = try JSONSerialization.data(withJSONObject: contentData)
-            var checklist = try JSONDecoder().decode(Checklist.self, from: checklistData)
+            AppLogger.store.debug("Checklist JSON data created, size: \(checklistData.count) bytes")
+
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601
+            var checklist = try decoder.decode(Checklist.self, from: checklistData)
+            AppLogger.store.debug("Checklist decoded successfully")
 
             // Update metadata for forked content
             checklist.title = sharedContent.title
@@ -150,6 +178,7 @@ final class LibraryStore {
 
             // Create the checklist (this will handle ID assignment and metadata)
             try await createChecklist(checklist)
+            AppLogger.store.info("Checklist forked successfully")
 
             // Update the metadata to include fork attribution
             if let lastCreated = library.last, lastCreated.title == sharedContent.title {
@@ -166,8 +195,14 @@ final class LibraryStore {
             }
 
         case "practice_guide":
+            AppLogger.store.info("Forking practice guide: \(sharedContent.title)")
             let guideData = try JSONSerialization.data(withJSONObject: contentData)
-            var guide = try JSONDecoder().decode(PracticeGuide.self, from: guideData)
+            AppLogger.store.debug("Guide JSON data created, size: \(guideData.count) bytes")
+
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601
+            var guide = try decoder.decode(PracticeGuide.self, from: guideData)
+            AppLogger.store.debug("Guide decoded successfully")
 
             // Update metadata for forked content
             guide.title = sharedContent.title
@@ -176,6 +211,7 @@ final class LibraryStore {
 
             // Create the guide (this will handle ID assignment and metadata)
             try await createGuide(guide)
+            AppLogger.store.info("Guide forked successfully")
 
             // Update the metadata to include fork attribution
             if let lastCreated = library.last, lastCreated.title == sharedContent.title {
@@ -217,12 +253,12 @@ final class LibraryStore {
     @MainActor
     func saveChecklist(_ checklist: Checklist) async throws {
         try await repository.saveChecklist(checklist)
-        
+
         // Update in-memory full-model cache
         if let index = checklists.firstIndex(where: { $0.id == checklist.id }) {
             checklists[index] = checklist
         }
-        
+
         // Update metadata only (avoid full reload)
         if let metadataIndex = library.firstIndex(where: { $0.id == checklist.id }) {
             var metadata = library[metadataIndex]
@@ -232,11 +268,120 @@ final class LibraryStore {
             metadata.updatedAt = checklist.updatedAt
             metadata.syncStatus = checklist.syncStatus
             library[metadataIndex] = metadata
+
+            // If this is published content, trigger automatic sync update
+            if let publicID = metadata.publicID, let contentSyncService = contentSyncService {
+                await triggerPublishUpdate(for: metadata, checklist: checklist)
+            }
         }
-        
+
         // Update cache
         checklistsCache[checklist.id] = checklist
         enforceChecklistCacheLimit()
+    }
+
+    /// Trigger automatic sync update for published content
+    private func triggerPublishUpdate(for metadata: LibraryModel, checklist: Checklist) async {
+        guard let contentSyncService = contentSyncService else { return }
+
+        do {
+            // Create the full content data payload
+            let contentData: [String: Any] = [
+                "id": checklist.id.uuidString,
+                "title": checklist.title,
+                "description": checklist.description as Any,
+                "sections": checklist.sections.map { section in
+                    [
+                        "id": section.id.uuidString,
+                        "title": section.title,
+                        "items": section.items.map { item in
+                            [
+                                "id": item.id.uuidString,
+                                "title": item.title,
+                                "itemDescription": item.itemDescription as Any,
+                                "isOptional": item.isOptional,
+                                "isRequired": item.isRequired,
+                                "tags": item.tags,
+                                "estimatedMinutes": item.estimatedMinutes as Any,
+                                "sortOrder": item.sortOrder
+                            ]
+                        }
+                    ]
+                },
+                "checklistType": checklist.checklistType.rawValue,
+                "tags": checklist.tags,
+                "createdAt": checklist.createdAt.ISO8601Format(),
+                "updatedAt": checklist.updatedAt.ISO8601Format(),
+                "syncStatus": checklist.syncStatus.rawValue
+            ]
+
+            let payload = ContentPublishPayload(
+                title: checklist.title,
+                description: checklist.description,
+                contentType: "checklist",
+                contentData: contentData,
+                tags: checklist.tags,
+                language: metadata.language,
+                publicID: metadata.publicID!,
+                forkedFromID: metadata.forkedFromID
+            )
+
+            let encoder = JSONEncoder()
+            encoder.dateEncodingStrategy = .iso8601
+            let payloadData = try encoder.encode(payload)
+
+            try await contentSyncService.enqueuePublishUpdate(
+                contentID: checklist.id,
+                payload: payloadData
+            )
+
+            AppLogger.store.info("Triggered publish_update sync for checklist: \(checklist.id)")
+        } catch {
+            AppLogger.store.error("Failed to trigger publish_update sync for checklist: \(checklist.id)", error: error)
+        }
+    }
+
+    /// Trigger automatic sync update for published practice guide
+    private func triggerPublishUpdate(for metadata: LibraryModel, guide: PracticeGuide) async {
+        guard let contentSyncService = contentSyncService else { return }
+
+        do {
+            // Create the full content data payload
+            let contentData: [String: Any] = [
+                "id": guide.id.uuidString,
+                "title": guide.title,
+                "description": guide.description as Any,
+                "markdown": guide.markdown,
+                "tags": guide.tags,
+                "createdAt": guide.createdAt.ISO8601Format(),
+                "updatedAt": guide.updatedAt.ISO8601Format(),
+                "syncStatus": guide.syncStatus.rawValue
+            ]
+
+            let payload = ContentPublishPayload(
+                title: guide.title,
+                description: guide.description,
+                contentType: "practice_guide",
+                contentData: contentData,
+                tags: guide.tags,
+                language: metadata.language,
+                publicID: metadata.publicID!,
+                forkedFromID: metadata.forkedFromID
+            )
+
+            let encoder = JSONEncoder()
+            encoder.dateEncodingStrategy = .iso8601
+            let payloadData = try encoder.encode(payload)
+
+            try await contentSyncService.enqueuePublishUpdate(
+                contentID: guide.id,
+                payload: payloadData
+            )
+
+            AppLogger.store.info("Triggered publish_update sync for guide: \(guide.id)")
+        } catch {
+            AppLogger.store.error("Failed to trigger publish_update sync for guide: \(guide.id)", error: error)
+        }
     }
     
     /// Save/update an existing practice guide
@@ -244,25 +389,58 @@ final class LibraryStore {
     @MainActor
     func saveGuide(_ guide: PracticeGuide) async throws {
         try await repository.saveGuide(guide)
+
         // Update in-memory cache
         if let index = guides.firstIndex(where: { $0.id == guide.id }) {
             guides[index] = guide
         }
-        // Reload metadata to ensure sync status is updated
-        await loadLibrary()
+
+        // Update metadata and check for published content sync
+        if let metadataIndex = library.firstIndex(where: { $0.id == guide.id }) {
+            var metadata = library[metadataIndex]
+            metadata.title = guide.title
+            metadata.description = guide.description
+            metadata.tags = guide.tags
+            metadata.updatedAt = guide.updatedAt
+            metadata.syncStatus = guide.syncStatus
+            library[metadataIndex] = metadata
+
+            // If this is published content, trigger automatic sync update
+            if let publicID = metadata.publicID, let contentSyncService = contentSyncService {
+                await triggerPublishUpdate(for: metadata, guide: guide)
+            }
+        }
     }
     
     // MARK: - Deleting Content
-    
+
     /// Delete content from the library
-    /// - Parameter item: The library item to delete
+    /// - Parameters:
+    ///   - item: The library item to delete
+    ///   - shouldUnpublish: Whether to unpublish from backend if content is published (default: true)
+    ///                     Set to false for "keep published" deletion scenario
     @MainActor
-    func deleteContent(_ item: LibraryModel) async throws {
+    func deleteContent(_ item: LibraryModel, shouldUnpublish: Bool = true) async throws {
+        // If content is published and should be unpublished, enqueue unpublish operation and sync immediately
+        if shouldUnpublish, let publicID = item.publicID, let contentSyncService = contentSyncService {
+            AppLogger.store.info("Enqueuing unpublish operation for published content before deletion: \(item.id)")
+            try await contentSyncService.enqueueUnpublish(
+                contentID: item.id,
+                publicID: publicID
+            )
+
+            // Run sync immediately to process the unpublish operation before deleting content
+            AppLogger.store.info("Running sync for unpublish operation: \(item.id)")
+            let summary = await contentSyncService.syncPending()
+            AppLogger.store.info("Unpublish sync completed: \(summary.succeeded) succeeded, \(summary.failed) failed")
+        }
+
+        // Delete from local database (after sync completes)
         try await repository.deleteContent(item.id)
-        
+
         // Remove from in-memory collections
         library.removeAll { $0.id == item.id }
-        
+
         // Remove from type-specific collections
         switch item.type {
         case .checklist:

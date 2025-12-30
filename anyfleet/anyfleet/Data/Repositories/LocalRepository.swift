@@ -620,14 +620,21 @@ extension LocalRepository {
         visibility: ContentVisibility,
         payload: Data?
     ) async throws {
-        try await database.dbWriter.write { db in
-            try SyncQueueRecord.enqueue(
-                contentID: contentID,
-                operation: operation,
-                visibility: visibility,
-                payload: payload,
-                db: db
-            )
+        AppLogger.repository.debug("Enqueuing sync operation: \(operation.rawValue) for content: \(contentID)")
+        do {
+            try await database.dbWriter.write { db in
+                let record = try SyncQueueRecord.enqueue(
+                    contentID: contentID,
+                    operation: operation,
+                    visibility: visibility,
+                    payload: payload,
+                    db: db
+                )
+                AppLogger.repository.debug("Successfully enqueued sync operation with ID: \(record.id ?? -1)")
+            }
+        } catch {
+            AppLogger.repository.error("Failed to enqueue sync operation", error: error)
+            throw error
         }
     }
     
@@ -635,6 +642,10 @@ extension LocalRepository {
     func getPendingSyncOperations(maxRetries: Int) async throws -> [SyncQueueOperation] {
         try await database.dbWriter.read { db in
             let records = try SyncQueueRecord.fetchPending(maxRetries: maxRetries, db: db)
+            AppLogger.repository.debug("Found \(records.count) pending sync operations in database")
+            for record in records {
+                AppLogger.repository.debug("Pending operation: ID=\(record.id ?? -1), contentID=\(record.contentID), operation=\(record.operation), syncedAt=\(record.syncedAt?.description ?? "nil")")
+            }
             return records.map { record in
                 SyncQueueOperation(
                     id: record.id!,
@@ -674,11 +685,13 @@ extension LocalRepository {
     /// Check if there's a successful publish operation for the given content ID
     func hasSuccessfulPublishOperation(for contentID: UUID) async throws -> Bool {
         try await database.dbWriter.read { db in
-            try SyncQueueRecord
+            let count = try SyncQueueRecord
                 .filter(SyncQueueRecord.Columns.contentID == contentID.uuidString)
                 .filter(SyncQueueRecord.Columns.operation == SyncOperation.publish.rawValue)
                 .filter(SyncQueueRecord.Columns.syncedAt != nil)
-                .fetchCount(db) > 0
+                .fetchCount(db)
+            AppLogger.auth.debug("Found \(count) successful publish operations for contentID: \(contentID)")
+            return count > 0
         }
     }
 

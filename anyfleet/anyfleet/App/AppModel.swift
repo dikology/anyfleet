@@ -1,6 +1,16 @@
 import SwiftUI
 import Combine
 
+/// Protocol defining the interface for app navigation coordination.
+/// Used for dependency injection and testing.
+protocol AppCoordinatorProtocol: AnyObject {
+    func editChecklist(_ checklistID: UUID?)
+    func editGuide(_ guideID: UUID?)
+    func editDeck(_ deckID: UUID?)
+    func viewChecklist(_ checklistID: UUID)
+    func viewGuide(_ guideID: UUID)
+}
+
 enum AppRoute: Hashable {
     // Charters
     case createCharter
@@ -26,7 +36,7 @@ enum AppRoute: Hashable {
 }
 
 @MainActor
-final class AppCoordinator: ObservableObject {
+final class AppCoordinator: ObservableObject, AppCoordinatorProtocol {
     private let dependencies: AppDependencies
     private let syncService: ContentSyncService
     private var syncTimer: Timer?
@@ -50,8 +60,8 @@ final class AppCoordinator: ObservableObject {
     }
 
     private func startBackgroundSync() {
-        // Sync every 10 seconds when app is active
-        syncTimer = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: true) { [weak self] _ in
+        // Sync every 60 seconds when app is active
+        syncTimer = Timer.scheduledTimer(withTimeInterval: 60.0, repeats: true) { [weak self] _ in
             Task { @MainActor in
                 await self?.syncService.syncPending()
             }

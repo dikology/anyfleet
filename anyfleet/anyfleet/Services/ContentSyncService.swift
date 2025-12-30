@@ -46,10 +46,15 @@ final class ContentSyncService {
         
         await updateSyncState(contentID: contentID, status: .queued)
         await updatePendingCounts()
-        
-        // Trigger sync (will implement in next phase)
-        Task {
-            await syncPending()
+
+        // Trigger sync immediately
+        Task { @MainActor in
+            do {
+                let summary = await syncPending()
+                AppLogger.auth.info("Publish sync completed: \(summary.succeeded) succeeded, \(summary.failed) failed")
+            } catch {
+                AppLogger.auth.error("Publish sync failed", error: error)
+            }
         }
     }
     
@@ -63,21 +68,52 @@ final class ContentSyncService {
         let unpublishPayload = UnpublishPayload(publicID: publicID)
         let payloadData = try JSONEncoder().encode(unpublishPayload)
         
-        try await repository.enqueueSyncOperation(
-            contentID: contentID,
-            operation: .unpublish,
-            visibility: .private,
-            payload: payloadData
-        )
-        
+        do {
+            try await repository.enqueueSyncOperation(
+                contentID: contentID,
+                operation: .unpublish,
+                visibility: .private,
+                payload: payloadData
+            )
+            AppLogger.auth.debug("Successfully enqueued unpublish operation for content: \(contentID)")
+        } catch {
+            AppLogger.auth.error("Failed to enqueue unpublish operation for content: \(contentID)", error: error)
+            throw error
+        }
+
         await updateSyncState(contentID: contentID, status: .queued)
         await updatePendingCounts()
-        
-        Task {
-            await syncPending()
+
+        // Sync is now run synchronously in LibraryStore.deleteContent
+    }
+
+    func enqueuePublishUpdate(
+        contentID: UUID,
+        payload: Data
+    ) async throws {
+        AppLogger.auth.info("Enqueuing publish_update operation for content: \(contentID)")
+
+        try await repository.enqueueSyncOperation(
+            contentID: contentID,
+            operation: .publish_update,
+            visibility: .public, // Content is already public
+            payload: payload
+        )
+
+        await updateSyncState(contentID: contentID, status: .queued)
+        await updatePendingCounts()
+
+        // Trigger sync immediately
+        Task { @MainActor in
+            do {
+                let summary = await syncPending()
+                AppLogger.auth.info("Publish update sync completed: \(summary.succeeded) succeeded, \(summary.failed) failed")
+            } catch {
+                AppLogger.auth.error("Publish update sync failed", error: error)
+            }
         }
     }
-    
+
     // MARK: - Sync Processing (Stub for now)
     
     func syncPending() async -> SyncSummary {
@@ -99,11 +135,12 @@ final class ContentSyncService {
         
         // Fetch pending operations
         let operations = try? await repository.getPendingSyncOperations(maxRetries: maxRetries)
+        AppLogger.auth.debug("Fetched \(operations?.count ?? 0) pending sync operations")
         guard let operations = operations, !operations.isEmpty else {
             await updatePendingCounts()
             return summary
         }
-        
+
         AppLogger.auth.info("Processing \(operations.count) sync operations")
         
         // Process each operation
@@ -163,6 +200,8 @@ final class ContentSyncService {
             try await handlePublish(operation, apiClient: apiClient)
         case .unpublish:
             try await handleUnpublish(operation, apiClient: apiClient)
+        case .publish_update:
+            try await handlePublishUpdate(operation, apiClient: apiClient)
         }
     }
 
@@ -233,11 +272,17 @@ final class ContentSyncService {
 
         // Check if this content was ever successfully published by looking for completed publish operations
         let hasSuccessfulPublish = try? await repository.hasSuccessfulPublishOperation(for: operation.contentID)
+        AppLogger.auth.info("Unpublish operation for \(operation.contentID) - has successful publish: \(hasSuccessfulPublish ?? false)")
 
-        // If there's no record of successful publish, skip the unpublish operation
+        // Also check if the content appears published in the database (has publicID and is public)
+        let currentItem = try? await libraryStore.fetchLibraryItem(operation.contentID)
+        let appearsPublished = currentItem?.visibility == .public && currentItem?.publicID != nil
+        AppLogger.auth.info("Unpublish operation for \(operation.contentID) - appears published in DB: \(appearsPublished)")
+
+        // If there's no record of successful publish AND the content doesn't appear published, skip the unpublish operation
         // This can happen when publish failed but unpublish was still enqueued
-        guard hasSuccessfulPublish == true else {
-            AppLogger.auth.info("Skipping unpublish for \(operation.contentID) - no successful publish found")
+        guard hasSuccessfulPublish == true || appearsPublished == true else {
+            AppLogger.auth.warning("Skipping unpublish for \(operation.contentID) - no successful publish record and content doesn't appear published")
             return
         }
 
@@ -251,10 +296,61 @@ final class ContentSyncService {
         }
 
         // Update local model - content is now unpublished (whether it existed or not)
-        if var updated = libraryStore.library.first(where: { $0.id == operation.contentID }) {
+        AppLogger.auth.info("Unpublish: Updating local content \(operation.contentID)")
+        if var updated = try await libraryStore.fetchLibraryItem(operation.contentID) {
+            AppLogger.auth.info("Unpublish: Found item to update: \(updated.id), visibility: \(updated.visibility.rawValue)")
+            updated.visibility = .private
+            updated.publicID = nil
+            updated.publishedAt = nil
             updated.syncStatus = .synced
+            AppLogger.auth.info("Unpublish: Updated item - visibility: \(updated.visibility.rawValue), publicID: \(updated.publicID ?? "nil")")
             try await libraryStore.updateLibraryMetadata(updated)
+            AppLogger.auth.info("Unpublish: Successfully saved updated item")
+        } else {
+            AppLogger.auth.warning("Unpublish: Could not find item \(operation.contentID) to update")
         }
+    }
+
+    private func handlePublishUpdate(_ operation: SyncQueueOperation, apiClient: APIClientProtocol) async throws {
+        guard let payload = operation.payload else {
+            throw SyncError.invalidPayload
+        }
+
+        // Get current item from repository (not in-memory cache which can be stale)
+        guard var item = try await libraryStore.fetchLibraryItem(operation.contentID) else {
+            throw SyncError.missingPublicID
+        }
+
+        // Ensure this content has been published before
+        guard let publicID = item.publicID else {
+            throw SyncError.missingPublicID
+        }
+
+        // Decode the payload
+        let decoder = JSONDecoder()
+        let contentPayload: ContentPublishPayload
+        do {
+            contentPayload = try decoder.decode(ContentPublishPayload.self, from: payload)
+        } catch {
+            AppLogger.auth.error("Failed to decode ContentPublishPayload for publish_update: \(error)")
+            throw error
+        }
+
+        // Call backend API to update existing published content
+        let response = try await apiClient.updatePublishedContent(
+            publicID: publicID,
+            title: contentPayload.title,
+            description: contentPayload.description,
+            contentType: contentPayload.contentType,
+            contentData: contentPayload.contentData,
+            tags: contentPayload.tags,
+            language: contentPayload.language
+        )
+
+        // Update local model with server response
+        item.updatedAt = response.updatedAt ?? Date()
+        item.syncStatus = .synced
+        try await libraryStore.updateLibraryMetadata(item)
     }
 
     private func isNetworkReachable() async -> Bool {
@@ -338,6 +434,7 @@ public struct SyncSummary {
 public enum SyncOperation: String, Codable {
     case publish
     case unpublish
+    case publish_update
 }
 
 public struct SyncQueueOperation {
