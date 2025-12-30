@@ -11,6 +11,7 @@ import SwiftUI
 /// Shows visual feedback for pending, syncing, synced, and failed states
 struct SyncStatusIndicator: View {
     let syncStatus: ContentSyncStatus
+    var onRetry: (() -> Void)? = nil
     
     var body: some View {
         Group {
@@ -33,10 +34,20 @@ struct SyncStatusIndicator: View {
                     .help("Synced")
                 
             case .failed:
-                Image(systemName: "exclamationmark.triangle.fill")
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(DesignSystem.Colors.error)
-                    .help("Sync failed - tap to retry")
+                if let retryAction = onRetry {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(DesignSystem.Colors.error)
+                        .onTapGesture {
+                            retryAction()
+                        }
+                        .help("Sync failed - tap to retry")
+                } else {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(DesignSystem.Colors.error)
+                        .help("Sync failed")
+                }
             }
         }
     }

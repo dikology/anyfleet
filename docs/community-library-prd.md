@@ -154,7 +154,6 @@ Fork relationships are not visualized. Users can't easily see content evolution 
 - [ ] User can edit forked content independently
 - [ ] Attribution displays original creator profile
 
--- 29 dec 2025: check current implementation with sandbox apple id, see how forking another user's content works. add tests.
 ---
 
 ### Feature 2: Automatic Sync for Published Content Updates

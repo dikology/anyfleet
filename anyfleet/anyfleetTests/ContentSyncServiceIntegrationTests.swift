@@ -578,6 +578,23 @@ class MockAPIClient: APIClientProtocol {
     func incrementForkCount(publicID: String) async throws {
         // Mock implementation - do nothing for tests
     }
+
+    func updatePublishedContent(
+        publicID: String,
+        title: String,
+        description: String?,
+        contentType: String,
+        contentData: [String: Any],
+        tags: [String],
+        language: String
+    ) async throws -> UpdateContentResponse {
+        // Mock implementation - return a mock response
+        return UpdateContentResponse(
+            id: UUID(),
+            publicID: publicID,
+            updatedAt: Date()
+        )
+    }
 }
 
 // MARK: - Mock Auth Service

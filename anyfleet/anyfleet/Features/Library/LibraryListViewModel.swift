@@ -217,7 +217,7 @@ final class LibraryListViewModel: ErrorHandling {
     /// - Parameter item: The library item to unpublish
     func unpublish(_ item: LibraryModel) async {
         AppLogger.view.info("Unpublishing item: \(item.id)")
-        
+
         do {
             try await visibilityService.unpublishContent(item)
             await loadLibrary()
@@ -226,5 +226,14 @@ final class LibraryListViewModel: ErrorHandling {
             AppLogger.view.error("Unpublish failed", error: error)
             publishError = error
         }
+    }
+
+    /// Retry sync operations for a failed content item
+    /// - Parameter item: The library item to retry sync for
+    func retrySync(for item: LibraryModel) async {
+        AppLogger.view.info("Retrying sync for item: \(item.id)")
+        await visibilityService.retrySync(for: item)
+        // Reload to get updated sync status
+        await loadLibrary()
     }
 }

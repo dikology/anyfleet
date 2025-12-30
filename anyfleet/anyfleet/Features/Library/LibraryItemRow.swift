@@ -17,6 +17,7 @@ struct LibraryItemRow: View {
     let onPublish: () -> Void
     let onUnpublish: () -> Void
     let onSignInRequired: () -> Void
+    let onRetrySync: () -> Void
     
     @State private var isPressed = false
     
@@ -151,7 +152,7 @@ struct LibraryItemRow: View {
 
                 // Sync Status Indicator (only show for non-private items)
                 if item.visibility != .private {
-                    SyncStatusIndicator(syncStatus: item.syncStatus)
+                    SyncStatusIndicator(syncStatus: item.syncStatus, onRetry: onRetrySync)
                 }
 
                 Spacer()
@@ -250,7 +251,8 @@ struct LibraryItemRow: View {
             },
             onPublish: {},
             onUnpublish: {},
-            onSignInRequired: {}
+            onSignInRequired: {},
+            onRetrySync: {}
         )
         
         // Public item (synced)
@@ -277,7 +279,8 @@ struct LibraryItemRow: View {
             },
             onPublish: {},
             onUnpublish: {},
-            onSignInRequired: {}
+            onSignInRequired: {},
+            onRetrySync: {}
         )
         
         // Public item (pending sync)
@@ -304,7 +307,8 @@ struct LibraryItemRow: View {
             },
             onPublish: {},
             onUnpublish: {},
-            onSignInRequired: {}
+            onSignInRequired: {},
+            onRetrySync: {}
         )
         
         // Public item (failed sync)
@@ -331,7 +335,8 @@ struct LibraryItemRow: View {
             },
             onPublish: {},
             onUnpublish: {},
-            onSignInRequired: {}
+            onSignInRequired: {},
+            onRetrySync: {}
         )
         
         // Forked content with original author attribution
@@ -354,7 +359,8 @@ struct LibraryItemRow: View {
             },
             onPublish: {},
             onUnpublish: {},
-            onSignInRequired: {}
+            onSignInRequired: {},
+            onRetrySync: {}
         )
 
         // Not signed in
@@ -374,7 +380,8 @@ struct LibraryItemRow: View {
             },
             onPublish: {},
             onUnpublish: {},
-            onSignInRequired: {}
+            onSignInRequired: {},
+            onRetrySync: {}
         )
     }
     .padding()

@@ -23,7 +23,7 @@ final class VisibilityService {
         case notAuthenticated
         case networkError(Error)
         case validationError(String)
-        
+
         var errorDescription: String? {
             switch self {
             case .notAuthenticated:
@@ -34,7 +34,7 @@ final class VisibilityService {
                 return message
             }
         }
-        
+
         var recoverySuggestion: String? {
             switch self {
             case .notAuthenticated:
@@ -46,7 +46,19 @@ final class VisibilityService {
             }
         }
     }
-    
+
+    /// Retry sync operations for a specific content item
+    /// - Parameter item: The library item to retry sync for
+    func retrySync(for item: LibraryModel) async {
+        AppLogger.auth.info("Retrying sync for item: \(item.id)")
+
+        // Find and retry any failed sync operations for this content
+        // This will trigger the sync service to attempt pending operations again
+        await syncService.syncPending()
+
+        AppLogger.auth.info("Sync retry initiated for item: \(item.id)")
+    }
+
     // MARK: - Initialization
     
     init(

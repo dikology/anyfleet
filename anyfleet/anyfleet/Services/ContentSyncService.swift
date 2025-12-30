@@ -77,7 +77,29 @@ final class ContentSyncService {
             await syncPending()
         }
     }
-    
+
+    func enqueuePublishUpdate(
+        contentID: UUID,
+        payload: Data
+    ) async throws {
+        AppLogger.auth.info("Enqueuing publish_update operation for content: \(contentID)")
+
+        try await repository.enqueueSyncOperation(
+            contentID: contentID,
+            operation: .publish_update,
+            visibility: .public, // Content is already public
+            payload: payload
+        )
+
+        await updateSyncState(contentID: contentID, status: .queued)
+        await updatePendingCounts()
+
+        // Trigger sync
+        Task {
+            await syncPending()
+        }
+    }
+
     // MARK: - Sync Processing (Stub for now)
     
     func syncPending() async -> SyncSummary {
@@ -163,6 +185,8 @@ final class ContentSyncService {
             try await handlePublish(operation, apiClient: apiClient)
         case .unpublish:
             try await handleUnpublish(operation, apiClient: apiClient)
+        case .publish_update:
+            try await handlePublishUpdate(operation, apiClient: apiClient)
         }
     }
 
@@ -257,6 +281,48 @@ final class ContentSyncService {
         }
     }
 
+    private func handlePublishUpdate(_ operation: SyncQueueOperation, apiClient: APIClientProtocol) async throws {
+        guard let payload = operation.payload else {
+            throw SyncError.invalidPayload
+        }
+
+        // Get current item from repository (not in-memory cache which can be stale)
+        guard var item = try await libraryStore.fetchLibraryItem(operation.contentID) else {
+            throw SyncError.missingPublicID
+        }
+
+        // Ensure this content has been published before
+        guard let publicID = item.publicID else {
+            throw SyncError.missingPublicID
+        }
+
+        // Decode the payload
+        let decoder = JSONDecoder()
+        let contentPayload: ContentPublishPayload
+        do {
+            contentPayload = try decoder.decode(ContentPublishPayload.self, from: payload)
+        } catch {
+            AppLogger.auth.error("Failed to decode ContentPublishPayload for publish_update: \(error)")
+            throw error
+        }
+
+        // Call backend API to update existing published content
+        let response = try await apiClient.updatePublishedContent(
+            publicID: publicID,
+            title: contentPayload.title,
+            description: contentPayload.description,
+            contentType: contentPayload.contentType,
+            contentData: contentPayload.contentData,
+            tags: contentPayload.tags,
+            language: contentPayload.language
+        )
+
+        // Update local model with server response
+        item.updatedAt = response.updatedAt ?? Date()
+        item.syncStatus = .synced
+        try await libraryStore.updateLibraryMetadata(item)
+    }
+
     private func isNetworkReachable() async -> Bool {
         // Basic check: try to connect to backend
         // You can use Network framework for more sophisticated checks
@@ -338,6 +404,7 @@ public struct SyncSummary {
 public enum SyncOperation: String, Codable {
     case publish
     case unpublish
+    case publish_update
 }
 
 public struct SyncQueueOperation {

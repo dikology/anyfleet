@@ -233,6 +233,11 @@ struct LibraryListView: View {
                         },
                         onSignInRequired: {
                             showingSignInModal = true
+                        },
+                        onRetrySync: {
+                            Task {
+                                await viewModel.retrySync(for: item)
+                            }
                         }
                     )
                     .listRowInsets(EdgeInsets(
