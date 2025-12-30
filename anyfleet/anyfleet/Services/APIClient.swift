@@ -5,6 +5,7 @@ protocol AuthServiceProtocol {
     var isAuthenticated: Bool { get }
     var currentUser: UserInfo? { get }
     func getAccessToken() async throws -> String
+    func ensureCurrentUserLoaded() async throws
 }
 
 /// Protocol for API client functionality for testing

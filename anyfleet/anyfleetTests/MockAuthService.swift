@@ -31,4 +31,20 @@ final class MockAuthService: AuthServiceProtocol {
         }
         return mockAccessToken
     }
+
+    func ensureCurrentUserLoaded() async throws {
+        // For mock, just ensure currentUser is set if authenticated
+        if mockIsAuthenticated && mockCurrentUser == nil {
+            mockCurrentUser = UserInfo(
+                id: "mock-user-id",
+                email: "mock@example.com",
+                username: "mockuser",
+                createdAt: ISO8601DateFormatter().string(from: Date())
+            )
+        }
+
+        if !mockIsAuthenticated {
+            throw AuthError.unauthorized
+        }
+    }
 }

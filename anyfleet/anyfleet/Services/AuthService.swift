@@ -314,7 +314,35 @@ final class AuthService: AuthServiceProtocol {
     }
     
     // MARK: - User Info
-    
+
+    /// Ensures currentUser is loaded before proceeding with authenticated operations
+    /// - Throws: AuthError if user cannot be loaded or authentication fails
+    func ensureCurrentUserLoaded() async throws {
+        // If we already have currentUser, return immediately
+        if currentUser != nil {
+            return
+        }
+
+        // If not authenticated, throw error
+        guard isAuthenticated else {
+            throw AuthError.unauthorized
+        }
+
+        // Load current user if we have tokens but no user info yet
+        if keychain.getAccessToken() != nil {
+            await loadCurrentUser()
+
+            // Check if loading succeeded
+            guard currentUser != nil else {
+                AppLogger.auth.error("Failed to load current user despite having valid tokens")
+                throw AuthError.invalidResponse
+            }
+        } else {
+            AppLogger.auth.error("No access token found when trying to ensure user is loaded")
+            throw AuthError.unauthorized
+        }
+    }
+
     func loadCurrentUser() async {
         AppLogger.auth.debug("Loading current user info")
         do {
