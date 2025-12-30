@@ -5,6 +5,7 @@ protocol AuthServiceProtocol {
     var isAuthenticated: Bool { get }
     var currentUser: UserInfo? { get }
     func getAccessToken() async throws -> String
+    func ensureCurrentUserLoaded() async throws
 }
 
 /// Protocol for API client functionality for testing
@@ -17,7 +18,8 @@ protocol APIClientProtocol {
         tags: [String],
         language: String,
         publicID: String,
-        canFork: Bool
+        canFork: Bool,
+        forkedFromID: UUID?
     ) async throws -> PublishContentResponse
 
     func unpublishContent(publicID: String) async throws
@@ -67,7 +69,8 @@ final class APIClient: APIClientProtocol {
         tags: [String],
         language: String,
         publicID: String,
-        canFork: Bool
+        canFork: Bool,
+        forkedFromID: UUID? = nil
     ) async throws -> PublishContentResponse {
         let request = PublishContentRequest(
             title: title,
@@ -77,9 +80,10 @@ final class APIClient: APIClientProtocol {
             tags: tags,
             language: language,
             publicID: publicID,
-            canFork: canFork
+            canFork: canFork,
+            forkedFromID: forkedFromID
         )
-        
+
         return try await post("/content/share", body: request)
     }
     
@@ -364,6 +368,7 @@ struct PublishContentRequest: Encodable {
     let language: String
     let publicID: String
     let canFork: Bool
+    let forkedFromID: UUID?
 
     enum CodingKeys: String, CodingKey {
         case title
@@ -374,6 +379,7 @@ struct PublishContentRequest: Encodable {
         case language
         case publicID = "public_id"
         case canFork = "can_fork"
+        case forkedFromID = "forked_from_id"
     }
     
     func encode(to encoder: Encoder) throws {
@@ -385,6 +391,7 @@ struct PublishContentRequest: Encodable {
         try container.encode(language, forKey: .language)
         try container.encode(publicID, forKey: .publicID)
         try container.encode(canFork, forKey: .canFork)
+        try container.encodeIfPresent(forkedFromID, forKey: .forkedFromID)
         
         // Encode contentData as nested JSON object (same as SyncPayloads)
         let jsonData = try JSONSerialization.data(withJSONObject: contentData)

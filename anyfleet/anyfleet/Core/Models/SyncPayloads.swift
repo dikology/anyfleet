@@ -12,6 +12,7 @@ struct ContentPublishPayload: Codable {
     let tags: [String]
     let language: String
     let publicID: String
+    let forkedFromID: UUID?
     
     enum CodingKeys: String, CodingKey {
         case title
@@ -21,10 +22,11 @@ struct ContentPublishPayload: Codable {
         case tags
         case language
         case publicID = "public_id"
+        case forkedFromID = "forked_from_id"
     }
     
     // MARK: - Initializer
-    
+
     init(
         title: String,
         description: String?,
@@ -32,7 +34,8 @@ struct ContentPublishPayload: Codable {
         contentData: [String: Any],
         tags: [String],
         language: String,
-        publicID: String
+        publicID: String,
+        forkedFromID: UUID? = nil
     ) {
         self.title = title
         self.description = description
@@ -41,6 +44,7 @@ struct ContentPublishPayload: Codable {
         self.tags = tags
         self.language = language
         self.publicID = publicID
+        self.forkedFromID = forkedFromID
     }
     
     // MARK: - Encoding
@@ -53,6 +57,7 @@ struct ContentPublishPayload: Codable {
         try container.encode(tags, forKey: .tags)
         try container.encode(language, forKey: .language)
         try container.encode(publicID, forKey: .publicID)
+        try container.encodeIfPresent(forkedFromID, forKey: .forkedFromID)
         
         // Encode contentData as nested JSON object (not string!)
         let jsonData = try JSONSerialization.data(withJSONObject: contentData)
@@ -71,10 +76,13 @@ struct ContentPublishPayload: Codable {
         tags = try container.decode([String].self, forKey: .tags)
         language = try container.decode(String.self, forKey: .language)
         publicID = try container.decode(String.self, forKey: .publicID)
-        
+
         // Decode contentData as nested JSON object
         let json = try container.decode(AnyCodable.self, forKey: .contentData)
         contentData = json.value as? [String: Any] ?? [:]
+
+        // Decode forkedFromID
+        forkedFromID = try container.decodeIfPresent(UUID.self, forKey: .forkedFromID)
     }
 }
 

@@ -119,19 +119,22 @@ final class VisibilityService {
     /// - Throws: `PublishError` if publishing fails
     func publishContent(_ item: LibraryModel) async throws {
         AppLogger.auth.startOperation("Publish Content")
-        
-        // Check authentication
+
+        // Check authentication and ensure user info is loaded
         guard authService.isAuthenticated else {
             AppLogger.auth.warning("Publish attempted without authentication")
             throw PublishError.notAuthenticated
         }
-        
+
+        // Ensure current user is loaded (this will load it if not already loaded)
+        try await authService.ensureCurrentUserLoaded()
+
         // Validate content
         try validateForPublishing(item)
-        
-        // Get current user info
+
+        // Get current user info (should be available now)
         guard let currentUser = authService.currentUser else {
-            AppLogger.auth.error("Current user not available")
+            AppLogger.auth.error("Current user not available after loading")
             throw PublishError.notAuthenticated
         }
         
@@ -185,12 +188,15 @@ final class VisibilityService {
     /// - Throws: Error if unpublishing fails
     func unpublishContent(_ item: LibraryModel) async throws {
         AppLogger.auth.startOperation("Unpublish Content")
-        
-        // Check authentication
+
+        // Check authentication and ensure user info is loaded
         guard authService.isAuthenticated else {
             AppLogger.auth.warning("Unpublish attempted without authentication")
             throw PublishError.notAuthenticated
         }
+
+        // Ensure current user is loaded (this will load it if not already loaded)
+        try await authService.ensureCurrentUserLoaded()
         
         // Capture publicID BEFORE clearing it
         guard let publicIDToUnpublish = item.publicID else {
@@ -231,10 +237,13 @@ final class VisibilityService {
     /// - Throws: Error if operation fails
     func makeUnlisted(_ item: LibraryModel) async throws {
         AppLogger.auth.startOperation("Make Unlisted")
-        
+
         guard authService.isAuthenticated else {
             throw PublishError.notAuthenticated
         }
+
+        // Ensure current user is loaded
+        try await authService.ensureCurrentUserLoaded()
         
         var updated = item
         updated.visibility = .unlisted
@@ -276,7 +285,8 @@ final class VisibilityService {
                 contentData: contentDict,
                 tags: item.tags,
                 language: item.language,
-                publicID: publicID
+                publicID: publicID,
+                forkedFromID: item.forkedFromID
             )
             
             // Encode with NO key strategy

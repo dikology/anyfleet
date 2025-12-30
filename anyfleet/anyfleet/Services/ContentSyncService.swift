@@ -208,7 +208,8 @@ final class ContentSyncService {
             tags: contentPayload.tags,
             language: contentPayload.language,
             publicID: contentPayload.publicID,
-            canFork: true
+            canFork: true,
+            forkedFromID: contentPayload.forkedFromID
         )
         
         // Update local model with server response

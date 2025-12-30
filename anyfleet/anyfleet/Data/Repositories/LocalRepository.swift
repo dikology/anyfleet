@@ -386,26 +386,35 @@ final class LocalRepository: Sendable {
     func saveChecklist(_ checklist: Checklist) async throws {
         AppLogger.repository.startOperation("Save Checklist")
         defer { AppLogger.repository.completeOperation("Save Checklist") }
-        
+
         try await database.dbWriter.write { db in
             // Update full checklist
             _ = try ChecklistRecord.saveChecklist(checklist, db: db)
-            
-            // Update metadata entry
+
+            // Fetch existing metadata to preserve fork attribution
+            let existingMetadata = try LibraryModelRecord
+                .filter(LibraryModelRecord.Columns.id == checklist.id.uuidString)
+                .fetchOne(db)?
+                .toDomainModel()
+
+            // Update metadata entry, preserving fork attribution
             let metadata = LibraryModel(
                 id: checklist.id,
                 title: checklist.title,
                 description: checklist.description,
                 type: .checklist,
                 visibility: .private,
-                creatorID: UUID(uuidString: "00000000-0000-0000-0000-000000000000") ?? UUID(), // Placeholder for single-user device
+                creatorID: existingMetadata?.creatorID ?? UUID(uuidString: "00000000-0000-0000-0000-000000000000") ?? UUID(), // Preserve existing or use placeholder
+                forkedFromID: existingMetadata?.forkedFromID, // Preserve fork attribution
+                originalAuthorUsername: existingMetadata?.originalAuthorUsername, // Preserve fork attribution
+                originalContentPublicID: existingMetadata?.originalContentPublicID, // Preserve fork attribution
                 tags: checklist.tags,
-                createdAt: checklist.createdAt,
+                createdAt: existingMetadata?.createdAt ?? checklist.createdAt, // Preserve original creation date
                 updatedAt: checklist.updatedAt,
                 syncStatus: checklist.syncStatus
             )
             _ = try LibraryModelRecord.saveMetadata(metadata, db: db)
-            
+
             // TODO: Enqueue for sync if sync service is available
             // try SyncQueueRecord.enqueue(
             //     entityType: SyncEntityType.content.rawValue,
@@ -414,7 +423,7 @@ final class LocalRepository: Sendable {
             //     db: db
             // )
         }
-        
+
         AppLogger.repository.info("Checklist saved successfully - ID: \(checklist.id.uuidString)")
     }
     
@@ -422,26 +431,35 @@ final class LocalRepository: Sendable {
     func saveGuide(_ guide: PracticeGuide) async throws {
         AppLogger.repository.startOperation("Save Guide")
         defer { AppLogger.repository.completeOperation("Save Guide") }
-        
+
         try await database.dbWriter.write { db in
             // Update full guide
             _ = try PracticeGuideRecord.saveGuide(guide, db: db)
-            
-            // Update metadata entry
+
+            // Fetch existing metadata to preserve fork attribution
+            let existingMetadata = try LibraryModelRecord
+                .filter(LibraryModelRecord.Columns.id == guide.id.uuidString)
+                .fetchOne(db)?
+                .toDomainModel()
+
+            // Update metadata entry, preserving fork attribution
             let metadata = LibraryModel(
                 id: guide.id,
                 title: guide.title,
                 description: guide.description,
                 type: .practiceGuide,
                 visibility: .private,
-                creatorID: UUID(uuidString: "00000000-0000-0000-0000-000000000000") ?? UUID(), // Placeholder for single-user device
+                creatorID: existingMetadata?.creatorID ?? UUID(uuidString: "00000000-0000-0000-0000-000000000000") ?? UUID(), // Preserve existing or use placeholder
+                forkedFromID: existingMetadata?.forkedFromID, // Preserve fork attribution
+                originalAuthorUsername: existingMetadata?.originalAuthorUsername, // Preserve fork attribution
+                originalContentPublicID: existingMetadata?.originalContentPublicID, // Preserve fork attribution
                 tags: guide.tags,
-                createdAt: guide.createdAt,
+                createdAt: existingMetadata?.createdAt ?? guide.createdAt, // Preserve original creation date
                 updatedAt: guide.updatedAt,
                 syncStatus: guide.syncStatus
             )
             _ = try LibraryModelRecord.saveMetadata(metadata, db: db)
-            
+
             // TODO: Enqueue for sync if sync service is available
             // try SyncQueueRecord.enqueue(
             //     entityType: SyncEntityType.content.rawValue,
@@ -450,7 +468,7 @@ final class LocalRepository: Sendable {
             //     db: db
             // )
         }
-        
+
         AppLogger.repository.info("Guide saved successfully - ID: \(guide.id.uuidString)")
     }
     

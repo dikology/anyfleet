@@ -129,6 +129,144 @@ struct ContentSyncServiceIntegrationTests {
         #expect(contentData["checklistType"] as? String == "general")
     }
 
+    @Test("Publish succeeds when isAuthenticated=true and ensureCurrentUserLoaded loads user")
+    @MainActor
+    func testPublishSucceedsWhenCurrentUserLoadedByEnsureMethod() async throws {
+        // Arrange
+        let (repository, apiClient, libraryStore, syncService) = try makeTestDependencies()
+
+        // Create a mock auth service where isAuthenticated is true but currentUser starts as nil
+        // The ensureCurrentUserLoaded method will set it
+        let mockAuthService = MockAuthService()
+        mockAuthService.mockIsAuthenticated = true
+        mockAuthService.mockCurrentUser = nil // Simulate currentUser not loaded initially
+
+        let visibilityService = VisibilityService(
+            libraryStore: libraryStore,
+            authService: mockAuthService,
+            syncService: syncService
+        )
+
+        // Create a test checklist
+        let checklistID = UUID()
+        let checklist = Checklist(
+            id: checklistID,
+            title: "Test Checklist",
+            description: "Test description",
+            sections: [],
+            checklistType: .general,
+            tags: [],
+            createdAt: Date(),
+            updatedAt: Date()
+        )
+
+        let libraryModel = LibraryModel(
+            id: checklistID,
+            title: checklist.title,
+            description: checklist.description,
+            type: .checklist,
+            visibility: .private,
+            creatorID: UUID(),
+            tags: checklist.tags,
+            createdAt: checklist.createdAt,
+            updatedAt: checklist.updatedAt
+        )
+
+        // Save checklist to database
+        try await libraryStore.saveChecklist(checklist)
+
+        // Act - Should succeed (ensureCurrentUserLoaded will load the user)
+        try await visibilityService.publishContent(libraryModel)
+
+        // Assert - Verify operation was enqueued with correct payload
+        let pendingOperations = try await repository.getPendingSyncOperations(maxRetries: 3)
+        #expect(pendingOperations.count == 1)
+
+        let operation = pendingOperations[0]
+        #expect(operation.operation == .publish)
+        #expect(operation.contentID == checklist.id)
+
+        // Verify payload can be decoded as ContentPublishPayload
+        #expect(operation.payload != nil)
+        let decoder = JSONDecoder()
+        let payload = try decoder.decode(ContentPublishPayload.self, from: operation.payload!)
+
+        #expect(payload.title == "Test Checklist")
+        #expect(payload.contentType == "checklist")
+        #expect(payload.publicID.hasPrefix("test-checklist"))
+    }
+
+    @Test("Publish succeeds when both isAuthenticated=true and currentUser is set")
+    @MainActor
+    func testPublishSucceedsWhenAuthenticatedAndCurrentUserLoaded() async throws {
+        // Arrange
+        let (repository, apiClient, libraryStore, syncService) = try makeTestDependencies()
+
+        // Create a mock auth service with both authentication state set
+        let mockAuthService = MockAuthService()
+        mockAuthService.mockIsAuthenticated = true
+        mockAuthService.mockCurrentUser = UserInfo(
+            id: "test-user-id",
+            email: "test@example.com",
+            username: "testuser",
+            createdAt: ISO8601DateFormatter().string(from: Date())
+        )
+
+        let visibilityService = VisibilityService(
+            libraryStore: libraryStore,
+            authService: mockAuthService,
+            syncService: syncService
+        )
+
+        // Create a test checklist
+        let checklistID = UUID()
+        let checklist = Checklist(
+            id: checklistID,
+            title: "Test Checklist",
+            description: "Test description",
+            sections: [],
+            checklistType: .general,
+            tags: [],
+            createdAt: Date(),
+            updatedAt: Date()
+        )
+
+        let libraryModel = LibraryModel(
+            id: checklistID,
+            title: checklist.title,
+            description: checklist.description,
+            type: .checklist,
+            visibility: .private,
+            creatorID: UUID(),
+            tags: checklist.tags,
+            createdAt: checklist.createdAt,
+            updatedAt: checklist.updatedAt
+        )
+
+        // Save checklist to database
+        try await libraryStore.saveChecklist(checklist)
+
+        // Act - Should succeed without throwing
+        try await visibilityService.publishContent(libraryModel)
+
+        // Assert - Verify operation was enqueued with correct payload
+        let pendingOperations = try await repository.getPendingSyncOperations(maxRetries: 3)
+        #expect(pendingOperations.count == 1)
+
+        let operation = pendingOperations[0]
+        #expect(operation.operation == .publish)
+        #expect(operation.contentID == checklist.id)
+
+        // Verify payload can be decoded as ContentPublishPayload
+        #expect(operation.payload != nil)
+        let decoder = JSONDecoder()
+        let payload = try decoder.decode(ContentPublishPayload.self, from: operation.payload!)
+
+        #expect(payload.title == "Test Checklist")
+        #expect(payload.contentType == "checklist")
+        #expect(payload.publicID.hasPrefix("test-checklist"))
+    }
+
     @Test("Unpublish operation - stores publicID in payload")
     @MainActor
     func testUnpublishOperationStoresPublicID() async throws {
@@ -392,7 +530,8 @@ class MockAPIClient: APIClientProtocol {
         tags: [String],
         language: String,
         publicID: String,
-        canFork: Bool
+        canFork: Bool,
+        forkedFromID: UUID?
     ) async throws -> PublishContentResponse {
         if shouldFail {
             throw APIError.serverError
