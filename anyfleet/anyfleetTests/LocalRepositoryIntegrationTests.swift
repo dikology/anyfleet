@@ -47,6 +47,150 @@ struct LocalRepositoryIntegrationTests {
         #expect(fetched?.location == charter.location)
     }
     
+    @Test("Fork attribution is preserved when saving edited checklist")
+    @MainActor
+    func testForkAttributionPreservedWhenSavingEditedChecklist() async throws {
+        // Arrange
+        let repository = try makeRepository()
+
+        // Create a forked checklist with attribution
+        let originalID = UUID()
+        let checklistID = UUID()
+        let checklist = Checklist(
+            id: checklistID,
+            title: "Forked Test Checklist",
+            description: "Originally created by someone else",
+            sections: [],
+            checklistType: .general,
+            tags: ["test"],
+            createdAt: Date(),
+            updatedAt: Date(),
+            syncStatus: .pending
+        )
+
+        // Create metadata with fork attribution
+        let metadata = LibraryModel(
+            id: checklistID,
+            title: checklist.title,
+            description: checklist.description,
+            type: .checklist,
+            visibility: .private,
+            creatorID: UUID(),
+            forkedFromID: originalID,
+            originalAuthorUsername: "OriginalAuthor",
+            originalContentPublicID: "original-checklist-123",
+            tags: checklist.tags,
+            createdAt: checklist.createdAt,
+            updatedAt: checklist.updatedAt,
+            syncStatus: checklist.syncStatus
+        )
+
+        // Save initial checklist and metadata
+        try await repository.saveChecklist(checklist)
+        try await repository.updateLibraryMetadata(metadata)
+
+        // Verify initial state
+        let initialLibrary = try await repository.fetchUserLibrary()
+        #expect(initialLibrary.count == 1)
+        let initialItem = initialLibrary.first!
+        #expect(initialItem.forkedFromID == originalID)
+        #expect(initialItem.originalAuthorUsername == "OriginalAuthor")
+        #expect(initialItem.originalContentPublicID == "original-checklist-123")
+
+        // Act: Edit and save the checklist (simulating user editing)
+        var editedChecklist = checklist
+        editedChecklist.title = "Edited Forked Checklist"
+        editedChecklist.description = "Modified by current user"
+        editedChecklist.tags = ["edited", "forked"]
+        editedChecklist.updatedAt = Date()
+
+        try await repository.saveChecklist(editedChecklist)
+
+        // Assert: Fork attribution should be preserved
+        let updatedLibrary = try await repository.fetchUserLibrary()
+        #expect(updatedLibrary.count == 1)
+        let updatedItem = updatedLibrary.first!
+        #expect(updatedItem.id == checklistID)
+        #expect(updatedItem.title == "Edited Forked Checklist")
+        #expect(updatedItem.description == "Modified by current user")
+        #expect(updatedItem.tags == ["edited", "forked"])
+        #expect(updatedItem.forkedFromID == originalID) // Should be preserved
+        #expect(updatedItem.originalAuthorUsername == "OriginalAuthor") // Should be preserved
+        #expect(updatedItem.originalContentPublicID == "original-checklist-123") // Should be preserved
+    }
+
+    @Test("Fork attribution is preserved when saving edited practice guide")
+    @MainActor
+    func testForkAttributionPreservedWhenSavingEditedGuide() async throws {
+        // Arrange
+        let repository = try makeRepository()
+
+        // Create a forked guide with attribution
+        let originalID = UUID()
+        let guideID = UUID()
+        let guide = PracticeGuide(
+            id: guideID,
+            title: "Forked Test Guide",
+            description: "Originally created by someone else",
+            markdown: "# Test Guide\n\nSome content.",
+            tags: ["test"],
+            createdAt: Date(),
+            updatedAt: Date(),
+            syncStatus: .pending
+        )
+
+        // Create metadata with fork attribution
+        let metadata = LibraryModel(
+            id: guideID,
+            title: guide.title,
+            description: guide.description,
+            type: .practiceGuide,
+            visibility: .private,
+            creatorID: UUID(),
+            forkedFromID: originalID,
+            originalAuthorUsername: "GuideAuthor",
+            originalContentPublicID: "original-guide-456",
+            tags: guide.tags,
+            createdAt: guide.createdAt,
+            updatedAt: guide.updatedAt,
+            syncStatus: guide.syncStatus
+        )
+
+        // Save initial guide and metadata
+        try await repository.saveGuide(guide)
+        try await repository.updateLibraryMetadata(metadata)
+
+        // Verify initial state
+        let initialLibrary = try await repository.fetchUserLibrary()
+        #expect(initialLibrary.count == 1)
+        let initialItem = initialLibrary.first!
+        #expect(initialItem.forkedFromID == originalID)
+        #expect(initialItem.originalAuthorUsername == "GuideAuthor")
+        #expect(initialItem.originalContentPublicID == "original-guide-456")
+
+        // Act: Edit and save the guide (simulating user editing)
+        var editedGuide = guide
+        editedGuide.title = "Edited Forked Guide"
+        editedGuide.description = "Modified by current user"
+        editedGuide.markdown = "# Edited Guide\n\nModified content."
+        editedGuide.tags = ["edited", "guide"]
+        editedGuide.updatedAt = Date()
+
+        try await repository.saveGuide(editedGuide)
+
+        // Assert: Fork attribution should be preserved
+        let updatedLibrary = try await repository.fetchUserLibrary()
+        #expect(updatedLibrary.count == 1)
+        let updatedItem = updatedLibrary.first!
+        #expect(updatedItem.id == guideID)
+        #expect(updatedItem.title == "Edited Forked Guide")
+        #expect(updatedItem.description == "Modified by current user")
+        #expect(updatedItem.tags == ["edited", "guide"])
+        #expect(updatedItem.forkedFromID == originalID) // Should be preserved
+        #expect(updatedItem.originalAuthorUsername == "GuideAuthor") // Should be preserved
+        #expect(updatedItem.originalContentPublicID == "original-guide-456") // Should be preserved
+    }
+
     @Test("Fetch charters by status - active")
     func testFetchChartersByStatus_Active() async throws {
         // Arrange
