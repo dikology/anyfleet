@@ -230,7 +230,18 @@ final class AppDatabase: Sendable {
             
             AppLogger.database.info("Migration v1.6.0_createSyncQueueTable completed successfully")
         }
-        
+
+        migrator.registerMigration("v1.7.0_addForkAttributionColumns") { db in
+            AppLogger.database.debug("Running migration: v1.7.0_addForkAttributionColumns")
+
+            try db.alter(table: "library_content") { t in
+                t.add(column: "originalAuthorUsername", .text)
+                t.add(column: "originalContentPublicID", .text)
+            }
+
+            AppLogger.database.info("Migration v1.7.0_addForkAttributionColumns completed successfully")
+        }
+
         return migrator
     }
     

@@ -154,13 +154,14 @@ Fork relationships are not visualized. Users can't easily see content evolution 
 - [ ] User can edit forked content independently
 - [ ] Attribution displays original creator profile
 
+-- 29 dec 2025: check current implementation with sandbox apple id, see how forking another user's content works. add tests.
 ---
 
 ### Feature 2: Automatic Sync for Published Content Updates
 
 **Objective**: Ensure published content updates sync automatically to backend, eliminating stale community content.
 
-**Scope**: All published content edits (checklists, guides, decks) sync to backend within 5 seconds.
+**Scope**: All published content edits (checklists, guides, decks) sync to backend.
 
 **User Workflow**:
 
@@ -168,7 +169,7 @@ Fork relationships are not visualized. Users can't easily see content evolution 
 2. User edits content (adds checklist items, updates guide text, etc.)
 3. `updatedAt` timestamp updates locally
 4. Sync system automatically queues a "publish_update" operation
-5. Within 5 seconds, content syncs to backend
+5. Content syncs to backend
 6. Sync status indicator shows brief "Syncing..." then "Synced" state
 7. Community Discover tab shows updated content
 
@@ -188,14 +189,14 @@ Fork relationships are not visualized. Users can't easily see content evolution 
 - On sync failure: Shows error badge and manual retry option
 
 **Success Criteria**:
-- Updates sync within 5 seconds of local edit
+- Updates sync of local edit
 - Backend content matches local content after sync
 - No user confusion about what community sees
 - Works offline (queues sync, completes when online)
 
 **Acceptance Criteria**:
 - [ ] Editing published content triggers sync operation
-- [ ] Sync completes within 5 seconds when online
+- [ ] Sync completes when online
 - [ ] Sync status visible to user (brief feedback)
 - [ ] Backend content updates with latest edits
 - [ ] Discover tab reflects updated content
