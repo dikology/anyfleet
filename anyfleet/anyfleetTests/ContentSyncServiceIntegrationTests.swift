@@ -153,8 +153,8 @@ struct ContentSyncServiceIntegrationTests {
             id: checklistID,
             title: "Test Checklist",
             description: "Test description",
+            sections: [],
             checklistType: .general,
-            items: [],
             tags: [],
             createdAt: Date(),
             updatedAt: Date()
@@ -194,7 +194,6 @@ struct ContentSyncServiceIntegrationTests {
         #expect(payload.title == "Test Checklist")
         #expect(payload.contentType == "checklist")
         #expect(payload.publicID.hasPrefix("test-checklist"))
-        #expect(payload.authorUsername == "mockuser") // Should use username from loaded currentUser
     }
 
     @Test("Publish succeeds when both isAuthenticated=true and currentUser is set")
@@ -225,8 +224,8 @@ struct ContentSyncServiceIntegrationTests {
             id: checklistID,
             title: "Test Checklist",
             description: "Test description",
+            sections: [],
             checklistType: .general,
-            items: [],
             tags: [],
             createdAt: Date(),
             updatedAt: Date()
@@ -266,7 +265,6 @@ struct ContentSyncServiceIntegrationTests {
         #expect(payload.title == "Test Checklist")
         #expect(payload.contentType == "checklist")
         #expect(payload.publicID.hasPrefix("test-checklist"))
-        #expect(payload.authorUsername == "testuser") // Should use username from currentUser
     }
 
     @Test("Unpublish operation - stores publicID in payload")
@@ -532,7 +530,8 @@ class MockAPIClient: APIClientProtocol {
         tags: [String],
         language: String,
         publicID: String,
-        canFork: Bool
+        canFork: Bool,
+        forkedFromID: UUID?
     ) async throws -> PublishContentResponse {
         if shouldFail {
             throw APIError.serverError

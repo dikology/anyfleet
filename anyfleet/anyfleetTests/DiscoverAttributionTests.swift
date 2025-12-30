@@ -5,11 +5,14 @@
 //  Created by anyfleet on 2025-01-01.
 //
 
-import XCTest
+import Foundation
+import Testing
 @testable import anyfleet
 
-final class DiscoverAttributionTests: XCTestCase {
+@Suite("Discover Attribution Tests")
+struct DiscoverAttributionTests {
 
+    @Test("DiscoverContent with attribution data")
     func testDiscoverContentWithAttribution() {
         // Test that DiscoverContent correctly handles attribution data
         let content = DiscoverContent(
@@ -28,11 +31,12 @@ final class DiscoverAttributionTests: XCTestCase {
             originalContentPublicID: "original-checklist"
         )
 
-        XCTAssertEqual(content.forkedFromID, content.forkedFromID)
-        XCTAssertEqual(content.originalAuthorUsername, "original_author")
-        XCTAssertEqual(content.originalContentPublicID, "original-checklist")
+        #expect(content.forkedFromID != nil)
+        #expect(content.originalAuthorUsername == "original_author")
+        #expect(content.originalContentPublicID == "original-checklist")
     }
 
+    @Test("DiscoverContent without attribution data")
     func testDiscoverContentWithoutAttribution() {
         // Test that DiscoverContent handles missing attribution data
         let content = DiscoverContent(
@@ -48,11 +52,12 @@ final class DiscoverAttributionTests: XCTestCase {
             createdAt: Date()
         )
 
-        XCTAssertNil(content.forkedFromID)
-        XCTAssertNil(content.originalAuthorUsername)
-        XCTAssertNil(content.originalContentPublicID)
+        #expect(content.forkedFromID == nil)
+        #expect(content.originalAuthorUsername == nil)
+        #expect(content.originalContentPublicID == nil)
     }
 
+    @Test("SharedContentSummary decoding with attribution")
     func testSharedContentSummaryDecodingWithAttribution() throws {
         // Test that SharedContentSummary correctly decodes attribution fields
         let json = """
@@ -78,13 +83,14 @@ final class DiscoverAttributionTests: XCTestCase {
 
         let summary = try decoder.decode(SharedContentSummary.self, from: json)
 
-        XCTAssertEqual(summary.id, UUID(uuidString: "12345678-1234-1234-1234-123456789012"))
-        XCTAssertEqual(summary.title, "Test Content")
-        XCTAssertEqual(summary.forkedFromID, UUID(uuidString: "87654321-4321-4321-4321-210987654321"))
-        XCTAssertEqual(summary.originalAuthorUsername, "original_author")
-        XCTAssertEqual(summary.originalContentPublicID, "original-content")
+        #expect(summary.id == UUID(uuidString: "12345678-1234-1234-1234-123456789012"))
+        #expect(summary.title == "Test Content")
+        #expect(summary.forkedFromID == UUID(uuidString: "87654321-4321-4321-4321-210987654321"))
+        #expect(summary.originalAuthorUsername == "original_author")
+        #expect(summary.originalContentPublicID == "original-content")
     }
 
+    @Test("SharedContentSummary decoding without attribution")
     func testSharedContentSummaryDecodingWithoutAttribution() throws {
         // Test that SharedContentSummary handles missing attribution fields
         let json = """
@@ -107,13 +113,14 @@ final class DiscoverAttributionTests: XCTestCase {
 
         let summary = try decoder.decode(SharedContentSummary.self, from: json)
 
-        XCTAssertEqual(summary.id, UUID(uuidString: "12345678-1234-1234-1234-123456789012"))
-        XCTAssertEqual(summary.title, "Original Content")
-        XCTAssertNil(summary.forkedFromID)
-        XCTAssertNil(summary.originalAuthorUsername)
-        XCTAssertNil(summary.originalContentPublicID)
+        #expect(summary.id == UUID(uuidString: "12345678-1234-1234-1234-123456789012"))
+        #expect(summary.title == "Original Content")
+        #expect(summary.forkedFromID == nil)
+        #expect(summary.originalAuthorUsername == nil)
+        #expect(summary.originalContentPublicID == nil)
     }
 
+    @Test("DiscoverContent mapping from API response")
     func testDiscoverContentMappingFromAPIResponse() {
         // Test that DiscoverContent correctly maps from SharedContentSummary
         let summary = SharedContentSummary(
@@ -134,17 +141,18 @@ final class DiscoverAttributionTests: XCTestCase {
 
         let content = DiscoverContent(from: summary)
 
-        XCTAssertEqual(content.title, "API Content")
-        XCTAssertEqual(content.forkedFromID, summary.forkedFromID)
-        XCTAssertEqual(content.originalAuthorUsername, "original_api_author")
-        XCTAssertEqual(content.originalContentPublicID, "original-api-content")
+        #expect(content.title == "API Content")
+        #expect(content.forkedFromID == summary.forkedFromID)
+        #expect(content.originalAuthorUsername == "original_api_author")
+        #expect(content.originalContentPublicID == "original-api-content")
     }
 
+    @Test("APIClient publish content with forkedFromID")
     func testAPIClientPublishContentWithForkedFromID() async throws {
         // Test that APIClient can publish content with forked_from_id
         let mockAuthService = MockAuthService()
-        mockAuthService.isAuthenticated = true
-        mockAuthService.currentUser = UserInfo(id: UUID(), email: "test@example.com", username: "testuser")
+        mockAuthService.mockIsAuthenticated = true
+        mockAuthService.mockCurrentUser = UserInfo(id: UUID().uuidString, email: "test@example.com", username: "testuser", createdAt: "2024-01-01T00:00:00Z")
 
         let apiClient = APIClient(authService: mockAuthService)
 
@@ -154,7 +162,7 @@ final class DiscoverAttributionTests: XCTestCase {
         let forkedFromID = UUID()
 
         // Verify the method accepts forkedFromID parameter
-        XCTAssertNotNil(forkedFromID) // Just a placeholder test
+        #expect(forkedFromID != nil) // Just a placeholder test
 
         // The actual network test would require mocking HTTP responses
         // which is complex in this context. The important part is that

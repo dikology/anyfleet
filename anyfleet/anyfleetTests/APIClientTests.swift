@@ -35,7 +35,8 @@ struct APIClientTests {
             tags: ["test"],
             language: "en",
             publicID: "test-checklist-abc123",
-            canFork: true
+            canFork: true,
+            forkedFromID: nil
         )
 
         // Act
@@ -81,7 +82,8 @@ struct APIClientTests {
             tags: [],
             language: "en",
             publicID: "minimal-abc",
-            canFork: false
+            canFork: false,
+            forkedFromID: nil
         )
 
         // Act
@@ -293,7 +295,8 @@ struct APIClientTests {
             tags: ["encoder"],
             language: "en",
             publicID: "encoder-test-456",
-            canFork: true
+            canFork: true,
+            forkedFromID: nil
         )
 
         // Act - Encode using standard JSONEncoder (simulating APIClient behavior)
