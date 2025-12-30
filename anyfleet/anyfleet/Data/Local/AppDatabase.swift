@@ -242,6 +242,7 @@ final class AppDatabase: Sendable {
             AppLogger.database.info("Migration v1.7.0_addForkAttributionColumns completed successfully")
         }
 
+
         return migrator
     }
     

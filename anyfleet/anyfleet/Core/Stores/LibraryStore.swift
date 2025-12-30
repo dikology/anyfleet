@@ -1,6 +1,19 @@
 import Foundation
 import SwiftUI
 
+/// Protocol defining the interface for library store operations.
+/// Used for dependency injection and testing.
+protocol LibraryStoreProtocol: AnyObject {
+    var library: [LibraryModel] { get }
+    var myChecklists: [LibraryModel] { get }
+    var myGuides: [LibraryModel] { get }
+    var myDecks: [LibraryModel] { get }
+
+    func loadLibrary() async
+    func deleteContent(_ item: LibraryModel, shouldUnpublish: Bool) async throws
+    func togglePin(for item: LibraryModel) async
+}
+
 /// Store managing library content state and operations across the application.
 ///
 /// `LibraryStore` serves as the single source of truth for library content (checklists, guides, decks)
@@ -28,7 +41,7 @@ import SwiftUI
 ///
 /// - Important: This class must be accessed from the main actor.
 @Observable
-final class LibraryStore {
+final class LibraryStore: LibraryStoreProtocol {
     // MARK: - Properties
     
     /// Unified content collection (metadata for all types)
@@ -408,16 +421,21 @@ final class LibraryStore {
     ///                     Set to false for "keep published" deletion scenario
     @MainActor
     func deleteContent(_ item: LibraryModel, shouldUnpublish: Bool = true) async throws {
-        // If content is published and should be unpublished, enqueue unpublish operation before deletion
+        // If content is published and should be unpublished, enqueue unpublish operation and sync immediately
         if shouldUnpublish, let publicID = item.publicID, let contentSyncService = contentSyncService {
             AppLogger.store.info("Enqueuing unpublish operation for published content before deletion: \(item.id)")
             try await contentSyncService.enqueueUnpublish(
                 contentID: item.id,
                 publicID: publicID
             )
+
+            // Run sync immediately to process the unpublish operation before deleting content
+            AppLogger.store.info("Running sync for unpublish operation: \(item.id)")
+            let summary = await contentSyncService.syncPending()
+            AppLogger.store.info("Unpublish sync completed: \(summary.succeeded) succeeded, \(summary.failed) failed")
         }
 
-        // Delete from local database
+        // Delete from local database (after sync completes)
         try await repository.deleteContent(item.id)
 
         // Remove from in-memory collections

@@ -9,10 +9,18 @@ import Foundation
 import Observation
 import OSLog
 
+/// Protocol defining the interface for visibility service operations.
+/// Used for dependency injection and testing.
+protocol VisibilityServiceProtocol: AnyObject {
+    func publishContent(_ item: LibraryModel) async throws
+    func unpublishContent(_ item: LibraryModel) async throws
+    func retrySync(for item: LibraryModel) async
+}
+
 /// Service for managing content visibility and publishing operations
 @MainActor
 @Observable
-final class VisibilityService {
+final class VisibilityService: VisibilityServiceProtocol {
     private let libraryStore: LibraryStore
     private let authService: AuthServiceProtocol
 

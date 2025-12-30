@@ -6,10 +6,10 @@ import Observation
 final class LibraryListViewModel: ErrorHandling {
     // MARK: - Dependencies
 
-    private let libraryStore: LibraryStore
-    private let visibilityService: VisibilityService
-    private let authObserver: AuthStateObserver
-    private let coordinator: AppCoordinator
+    let libraryStore: LibraryStoreProtocol
+    let visibilityService: VisibilityServiceProtocol
+    let authObserver: AuthStateObserverProtocol
+    let coordinator: AppCoordinatorProtocol
 
     // MARK: - State
 
@@ -75,10 +75,10 @@ final class LibraryListViewModel: ErrorHandling {
     // MARK: - Initialization
     
     init(
-        libraryStore: LibraryStore,
-        visibilityService: VisibilityService,
-        authObserver: AuthStateObserver,
-        coordinator: AppCoordinator
+        libraryStore: LibraryStoreProtocol,
+        visibilityService: VisibilityServiceProtocol,
+        authObserver: AuthStateObserverProtocol,
+        coordinator: AppCoordinatorProtocol
     ) {
         self.libraryStore = libraryStore
         self.visibilityService = visibilityService
@@ -168,7 +168,7 @@ final class LibraryListViewModel: ErrorHandling {
         // For published content, we need to handle unpublish operations
         // The actual confirmation dialogs are handled in the view layer
         AppLogger.view.info("Generic deleteContent called for item: \(item.id), publicID: \(item.publicID ?? "nil")")
-        try await libraryStore.deleteContent(item)
+        try await libraryStore.deleteContent(item, shouldUnpublish: true)
     }
 
     /// Delete published content and unpublish from backend

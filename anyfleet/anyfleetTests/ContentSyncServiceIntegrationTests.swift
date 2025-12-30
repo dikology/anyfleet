@@ -52,8 +52,12 @@ struct ContentSyncServiceIntegrationTests {
                         ChecklistItem(
                             id: UUID(),
                             title: "Check weather conditions",
-                            isCompleted: false,
-                            notes: nil
+                            itemDescription: nil,
+                            isOptional: false,
+                            isRequired: true,
+                            tags: [],
+                            estimatedMinutes: nil,
+                            sortOrder: 0
                         )
                     ]
                 )
@@ -73,12 +77,12 @@ struct ContentSyncServiceIntegrationTests {
             type: .checklist,
             visibility: .public,
             creatorID: UUID(),
-            publicID: "pub-test-unpublish",
-            publishedAt: Date(),
             tags: checklist.tags,
             createdAt: checklist.createdAt,
             updatedAt: checklist.updatedAt,
-            syncStatus: .synced
+            syncStatus: .synced,
+            publishedAt: Date(),
+            publicID: "pub-test-unpublish"
         )
 
         // Save to database

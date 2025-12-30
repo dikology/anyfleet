@@ -68,26 +68,23 @@ final class ContentSyncService {
         let unpublishPayload = UnpublishPayload(publicID: publicID)
         let payloadData = try JSONEncoder().encode(unpublishPayload)
         
-        try await repository.enqueueSyncOperation(
-            contentID: contentID,
-            operation: .unpublish,
-            visibility: .private,
-            payload: payloadData
-        )
-        
+        do {
+            try await repository.enqueueSyncOperation(
+                contentID: contentID,
+                operation: .unpublish,
+                visibility: .private,
+                payload: payloadData
+            )
+            AppLogger.auth.debug("Successfully enqueued unpublish operation for content: \(contentID)")
+        } catch {
+            AppLogger.auth.error("Failed to enqueue unpublish operation for content: \(contentID)", error: error)
+            throw error
+        }
+
         await updateSyncState(contentID: contentID, status: .queued)
         await updatePendingCounts()
 
-        // Trigger sync after a brief delay to ensure enqueue is committed
-        Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 second delay
-            do {
-                let summary = await syncPending()
-                AppLogger.auth.info("Unpublish sync completed: \(summary.succeeded) succeeded, \(summary.failed) failed")
-            } catch {
-                AppLogger.auth.error("Unpublish sync failed", error: error)
-            }
-        }
+        // Sync is now run synchronously in LibraryStore.deleteContent
     }
 
     func enqueuePublishUpdate(
@@ -277,10 +274,15 @@ final class ContentSyncService {
         let hasSuccessfulPublish = try? await repository.hasSuccessfulPublishOperation(for: operation.contentID)
         AppLogger.auth.info("Unpublish operation for \(operation.contentID) - has successful publish: \(hasSuccessfulPublish ?? false)")
 
-        // If there's no record of successful publish, skip the unpublish operation
+        // Also check if the content appears published in the database (has publicID and is public)
+        let currentItem = try? await libraryStore.fetchLibraryItem(operation.contentID)
+        let appearsPublished = currentItem?.visibility == .public && currentItem?.publicID != nil
+        AppLogger.auth.info("Unpublish operation for \(operation.contentID) - appears published in DB: \(appearsPublished)")
+
+        // If there's no record of successful publish AND the content doesn't appear published, skip the unpublish operation
         // This can happen when publish failed but unpublish was still enqueued
-        guard hasSuccessfulPublish == true else {
-            AppLogger.auth.warning("Skipping unpublish for \(operation.contentID) - no successful publish record found")
+        guard hasSuccessfulPublish == true || appearsPublished == true else {
+            AppLogger.auth.warning("Skipping unpublish for \(operation.contentID) - no successful publish record and content doesn't appear published")
             return
         }
 
@@ -294,9 +296,18 @@ final class ContentSyncService {
         }
 
         // Update local model - content is now unpublished (whether it existed or not)
-        if var updated = libraryStore.library.first(where: { $0.id == operation.contentID }) {
+        AppLogger.auth.info("Unpublish: Updating local content \(operation.contentID)")
+        if var updated = try await libraryStore.fetchLibraryItem(operation.contentID) {
+            AppLogger.auth.info("Unpublish: Found item to update: \(updated.id), visibility: \(updated.visibility.rawValue)")
+            updated.visibility = .private
+            updated.publicID = nil
+            updated.publishedAt = nil
             updated.syncStatus = .synced
+            AppLogger.auth.info("Unpublish: Updated item - visibility: \(updated.visibility.rawValue), publicID: \(updated.publicID ?? "nil")")
             try await libraryStore.updateLibraryMetadata(updated)
+            AppLogger.auth.info("Unpublish: Successfully saved updated item")
+        } else {
+            AppLogger.auth.warning("Unpublish: Could not find item \(operation.contentID) to update")
         }
     }
 
