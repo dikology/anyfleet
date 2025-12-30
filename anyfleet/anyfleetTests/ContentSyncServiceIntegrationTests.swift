@@ -33,6 +33,80 @@ struct ContentSyncServiceIntegrationTests {
         return (repository, apiClient, libraryStore, syncService)
     }
 
+    @Test("Unpublish operation - end-to-end with real payload")
+    @MainActor
+    func testUnpublishOperationEndToEnd() async throws {
+        // Arrange
+        let (repository, apiClient, libraryStore, syncService) = try makeTestDependencies()
+
+        // Create and publish a checklist first
+        let checklist = Checklist(
+            id: UUID(),
+            title: "Integration Test Checklist for Unpublish",
+            description: "Test checklist for unpublish integration",
+            sections: [
+                ChecklistSection(
+                    id: UUID(),
+                    title: "Safety Checks",
+                    items: [
+                        ChecklistItem(
+                            id: UUID(),
+                            title: "Check weather conditions",
+                            isCompleted: false,
+                            notes: nil
+                        )
+                    ]
+                )
+            ],
+            checklistType: .general,
+            tags: ["test"],
+            createdAt: Date(),
+            updatedAt: Date(),
+            syncStatus: .pending
+        )
+
+        // Create library metadata for the checklist
+        let libraryItem = LibraryModel(
+            id: checklist.id,
+            title: checklist.title,
+            description: checklist.description,
+            type: .checklist,
+            visibility: .public,
+            creatorID: UUID(),
+            publicID: "pub-test-unpublish",
+            publishedAt: Date(),
+            tags: checklist.tags,
+            createdAt: checklist.createdAt,
+            updatedAt: checklist.updatedAt,
+            syncStatus: .synced
+        )
+
+        // Save to database
+        try await repository.saveChecklist(checklist)
+        try await repository.updateLibraryMetadata(libraryItem)
+
+        // Verify initial state
+        var loadedItem = try await repository.fetchLibraryItem(checklist.id)
+        #expect(loadedItem?.visibility == .public)
+        #expect(loadedItem?.publicID == "pub-test-unpublish")
+
+        // Act: Unpublish the content
+        try await syncService.enqueueUnpublish(
+            contentID: checklist.id,
+            publicID: "pub-test-unpublish"
+        )
+
+        // Process pending sync operations
+        try await syncService.syncPending()
+
+        // Assert: Content should be marked as private locally
+        loadedItem = try await repository.fetchLibraryItem(checklist.id)
+        #expect(loadedItem?.visibility == .private)
+        #expect(loadedItem?.publicID == nil)
+        #expect(loadedItem?.publishedAt == nil)
+        #expect(loadedItem?.syncStatus == .synced)
+    }
+
     @Test("Publish operation - end-to-end with real payload")
     @MainActor
     func testPublishOperationEndToEnd() async throws {

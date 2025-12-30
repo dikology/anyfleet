@@ -50,8 +50,8 @@ final class AppCoordinator: ObservableObject {
     }
 
     private func startBackgroundSync() {
-        // Sync every 10 seconds when app is active
-        syncTimer = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: true) { [weak self] _ in
+        // Sync every 60 seconds when app is active
+        syncTimer = Timer.scheduledTimer(withTimeInterval: 60.0, repeats: true) { [weak self] _ in
             Task { @MainActor in
                 await self?.syncService.syncPending()
             }

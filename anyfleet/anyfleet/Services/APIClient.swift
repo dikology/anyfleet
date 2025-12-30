@@ -106,7 +106,15 @@ final class APIClient: APIClientProtocol {
     }
 
     func fetchPublicContent(publicID: String) async throws -> SharedContentDetail {
-        return try await getUnauthenticated("/content/\(publicID)", body: EmptyBody())
+        AppLogger.api.debug("Fetching public content: \(publicID)")
+        do {
+            let result: SharedContentDetail = try await getUnauthenticated("/content/\(publicID)", body: EmptyBody())
+            AppLogger.api.debug("Successfully fetched public content: \(publicID)")
+            return result
+        } catch {
+            AppLogger.api.error("Failed to fetch public content \(publicID)", error: error)
+            throw error
+        }
     }
 
     func incrementForkCount(publicID: String) async throws {

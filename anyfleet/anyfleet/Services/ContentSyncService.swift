@@ -46,10 +46,15 @@ final class ContentSyncService {
         
         await updateSyncState(contentID: contentID, status: .queued)
         await updatePendingCounts()
-        
-        // Trigger sync (will implement in next phase)
-        Task {
-            await syncPending()
+
+        // Trigger sync immediately
+        Task { @MainActor in
+            do {
+                let summary = await syncPending()
+                AppLogger.auth.info("Publish sync completed: \(summary.succeeded) succeeded, \(summary.failed) failed")
+            } catch {
+                AppLogger.auth.error("Publish sync failed", error: error)
+            }
         }
     }
     
@@ -72,9 +77,16 @@ final class ContentSyncService {
         
         await updateSyncState(contentID: contentID, status: .queued)
         await updatePendingCounts()
-        
-        Task {
-            await syncPending()
+
+        // Trigger sync after a brief delay to ensure enqueue is committed
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 second delay
+            do {
+                let summary = await syncPending()
+                AppLogger.auth.info("Unpublish sync completed: \(summary.succeeded) succeeded, \(summary.failed) failed")
+            } catch {
+                AppLogger.auth.error("Unpublish sync failed", error: error)
+            }
         }
     }
 
@@ -94,9 +106,14 @@ final class ContentSyncService {
         await updateSyncState(contentID: contentID, status: .queued)
         await updatePendingCounts()
 
-        // Trigger sync
-        Task {
-            await syncPending()
+        // Trigger sync immediately
+        Task { @MainActor in
+            do {
+                let summary = await syncPending()
+                AppLogger.auth.info("Publish update sync completed: \(summary.succeeded) succeeded, \(summary.failed) failed")
+            } catch {
+                AppLogger.auth.error("Publish update sync failed", error: error)
+            }
         }
     }
 
@@ -121,11 +138,12 @@ final class ContentSyncService {
         
         // Fetch pending operations
         let operations = try? await repository.getPendingSyncOperations(maxRetries: maxRetries)
+        AppLogger.auth.debug("Fetched \(operations?.count ?? 0) pending sync operations")
         guard let operations = operations, !operations.isEmpty else {
             await updatePendingCounts()
             return summary
         }
-        
+
         AppLogger.auth.info("Processing \(operations.count) sync operations")
         
         // Process each operation
@@ -257,11 +275,12 @@ final class ContentSyncService {
 
         // Check if this content was ever successfully published by looking for completed publish operations
         let hasSuccessfulPublish = try? await repository.hasSuccessfulPublishOperation(for: operation.contentID)
+        AppLogger.auth.info("Unpublish operation for \(operation.contentID) - has successful publish: \(hasSuccessfulPublish ?? false)")
 
         // If there's no record of successful publish, skip the unpublish operation
         // This can happen when publish failed but unpublish was still enqueued
         guard hasSuccessfulPublish == true else {
-            AppLogger.auth.info("Skipping unpublish for \(operation.contentID) - no successful publish found")
+            AppLogger.auth.warning("Skipping unpublish for \(operation.contentID) - no successful publish record found")
             return
         }
 

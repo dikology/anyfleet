@@ -149,8 +149,14 @@ final class LibraryStore {
 
         switch sharedContent.contentType {
         case "checklist":
+            AppLogger.store.info("Forking checklist: \(sharedContent.title)")
             let checklistData = try JSONSerialization.data(withJSONObject: contentData)
-            var checklist = try JSONDecoder().decode(Checklist.self, from: checklistData)
+            AppLogger.store.debug("Checklist JSON data created, size: \(checklistData.count) bytes")
+
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601
+            var checklist = try decoder.decode(Checklist.self, from: checklistData)
+            AppLogger.store.debug("Checklist decoded successfully")
 
             // Update metadata for forked content
             checklist.title = sharedContent.title
@@ -159,6 +165,7 @@ final class LibraryStore {
 
             // Create the checklist (this will handle ID assignment and metadata)
             try await createChecklist(checklist)
+            AppLogger.store.info("Checklist forked successfully")
 
             // Update the metadata to include fork attribution
             if let lastCreated = library.last, lastCreated.title == sharedContent.title {
@@ -175,8 +182,14 @@ final class LibraryStore {
             }
 
         case "practice_guide":
+            AppLogger.store.info("Forking practice guide: \(sharedContent.title)")
             let guideData = try JSONSerialization.data(withJSONObject: contentData)
-            var guide = try JSONDecoder().decode(PracticeGuide.self, from: guideData)
+            AppLogger.store.debug("Guide JSON data created, size: \(guideData.count) bytes")
+
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601
+            var guide = try decoder.decode(PracticeGuide.self, from: guideData)
+            AppLogger.store.debug("Guide decoded successfully")
 
             // Update metadata for forked content
             guide.title = sharedContent.title
@@ -185,6 +198,7 @@ final class LibraryStore {
 
             // Create the guide (this will handle ID assignment and metadata)
             try await createGuide(guide)
+            AppLogger.store.info("Guide forked successfully")
 
             // Update the metadata to include fork attribution
             if let lastCreated = library.last, lastCreated.title == sharedContent.title {
@@ -386,16 +400,29 @@ final class LibraryStore {
     }
     
     // MARK: - Deleting Content
-    
+
     /// Delete content from the library
-    /// - Parameter item: The library item to delete
+    /// - Parameters:
+    ///   - item: The library item to delete
+    ///   - shouldUnpublish: Whether to unpublish from backend if content is published (default: true)
+    ///                     Set to false for "keep published" deletion scenario
     @MainActor
-    func deleteContent(_ item: LibraryModel) async throws {
+    func deleteContent(_ item: LibraryModel, shouldUnpublish: Bool = true) async throws {
+        // If content is published and should be unpublished, enqueue unpublish operation before deletion
+        if shouldUnpublish, let publicID = item.publicID, let contentSyncService = contentSyncService {
+            AppLogger.store.info("Enqueuing unpublish operation for published content before deletion: \(item.id)")
+            try await contentSyncService.enqueueUnpublish(
+                contentID: item.id,
+                publicID: publicID
+            )
+        }
+
+        // Delete from local database
         try await repository.deleteContent(item.id)
-        
+
         // Remove from in-memory collections
         library.removeAll { $0.id == item.id }
-        
+
         // Remove from type-specific collections
         switch item.type {
         case .checklist:

@@ -674,11 +674,13 @@ extension LocalRepository {
     /// Check if there's a successful publish operation for the given content ID
     func hasSuccessfulPublishOperation(for contentID: UUID) async throws -> Bool {
         try await database.dbWriter.read { db in
-            try SyncQueueRecord
+            let count = try SyncQueueRecord
                 .filter(SyncQueueRecord.Columns.contentID == contentID.uuidString)
                 .filter(SyncQueueRecord.Columns.operation == SyncOperation.publish.rawValue)
                 .filter(SyncQueueRecord.Columns.syncedAt != nil)
-                .fetchCount(db) > 0
+                .fetchCount(db)
+            AppLogger.auth.debug("Found \(count) successful publish operations for contentID: \(contentID)")
+            return count > 0
         }
     }
 

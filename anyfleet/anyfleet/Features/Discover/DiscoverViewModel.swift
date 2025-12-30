@@ -90,11 +90,14 @@ final class DiscoverViewModel: ErrorHandling {
 
         do {
             // Fetch full content from backend
+            AppLogger.view.info("About to fetch public content for fork: \(content.publicID)")
             let fullContent = try await apiClient.fetchPublicContent(publicID: content.publicID)
             AppLogger.view.info("Fetched full content for fork: \(fullContent.title)")
 
             // Create forked copy in library
+            AppLogger.view.info("About to fork content into library")
             try await libraryStore.forkContent(from: fullContent)
+            AppLogger.view.info("Successfully forked content")
 
             AppLogger.view.completeOperation("Fork Content")
 
