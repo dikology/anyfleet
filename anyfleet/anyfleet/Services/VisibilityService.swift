@@ -285,7 +285,8 @@ final class VisibilityService {
                 contentData: contentDict,
                 tags: item.tags,
                 language: item.language,
-                publicID: publicID
+                publicID: publicID,
+                forkedFromID: item.forkedFromID
             )
             
             // Encode with NO key strategy

@@ -126,7 +126,18 @@ struct DiscoverContentRow: View {
                 
                 // Author Info
                 VStack(alignment: .leading, spacing: 2) {
-                    
+                    // Attribution info for forks
+                    if let originalAuthor = content.originalAuthorUsername {
+                        HStack(spacing: 4) {
+                            Image(systemName: "arrow.triangle.branch")
+                                .font(.system(size: 10, weight: .medium))
+                                .foregroundColor(DesignSystem.Colors.textSecondary)
+                            Text("Forked from @\(originalAuthor)")
+                                .font(.system(size: 10, weight: .regular))
+                                .foregroundColor(DesignSystem.Colors.textSecondary)
+                        }
+                    }
+
                     Text(content.createdAt.formatted(.relative(presentation: .named)))
                         .font(.system(size: 11, weight: .regular))
                         .foregroundColor(DesignSystem.Colors.textSecondary)
@@ -282,6 +293,31 @@ struct DiscoverContentRow: View {
                 viewCount: 127,
                 forkCount: 23,
                 createdAt: Date().addingTimeInterval(-60 * 60 * 24 * 14)
+            ),
+            onTap: {},
+            onAuthorTapped: { username in
+                print("Tapped author: \(username)")
+            },
+            onForkTapped: {
+                print("Fork tapped")
+            }
+        )
+
+        DiscoverContentRow(
+            content: DiscoverContent(
+                id: UUID(),
+                title: "Storm Tactics (Fork)",
+                description: "Enhanced version with additional safety measures and updated techniques.",
+                contentType: .practiceGuide,
+                tags: ["heavy weather", "reefing", "safety", "storm"],
+                publicID: "storm-tactics-fork",
+                authorUsername: "SailorMaria",
+                viewCount: 89,
+                forkCount: 5,
+                createdAt: Date().addingTimeInterval(-60 * 60 * 24 * 3),
+                forkedFromID: UUID(),
+                originalAuthorUsername: "CaptainJohn",
+                originalContentPublicID: "heavy-weather-tactics"
             ),
             onTap: {},
             onAuthorTapped: { username in

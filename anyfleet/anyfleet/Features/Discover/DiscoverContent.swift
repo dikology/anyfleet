@@ -2,7 +2,7 @@ import Foundation
 
 /// Model for content displayed in the Discover tab
 /// Maps from the backend SharedContentSummary response
-nonisolated struct DiscoverContent: Identifiable, Hashable, Sendable {
+struct DiscoverContent: Identifiable, Hashable, Sendable {
     let id: UUID
     let title: String
     let description: String?
@@ -13,6 +13,11 @@ nonisolated struct DiscoverContent: Identifiable, Hashable, Sendable {
     let viewCount: Int
     let forkCount: Int
     let createdAt: Date
+
+    // Attribution fields
+    let forkedFromID: UUID?
+    let originalAuthorUsername: String?
+    let originalContentPublicID: String?
 
     // MARK: - Initialization
 
@@ -26,7 +31,10 @@ nonisolated struct DiscoverContent: Identifiable, Hashable, Sendable {
         authorUsername: String?,
         viewCount: Int,
         forkCount: Int,
-        createdAt: Date
+        createdAt: Date,
+        forkedFromID: UUID? = nil,
+        originalAuthorUsername: String? = nil,
+        originalContentPublicID: String? = nil
     ) {
         self.id = id
         self.title = title
@@ -38,6 +46,9 @@ nonisolated struct DiscoverContent: Identifiable, Hashable, Sendable {
         self.viewCount = viewCount
         self.forkCount = forkCount
         self.createdAt = createdAt
+        self.forkedFromID = forkedFromID
+        self.originalAuthorUsername = originalAuthorUsername
+        self.originalContentPublicID = originalContentPublicID
     }
 
     // MARK: - Mapping from API Response
@@ -54,6 +65,9 @@ nonisolated struct DiscoverContent: Identifiable, Hashable, Sendable {
         self.viewCount = response.viewCount
         self.forkCount = response.forkCount
         self.createdAt = response.createdAt
+        self.forkedFromID = response.forkedFromID
+        self.originalAuthorUsername = response.originalAuthorUsername
+        self.originalContentPublicID = response.originalContentPublicID
     }
 }
 
@@ -72,6 +86,11 @@ struct SharedContentSummary: Codable {
     let forkCount: Int
     let createdAt: Date
 
+    // Attribution fields
+    let forkedFromID: UUID?
+    let originalAuthorUsername: String?
+    let originalContentPublicID: String?
+
     enum CodingKeys: String, CodingKey {
         case id
         case title
@@ -83,6 +102,9 @@ struct SharedContentSummary: Codable {
         case viewCount = "view_count"
         case forkCount = "fork_count"
         case createdAt = "created_at"
+        case forkedFromID = "forked_from_id"
+        case originalAuthorUsername = "original_author_username"
+        case originalContentPublicID = "original_content_public_id"
     }
 }
 
@@ -102,6 +124,11 @@ struct SharedContentDetail: Codable {
     let createdAt: Date
     let updatedAt: Date
 
+    // Attribution fields
+    let forkedFromID: UUID?
+    let originalAuthorUsername: String?
+    let originalContentPublicID: String?
+
     enum CodingKeys: String, CodingKey {
         case id
         case title
@@ -116,6 +143,9 @@ struct SharedContentDetail: Codable {
         case forkCount = "fork_count"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
+        case forkedFromID = "forked_from_id"
+        case originalAuthorUsername = "original_author_username"
+        case originalContentPublicID = "original_content_public_id"
     }
 
     // MARK: - Memberwise Initializer
@@ -133,7 +163,10 @@ struct SharedContentDetail: Codable {
         viewCount: Int,
         forkCount: Int,
         createdAt: Date,
-        updatedAt: Date
+        updatedAt: Date,
+        forkedFromID: UUID? = nil,
+        originalAuthorUsername: String? = nil,
+        originalContentPublicID: String? = nil
     ) {
         self.id = id
         self.title = title
@@ -148,6 +181,9 @@ struct SharedContentDetail: Codable {
         self.forkCount = forkCount
         self.createdAt = createdAt
         self.updatedAt = updatedAt
+        self.forkedFromID = forkedFromID
+        self.originalAuthorUsername = originalAuthorUsername
+        self.originalContentPublicID = originalContentPublicID
     }
 
     // MARK: - Custom Decoding for contentData
@@ -170,6 +206,11 @@ struct SharedContentDetail: Codable {
         // Decode contentData as nested JSON object
         let json = try container.decode(AnyCodable.self, forKey: .contentData)
         contentData = json.value as? [String: Any] ?? [:]
+
+        // Decode attribution fields
+        forkedFromID = try container.decodeIfPresent(UUID.self, forKey: .forkedFromID)
+        originalAuthorUsername = try container.decodeIfPresent(String.self, forKey: .originalAuthorUsername)
+        originalContentPublicID = try container.decodeIfPresent(String.self, forKey: .originalContentPublicID)
     }
 
     func encode(to encoder: Encoder) throws {
