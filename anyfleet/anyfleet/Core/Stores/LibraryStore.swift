@@ -251,78 +251,13 @@ final class LibraryStore: LibraryStoreProtocol {
     /// Fork content from public shared content
     @MainActor
     func forkContent(from sharedContent: SharedContentDetail) async throws {
-        let contentData = sharedContent.contentData
-
         switch sharedContent.contentType {
         case "checklist":
-            AppLogger.store.info("Forking checklist: \(sharedContent.title)")
-            let checklistData = try JSONSerialization.data(withJSONObject: contentData)
-            AppLogger.store.debug("Checklist JSON data created, size: \(checklistData.count) bytes")
-
-            let decoder = JSONDecoder()
-            decoder.dateDecodingStrategy = .iso8601
-            var checklist = try decoder.decode(Checklist.self, from: checklistData)
-            AppLogger.store.debug("Checklist decoded successfully")
-
-            // Update metadata for forked content
-            checklist.title = sharedContent.title
-            checklist.description = sharedContent.description
-            checklist.tags = sharedContent.tags
-
-            // Create the checklist (this will handle ID assignment and metadata)
-            try await createChecklist(checklist)
-            AppLogger.store.info("Checklist forked successfully")
-
-            // Update the metadata to include fork attribution
-            if let lastCreated = library.last, lastCreated.title == sharedContent.title {
-                var updatedMetadata = lastCreated
-                updatedMetadata.forkedFromID = sharedContent.id
-                updatedMetadata.originalAuthorUsername = sharedContent.authorUsername
-                updatedMetadata.originalContentPublicID = sharedContent.publicID
-                try await repository.updateLibraryMetadata(updatedMetadata)
-
-                // Update in-memory cache
-                if let index = library.firstIndex(where: { $0.id == updatedMetadata.id }) {
-                    library[index] = updatedMetadata
-                }
-            }
-
+            try await forkChecklist(from: sharedContent)
         case "practice_guide":
-            AppLogger.store.info("Forking practice guide: \(sharedContent.title)")
-            let guideData = try JSONSerialization.data(withJSONObject: contentData)
-            AppLogger.store.debug("Guide JSON data created, size: \(guideData.count) bytes")
-
-            let decoder = JSONDecoder()
-            decoder.dateDecodingStrategy = .iso8601
-            var guide = try decoder.decode(PracticeGuide.self, from: guideData)
-            AppLogger.store.debug("Guide decoded successfully")
-
-            // Update metadata for forked content
-            guide.title = sharedContent.title
-            guide.description = sharedContent.description
-            guide.tags = sharedContent.tags
-
-            // Create the guide (this will handle ID assignment and metadata)
-            try await createGuide(guide)
-            AppLogger.store.info("Guide forked successfully")
-
-            // Update the metadata to include fork attribution
-            if let lastCreated = library.last, lastCreated.title == sharedContent.title {
-                var updatedMetadata = lastCreated
-                updatedMetadata.forkedFromID = sharedContent.id
-                updatedMetadata.originalAuthorUsername = sharedContent.authorUsername
-                updatedMetadata.originalContentPublicID = sharedContent.publicID
-                try await repository.updateLibraryMetadata(updatedMetadata)
-
-                // Update in-memory cache
-                if let index = library.firstIndex(where: { $0.id == updatedMetadata.id }) {
-                    library[index] = updatedMetadata
-                }
-            }
-
+            try await forkPracticeGuide(from: sharedContent)
         case "flashcard_deck":
-            throw NSError(domain: "LibraryStore", code: 1, userInfo: [NSLocalizedDescriptionKey: "Flashcard deck forking not yet implemented"])
-
+            try await forkFlashcardDeck(from: sharedContent)
         default:
             throw NSError(domain: "LibraryStore", code: 1, userInfo: [NSLocalizedDescriptionKey: "Unknown content type: \(sharedContent.contentType)"])
         }
@@ -331,7 +266,79 @@ final class LibraryStore: LibraryStoreProtocol {
         // TODO: Implement fork count increment when API client is available in dependencies
         AppLogger.view.info("Would increment fork count for original content: \(sharedContent.publicID)")
     }
-    
+
+    private func forkChecklist(from sharedContent: SharedContentDetail) async throws {
+        AppLogger.store.info("Forking checklist: \(sharedContent.title)")
+        let checklistData = try JSONSerialization.data(withJSONObject: sharedContent.contentData)
+        AppLogger.store.debug("Checklist JSON data created, size: \(checklistData.count) bytes")
+
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        var checklist = try decoder.decode(Checklist.self, from: checklistData)
+        AppLogger.store.debug("Checklist decoded successfully")
+
+        // Update metadata for forked content
+        checklist.title = sharedContent.title
+        checklist.description = sharedContent.description
+        checklist.tags = sharedContent.tags
+
+        // Create the checklist (this will handle ID assignment and metadata)
+        try await createChecklist(checklist)
+        AppLogger.store.info("Checklist forked successfully")
+
+        // Update the metadata to include fork attribution
+        await updateForkAttribution(for: sharedContent)
+    }
+
+    private func forkPracticeGuide(from sharedContent: SharedContentDetail) async throws {
+        AppLogger.store.info("Forking practice guide: \(sharedContent.title)")
+        let guideData = try JSONSerialization.data(withJSONObject: sharedContent.contentData)
+        AppLogger.store.debug("Guide JSON data created, size: \(guideData.count) bytes")
+
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        var guide = try decoder.decode(PracticeGuide.self, from: guideData)
+        AppLogger.store.debug("Guide decoded successfully")
+
+        // Update metadata for forked content
+        guide.title = sharedContent.title
+        guide.description = sharedContent.description
+        guide.tags = sharedContent.tags
+
+        // Create the guide (this will handle ID assignment and metadata)
+        try await createGuide(guide)
+        AppLogger.store.info("Guide forked successfully")
+
+        // Update the metadata to include fork attribution
+        await updateForkAttribution(for: sharedContent)
+    }
+
+    private func forkFlashcardDeck(from sharedContent: SharedContentDetail) async throws {
+        throw NSError(domain: "LibraryStore", code: 1, userInfo: [NSLocalizedDescriptionKey: "Flashcard deck forking not yet implemented"])
+    }
+
+    private func updateForkAttribution(for sharedContent: SharedContentDetail) async {
+        guard let lastCreated = library.last, lastCreated.title == sharedContent.title else {
+            return
+        }
+
+        var updatedMetadata = lastCreated
+        updatedMetadata.forkedFromID = sharedContent.id
+        updatedMetadata.originalAuthorUsername = sharedContent.authorUsername
+        updatedMetadata.originalContentPublicID = sharedContent.publicID
+
+        do {
+            try await repository.updateLibraryMetadata(updatedMetadata)
+
+            // Update in-memory cache
+            if let index = library.firstIndex(where: { $0.id == updatedMetadata.id }) {
+                library[index] = updatedMetadata
+            }
+        } catch {
+            AppLogger.store.error("Failed to update fork attribution metadata: \(error)")
+        }
+    }
+
     // MARK: - Updating Content
     
     /// Save/update an existing checklist

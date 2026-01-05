@@ -110,89 +110,112 @@ final class SyncQueueService {
 
     /// Process all pending sync operations
     func processQueue() async -> SyncSummary {
-        guard !isProcessing else {
-            AppLogger.services.debug("Sync already in progress, skipping")
-            return SyncSummary() // Return empty summary when sync is already in progress
+        guard await canSync() else {
+            return SyncSummary()
         }
 
-        isProcessing = true
-        defer { isProcessing = false }
-
-        var summary = SyncSummary()
-
-        // Check network connectivity
-        guard await isNetworkReachable() else {
-            AppLogger.services.warning("Network unreachable, skipping sync")
-            await updatePendingCounts()
-            return SyncSummary() // Return empty summary when network is unreachable
-        }
-
-        // Fetch pending operations
-        let operations = try? await repository.getPendingSyncOperations(maxRetries: maxRetries)
-        AppLogger.services.debug("Fetched \(operations?.count ?? 0) pending sync operations")
-        guard let operations = operations, !operations.isEmpty else {
-            await updatePendingCounts()
-            return SyncSummary() // Return empty summary when no operations to process
-        }
-
-        AppLogger.services.info("Processing \(operations.count) sync operations")
-
-        // Process each operation
-        for operation in operations {
-            summary.attempted += 1
-
-            await updateSyncState(contentID: operation.contentID, status: .syncing)
-
-            do {
-                try await processOperation(operation)
-                summary.succeeded += 1
-
-                // Mark as synced
-                try await repository.markSyncOperationComplete(operation.id)
-                await updateSyncState(contentID: operation.contentID, status: .synced)
-
-                // Clean up any duplicate pending operations for this content
-                try? await repository.cancelDuplicateOperations(for: operation.contentID, excluding: operation.id)
-
-                AppLogger.services.info("Sync succeeded for content: \(operation.contentID)")
-
-            } catch {
-                summary.failed += 1
-                AppLogger.services.error("Sync failed for content: \(operation.contentID), error: \(error)")
-
-                // Check if we should retry
-                let shouldRetry = operation.retryCount < maxRetries && isRetryableError(error, operation: operation.operation)
-
-                if shouldRetry {
-                    // Increment retry count
-                    try? await repository.incrementSyncRetryCount(
-                        operation.id,
-                        error: error.localizedDescription
-                    )
-                    await updateSyncState(contentID: operation.contentID, status: .pending)
-                } else {
-                    // Max retries exceeded or terminal error
-                    await updateSyncState(contentID: operation.contentID, status: .failed)
-
-                    // If this was a publish operation that failed permanently,
-                    // cancel any pending unpublish operations for the same content
-                    if operation.operation == .publish {
-                        await cancelPendingUnpublishOperations(for: operation.contentID)
-                    }
-                }
-            }
-        }
-
-        await updatePendingCounts()
-        AppLogger.services.info("Sync complete: \(summary.succeeded) succeeded, \(summary.failed) failed")
-        return summary
+        let operations = await fetchPendingOperations()
+        return await processOperations(operations)
     }
 
     // MARK: - Private Helpers
 
     private var isProcessing = false
 
-    private func processOperation(_ operation: SyncQueueOperation) async throws {
+    private func canSync() async -> Bool {
+        guard !isProcessing else {
+            AppLogger.services.debug("Sync already in progress, skipping")
+            return false
+        }
+
+        guard await isNetworkReachable() else {
+            AppLogger.services.warning("Network unreachable, skipping sync")
+            await updatePendingCounts()
+            return false
+        }
+
+        isProcessing = true
+        return true
+    }
+
+    private func fetchPendingOperations() async -> [SyncQueueOperation] {
+        guard let operations = try? await repository.getPendingSyncOperations(maxRetries: maxRetries) else {
+            await updatePendingCounts()
+            isProcessing = false
+            return []
+        }
+
+        AppLogger.services.debug("Fetched \(operations.count) pending sync operations")
+        guard !operations.isEmpty else {
+            await updatePendingCounts()
+            isProcessing = false
+            return []
+        }
+
+        AppLogger.services.info("Processing \(operations.count) sync operations")
+        return operations
+    }
+
+    private func processOperations(_ operations: [SyncQueueOperation]) async -> SyncSummary {
+        var summary = SyncSummary()
+
+        for operation in operations {
+            await processOperation(operation, summary: &summary)
+        }
+
+        await updatePendingCounts()
+        AppLogger.services.info("Sync complete: \(summary.succeeded) succeeded, \(summary.failed) failed")
+
+        isProcessing = false
+        return summary
+    }
+
+    private func processOperation(_ operation: SyncQueueOperation, summary: inout SyncSummary) async {
+        summary.attempted += 1
+
+        await updateSyncState(contentID: operation.contentID, status: .syncing)
+
+        do {
+            try await executeOperation(operation)
+            summary.succeeded += 1
+
+            // Mark as synced
+            try await repository.markSyncOperationComplete(operation.id)
+            await updateSyncState(contentID: operation.contentID, status: .synced)
+
+            // Clean up any duplicate pending operations for this content
+            try? await repository.cancelDuplicateOperations(for: operation.contentID, excluding: operation.id)
+
+            AppLogger.services.info("Sync succeeded for content: \(operation.contentID)")
+
+        } catch {
+            summary.failed += 1
+            AppLogger.services.error("Sync failed for content: \(operation.contentID), error: \(error)")
+
+            // Check if we should retry
+            let shouldRetry = operation.retryCount < maxRetries && isRetryableError(error, operation: operation.operation)
+
+            if shouldRetry {
+                // Increment retry count
+                try? await repository.incrementSyncRetryCount(
+                    operation.id,
+                    error: error.localizedDescription
+                )
+                await updateSyncState(contentID: operation.contentID, status: .pending)
+            } else {
+                // Max retries exceeded or terminal error
+                await updateSyncState(contentID: operation.contentID, status: .failed)
+
+                // If this was a publish operation that failed permanently,
+                // cancel any pending unpublish operations for the same content
+                if operation.operation == .publish {
+                    await cancelPendingUnpublishOperations(for: operation.contentID)
+                }
+            }
+        }
+    }
+
+    private func executeOperation(_ operation: SyncQueueOperation) async throws {
         switch operation.operation {
         case .publish:
             try await handlePublish(operation)
