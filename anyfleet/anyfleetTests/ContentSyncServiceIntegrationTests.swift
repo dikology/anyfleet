@@ -16,28 +16,31 @@ struct ContentSyncServiceIntegrationTests {
     private func makeTestDependencies() throws -> (
         repository: LocalRepository,
         apiClient: MockAPIClient,
+        syncQueue: SyncQueueService,
         libraryStore: LibraryStore,
         syncService: ContentSyncService
     ) {
         let database = try AppDatabase.makeEmpty()
         let repository = LocalRepository(database: database)
-        let mockAuthService = MockAuthService()
         let apiClient = MockAPIClient()
-        let libraryStore = LibraryStore(repository: repository)
-        let syncService = ContentSyncService(
+        let syncQueue = SyncQueueService(
             repository: repository,
-            apiClient: apiClient,
-            libraryStore: libraryStore
+            apiClient: apiClient
+        )
+        let libraryStore = LibraryStore(repository: repository, syncQueue: syncQueue)
+        let syncService = ContentSyncService(
+            syncQueue: syncQueue,
+            repository: repository
         )
 
-        return (repository, apiClient, libraryStore, syncService)
+        return (repository, apiClient, syncQueue, libraryStore, syncService)
     }
 
     @Test("Unpublish operation - end-to-end with real payload")
     @MainActor
     func testUnpublishOperationEndToEnd() async throws {
         // Arrange
-        let (repository, apiClient, libraryStore, syncService) = try makeTestDependencies()
+        let (repository, apiClient, _, libraryStore, syncService) = try makeTestDependencies()
 
         // Create and publish a checklist first
         let checklist = Checklist(
@@ -101,7 +104,7 @@ struct ContentSyncServiceIntegrationTests {
         )
 
         // Process pending sync operations
-        try await syncService.syncPending()
+        let _ = await syncService.syncPending()
 
         // Assert: Content should be marked as private locally
         loadedItem = try await repository.fetchLibraryItem(checklist.id)
@@ -115,7 +118,7 @@ struct ContentSyncServiceIntegrationTests {
     @MainActor
     func testPublishOperationEndToEnd() async throws {
         // Arrange
-        let (repository, apiClient, libraryStore, syncService) = try makeTestDependencies()
+        let (repository, _, _, libraryStore, syncService) = try makeTestDependencies()
 
         // Create a checklist in the library
         let checklist = Checklist(
@@ -211,7 +214,7 @@ struct ContentSyncServiceIntegrationTests {
     @MainActor
     func testPublishSucceedsWhenCurrentUserLoadedByEnsureMethod() async throws {
         // Arrange
-        let (repository, apiClient, libraryStore, syncService) = try makeTestDependencies()
+        let (repository, apiClient, _, libraryStore, syncService) = try makeTestDependencies()
 
         // Create a mock auth service where isAuthenticated is true but currentUser starts as nil
         // The ensureCurrentUserLoaded method will set it
@@ -278,7 +281,7 @@ struct ContentSyncServiceIntegrationTests {
     @MainActor
     func testPublishSucceedsWhenAuthenticatedAndCurrentUserLoaded() async throws {
         // Arrange
-        let (repository, apiClient, libraryStore, syncService) = try makeTestDependencies()
+        let (repository, apiClient, _, libraryStore, syncService) = try makeTestDependencies()
 
         // Create a mock auth service with both authentication state set
         let mockAuthService = MockAuthService()
@@ -349,7 +352,7 @@ struct ContentSyncServiceIntegrationTests {
     @MainActor
     func testUnpublishOperationStoresPublicID() async throws {
         // Arrange
-        let (repository, apiClient, libraryStore, syncService) = try makeTestDependencies()
+        let (repository, apiClient, _, libraryStore, syncService) = try makeTestDependencies()
 
         // Create a checklist and mark it as published
         let checklistID = UUID()
@@ -402,7 +405,7 @@ struct ContentSyncServiceIntegrationTests {
     @MainActor
     func testSyncQueuePayloadPersistence() async throws {
         // Arrange
-        let (repository, _, _, _) = try makeTestDependencies()
+        let (repository, _, _, _, _) = try makeTestDependencies()
 
         let contentID = UUID()
         let originalPayload = ContentPublishPayload(
@@ -481,7 +484,7 @@ struct ContentSyncServiceIntegrationTests {
     @MainActor
     func testSyncOperationRetryLogic() async throws {
         // Arrange
-        let (repository, apiClient, libraryStore, syncService) = try makeTestDependencies()
+        let (repository, apiClient, _, libraryStore, syncService) = try makeTestDependencies()
 
         // Configure mock to always fail
         apiClient.shouldFail = true
@@ -539,7 +542,7 @@ struct ContentSyncServiceIntegrationTests {
     @MainActor
     func testSyncOperationFailureAfterMaxRetries() async throws {
         // Arrange
-        let (repository, apiClient, libraryStore, syncService) = try makeTestDependencies()
+        let (repository, apiClient, _, libraryStore, syncService) = try makeTestDependencies()
 
         // Configure mock to always fail
         apiClient.shouldFail = true

@@ -431,7 +431,7 @@ struct LibraryListView: View {
 
     let repository = PreviewLibraryRepository(sampleLibrary: sampleLibrary)
     let dependencies = AppDependencies()
-    let libraryStore = LibraryStore(repository: repository)
+    let libraryStore = LibraryStore(repository: repository, syncQueue: dependencies.syncQueueService)
     let coordinator = AppCoordinator(dependencies: dependencies)
     let viewModel = LibraryListViewModel(
         libraryStore: libraryStore,

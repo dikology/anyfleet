@@ -153,8 +153,14 @@ struct LibraryStoreTests {
         let repository = MockLibraryRepository()
         await repository.setLibraryResult([baseMetadata])
         await repository.setChecklistsResult([baseChecklist])
-        
-        let store = LibraryStore(repository: repository)
+
+        // Create sync queue service (uses a separate LocalRepository)
+        let database = try AppDatabase.makeEmpty()
+        let syncRepository = LocalRepository(database: database)
+        let mockAPIClient = MockAPIClient()
+        let syncQueue = SyncQueueService(repository: syncRepository, apiClient: mockAPIClient)
+
+        let store = LibraryStore(repository: repository, syncQueue: syncQueue)
         
         // Initial load to populate library + checklists
         await store.loadLibrary()
@@ -200,8 +206,14 @@ struct LibraryStoreTests {
         let checklist = makeChecklist()
         let repository = MockLibraryRepository()
         await repository.setFetchChecklistResult(checklist)
-        
-        let store = LibraryStore(repository: repository)
+
+        // Create sync queue service (uses a separate LocalRepository)
+        let database = try AppDatabase.makeEmpty()
+        let syncRepository = LocalRepository(database: database)
+        let mockAPIClient = MockAPIClient()
+        let syncQueue = SyncQueueService(repository: syncRepository, apiClient: mockAPIClient)
+
+        let store = LibraryStore(repository: repository, syncQueue: syncQueue)
         
         // Act: first fetch should hit repository
         let first = try await store.fetchChecklist(checklist.id)
@@ -228,8 +240,14 @@ struct LibraryStoreTests {
         await repository.setLibraryResult([metadata])
         await repository.setChecklistsResult([checklist])
         await repository.setFetchChecklistResult(nil)
-        
-        let store = LibraryStore(repository: repository)
+
+        // Create sync queue service (uses a separate LocalRepository)
+        let database = try AppDatabase.makeEmpty()
+        let syncRepository = LocalRepository(database: database)
+        let mockAPIClient = MockAPIClient()
+        let syncQueue = SyncQueueService(repository: syncRepository, apiClient: mockAPIClient)
+
+        let store = LibraryStore(repository: repository, syncQueue: syncQueue)
         
         // Populate in-memory collections via loadLibrary
         await store.loadLibrary()

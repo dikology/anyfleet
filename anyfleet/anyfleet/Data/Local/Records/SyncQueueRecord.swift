@@ -35,7 +35,7 @@ extension SyncQueueRecord {
     ) throws -> SyncQueueRecord {
         let payloadString = payload.flatMap { String(data: $0, encoding: .utf8) }
         
-        var record = SyncQueueRecord(
+        let record = SyncQueueRecord(
             id: nil,
             contentID: contentID.uuidString,
             operation: operation.rawValue,

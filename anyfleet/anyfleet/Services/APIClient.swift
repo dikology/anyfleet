@@ -146,21 +146,21 @@ final class APIClient: APIClientProtocol {
 
     private func get<T: Decodable>(
         _ path: String,
-        body: EmptyBody = EmptyBody()
+        body: EmptyBody
     ) async throws -> T {
         try await request(method: "GET", path: path, body: body)
     }
 
     private func getUnauthenticated<T: Decodable>(
         _ path: String,
-        body: EmptyBody = EmptyBody()
+        body: EmptyBody
     ) async throws -> T {
         try await requestUnauthenticated(method: "GET", path: path, body: body)
     }
 
     private func postUnauthenticated(
         _ path: String,
-        body: EmptyBody = EmptyBody()
+        body: EmptyBody
     ) async throws {
         try await performRequestUnauthenticated(method: "POST", path: path, body: body)
     }

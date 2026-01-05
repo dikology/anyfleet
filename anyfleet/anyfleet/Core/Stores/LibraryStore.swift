@@ -61,8 +61,8 @@ final class LibraryStore: LibraryStoreProtocol {
     // Sendable conformance required for Observable in Swift 6
     nonisolated private let repository: any LibraryRepository
 
-    // Content sync service for handling published content updates
-    private var contentSyncService: ContentSyncService?
+    // Sync queue service for handling content synchronization
+    private let syncQueue: SyncQueueService
     
     // MARK: - Computed Properties
     
@@ -83,14 +83,9 @@ final class LibraryStore: LibraryStoreProtocol {
     
     // MARK: - Initialization
 
-    nonisolated init(repository: any LibraryRepository, contentSyncService: ContentSyncService? = nil) {
+    nonisolated init(repository: any LibraryRepository, syncQueue: SyncQueueService) {
         self.repository = repository
-        self.contentSyncService = contentSyncService
-    }
-
-    /// Set the content sync service (for resolving circular dependencies)
-    nonisolated func setContentSyncService(_ service: ContentSyncService) {
-        self.contentSyncService = service
+        self.syncQueue = syncQueue
     }
     
     // MARK: - Loading Content
@@ -235,15 +230,8 @@ final class LibraryStore: LibraryStoreProtocol {
         }
 
         // Increment fork count on original content (best effort, don't fail fork if this fails)
-        do {
-            // TODO: Get apiClient from dependencies instead of hardcoding
-            // For now, this is a placeholder - the API call should be made
-            // apiClient.incrementForkCount(sharedContent.publicID)
-            AppLogger.view.info("Would increment fork count for original content: \(sharedContent.publicID)")
-        } catch {
-            // Don't fail the fork if incrementing fork count fails
-            AppLogger.view.error("Failed to increment fork count for \(sharedContent.publicID)", error: error)
-        }
+        // TODO: Implement fork count increment when API client is available in dependencies
+        AppLogger.view.info("Would increment fork count for original content: \(sharedContent.publicID)")
     }
     
     // MARK: - Updating Content
@@ -270,7 +258,7 @@ final class LibraryStore: LibraryStoreProtocol {
             library[metadataIndex] = metadata
 
             // If this is published content, trigger automatic sync update
-            if let publicID = metadata.publicID, let contentSyncService = contentSyncService {
+            if metadata.publicID != nil {
                 await triggerPublishUpdate(for: metadata, checklist: checklist)
             }
         }
@@ -282,8 +270,6 @@ final class LibraryStore: LibraryStoreProtocol {
 
     /// Trigger automatic sync update for published content
     private func triggerPublishUpdate(for metadata: LibraryModel, checklist: Checklist) async {
-        guard let contentSyncService = contentSyncService else { return }
-
         do {
             // Create the full content data payload
             let contentData: [String: Any] = [
@@ -330,7 +316,7 @@ final class LibraryStore: LibraryStoreProtocol {
             encoder.dateEncodingStrategy = .iso8601
             let payloadData = try encoder.encode(payload)
 
-            try await contentSyncService.enqueuePublishUpdate(
+            try await syncQueue.enqueuePublishUpdate(
                 contentID: checklist.id,
                 payload: payloadData
             )
@@ -343,8 +329,6 @@ final class LibraryStore: LibraryStoreProtocol {
 
     /// Trigger automatic sync update for published practice guide
     private func triggerPublishUpdate(for metadata: LibraryModel, guide: PracticeGuide) async {
-        guard let contentSyncService = contentSyncService else { return }
-
         do {
             // Create the full content data payload
             let contentData: [String: Any] = [
@@ -373,7 +357,7 @@ final class LibraryStore: LibraryStoreProtocol {
             encoder.dateEncodingStrategy = .iso8601
             let payloadData = try encoder.encode(payload)
 
-            try await contentSyncService.enqueuePublishUpdate(
+            try await syncQueue.enqueuePublishUpdate(
                 contentID: guide.id,
                 payload: payloadData
             )
@@ -406,7 +390,7 @@ final class LibraryStore: LibraryStoreProtocol {
             library[metadataIndex] = metadata
 
             // If this is published content, trigger automatic sync update
-            if let publicID = metadata.publicID, let contentSyncService = contentSyncService {
+            if metadata.publicID != nil {
                 await triggerPublishUpdate(for: metadata, guide: guide)
             }
         }
@@ -421,18 +405,13 @@ final class LibraryStore: LibraryStoreProtocol {
     ///                     Set to false for "keep published" deletion scenario
     @MainActor
     func deleteContent(_ item: LibraryModel, shouldUnpublish: Bool = true) async throws {
-        // If content is published and should be unpublished, enqueue unpublish operation and sync immediately
-        if shouldUnpublish, let publicID = item.publicID, let contentSyncService = contentSyncService {
+        // If content is published and should be unpublished, enqueue unpublish operation
+        if shouldUnpublish, let publicID = item.publicID {
             AppLogger.store.info("Enqueuing unpublish operation for published content before deletion: \(item.id)")
-            try await contentSyncService.enqueueUnpublish(
+            try await syncQueue.enqueueUnpublish(
                 contentID: item.id,
                 publicID: publicID
             )
-
-            // Run sync immediately to process the unpublish operation before deleting content
-            AppLogger.store.info("Running sync for unpublish operation: \(item.id)")
-            let summary = await contentSyncService.syncPending()
-            AppLogger.store.info("Unpublish sync completed: \(summary.succeeded) succeeded, \(summary.failed) failed")
         }
 
         // Delete from local database (after sync completes)

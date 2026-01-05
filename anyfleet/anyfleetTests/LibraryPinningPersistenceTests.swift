@@ -17,6 +17,13 @@ struct LibraryPinningPersistenceTests {
         let database = try AppDatabase.makeEmpty()
         return LocalRepository(database: database)
     }
+
+    // Each test gets its own sync queue service
+    @MainActor
+    private func makeSyncQueue(repository: LocalRepository) -> SyncQueueService {
+        let mockAPIClient = MockAPIClient()
+        return SyncQueueService(repository: repository, apiClient: mockAPIClient)
+    }
     
     private func makeTestChecklist(title: String = "Pinned Test Checklist") -> Checklist {
         Checklist(
@@ -37,7 +44,8 @@ struct LibraryPinningPersistenceTests {
     func testPinnedStatePersistsAcrossReloads() async throws {
         // Arrange
         let repository = try makeRepository()
-        let store1 = LibraryStore(repository: repository)
+        let syncQueue = makeSyncQueue(repository: repository)
+        let store1 = LibraryStore(repository: repository, syncQueue: syncQueue)
         let checklist = makeTestChecklist()
         
         // Create checklist -> creates library metadata row
@@ -60,7 +68,7 @@ struct LibraryPinningPersistenceTests {
         #expect(item.pinnedOrder != nil)
         
         // Create a new store wired to same repository
-        let store2 = LibraryStore(repository: repository)
+        let store2 = LibraryStore(repository: repository, syncQueue: syncQueue)
         await store2.loadLibrary()
         
         // Assert: pin state persisted through DB
@@ -75,7 +83,8 @@ struct LibraryPinningPersistenceTests {
     func testPinnedOrderPersistsAndIncrements() async throws {
         // Arrange
         let repository = try makeRepository()
-        let store = LibraryStore(repository: repository)
+        let syncQueue = makeSyncQueue(repository: repository)
+        let store = LibraryStore(repository: repository, syncQueue: syncQueue)
         
         let checklist1 = makeTestChecklist(title: "First")
         let checklist2 = makeTestChecklist(title: "Second")
@@ -104,9 +113,9 @@ struct LibraryPinningPersistenceTests {
         
         #expect(beforeOrders.count == 2)
         #expect(beforeOrders[0]! < beforeOrders[1]!)
-        
+
         // Reload via new store
-        let storeReloaded = LibraryStore(repository: repository)
+        let storeReloaded = LibraryStore(repository: repository, syncQueue: syncQueue)
         await storeReloaded.loadLibrary()
         
         let reloadedPinned = storeReloaded.library
@@ -123,7 +132,8 @@ struct LibraryPinningPersistenceTests {
     func testUnpinPersists() async throws {
         // Arrange
         let repository = try makeRepository()
-        let store = LibraryStore(repository: repository)
+        let syncQueue = makeSyncQueue(repository: repository)
+        let store = LibraryStore(repository: repository, syncQueue: syncQueue)
         let checklist = makeTestChecklist()
         
         try await repository.createChecklist(checklist)
@@ -150,9 +160,9 @@ struct LibraryPinningPersistenceTests {
         }
         #expect(unpinned.isPinned == false)
         #expect(unpinned.pinnedOrder == nil)
-        
+
         // Reload via new store
-        let storeReloaded = LibraryStore(repository: repository)
+        let storeReloaded = LibraryStore(repository: repository, syncQueue: syncQueue)
         await storeReloaded.loadLibrary()
         
         guard let reloaded = storeReloaded.library.first else {
