@@ -4,17 +4,40 @@ import SwiftUI
 /// Protocol defining the interface for library store operations.
 /// Used for dependency injection and testing.
 protocol LibraryStoreProtocol: AnyObject {
+    // MARK: - State
     var library: [LibraryModel] { get }
     var myChecklists: [LibraryModel] { get }
     var myGuides: [LibraryModel] { get }
     var myDecks: [LibraryModel] { get }
 
+    // MARK: - Library Management
     func loadLibrary() async
+    func fetchLibraryItem(_ id: UUID) async throws -> LibraryModel?
+
+    // MARK: - Content Creation
+    func createChecklist(_ checklist: Checklist) async throws
+    func createGuide(_ guide: PracticeGuide) async throws
+    func createDeck(_ deck: FlashcardDeck) async throws
+    func forkContent(from sharedContent: SharedContentDetail) async throws
+
+    // MARK: - Content Modification
+    func saveChecklist(_ checklist: Checklist) async throws
+    func saveGuide(_ guide: PracticeGuide) async throws
+    func updateLibraryMetadata(_ item: LibraryModel) async throws
+
+    // MARK: - Content Deletion
     func deleteContent(_ item: LibraryModel, shouldUnpublish: Bool) async throws
-    func togglePin(for item: LibraryModel) async
+
+    // MARK: - Content Retrieval
+    func fetchChecklist(_ checklistID: UUID) async throws -> Checklist?
+    func fetchGuide(_ guideID: UUID) async throws -> PracticeGuide?
+    func fetchDeck(_ deckID: UUID) async throws -> FlashcardDeck?
 
     /// Fetch full content model on-demand with caching
     func fetchFullContent<T>(_ id: UUID) async throws -> T?
+
+    // MARK: - UI Actions
+    func togglePin(for item: LibraryModel) async
 }
 
 /// Store managing library content state and operations across the application.

@@ -95,6 +95,21 @@ class MockLibraryStore: LibraryStoreProtocol {
             return nil
         }
 
+        func fetchChecklist(_ checklistID: UUID) async throws -> Checklist? {
+            // Mock implementation - return nil for simplicity in tests
+            return nil
+        }
+
+        func fetchGuide(_ guideID: UUID) async throws -> PracticeGuide? {
+            // Mock implementation - return nil for simplicity in tests
+            return nil
+        }
+
+        func fetchDeck(_ deckID: UUID) async throws -> FlashcardDeck? {
+            // Mock implementation - return nil for simplicity in tests
+            return nil
+        }
+
         func forkContent(from sharedContent: SharedContentDetail) async throws {
             // Convert content type string to enum
             let contentType: ContentType
