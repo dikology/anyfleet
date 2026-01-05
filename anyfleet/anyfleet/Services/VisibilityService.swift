@@ -165,7 +165,7 @@ final class VisibilityService: VisibilityServiceProtocol {
             publishedAt: publishedAt,
             publicID: publicID,
             canFork: true, // Default to allowing forks
-            authorUsername: currentUser.username ?? currentUser.email
+            authorUsername: currentUser.username ?? "Anonymous User"
         )
         
         // Update item with public visibility

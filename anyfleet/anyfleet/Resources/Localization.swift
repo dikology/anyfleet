@@ -333,6 +333,18 @@ enum L10n {
             tableName: "Localizable",
             comment: "Delete account button label"
         )
+
+        static let displayNameTitle = NSLocalizedString(
+            "profile.displayNameTitle",
+            tableName: "Localizable",
+            comment: "Title for display name input field"
+        )
+
+        static let displayNamePlaceholder = NSLocalizedString(
+            "profile.displayNamePlaceholder",
+            tableName: "Localizable",
+            comment: "Placeholder for display name input field"
+        )
     }
     
     enum Error {
@@ -1269,6 +1281,18 @@ enum L10n {
             "common.close",
             tableName: "Localizable",
             comment: "Close button text"
+        )
+
+        static let cancel = NSLocalizedString(
+            "common.cancel",
+            tableName: "Localizable",
+            comment: "Cancel button text"
+        )
+
+        static let save = NSLocalizedString(
+            "common.save",
+            tableName: "Localizable",
+            comment: "Save button text"
         )
     }
 

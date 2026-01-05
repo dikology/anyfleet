@@ -181,6 +181,8 @@
 "profile.exportData" = "Экспорт данных";
 "profile.activityLog" = "Журнал активности";
 "profile.deleteAccount" = "Удалить аккаунт";
+"profile.displayNameTitle" = "Отображаемое имя";
+"profile.displayNamePlaceholder" = "Введите ваше отображаемое имя";
 
 "error.generic" = "Неизвестная ошибка: %@";
 "error.notFound" = "%@ с ID %@ не найден";
@@ -203,6 +205,8 @@
 
 // Common
 "common.close" = "Закрыть";
+"common.cancel" = "Отмена";
+"common.save" = "Сохранить";
 
 // Author Profile
 "authorProfile.title" = "Профиль автора";

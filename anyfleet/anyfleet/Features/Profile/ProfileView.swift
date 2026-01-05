@@ -7,9 +7,14 @@ import AuthenticationServices
 final class ProfileViewModel {
     var appError: AppError?
     var isLoading = false
-    
+
     // Phase 2: Reputation metrics
     var contributionMetrics: ContributionMetrics?
+
+    // Profile editing
+    var isEditingProfile = false
+    var editedUsername = ""
+    var isSavingProfile = false
     
     @MainActor
     func loadReputationMetrics() async {
@@ -28,9 +33,43 @@ final class ProfileViewModel {
     func logout(from authService: AuthService) async {
         isLoading = true
         defer { isLoading = false }
-        
+
         do {
             try await authService.logout()
+        } catch {
+            appError = error.toAppError()
+        }
+    }
+
+    @MainActor
+    func startEditingProfile(currentUsername: String?) {
+        isEditingProfile = true
+        editedUsername = currentUsername ?? ""
+        appError = nil
+    }
+
+    @MainActor
+    func cancelEditingProfile() {
+        isEditingProfile = false
+        editedUsername = ""
+        appError = nil
+    }
+
+    @MainActor
+    func saveProfile(from authService: AuthService) async {
+        guard !editedUsername.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            appError = AppError.validationFailed(field: "username", reason: "Display name cannot be empty")
+            return
+        }
+
+        isSavingProfile = true
+        appError = nil
+        defer { isSavingProfile = false }
+
+        do {
+            _ = try await authService.updateProfile(username: editedUsername.trimmingCharacters(in: .whitespacesAndNewlines))
+            isEditingProfile = false
+            editedUsername = ""
         } catch {
             appError = error.toAppError()
         }
@@ -176,15 +215,15 @@ struct ProfileView: View {
                     .fill(DesignSystem.Gradients.primary)
                     .frame(width: 120, height: 120)
                     .shadow(color: DesignSystem.Colors.shadowStrong, radius: 8, x: 0, y: 4)
-                
+
                 Circle()
                     .fill(DesignSystem.Colors.onPrimary.opacity(0.2))
                     .frame(width: 100, height: 100)
-                
+
                 Image(systemName: "person.fill")
                     .font(.system(size: 40, weight: .medium))
                     .foregroundStyle(DesignSystem.Gradients.primary)
-                
+
                 // Verification badge overlay
                 if let metrics = viewModel.contributionMetrics {
                     verificationBadge(tier: metrics.verificationTier)
@@ -193,20 +232,96 @@ struct ProfileView: View {
                 }
             }
             .padding(.top, DesignSystem.Spacing.md)
-            
+
             // User info
             VStack(spacing: DesignSystem.Spacing.xs) {
-                Text(user.username ?? user.email)
-                    .font(DesignSystem.Typography.largeTitle)
-                    .foregroundColor(DesignSystem.Colors.textPrimary)
-                    .padding(DesignSystem.Spacing.sm)
-                    .lineSpacing(1.0)
-                
-                Text(user.email)
-                    .font(DesignSystem.Typography.body)
-                    .foregroundColor(DesignSystem.Colors.textSecondary)
+                if viewModel.isEditingProfile {
+                    // Editing mode
+                    VStack(spacing: DesignSystem.Spacing.sm) {
+                        Text(L10n.Profile.displayNameTitle)
+                            .font(DesignSystem.Typography.body)
+                            .foregroundColor(DesignSystem.Colors.textSecondary)
+
+                        TextField(L10n.Profile.displayNamePlaceholder, text: $viewModel.editedUsername)
+                            .font(DesignSystem.Typography.largeTitle)
+                            .foregroundColor(DesignSystem.Colors.textPrimary)
+                            .multilineTextAlignment(.center)
+                            .padding(DesignSystem.Spacing.sm)
+                            .background(DesignSystem.Colors.surface.opacity(0.5))
+                            .cornerRadius(DesignSystem.Spacing.sm)
+                            .autocorrectionDisabled(true)
+                            .textInputAutocapitalization(.words)
+
+                        HStack(spacing: DesignSystem.Spacing.md) {
+                            Button(action: {
+                                viewModel.cancelEditingProfile()
+                            }) {
+                                Text(L10n.Common.cancel)
+                                    .font(DesignSystem.Typography.body)
+                                    .foregroundColor(DesignSystem.Colors.textSecondary)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, DesignSystem.Spacing.sm)
+                                    .background(DesignSystem.Colors.surface)
+                                    .cornerRadius(DesignSystem.Spacing.sm)
+                            }
+                            .disabled(viewModel.isSavingProfile)
+
+                            Button(action: {
+                                Task {
+                                    await viewModel.saveProfile(from: authService)
+                                }
+                            }) {
+                                if viewModel.isSavingProfile {
+                                    ProgressView()
+                                        .tint(DesignSystem.Colors.onPrimary)
+                                } else {
+                                    Text(L10n.Common.save)
+                                        .font(DesignSystem.Typography.body)
+                                        .foregroundColor(DesignSystem.Colors.onPrimary)
+                                }
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, DesignSystem.Spacing.sm)
+                            .background(DesignSystem.Gradients.primary)
+                            .cornerRadius(DesignSystem.Spacing.sm)
+                            .disabled(viewModel.isSavingProfile)
+                        }
+                    }
+                } else {
+                    // Display mode
+                    HStack(spacing: DesignSystem.Spacing.sm) {
+                        VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
+                            Text(user.username ?? user.email)
+                                .font(DesignSystem.Typography.largeTitle)
+                                .foregroundColor(DesignSystem.Colors.textPrimary)
+                                .lineSpacing(1.0)
+
+                            Text(user.email)
+                                .font(DesignSystem.Typography.body)
+                                .foregroundColor(DesignSystem.Colors.textSecondary)
+                        }
+
+                        Spacer()
+
+                        Button(action: {
+                            viewModel.startEditingProfile(currentUsername: user.username)
+                        }) {
+                            Image(systemName: "pencil")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(DesignSystem.Colors.primary)
+                                .frame(width: 32, height: 32)
+                                .background(DesignSystem.Colors.surface)
+                                .clipShape(Circle())
+                                .overlay(
+                                    Circle()
+                                        .stroke(DesignSystem.Colors.border, lineWidth: 1)
+                                )
+                        }
+                    }
                     .padding(.vertical, DesignSystem.Spacing.sm)
-                
+                    .padding(.horizontal, DesignSystem.Spacing.sm)
+                }
+
                 if let createdAt = formatDate(user.createdAt) {
                     HStack(spacing: DesignSystem.Spacing.xs) {
                         Image(systemName: "calendar")

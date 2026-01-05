@@ -312,7 +312,48 @@ final class AuthService: AuthServiceProtocol {
         
         return data
     }
-    
+
+    func makeAuthenticatedRequestWithRetry(request: URLRequest) async throws -> Data {
+        var mutableRequest = request
+
+        guard var accessToken = keychain.getAccessToken() else {
+            throw AuthError.unauthorized
+        }
+
+        mutableRequest.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+
+        var (data, response): (Data, URLResponse)
+        do {
+            (data, response) = try await URLSession.shared.data(for: mutableRequest)
+        } catch {
+            // Re-throw network errors as-is so they can be converted to NetworkError
+            throw error
+        }
+
+        // If unauthorized, try refreshing token
+        if let httpResponse = response as? HTTPURLResponse,
+           httpResponse.statusCode == 401 {
+            do {
+                try await refreshAccessToken()
+
+                // Retry request with new token
+                accessToken = keychain.getAccessToken()!
+                mutableRequest.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+                (data, response) = try await URLSession.shared.data(for: mutableRequest)
+            } catch {
+                // If refresh fails due to network error, re-throw it
+                throw error
+            }
+        }
+
+        guard let httpResponse = response as? HTTPURLResponse,
+              (200...299).contains(httpResponse.statusCode) else {
+            throw AuthError.invalidResponse
+        }
+
+        return data
+    }
+
     // MARK: - User Info
 
     /// Ensures currentUser is loaded before proceeding with authenticated operations
@@ -354,7 +395,30 @@ final class AuthService: AuthServiceProtocol {
             await logout()
         }
     }
-    
+
+    // MARK: - Profile Update
+
+    func updateProfile(username: String) async throws -> UserInfo {
+        AppLogger.auth.info("Updating profile with username: \(username)")
+
+        let url = URL(string: "\(baseURL)/auth/me")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "PUT"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let body = ["username": username]
+        request.httpBody = try JSONEncoder().encode(body)
+
+        let data = try await makeAuthenticatedRequestWithRetry(request: request)
+        let updatedUser = try JSONDecoder().decode(UserInfo.self, from: data)
+
+        // Update local state
+        currentUser = updatedUser
+
+        AppLogger.auth.info("Profile updated successfully for user: \(updatedUser.email)")
+        return updatedUser
+    }
+
     // MARK: - Logout
     
     func logout() async {
