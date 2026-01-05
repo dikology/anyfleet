@@ -210,6 +210,13 @@
 "error.databaseError.recovery" = "The database operation failed. Please try again later.";
 "error.unknown.recovery" = "An unknown error occurred. Please try again later.";
 
+"error.library.notFound" = "Content with ID %@ not found";
+"error.library.syncFailed" = "Sync failed: %@";
+
+"error.library.notFound.recovery" = "The requested content was not found. It may have been deleted.";
+"error.library.syncFailed.recovery" = "The sync operation failed. Please check your connection and try again.";
+"error.generic.recovery" = "Something went wrong. Please try again.";
+
 "charter.detail.title" = "Charter";
 "charter.detail.checkInChecklist.title" = "Check-In Checklist";
 "charter.detail.checkInChecklist.subtitle" = "Run this before guests arrive to make sure the boat is truly ready.";

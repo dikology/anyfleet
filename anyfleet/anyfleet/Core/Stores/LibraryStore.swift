@@ -29,9 +29,9 @@ protocol LibraryStoreProtocol: AnyObject {
     func deleteContent(_ item: LibraryModel, shouldUnpublish: Bool) async throws
 
     // MARK: - Content Retrieval
-    func fetchChecklist(_ checklistID: UUID) async throws -> Checklist?
-    func fetchGuide(_ guideID: UUID) async throws -> PracticeGuide?
-    func fetchDeck(_ deckID: UUID) async throws -> FlashcardDeck?
+    func fetchChecklist(_ checklistID: UUID) async throws -> Checklist
+    func fetchGuide(_ guideID: UUID) async throws -> PracticeGuide
+    func fetchDeck(_ deckID: UUID) async throws -> FlashcardDeck
 
     /// Fetch full content model on-demand with caching
     func fetchFullContent<T>(_ id: UUID) async throws -> T?
@@ -134,21 +134,42 @@ final class LibraryStore: LibraryStoreProtocol {
         } else {
             // If metadata isn't loaded, try to fetch from repository directly
             // This allows fetching content even when library metadata hasn't been loaded yet
-            if let checklist = try await repository.fetchChecklist(id) {
+            do {
+                let checklist = try await repository.fetchChecklist(id)
                 let content = AnyContent.checklist(checklist)
                 fullContentCache.set(content, forKey: id)
                 return content.as(T.self)
+            } catch let error as LibraryError where error == .notFound(id) {
+                // Continue trying other types
+            } catch {
+                // Re-throw non-notFound errors
+                throw error
             }
-            if let guide = try await repository.fetchGuide(id) {
+
+            do {
+                let guide = try await repository.fetchGuide(id)
                 let content = AnyContent.practiceGuide(guide)
                 fullContentCache.set(content, forKey: id)
                 return content.as(T.self)
+            } catch let error as LibraryError where error == .notFound(id) {
+                // Continue trying other types
+            } catch {
+                // Re-throw non-notFound errors
+                throw error
             }
-            if let deck = try await repository.fetchDeck(id) {
+
+            do {
+                let deck = try await repository.fetchDeck(id)
                 let content = AnyContent.flashcardDeck(deck)
                 fullContentCache.set(content, forKey: id)
                 return content.as(T.self)
+            } catch let error as LibraryError where error == .notFound(id) {
+                // Continue trying other types
+            } catch {
+                // Re-throw non-notFound errors
+                throw error
             }
+
             return nil
         }
 
@@ -156,22 +177,31 @@ final class LibraryStore: LibraryStoreProtocol {
         let content: AnyContent?
         switch contentType {
         case .checklist:
-            if let checklist = try await repository.fetchChecklist(id) {
+            do {
+                let checklist = try await repository.fetchChecklist(id)
                 content = .checklist(checklist)
-            } else {
+            } catch let error as LibraryError where error == .notFound(id) {
                 content = nil
+            } catch {
+                throw error
             }
         case .practiceGuide:
-            if let guide = try await repository.fetchGuide(id) {
+            do {
+                let guide = try await repository.fetchGuide(id)
                 content = .practiceGuide(guide)
-            } else {
+            } catch let error as LibraryError where error == .notFound(id) {
                 content = nil
+            } catch {
+                throw error
             }
         case .flashcardDeck:
-            if let deck = try await repository.fetchDeck(id) {
+            do {
+                let deck = try await repository.fetchDeck(id)
                 content = .flashcardDeck(deck)
-            } else {
+            } catch let error as LibraryError where error == .notFound(id) {
                 content = nil
+            } catch {
+                throw error
             }
         case nil:
             content = nil
@@ -570,27 +600,39 @@ final class LibraryStore: LibraryStoreProtocol {
     
     /// Fetch a full checklist model by ID
     /// - Parameter checklistID: The ID of the checklist to fetch
-    /// - Returns: The full checklist model, or nil if not found
+    /// - Returns: The full checklist model
+    /// - Throws: LibraryError.notFound if the checklist is not found
     @MainActor
-    func fetchChecklist(_ checklistID: UUID) async throws -> Checklist? {
-        return try await fetchFullContent(checklistID)
+    func fetchChecklist(_ checklistID: UUID) async throws -> Checklist {
+        guard let checklist = try await fetchFullContent(checklistID) as Checklist? else {
+            throw LibraryError.notFound(checklistID)
+        }
+        return checklist
     }
     
     
     /// Fetch a full guide model by ID
     /// - Parameter guideID: The ID of the guide to fetch
-    /// - Returns: The full guide model, or nil if not found
+    /// - Returns: The full guide model
+    /// - Throws: LibraryError.notFound if the guide is not found
     @MainActor
-    func fetchGuide(_ guideID: UUID) async throws -> PracticeGuide? {
-        return try await fetchFullContent(guideID)
+    func fetchGuide(_ guideID: UUID) async throws -> PracticeGuide {
+        guard let guide = try await fetchFullContent(guideID) as PracticeGuide? else {
+            throw LibraryError.notFound(guideID)
+        }
+        return guide
     }
 
     /// Fetch a full deck model by ID
     /// - Parameter deckID: The ID of the deck to fetch
-    /// - Returns: The full deck model, or nil if not found
+    /// - Returns: The full deck model
+    /// - Throws: LibraryError.notFound if the deck is not found
     @MainActor
-    func fetchDeck(_ deckID: UUID) async throws -> FlashcardDeck? {
-        return try await fetchFullContent(deckID)
+    func fetchDeck(_ deckID: UUID) async throws -> FlashcardDeck {
+        guard let deck = try await fetchFullContent(deckID) as FlashcardDeck? else {
+            throw LibraryError.notFound(deckID)
+        }
+        return deck
     }
 }
 

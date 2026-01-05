@@ -115,6 +115,49 @@ enum NetworkError: LocalizedError {
     }
 }
 
+// MARK: - Library Domain Errors
+
+enum LibraryError: LocalizedError, Equatable {
+    case notFound(UUID)
+    case invalidState(String)
+    case networkUnavailable
+    case permissionDenied
+    case validationFailed(String)
+    case syncFailed(String)
+
+    var errorDescription: String? {
+        switch self {
+        case .notFound(let id):
+            return String(format: L10n.Error.libraryNotFound, id.uuidString)
+        case .invalidState(let reason):
+            return reason
+        case .networkUnavailable:
+            return L10n.Error.networkOffline
+        case .permissionDenied:
+            return L10n.Error.authUnauthorized
+        case .validationFailed(let reason):
+            return String(format: L10n.Error.validationFailed, "content", reason)
+        case .syncFailed(let reason):
+            return String(format: L10n.Error.librarySyncFailed, reason)
+        }
+    }
+
+    var recoverySuggestion: String? {
+        switch self {
+        case .networkUnavailable:
+            return L10n.Error.networkOfflineRecovery
+        case .permissionDenied:
+            return L10n.Error.authUnauthorizedRecovery
+        case .notFound:
+            return L10n.Error.libraryNotFoundRecovery
+        case .syncFailed:
+            return L10n.Error.librarySyncFailedRecovery
+        case .invalidState, .validationFailed:
+            return L10n.Error.genericRecovery
+        }
+    }
+}
+
 // MARK: - Error Conversion Helpers
 
 extension Error {
@@ -123,7 +166,11 @@ extension Error {
         if let authError = self as? AuthError {
             return .authenticationError(authError)
         }
-        
+
+        if let libraryError = self as? LibraryError {
+            return .unknown(libraryError)
+        }
+
         // Check for URLSession/network errors
         let nsError = self as NSError
         if nsError.domain == NSURLErrorDomain {
@@ -142,7 +189,7 @@ extension Error {
             }
             return .networkError(networkError)
         }
-        
+
         return .unknown(self)
     }
 }

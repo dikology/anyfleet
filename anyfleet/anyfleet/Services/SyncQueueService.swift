@@ -139,21 +139,24 @@ final class SyncQueueService {
     }
 
     private func fetchPendingOperations() async -> [SyncQueueOperation] {
-        guard let operations = try? await repository.getPendingSyncOperations(maxRetries: maxRetries) else {
+        do {
+            let operations = try await repository.getPendingSyncOperations(maxRetries: maxRetries)
+
+            AppLogger.services.debug("Fetched \(operations.count) pending sync operations")
+            guard !operations.isEmpty else {
+                await updatePendingCounts()
+                isProcessing = false
+                return []
+            }
+
+            AppLogger.services.info("Processing \(operations.count) sync operations")
+            return operations
+        } catch {
+            AppLogger.services.error("Failed to fetch pending sync operations: \(error.localizedDescription)")
             await updatePendingCounts()
             isProcessing = false
             return []
         }
-
-        AppLogger.services.debug("Fetched \(operations.count) pending sync operations")
-        guard !operations.isEmpty else {
-            await updatePendingCounts()
-            isProcessing = false
-            return []
-        }
-
-        AppLogger.services.info("Processing \(operations.count) sync operations")
-        return operations
     }
 
     private func processOperations(_ operations: [SyncQueueOperation]) async -> SyncSummary {
@@ -403,9 +406,15 @@ final class SyncQueueService {
     }
 
     private func updatePendingCounts() async {
-        let counts = try? await repository.getSyncQueueCounts()
-        pendingCount = counts?.pending ?? 0
-        failedCount = counts?.failed ?? 0
+        do {
+            let counts = try await repository.getSyncQueueCounts()
+            pendingCount = counts.pending
+            failedCount = counts.failed
+        } catch {
+            AppLogger.services.error("Failed to get sync queue counts: \(error.localizedDescription)")
+            pendingCount = 0
+            failedCount = 0
+        }
     }
 
     private func cancelPendingUnpublishOperations(for contentID: UUID) async {

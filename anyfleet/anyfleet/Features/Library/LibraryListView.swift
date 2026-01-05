@@ -468,9 +468,9 @@ private struct PreviewLibraryRepository: LibraryRepository {
     func fetchUserGuides() async throws -> [PracticeGuide] { [] }
     func fetchUserDecks() async throws -> [FlashcardDeck] { [] }
 
-    func fetchChecklist(_ checklistID: UUID) async throws -> Checklist? { nil }
-    func fetchGuide(_ guideID: UUID) async throws -> PracticeGuide? { nil }
-    func fetchDeck(_ deckID: UUID) async throws -> FlashcardDeck? { nil }
+    func fetchChecklist(_ checklistID: UUID) async throws -> Checklist { throw LibraryError.notFound(checklistID) }
+    func fetchGuide(_ guideID: UUID) async throws -> PracticeGuide { throw LibraryError.notFound(guideID) }
+    func fetchDeck(_ deckID: UUID) async throws -> FlashcardDeck { throw LibraryError.notFound(deckID) }
 
     // MARK: - Mutating Operations (no‑ops for preview)
     func createChecklist(_ checklist: Checklist) async throws {}

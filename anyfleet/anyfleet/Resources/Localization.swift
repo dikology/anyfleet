@@ -497,6 +497,37 @@ enum L10n {
             tableName: "Localizable",
             comment: "Recovery suggestion for unknown error"
         )
+
+        // Library-specific errors
+        static let libraryNotFound = NSLocalizedString(
+            "error.library.notFound",
+            tableName: "Localizable",
+            comment: "Library content not found error"
+        )
+
+        static let librarySyncFailed = NSLocalizedString(
+            "error.library.syncFailed",
+            tableName: "Localizable",
+            comment: "Library sync failed error"
+        )
+
+        static let libraryNotFoundRecovery = NSLocalizedString(
+            "error.library.notFound.recovery",
+            tableName: "Localizable",
+            comment: "Recovery suggestion for library not found error"
+        )
+
+        static let librarySyncFailedRecovery = NSLocalizedString(
+            "error.library.syncFailed.recovery",
+            tableName: "Localizable",
+            comment: "Recovery suggestion for library sync failed error"
+        )
+
+        static let genericRecovery = NSLocalizedString(
+            "error.generic.recovery",
+            tableName: "Localizable",
+            comment: "Generic recovery suggestion"
+        )
     }
     
     static let homeCreateCharterTitle = NSLocalizedString(

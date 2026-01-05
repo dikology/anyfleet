@@ -95,19 +95,19 @@ class MockLibraryStore: LibraryStoreProtocol {
             return nil
         }
 
-        func fetchChecklist(_ checklistID: UUID) async throws -> Checklist? {
-            // Mock implementation - return nil for simplicity in tests
-            return nil
+        func fetchChecklist(_ checklistID: UUID) async throws -> Checklist {
+            // Mock implementation - throw not found for simplicity in tests
+            throw LibraryError.notFound(checklistID)
         }
 
-        func fetchGuide(_ guideID: UUID) async throws -> PracticeGuide? {
-            // Mock implementation - return nil for simplicity in tests
-            return nil
+        func fetchGuide(_ guideID: UUID) async throws -> PracticeGuide {
+            // Mock implementation - throw not found for simplicity in tests
+            throw LibraryError.notFound(guideID)
         }
 
-        func fetchDeck(_ deckID: UUID) async throws -> FlashcardDeck? {
-            // Mock implementation - return nil for simplicity in tests
-            return nil
+        func fetchDeck(_ deckID: UUID) async throws -> FlashcardDeck {
+            // Mock implementation - throw not found for simplicity in tests
+            throw LibraryError.notFound(deckID)
         }
 
         func forkContent(from sharedContent: SharedContentDetail) async throws {

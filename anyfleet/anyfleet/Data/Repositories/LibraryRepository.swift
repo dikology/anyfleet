@@ -22,13 +22,13 @@ protocol LibraryRepository: Sendable {
     func fetchUserDecks() async throws -> [FlashcardDeck]
     
     /// Fetch a single checklist by ID
-    func fetchChecklist(_ checklistID: UUID) async throws -> Checklist?
+    func fetchChecklist(_ checklistID: UUID) async throws -> Checklist
     
     /// Fetch a single guide by ID
-    func fetchGuide(_ guideID: UUID) async throws -> PracticeGuide?
-    
+    func fetchGuide(_ guideID: UUID) async throws -> PracticeGuide
+
     /// Fetch a single deck by ID
-    func fetchDeck(_ deckID: UUID) async throws -> FlashcardDeck?
+    func fetchDeck(_ deckID: UUID) async throws -> FlashcardDeck
     
     // MARK: - Creating Content
     

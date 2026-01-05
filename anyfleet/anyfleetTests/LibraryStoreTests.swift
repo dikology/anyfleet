@@ -71,17 +71,20 @@ struct LibraryStoreTests {
             return []
         }
         
-        func fetchChecklist(_ checklistID: UUID) async throws -> Checklist? {
+        func fetchChecklist(_ checklistID: UUID) async throws -> Checklist {
             fetchChecklistCallCount += 1
-            return fetchChecklistResult
+            guard let result = fetchChecklistResult else {
+                throw LibraryError.notFound(checklistID)
+            }
+            return result
         }
         
-        func fetchGuide(_ guideID: UUID) async throws -> PracticeGuide? {
-            return nil
+        func fetchGuide(_ guideID: UUID) async throws -> PracticeGuide {
+            throw LibraryError.notFound(guideID)
         }
-        
-        func fetchDeck(_ deckID: UUID) async throws -> FlashcardDeck? {
-            return nil
+
+        func fetchDeck(_ deckID: UUID) async throws -> FlashcardDeck {
+            throw LibraryError.notFound(deckID)
         }
         
         func createChecklist(_ checklist: Checklist) async throws {}
