@@ -33,6 +33,9 @@ enum AppLogger {
 
     /// API-related logging
     static let api = Logger(subsystem: "com.anyfleet.app", category: "API")
+
+    /// Services-related logging
+    static let services = Logger(subsystem: "com.anyfleet.app", category: "Services")
 }
 
 // MARK: - Convenience Extensions

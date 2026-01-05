@@ -334,13 +334,12 @@ struct LibraryListView: View {
                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                         Button(role: .destructive) {
                             pendingDeleteItem = item
-                            AppLogger.view.info("Delete initiated for item: \(item.id), title: '\(item.title)', publicID: \(item.publicID ?? "nil")")
-                            if viewModel.isPublishedContent(item) {
-                                AppLogger.view.info("Showing published content delete modal")
+                            let action = viewModel.initiateDelete(item)
+                            switch action {
+                            case .showPublishedModal:
                                 publishedDeleteModalItem = item
                                 showPublishedDeleteConfirmation = true
-                            } else {
-                                AppLogger.view.info("Showing private content delete modal")
+                            case .showPrivateModal:
                                 showPrivateDeleteConfirmation = true
                             }
                         } label: {

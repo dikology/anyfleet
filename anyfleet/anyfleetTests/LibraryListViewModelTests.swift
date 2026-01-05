@@ -152,12 +152,14 @@ class MockVisibilityService: VisibilityServiceProtocol {
         func getUnpublishCalls() -> [LibraryModel] { unpublishCalls }
         func getRetrySyncCalls() -> [LibraryModel] { retrySyncCalls }
 
-        func publishContent(_ item: LibraryModel) async throws {
+        func publishContent(_ item: LibraryModel) async throws -> SyncSummary {
             publishCalls.append(item)
+            return SyncSummary(succeeded: 1, failed: 0)
         }
 
-        func unpublishContent(_ item: LibraryModel) async throws {
+        func unpublishContent(_ item: LibraryModel) async throws -> SyncSummary {
             unpublishCalls.append(item)
+            return SyncSummary(succeeded: 1, failed: 0)
         }
 
         func retrySync(for item: LibraryModel) async {

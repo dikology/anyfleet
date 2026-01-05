@@ -23,26 +23,32 @@ final class ContentSyncService {
         contentID: UUID,
         visibility: ContentVisibility,
         payload: Data
-    ) async throws {
+    ) async throws -> SyncSummary {
         AppLogger.auth.info("Enqueuing publish operation for content: \(contentID)")
 
-        try await syncQueue.enqueuePublish(
+        let summary = try await syncQueue.enqueuePublish(
             contentID: contentID,
             visibility: visibility,
             payload: payload
         )
+
+        AppLogger.auth.info("Publish sync completed: \(summary.succeeded) succeeded, \(summary.failed) failed")
+        return summary
     }
     
     func enqueueUnpublish(
         contentID: UUID,
         publicID: String
-    ) async throws {
+    ) async throws -> SyncSummary {
         AppLogger.auth.info("Enqueuing unpublish operation for content: \(contentID)")
 
-        try await syncQueue.enqueueUnpublish(
+        let summary = try await syncQueue.enqueueUnpublish(
             contentID: contentID,
             publicID: publicID
         )
+
+        AppLogger.auth.info("Unpublish sync completed: \(summary.succeeded) succeeded, \(summary.failed) failed")
+        return summary
     }
 
     func enqueuePublishUpdate(
@@ -51,9 +57,39 @@ final class ContentSyncService {
     ) async throws {
         AppLogger.auth.info("Enqueuing publish_update operation for content: \(contentID)")
 
-        try await syncQueue.enqueuePublishUpdate(
+        let summary = try await syncQueue.enqueuePublishUpdate(
             contentID: contentID,
             payload: payload
+        )
+
+        AppLogger.auth.info("Publish update sync completed: \(summary.succeeded) succeeded, \(summary.failed) failed")
+    }
+
+    /// Enqueue a publish operation without immediately syncing (for testing)
+    func enqueuePublishOnly(
+        contentID: UUID,
+        visibility: ContentVisibility,
+        payload: Data
+    ) async throws {
+        AppLogger.auth.info("Enqueuing publish operation (no sync): \(contentID)")
+
+        try await syncQueue.enqueuePublishOnly(
+            contentID: contentID,
+            visibility: visibility,
+            payload: payload
+        )
+    }
+
+    /// Enqueue an unpublish operation without immediately syncing (for testing)
+    func enqueueUnpublishOnly(
+        contentID: UUID,
+        publicID: String
+    ) async throws {
+        AppLogger.auth.info("Enqueuing unpublish operation (no sync): \(contentID)")
+
+        try await syncQueue.enqueueUnpublishOnly(
+            contentID: contentID,
+            publicID: publicID
         )
     }
 

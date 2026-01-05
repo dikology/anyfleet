@@ -12,8 +12,8 @@ import OSLog
 /// Protocol defining the interface for visibility service operations.
 /// Used for dependency injection and testing.
 protocol VisibilityServiceProtocol: AnyObject {
-    func publishContent(_ item: LibraryModel) async throws
-    func unpublishContent(_ item: LibraryModel) async throws
+    func publishContent(_ item: LibraryModel) async throws -> SyncSummary
+    func unpublishContent(_ item: LibraryModel) async throws -> SyncSummary
     func retrySync(for item: LibraryModel) async
 }
 
@@ -137,7 +137,7 @@ final class VisibilityService: VisibilityServiceProtocol {
     /// Publish content to make it publicly visible
     /// - Parameter item: The library item to publish
     /// - Throws: `PublishError` if publishing fails
-    func publishContent(_ item: LibraryModel) async throws {
+    func publishContent(_ item: LibraryModel) async throws -> SyncSummary {
         AppLogger.auth.startOperation("Publish Content")
 
         // Check authentication and ensure user info is loaded
@@ -184,13 +184,14 @@ final class VisibilityService: VisibilityServiceProtocol {
             try await libraryStore.updateLibraryMetadata(updated)
             
             let payload = try await encodeContentForSync(updated)
-            try await syncService.enqueuePublish(
+            let syncSummary = try await syncService.enqueuePublish(
                 contentID: updated.id,
                 visibility: .public,
                 payload: payload
             )
             AppLogger.auth.completeOperation("Publish Content")
             AppLogger.auth.info("Content published successfully: \(item.id)")
+            return syncSummary
         } catch {
             AppLogger.auth.failOperation("Publish Content", error: error)
             
@@ -206,7 +207,7 @@ final class VisibilityService: VisibilityServiceProtocol {
     /// Unpublish content (make it private)
     /// - Parameter item: The library item to unpublish
     /// - Throws: Error if unpublishing fails
-    func unpublishContent(_ item: LibraryModel) async throws {
+    func unpublishContent(_ item: LibraryModel) async throws -> SyncSummary {
         AppLogger.auth.startOperation("Unpublish Content")
 
         // Check authentication and ensure user info is loaded
@@ -239,13 +240,14 @@ final class VisibilityService: VisibilityServiceProtocol {
             try await libraryStore.updateLibraryMetadata(updated)
             
             // Pass captured publicID
-            try await syncService.enqueueUnpublish(
+            let syncSummary = try await syncService.enqueueUnpublish(
                 contentID: updated.id,
                 publicID: publicIDToUnpublish
             )
-            
+
             AppLogger.auth.completeOperation("Unpublish Content")
             AppLogger.auth.info("Content unpublished successfully: \(item.id)")
+            return syncSummary
         } catch {
             AppLogger.auth.failOperation("Unpublish Content", error: error)
             throw PublishError.networkError(error)
@@ -274,7 +276,7 @@ final class VisibilityService: VisibilityServiceProtocol {
         AppLogger.auth.completeOperation("Make Unlisted")
     }
     
-    private func encodeContentForSync(_ item: LibraryModel) async throws -> Data {
+    func encodeContentForSync(_ item: LibraryModel) async throws -> Data {
             let contentDict: [String: Any]
             
             switch item.type {

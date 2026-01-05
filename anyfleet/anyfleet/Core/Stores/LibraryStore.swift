@@ -445,12 +445,12 @@ final class LibraryStore: LibraryStoreProtocol {
             encoder.dateEncodingStrategy = .iso8601
             let payloadData = try encoder.encode(payload)
 
-            try await syncQueue.enqueuePublishUpdate(
+            let summary = try await syncQueue.enqueuePublishUpdate(
                 contentID: checklist.id,
                 payload: payloadData
             )
 
-            AppLogger.store.info("Triggered publish_update sync for checklist: \(checklist.id)")
+            AppLogger.store.info("Publish update sync completed for checklist: \(checklist.id) - \(summary.succeeded) succeeded, \(summary.failed) failed")
         } catch {
             AppLogger.store.error("Failed to trigger publish_update sync for checklist: \(checklist.id)", error: error)
         }
@@ -486,12 +486,12 @@ final class LibraryStore: LibraryStoreProtocol {
             encoder.dateEncodingStrategy = .iso8601
             let payloadData = try encoder.encode(payload)
 
-            try await syncQueue.enqueuePublishUpdate(
+            let summary = try await syncQueue.enqueuePublishUpdate(
                 contentID: guide.id,
                 payload: payloadData
             )
 
-            AppLogger.store.info("Triggered publish_update sync for guide: \(guide.id)")
+            AppLogger.store.info("Publish update sync completed for guide: \(guide.id) - \(summary.succeeded) succeeded, \(summary.failed) failed")
         } catch {
             AppLogger.store.error("Failed to trigger publish_update sync for guide: \(guide.id)", error: error)
         }
@@ -535,10 +535,11 @@ final class LibraryStore: LibraryStoreProtocol {
         // If content is published and should be unpublished, enqueue unpublish operation
         if shouldUnpublish, let publicID = item.publicID {
             AppLogger.store.info("Enqueuing unpublish operation for published content before deletion: \(item.id)")
-            try await syncQueue.enqueueUnpublish(
+            let summary = try await syncQueue.enqueueUnpublish(
                 contentID: item.id,
                 publicID: publicID
             )
+            AppLogger.store.info("Unpublish sync completed for deletion: \(item.id) - \(summary.succeeded) succeeded, \(summary.failed) failed")
         }
 
         // Delete from local database (after sync completes)

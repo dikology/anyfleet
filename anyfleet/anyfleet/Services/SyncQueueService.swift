@@ -32,12 +32,12 @@ final class SyncQueueService {
 
     // MARK: - Enqueue Operations
 
-    /// Enqueue a publish operation for content
+    /// Enqueue a publish operation for content and immediately sync
     func enqueuePublish(
         contentID: UUID,
         visibility: ContentVisibility,
         payload: Data
-    ) async throws {
+    ) async throws -> SyncSummary {
         AppLogger.services.info("Enqueuing publish operation for content: \(contentID)")
 
         try await repository.enqueueSyncOperation(
@@ -50,17 +50,60 @@ final class SyncQueueService {
         await updateSyncState(contentID: contentID, status: .queued)
         await updatePendingCounts()
 
-        // Trigger immediate sync processing
-        Task { @MainActor in
-            await processQueue()
-        }
+        // Trigger immediate sync processing and return result
+        return await processQueue()
     }
 
-    /// Enqueue an unpublish operation for content
-    func enqueueUnpublish(
+    /// Enqueue a publish operation without immediately syncing (for testing)
+    func enqueuePublishOnly(
+        contentID: UUID,
+        visibility: ContentVisibility,
+        payload: Data
+    ) async throws {
+        AppLogger.services.info("Enqueuing publish operation (no sync): \(contentID)")
+
+        try await repository.enqueueSyncOperation(
+            contentID: contentID,
+            operation: .publish,
+            visibility: visibility,
+            payload: payload
+        )
+
+        await updateSyncState(contentID: contentID, status: .queued)
+        await updatePendingCounts()
+
+        // Don't trigger immediate sync processing
+    }
+
+    /// Enqueue an unpublish operation without immediately syncing (for testing)
+    func enqueueUnpublishOnly(
         contentID: UUID,
         publicID: String
     ) async throws {
+        AppLogger.services.info("Enqueuing unpublish operation (no sync): \(contentID)")
+
+        // Create payload with publicID
+        let unpublishPayload = UnpublishPayload(publicID: publicID)
+        let payloadData = try JSONEncoder().encode(unpublishPayload)
+
+        try await repository.enqueueSyncOperation(
+            contentID: contentID,
+            operation: .unpublish,
+            visibility: .private,
+            payload: payloadData
+        )
+
+        await updateSyncState(contentID: contentID, status: .queued)
+        await updatePendingCounts()
+
+        // Don't trigger immediate sync processing
+    }
+
+    /// Enqueue an unpublish operation for content and immediately sync
+    func enqueueUnpublish(
+        contentID: UUID,
+        publicID: String
+    ) async throws -> SyncSummary {
         AppLogger.services.info("Enqueuing unpublish operation for content: \(contentID)")
 
         // Create payload with publicID
@@ -77,17 +120,15 @@ final class SyncQueueService {
         await updateSyncState(contentID: contentID, status: .queued)
         await updatePendingCounts()
 
-        // Trigger immediate sync processing
-        Task { @MainActor in
-            await processQueue()
-        }
+        // Trigger immediate sync processing and return result
+        return await processQueue()
     }
 
-    /// Enqueue a publish update operation for published content
+    /// Enqueue a publish update operation for published content and immediately sync
     func enqueuePublishUpdate(
         contentID: UUID,
         payload: Data
-    ) async throws {
+    ) async throws -> SyncSummary {
         AppLogger.services.info("Enqueuing publish_update operation for content: \(contentID)")
 
         try await repository.enqueueSyncOperation(
@@ -100,10 +141,8 @@ final class SyncQueueService {
         await updateSyncState(contentID: contentID, status: .queued)
         await updatePendingCounts()
 
-        // Trigger immediate sync processing
-        Task { @MainActor in
-            await processQueue()
-        }
+        // Trigger immediate sync processing and return result
+        return await processQueue()
     }
 
     // MARK: - Queue Processing
@@ -273,28 +312,29 @@ final class SyncQueueService {
         await updateSyncState(contentID: operation.contentID, status: .synced)
     }
 
-    private func handleUnpublish(_ operation: SyncQueueOperation) async throws {
+    private func fetchItemForUnpublish(_ operation: SyncQueueOperation) async throws -> LibraryModel? {
+        // Check if this content was ever successfully published
+        let hasSuccessfulPublish = try? await repository.hasSuccessfulPublishOperation(for: operation.contentID)
+
+        // Also check if the content appears published in the database (has publicID and is public)
+        let currentItem = try? await repository.fetchLibraryItem(operation.contentID)
+        let appearsPublished = currentItem?.visibility == .public && currentItem?.publicID != nil
+
+        // If there's no record of successful publish AND the content doesn't appear published, skip the unpublish operation
+        // This can happen when publish failed but unpublish was still enqueued
+        guard hasSuccessfulPublish == true || appearsPublished == true else {
+            return nil
+        }
+
+        return currentItem
+    }
+
+    private func performUnpublish(_ item: LibraryModel?, operation: SyncQueueOperation) async throws {
         guard let payloadData = operation.payload else {
             throw SyncError.invalidPayload
         }
 
         let unpublishPayload = try JSONDecoder().decode(UnpublishPayload.self, from: payloadData)
-
-        // Check if this content was ever successfully published
-        let hasSuccessfulPublish = try? await repository.hasSuccessfulPublishOperation(for: operation.contentID)
-        AppLogger.services.info("Unpublish operation for \(operation.contentID) - has successful publish: \(hasSuccessfulPublish ?? false)")
-
-        // Also check if the content appears published in the database (has publicID and is public)
-        let currentItem = try? await repository.fetchLibraryItem(operation.contentID)
-        let appearsPublished = currentItem?.visibility == .public && currentItem?.publicID != nil
-        AppLogger.services.info("Unpublish operation for \(operation.contentID) - appears published in DB: \(appearsPublished)")
-
-        // If there's no record of successful publish AND the content doesn't appear published, skip the unpublish operation
-        // This can happen when publish failed but unpublish was still enqueued
-        guard hasSuccessfulPublish == true || appearsPublished == true else {
-            AppLogger.services.warning("Skipping unpublish for \(operation.contentID) - no successful publish record and content doesn't appear published")
-            return
-        }
 
         // Use publicID from payload
         do {
@@ -302,23 +342,29 @@ final class SyncQueueService {
         } catch APIError.notFound {
             // Content doesn't exist (404) - this means it's already unpublished
             // Treat this as successful
-            AppLogger.services.info("Content \(unpublishPayload.publicID) not found during unpublish - treating as successful")
         }
 
         // Update local model - content is now unpublished (whether it existed or not)
-        AppLogger.services.info("Unpublish: Updating local content \(operation.contentID)")
         if var updated = try await repository.fetchLibraryItem(operation.contentID) {
-            AppLogger.services.info("Unpublish: Found item to update: \(updated.id), visibility: \(updated.visibility.rawValue)")
             updated.visibility = .private
             updated.publicID = nil
             updated.publishedAt = nil
             updated.syncStatus = .synced
-            AppLogger.services.info("Unpublish: Updated item - visibility: \(updated.visibility.rawValue), publicID: \(updated.publicID ?? "nil")")
             try await repository.updateLibraryMetadata(updated)
-            AppLogger.services.info("Unpublish: Successfully saved updated item")
-        } else {
-            AppLogger.services.warning("Unpublish: Could not find item \(operation.contentID) to update")
         }
+    }
+
+    private func handleUnpublish(_ operation: SyncQueueOperation) async throws {
+        AppLogger.services.debug("Starting unpublish operation for content: \(operation.contentID)")
+
+        // Only log significant events
+        guard let item = try await fetchItemForUnpublish(operation) else {
+            AppLogger.services.warning("Skipping unpublish - no successful publish record found for content: \(operation.contentID)")
+            return
+        }
+
+        try await performUnpublish(item, operation: operation)
+        AppLogger.services.info("Unpublish completed for content: \(operation.contentID)")
     }
 
     private func handlePublishUpdate(_ operation: SyncQueueOperation) async throws {
@@ -439,9 +485,3 @@ public struct SyncSummary {
     var failed: Int = 0
 }
 
-// MARK: - Logger Extension
-
-extension AppLogger {
-    /// Logger for sync queue service operations
-    static let services = Logger(subsystem: "com.anyfleet.app", category: "Services")
-}
