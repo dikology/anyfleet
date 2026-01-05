@@ -17,8 +17,7 @@ enum AppLogger {
     static let charter = Logger(subsystem: "com.anyfleet.app", category: "Charter")
     
     /// Database-related logging
-    /// Marked as nonisolated(unsafe) to allow access from nonisolated contexts like AppDatabase initializer
-    nonisolated(unsafe) static let database = Logger(subsystem: "com.anyfleet.app", category: "Database")
+    static let database = Logger(subsystem: "com.anyfleet.app", category: "Database")
     
     /// Repository-related logging
     static let repository = Logger(subsystem: "com.anyfleet.app", category: "Repository")
@@ -34,6 +33,9 @@ enum AppLogger {
 
     /// API-related logging
     static let api = Logger(subsystem: "com.anyfleet.app", category: "API")
+
+    /// Services-related logging
+    static let services = Logger(subsystem: "com.anyfleet.app", category: "Services")
 }
 
 // MARK: - Convenience Extensions

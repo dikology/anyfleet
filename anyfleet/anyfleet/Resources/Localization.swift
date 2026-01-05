@@ -333,6 +333,18 @@ enum L10n {
             tableName: "Localizable",
             comment: "Delete account button label"
         )
+
+        static let displayNameTitle = NSLocalizedString(
+            "profile.displayNameTitle",
+            tableName: "Localizable",
+            comment: "Title for display name input field"
+        )
+
+        static let displayNamePlaceholder = NSLocalizedString(
+            "profile.displayNamePlaceholder",
+            tableName: "Localizable",
+            comment: "Placeholder for display name input field"
+        )
     }
     
     enum Error {
@@ -496,6 +508,37 @@ enum L10n {
             "error.unknown.recovery",
             tableName: "Localizable",
             comment: "Recovery suggestion for unknown error"
+        )
+
+        // Library-specific errors
+        static let libraryNotFound = NSLocalizedString(
+            "error.library.notFound",
+            tableName: "Localizable",
+            comment: "Library content not found error"
+        )
+
+        static let librarySyncFailed = NSLocalizedString(
+            "error.library.syncFailed",
+            tableName: "Localizable",
+            comment: "Library sync failed error"
+        )
+
+        static let libraryNotFoundRecovery = NSLocalizedString(
+            "error.library.notFound.recovery",
+            tableName: "Localizable",
+            comment: "Recovery suggestion for library not found error"
+        )
+
+        static let librarySyncFailedRecovery = NSLocalizedString(
+            "error.library.syncFailed.recovery",
+            tableName: "Localizable",
+            comment: "Recovery suggestion for library sync failed error"
+        )
+
+        static let genericRecovery = NSLocalizedString(
+            "error.generic.recovery",
+            tableName: "Localizable",
+            comment: "Generic recovery suggestion"
         )
     }
     
@@ -1238,6 +1281,18 @@ enum L10n {
             "common.close",
             tableName: "Localizable",
             comment: "Close button text"
+        )
+
+        static let cancel = NSLocalizedString(
+            "common.cancel",
+            tableName: "Localizable",
+            comment: "Cancel button text"
+        )
+
+        static let save = NSLocalizedString(
+            "common.save",
+            tableName: "Localizable",
+            comment: "Save button text"
         )
     }
 

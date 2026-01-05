@@ -95,8 +95,13 @@ final class ChecklistExecutionViewModel {
         defer { isLoading = false }
         
         do {
-            // Step 1: Load checklist template
-            checklist = try await libraryStore.fetchChecklist(checklistID)
+            // Step 1: Ensure library metadata is loaded (for on-demand fetching)
+            if libraryStore.myChecklists.isEmpty {
+                await libraryStore.loadLibrary()
+            }
+
+            // Step 2: Load checklist template
+            checklist = try await libraryStore.fetchFullContent(checklistID)
             
             // Step 2: Load saved execution state
             if let savedState = try await executionRepository

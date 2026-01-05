@@ -181,6 +181,8 @@
 "profile.exportData" = "Export Data";
 "profile.activityLog" = "Activity Log";
 "profile.deleteAccount" = "Delete Account";
+"profile.displayNameTitle" = "Display Name";
+"profile.displayNamePlaceholder" = "Enter your display name";
 
 "error.generic" = "Unknown error: %@";
 "error.notFound" = "%@ with ID %@ not found";
@@ -224,6 +226,8 @@
 
 // Common
 "common.close" = "Close";
+"common.cancel" = "Cancel";
+"common.save" = "Save";
 
 // Author Profile
 "authorProfile.title" = "Author Profile";

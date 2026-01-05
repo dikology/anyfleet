@@ -240,44 +240,50 @@ final class LocalRepository: Sendable {
     }
     
     /// Fetch a single checklist by ID
-    func fetchChecklist(_ checklistID: UUID) async throws -> Checklist? {
+    func fetchChecklist(_ checklistID: UUID) async throws -> Checklist {
         AppLogger.repository.startOperation("Fetch Checklist")
         defer { AppLogger.repository.completeOperation("Fetch Checklist") }
-        
+
         return try await database.dbWriter.read { db in
-            try ChecklistRecord.fetchOne(id: checklistID, db: db)?
-                .toDomainModel()
+            guard let record = try ChecklistRecord.fetchOne(id: checklistID, db: db) else {
+                throw LibraryError.notFound(checklistID)
+            }
+            return try record.toDomainModel()
         }
     }
     
     /// Fetch a single guide by ID
-    func fetchGuide(_ guideID: UUID) async throws -> PracticeGuide? {
+    func fetchGuide(_ guideID: UUID) async throws -> PracticeGuide {
         AppLogger.repository.startOperation("Fetch Guide")
         defer { AppLogger.repository.completeOperation("Fetch Guide") }
-        
+
         return try await database.dbWriter.read { db in
-            try PracticeGuideRecord.fetchOne(id: guideID, db: db)?
-                .toDomainModel()
+            guard let record = try PracticeGuideRecord.fetchOne(id: guideID, db: db) else {
+                throw LibraryError.notFound(guideID)
+            }
+            return try record.toDomainModel()
         }
     }
     
     /// Fetch a single deck by ID
     /// TODO: Implement when FlashcardDeckRecord is created
-    func fetchDeck(_ deckID: UUID) async throws -> FlashcardDeck? {
+    func fetchDeck(_ deckID: UUID) async throws -> FlashcardDeck {
         AppLogger.repository.startOperation("Fetch Deck")
         defer { AppLogger.repository.completeOperation("Fetch Deck") }
-        
+
         // TODO: Implement when FlashcardDeckRecord is created
         // try await database.dbWriter.read { db in
-        //     try FlashcardDeckRecord
+        //     guard let record = try FlashcardDeckRecord
         //         .filter(FlashcardDeckRecord.Columns.id == deckID.uuidString)
-        //         .fetchOne(db)?
-        //         .toDomainModel()
+        //         .fetchOne(db) else {
+        //         throw LibraryError.notFound(deckID)
+        //     }
+        //     return try record.toDomainModel()
         // }
-        
-        // Stub implementation - returns nil until records are implemented
+
+        // Stub implementation - throws not found until records are implemented
         AppLogger.repository.debug("Fetching deck: \(deckID.uuidString)")
-        return nil
+        throw LibraryError.notFound(deckID)
     }
     
     // MARK: - Creating Content

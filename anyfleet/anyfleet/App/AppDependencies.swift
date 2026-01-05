@@ -54,6 +54,9 @@ final class AppDependencies {
     /// Shared charter store instance
     let charterStore: CharterStore
     
+    /// Shared sync queue service instance
+    let syncQueueService: SyncQueueService
+
     /// Shared library store instance
     let libraryStore: LibraryStore
 
@@ -100,22 +103,24 @@ final class AppDependencies {
         self.database = .shared
         self.repository = LocalRepository(database: database)
 
-        // API client (needed by contentSyncService)
+        // API client (needed by sync services)
         self.apiClient = APIClient(authService: AuthService.shared)
+
+        // Initialize sync queue service (lowest level sync dependency)
+        self.syncQueueService = SyncQueueService(
+            repository: repository,
+            apiClient: apiClient
+        )
 
         // Initialize stores
         self.charterStore = CharterStore(repository: repository)
-        self.libraryStore = LibraryStore(repository: repository)
+        self.libraryStore = LibraryStore(repository: repository, syncQueue: syncQueueService)
 
-        // Initialize content sync service (depends on libraryStore)
+        // Initialize content sync service (orchestrator)
         self.contentSyncService = ContentSyncService(
-            repository: repository,
-            apiClient: apiClient,
-            libraryStore: libraryStore
+            syncQueue: syncQueueService,
+            repository: repository
         )
-
-        // Set content sync service on library store to enable automatic sync for published content
-        libraryStore.setContentSyncService(contentSyncService)
 
         // Initialize services
         self.localizationService = LocalizationService()
@@ -159,19 +164,21 @@ final class AppDependencies {
         self.database = database
         self.repository = repository
 
-        // API client (needed by contentSyncService)
+        // API client (needed by sync services)
         self.apiClient = APIClient(authService: AuthService.shared)
 
-        self.charterStore = CharterStore(repository: repository)
-        self.libraryStore = LibraryStore(repository: repository)
-        self.contentSyncService = ContentSyncService(
+        // Initialize sync queue service (lowest level sync dependency)
+        self.syncQueueService = SyncQueueService(
             repository: repository,
-            apiClient: apiClient,
-            libraryStore: libraryStore
+            apiClient: apiClient
         )
 
-        // Set content sync service on library store to enable automatic sync for published content
-        libraryStore.setContentSyncService(contentSyncService)
+        self.charterStore = CharterStore(repository: repository)
+        self.libraryStore = LibraryStore(repository: repository, syncQueue: syncQueueService)
+        self.contentSyncService = ContentSyncService(
+            syncQueue: syncQueueService,
+            repository: repository
+        )
 
         // Initialize services
         self.localizationService = LocalizationService()

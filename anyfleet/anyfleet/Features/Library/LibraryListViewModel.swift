@@ -1,6 +1,31 @@
 import Foundation
 import Observation
 
+/// Represents the different content filters available in the library
+enum ContentFilter: String, CaseIterable, Identifiable {
+    case all
+    case checklists
+    case guides
+    case decks
+
+    var id: Self { self }
+
+    var title: String {
+        switch self {
+        case .all: return L10n.Library.filterAll
+        case .checklists: return L10n.Library.filterChecklists
+        case .guides: return L10n.Library.filterGuides
+        case .decks: return L10n.Library.filterDecks
+        }
+    }
+}
+
+/// Represents the different delete confirmation modals that can be shown
+enum DeleteAction {
+    case showPublishedModal
+    case showPrivateModal
+}
+
 @MainActor
 @Observable
 final class LibraryListViewModel: ErrorHandling {
@@ -18,6 +43,16 @@ final class LibraryListViewModel: ErrorHandling {
     var publishError: Error?
     var currentError: AppError?
     var showErrorBanner: Bool = false
+
+    // MARK: - UI State
+
+    var selectedFilter: ContentFilter = .all
+    var showingPublishConfirmation = false
+    var showingSignInModal = false
+    var pendingDeleteItem: LibraryModel?
+    var showPrivateDeleteConfirmation = false
+    var showPublishedDeleteConfirmation = false
+    var publishedDeleteModalItem: LibraryModel?
     
     // MARK: - Computed Properties
     
@@ -70,6 +105,20 @@ final class LibraryListViewModel: ErrorHandling {
     /// Whether there is any public content
     var hasPublicContent: Bool {
         !publicContent.isEmpty
+    }
+
+    /// Filtered library items based on selected filter
+    var filteredItems: [LibraryModel] {
+        switch selectedFilter {
+        case .all:
+            return library
+        case .checklists:
+            return checklists
+        case .guides:
+            return guides
+        case .decks:
+            return decks
+        }
     }
     
     // MARK: - Initialization
@@ -189,6 +238,12 @@ final class LibraryListViewModel: ErrorHandling {
     func isPublishedContent(_ item: LibraryModel) -> Bool {
         return item.publicID != nil
     }
+
+    /// Initiate delete action and return the appropriate modal type to show
+    func initiateDelete(_ item: LibraryModel) -> DeleteAction {
+        AppLogger.view.info("Delete initiated for item: \(item.id), title: '\(item.title)', publicID: \(item.publicID ?? "nil")")
+        return item.publicID != nil ? .showPublishedModal : .showPrivateModal
+    }
     
     /// Toggle pinned state for a library item
     func togglePin(for item: LibraryModel) async {
@@ -218,10 +273,10 @@ final class LibraryListViewModel: ErrorHandling {
         clearError()
 
         do {
-            try await visibilityService.publishContent(item)
+            let syncSummary = try await visibilityService.publishContent(item)
             pendingPublishItem = nil
             await loadLibrary()
-            AppLogger.view.info("Publish confirmed and completed for item: \(item.id)")
+            AppLogger.view.info("Publish confirmed and completed for item: \(item.id) - \(syncSummary.succeeded) succeeded, \(syncSummary.failed) failed")
         } catch {
             AppLogger.view.error("Publish failed", error: error)
             publishError = error
@@ -241,9 +296,9 @@ final class LibraryListViewModel: ErrorHandling {
         AppLogger.view.info("Unpublishing item: \(item.id)")
 
         do {
-            try await visibilityService.unpublishContent(item)
+            let syncSummary = try await visibilityService.unpublishContent(item)
             await loadLibrary()
-            AppLogger.view.info("Unpublish completed for item: \(item.id)")
+            AppLogger.view.info("Unpublish completed for item: \(item.id) - \(syncSummary.succeeded) succeeded, \(syncSummary.failed) failed")
         } catch {
             AppLogger.view.error("Unpublish failed", error: error)
             publishError = error

@@ -42,7 +42,12 @@ final class PracticeGuideReaderViewModel {
         }
         
         do {
-            let loaded = try await libraryStore.fetchGuide(guideID)
+            // Ensure library metadata is loaded for on-demand fetching
+            if libraryStore.myGuides.isEmpty {
+                await libraryStore.loadLibrary()
+            }
+
+            let loaded: PracticeGuide? = try await libraryStore.fetchFullContent(guideID)
             await MainActor.run {
                 self.guide = loaded
                 if loaded == nil {

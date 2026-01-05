@@ -10,21 +10,24 @@ import Observation
 
 @MainActor
 @Observable
-final class ChecklistEditorViewModel {
+final class ChecklistEditorViewModel: ErrorHandling {
     // MARK: - Dependencies
-    
+
     private let libraryStore: LibraryStore
     private let checklistID: UUID?
     private let onDismiss: () -> Void
-    
+
     // MARK: - State
-    
+
     var checklist: Checklist
     var isSaving = false
     var isLoading = false
-    var errorMessage: String?
     var editingSection: ChecklistSection?
     var editingItem: (sectionID: UUID, item: ChecklistItem)?
+
+    // Error handling
+    var currentError: AppError?
+    var showErrorBanner = false
     
     var isNewChecklist: Bool {
         checklistID == nil
@@ -47,52 +50,56 @@ final class ChecklistEditorViewModel {
     
     func loadChecklist() async {
         guard let checklistID = checklistID, !isNewChecklist else { return }
-        
+
         isLoading = true
-        errorMessage = nil
-        
+        clearError()
+
         do {
-            if let loaded = try await libraryStore.fetchChecklist(checklistID) {
-                checklist = loaded
+            // Ensure library metadata is loaded for on-demand fetching
+            if libraryStore.myChecklists.isEmpty {
+                await libraryStore.loadLibrary()
             }
+
+            let loaded = try await libraryStore.fetchChecklist(checklistID)
+            checklist = loaded
         } catch {
-            errorMessage = "Failed to load checklist: \(error.localizedDescription)"
+            handleError(error)
         }
-        
+
         isLoading = false
     }
     
     func saveChecklist() async {
         guard !isSaving else { return }
-        
+
         // Validation: every section must have at least one item
         if let emptySection = checklist.sections.first(where: { $0.items.isEmpty }) {
-            errorMessage = "Section '\(emptySection.title)' must have at least one item"
+            handleError(LibraryError.validationFailed("Section '\(emptySection.title)' must have at least one item"))
             return
         }
-        
+
         guard !checklist.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            errorMessage = "Checklist title is required"
+            handleError(LibraryError.validationFailed("Checklist title is required"))
             return
         }
-        
+
         isSaving = true
-        errorMessage = nil
-        
+        clearError()
+
         do {
             if isNewChecklist {
                 try await libraryStore.createChecklist(checklist)
             } else {
                 try await libraryStore.saveChecklist(checklist)
             }
-            
+
             // Reload library to reflect changes
             await libraryStore.loadLibrary()
-            
+
             onDismiss()
         } catch {
-            errorMessage = "Failed to save checklist: \(error.localizedDescription)"
             isSaving = false
+            handleError(error)
         }
     }
     

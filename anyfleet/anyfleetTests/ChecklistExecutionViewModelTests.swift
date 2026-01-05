@@ -53,11 +53,15 @@ struct ChecklistExecutionViewModelTests {
     private func makeLibraryStore(with checklist: Checklist) async throws -> LibraryStore {
         let database = try AppDatabase.makeEmpty()
         let repository = LocalRepository(database: database)
-        
+
         // Pre-load the checklist into the repository
         try await repository.createChecklist(checklist)
-        
-        let store = LibraryStore(repository: repository)
+
+        // Create sync queue service
+        let mockAPIClient = MockAPIClient()
+        let syncQueue = SyncQueueService(repository: repository, apiClient: mockAPIClient)
+
+        let store = LibraryStore(repository: repository, syncQueue: syncQueue)
         return store
     }
     

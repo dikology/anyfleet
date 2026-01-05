@@ -61,7 +61,7 @@ final class CharterDetailViewModel {
         }
         
         // Ensure library content is loaded so we can look for check‑in templates
-        if libraryStore.checklists.isEmpty {
+        if libraryStore.myChecklists.isEmpty {
             await libraryStore.loadLibrary()
         }
         
@@ -81,7 +81,16 @@ final class CharterDetailViewModel {
         }
         
         // Find a check‑in checklist template in the user's library
-        guard let template = libraryStore.checklists.first(where: { $0.checklistType == .checkIn }) else {
+        var templateMetadata: LibraryModel? = nil
+        for metadata in libraryStore.myChecklists {
+            if let checklist: Checklist = try? await libraryStore.fetchFullContent(metadata.id),
+               checklist.checklistType == .checkIn {
+                templateMetadata = metadata
+                break
+            }
+        }
+
+        guard let templateMetadata = templateMetadata else {
             // No template available; leave nil and allow UI to show placeholder
             checkInChecklistID = nil
             return
@@ -89,8 +98,8 @@ final class CharterDetailViewModel {
         
         // For now, reference the template's ID directly as the charter's check‑in instance.
         // In the future this can be expanded to clone the template into a true charter‑scoped checklist.
-        currentCharter.checkInChecklistID = template.id
-        checkInChecklistID = template.id
+        currentCharter.checkInChecklistID = templateMetadata.id
+        checkInChecklistID = templateMetadata.id
         
         do {
             try await charterStore.saveCharter(currentCharter)

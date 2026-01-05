@@ -25,10 +25,6 @@ struct ChecklistReaderView: View {
                 } else if viewModel.isLoading {
                     ProgressView()
                         .tint(DesignSystem.Colors.primary)
-                } else if let error = viewModel.errorMessage {
-                    Text(error)
-                        .foregroundColor(DesignSystem.Colors.textSecondary)
-                        .padding()
                 } else {
                     // Show loading state instead of empty view
                     VStack(spacing: DesignSystem.Spacing.md) {
@@ -39,6 +35,20 @@ struct ChecklistReaderView: View {
                             .foregroundColor(DesignSystem.Colors.textSecondary)
                     }
                     .padding()
+                }
+            }
+
+            // Error Banner
+            if viewModel.showErrorBanner, let error = viewModel.currentError {
+                VStack {
+                    Spacer()
+                    ErrorBanner(
+                        error: error,
+                        onDismiss: { viewModel.clearError() },
+                        onRetry: { Task { await viewModel.loadChecklist() } }
+                    )
+                    .padding(.horizontal)
+                    .padding(.bottom, 20)
                 }
             }
         }

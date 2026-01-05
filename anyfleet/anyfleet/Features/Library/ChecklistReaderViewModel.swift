@@ -10,17 +10,20 @@ import Observation
 
 @MainActor
 @Observable
-final class ChecklistReaderViewModel {
+final class ChecklistReaderViewModel: ErrorHandling {
     // MARK: - Dependencies
-    
+
     private let libraryStore: LibraryStore
     private let checklistID: UUID
-    
+
     // MARK: - State
-    
+
     var checklist: Checklist?
     var isLoading = false
-    var errorMessage: String?
+
+    // Error handling
+    var currentError: AppError?
+    var showErrorBanner = false
     
     // MARK: - Initialization
     
@@ -35,27 +38,29 @@ final class ChecklistReaderViewModel {
         // Skip loading if checklist is already set (useful for previews)
         guard checklist == nil else { return }
         guard !isLoading else { return }
-        
+
         await MainActor.run {
             isLoading = true
-            errorMessage = nil
+            clearError()
         }
-        
+
         do {
+            // Ensure library metadata is loaded for on-demand fetching
+            if libraryStore.myChecklists.isEmpty {
+                await libraryStore.loadLibrary()
+            }
+
             let loaded = try await libraryStore.fetchChecklist(checklistID)
             await MainActor.run {
                 self.checklist = loaded
-                if loaded == nil {
-                    self.errorMessage = "Checklist not found"
-                }
                 self.isLoading = false
             }
-            AppLogger.view.info("Checklist loaded: \(loaded != nil ? "success" : "not found") - ID: \(checklistID.uuidString)")
+            AppLogger.view.info("Checklist loaded successfully - ID: \(checklistID.uuidString)")
         } catch {
             await MainActor.run {
-                self.errorMessage = "Failed to load checklist: \(error.localizedDescription)"
                 self.isLoading = false
             }
+            handleError(error)
             AppLogger.view.error("Failed to load checklist \(checklistID.uuidString): \(error.localizedDescription)")
         }
     }

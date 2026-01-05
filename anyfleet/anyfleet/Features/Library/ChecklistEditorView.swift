@@ -36,12 +36,20 @@ struct ChecklistEditorView: View {
             .task {
                 await viewModel.loadChecklist()
             }
-            .alert(L10n.ChecklistEditor.error, isPresented: errorAlertBinding) {
-                Button(L10n.ChecklistEditor.ok) { viewModel.errorMessage = nil }
-            } message: {
-                if let error = viewModel.errorMessage {
-                    Text(error)
+
+            // Error Banner
+            if viewModel.showErrorBanner, let error = viewModel.currentError {
+                VStack {
+                    Spacer()
+                    ErrorBanner(
+                        error: error,
+                        onDismiss: { viewModel.clearError() },
+                        onRetry: { Task { await viewModel.loadChecklist() } }
+                    )
+                    .padding(.horizontal)
+                    .padding(.bottom, 20)
                 }
+                .transition(.move(edge: .bottom).combined(with: .opacity))
             }
     }
     
@@ -152,12 +160,6 @@ struct ChecklistEditorView: View {
         )
     }
     
-    private var errorAlertBinding: Binding<Bool> {
-        Binding(
-            get: { viewModel.errorMessage != nil },
-            set: { if !$0 { viewModel.errorMessage = nil } }
-        )
-    }
     
     // MARK: - Header Card
     

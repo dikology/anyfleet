@@ -89,6 +89,27 @@ class MockLibraryStore: LibraryStoreProtocol {
             togglePinCalls.append(item)
         }
 
+        func fetchFullContent<T>(_ id: UUID) async throws -> T? {
+            // Mock implementation - return nil for simplicity in tests
+            // Tests can override this behavior if needed
+            return nil
+        }
+
+        func fetchChecklist(_ checklistID: UUID) async throws -> Checklist {
+            // Mock implementation - throw not found for simplicity in tests
+            throw LibraryError.notFound(checklistID)
+        }
+
+        func fetchGuide(_ guideID: UUID) async throws -> PracticeGuide {
+            // Mock implementation - throw not found for simplicity in tests
+            throw LibraryError.notFound(guideID)
+        }
+
+        func fetchDeck(_ deckID: UUID) async throws -> FlashcardDeck {
+            // Mock implementation - throw not found for simplicity in tests
+            throw LibraryError.notFound(deckID)
+        }
+
         func forkContent(from sharedContent: SharedContentDetail) async throws {
             // Convert content type string to enum
             let contentType: ContentType
@@ -131,12 +152,14 @@ class MockVisibilityService: VisibilityServiceProtocol {
         func getUnpublishCalls() -> [LibraryModel] { unpublishCalls }
         func getRetrySyncCalls() -> [LibraryModel] { retrySyncCalls }
 
-        func publishContent(_ item: LibraryModel) async throws {
+        func publishContent(_ item: LibraryModel) async throws -> SyncSummary {
             publishCalls.append(item)
+            return SyncSummary(succeeded: 1, failed: 0)
         }
 
-        func unpublishContent(_ item: LibraryModel) async throws {
+        func unpublishContent(_ item: LibraryModel) async throws -> SyncSummary {
             unpublishCalls.append(item)
+            return SyncSummary(succeeded: 1, failed: 0)
         }
 
         func retrySync(for item: LibraryModel) async {

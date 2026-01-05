@@ -17,6 +17,13 @@ struct ChecklistPersistenceIntegrationTests {
         let database = try AppDatabase.makeEmpty()
         return LocalRepository(database: database)
     }
+
+    // Each test gets its own sync queue service
+    @MainActor
+    private func makeSyncQueue(repository: LocalRepository) -> SyncQueueService {
+        let mockAPIClient = MockAPIClient()
+        return SyncQueueService(repository: repository, apiClient: mockAPIClient)
+    }
     
     /// Helper to create a test charter so that foreign key constraints
     /// on `charterID` are satisfied for execution state records.
@@ -77,7 +84,8 @@ struct ChecklistPersistenceIntegrationTests {
     func testEndToEnd_ProgressRestored() async throws {
         // Arrange
         let repository = try makeRepository()
-        let libraryStore = LibraryStore(repository: repository)
+        let syncQueue = makeSyncQueue(repository: repository)
+        let libraryStore = LibraryStore(repository: repository, syncQueue: syncQueue)
         let charter = try await createTestCharter(repository: repository)
         let charterID = charter.id
         let checklist = makeTestChecklist()
@@ -155,7 +163,8 @@ struct ChecklistPersistenceIntegrationTests {
     func testEndToEnd_IndependentProgressPerCharter() async throws {
         // Arrange
         let repository = try makeRepository()
-        let libraryStore = LibraryStore(repository: repository)
+        let syncQueue = makeSyncQueue(repository: repository)
+        let libraryStore = LibraryStore(repository: repository, syncQueue: syncQueue)
         let charter1 = try await createTestCharter(repository: repository)
         let charter2 = try await createTestCharter(repository: repository)
         let charter1ID = charter1.id
@@ -251,7 +260,8 @@ struct ChecklistPersistenceIntegrationTests {
     func testEndToEnd_RapidToggles() async throws {
         // Arrange
         let repository = try makeRepository()
-        let libraryStore = LibraryStore(repository: repository)
+        let syncQueue = makeSyncQueue(repository: repository)
+        let libraryStore = LibraryStore(repository: repository, syncQueue: syncQueue)
         let charter = try await createTestCharter(repository: repository)
         let charterID = charter.id
         let checklist = makeTestChecklist()
@@ -316,7 +326,8 @@ struct ChecklistPersistenceIntegrationTests {
     func testEndToEnd_ClearExecutionState() async throws {
         // Arrange
         let repository = try makeRepository()
-        let libraryStore = LibraryStore(repository: repository)
+        let syncQueue = makeSyncQueue(repository: repository)
+        let libraryStore = LibraryStore(repository: repository, syncQueue: syncQueue)
         let charter = try await createTestCharter(repository: repository)
         let charterID = charter.id
         let checklist = makeTestChecklist()
