@@ -1,5 +1,9 @@
 # anyfleet
-a comprehensive toolset for sailing captains
+
+AnyFleet is a sailing charter management app with three main features:
+- **Charters:** Create and manage sailing charters with dates, locations, and vessels
+- **Library:** Build reusable content (checklists, practice guides, flashcard decks) with publishing/sharing capabilities
+- **Discover:** Browse and fork community-published content
 
 ## CI/CD
 
