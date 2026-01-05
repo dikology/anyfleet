@@ -318,12 +318,18 @@ final class VisibilityService: VisibilityServiceProtocol {
             // Convert Checklist to JSON-serializable dict
             let data = try JSONEncoder().encode(checklist)
             let json = try JSONSerialization.jsonObject(with: data)
-            return json as! [String: Any]
+            guard let jsonDict = json as? [String: Any] else {
+                throw PublishError.validationError("Failed to encode checklist as dictionary")
+            }
+            return jsonDict
         }
         
         private func encodeGuide(_ guide: PracticeGuide) throws -> [String: Any] {
             let data = try JSONEncoder().encode(guide)
             let json = try JSONSerialization.jsonObject(with: data)
-            return json as! [String: Any]
+            guard let jsonDict = json as? [String: Any] else {
+                throw PublishError.validationError("Failed to encode guide as dictionary")
+            }
+            return jsonDict
         }
 }
