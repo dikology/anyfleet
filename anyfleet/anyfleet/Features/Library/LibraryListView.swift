@@ -2,15 +2,6 @@ import SwiftUI
 
 struct LibraryListView: View {
     @State private var viewModel: LibraryListViewModel
-    @State private var selectedFilter: ContentFilter = .all
-    @State private var showingPublishConfirmation = false
-    @State private var showingSignInModal = false
-
-    // Deletion state
-    @State private var pendingDeleteItem: LibraryModel?
-    @State private var showPrivateDeleteConfirmation = false
-    @State private var showPublishedDeleteConfirmation = false
-    @State private var publishedDeleteModalItem: LibraryModel?
     @Environment(\.appDependencies) private var dependencies
     @Environment(\.appCoordinator) private var coordinator
     
@@ -73,7 +64,7 @@ struct LibraryListView: View {
         .refreshable {
             await viewModel.refresh()
         }
-        .sheet(isPresented: $showingPublishConfirmation) {
+        .sheet(isPresented: $viewModel.showingPublishConfirmation) {
             if let item = viewModel.pendingPublishItem {
                 PublishConfirmationModal(
                     item: item,
@@ -83,13 +74,13 @@ struct LibraryListView: View {
                         Task {
                             await viewModel.confirmPublish()
                             if viewModel.publishError == nil {
-                                showingPublishConfirmation = false
+                                viewModel.showingPublishConfirmation = false
                             }
                         }
                     },
                     onCancel: {
                         viewModel.cancelPublish()
-                        showingPublishConfirmation = false
+                        viewModel.showingPublishConfirmation = false
                     },
                     onRetry: {
                         Task {
@@ -99,18 +90,18 @@ struct LibraryListView: View {
                 )
             }
         }
-        .sheet(isPresented: $showingSignInModal) {
+        .sheet(isPresented: $viewModel.showingSignInModal) {
             SignInModalView(
                 onSuccess: {
-                    showingSignInModal = false
+                    viewModel.showingSignInModal = false
                 },
                 onDismiss: {
-                    showingSignInModal = false
+                    viewModel.showingSignInModal = false
                 }
             )
         }
-        .sheet(isPresented: $showPrivateDeleteConfirmation) {
-            if let item = pendingDeleteItem {
+        .sheet(isPresented: $viewModel.showPrivateDeleteConfirmation) {
+            if let item = viewModel.pendingDeleteItem {
                 DeleteConfirmationModal(
                     item: item,
                     isPublished: false,
@@ -118,22 +109,22 @@ struct LibraryListView: View {
                         Task {
                             do {
                                 try await viewModel.deleteContent(item)
-                                showPrivateDeleteConfirmation = false
-                                pendingDeleteItem = nil
+                                viewModel.showPrivateDeleteConfirmation = false
+                                viewModel.pendingDeleteItem = nil
                             } catch {
                                 AppLogger.view.error("Failed to delete content: \(error.localizedDescription)")
                             }
                         }
                     },
                     onCancel: {
-                        showPrivateDeleteConfirmation = false
-                        pendingDeleteItem = nil
+                        viewModel.showPrivateDeleteConfirmation = false
+                        viewModel.pendingDeleteItem = nil
                     }
                 )
             }
         }
-        .sheet(isPresented: $showPublishedDeleteConfirmation) {
-            if let item = publishedDeleteModalItem {
+        .sheet(isPresented: $viewModel.showPublishedDeleteConfirmation) {
+            if let item = viewModel.publishedDeleteModalItem {
                 PublishedContentDeleteModal(
                     item: item,
                     onUnpublishAndDelete: {
@@ -141,9 +132,9 @@ struct LibraryListView: View {
                         Task {
                             do {
                                 try await viewModel.deleteAndUnpublishContent(item)
-                                showPublishedDeleteConfirmation = false
-                                publishedDeleteModalItem = nil
-                                pendingDeleteItem = nil
+                                viewModel.showPublishedDeleteConfirmation = false
+                                viewModel.publishedDeleteModalItem = nil
+                                viewModel.pendingDeleteItem = nil
                             } catch {
                                 AppLogger.view.error("Failed to unpublish and delete content: \(error.localizedDescription)")
                             }
@@ -155,9 +146,9 @@ struct LibraryListView: View {
                             do {
                                 // For "Keep Published", delete local copy but keep content published on backend
                                 try await viewModel.deleteLocalCopyKeepPublished(item)
-                                showPublishedDeleteConfirmation = false
-                                publishedDeleteModalItem = nil
-                                pendingDeleteItem = nil
+                                viewModel.showPublishedDeleteConfirmation = false
+                                viewModel.publishedDeleteModalItem = nil
+                                viewModel.pendingDeleteItem = nil
                             } catch {
                                 AppLogger.view.error("Failed to delete local copy: \(error.localizedDescription)")
                             }
@@ -165,9 +156,9 @@ struct LibraryListView: View {
                     },
                     onCancel: {
                         AppLogger.view.info("User cancelled published content deletion")
-                        showPublishedDeleteConfirmation = false
-                        publishedDeleteModalItem = nil
-                        pendingDeleteItem = nil
+                        viewModel.showPublishedDeleteConfirmation = false
+                        viewModel.publishedDeleteModalItem = nil
+                        viewModel.pendingDeleteItem = nil
                     }
                 )
             } else {
@@ -175,18 +166,18 @@ struct LibraryListView: View {
                 Text("No item selected")
                     .onAppear {
                         AppLogger.view.error("PublishedContentDeleteModal presented with nil publishedDeleteModalItem")
-                        showPublishedDeleteConfirmation = false
+                        viewModel.showPublishedDeleteConfirmation = false
                     }
             }
         }
         .onChange(of: viewModel.pendingPublishItem) { oldValue, newValue in
-            showingPublishConfirmation = newValue != nil
+            viewModel.showingPublishConfirmation = newValue != nil
         }
-        .onChange(of: showPublishedDeleteConfirmation) { oldValue, newValue in
+        .onChange(of: viewModel.showPublishedDeleteConfirmation) { oldValue, newValue in
             if !newValue {
                 // Sheet was dismissed, clean up state
-                publishedDeleteModalItem = nil
-                pendingDeleteItem = nil
+                viewModel.publishedDeleteModalItem = nil
+                viewModel.pendingDeleteItem = nil
             }
         }
     }
@@ -244,40 +235,9 @@ struct LibraryListView: View {
     
     // MARK: - Content List
     
-    private enum ContentFilter: String, CaseIterable, Identifiable {
-        case all
-        case checklists
-        case guides
-        case decks
-        
-        var id: Self { self }
-        
-        var title: String {
-            switch self {
-            case .all: return L10n.Library.filterAll
-            case .checklists: return L10n.Library.filterChecklists
-            case .guides: return L10n.Library.filterGuides
-            case .decks: return L10n.Library.filterDecks
-            }
-        }
-    }
-    
-    private var filteredItems: [LibraryModel] {
-        switch selectedFilter {
-        case .all:
-            return viewModel.library
-        case .checklists:
-            return viewModel.checklists
-        case .guides:
-            return viewModel.guides
-        case .decks:
-            return viewModel.decks
-        }
-    }
-    
     private var contentList: some View {
         VStack(spacing: DesignSystem.Spacing.md) {
-            Picker(L10n.Library.filterAccessibilityLabel, selection: $selectedFilter) {
+            Picker(L10n.Library.filterAccessibilityLabel, selection: $viewModel.selectedFilter) {
                 ForEach(ContentFilter.allCases) { filter in
                     Text(filter.title).tag(filter)
                 }
@@ -286,7 +246,7 @@ struct LibraryListView: View {
             .padding(.horizontal, DesignSystem.Spacing.lg)
             
             List {
-                ForEach(filteredItems) { item in
+                ForEach(viewModel.filteredItems) { item in
                     LibraryItemRow(
                         item: item,
                         contentType: item.type,
@@ -315,7 +275,7 @@ struct LibraryListView: View {
                             }
                         },
                         onSignInRequired: {
-                            showingSignInModal = true
+                            viewModel.showingSignInModal = true
                         },
                         onRetrySync: {
                             Task {
@@ -333,14 +293,14 @@ struct LibraryListView: View {
                     .listRowBackground(Color.clear)
                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                         Button(role: .destructive) {
-                            pendingDeleteItem = item
+                            viewModel.pendingDeleteItem = item
                             let action = viewModel.initiateDelete(item)
                             switch action {
                             case .showPublishedModal:
-                                publishedDeleteModalItem = item
-                                showPublishedDeleteConfirmation = true
+                                viewModel.publishedDeleteModalItem = item
+                                viewModel.showPublishedDeleteConfirmation = true
                             case .showPrivateModal:
-                                showPrivateDeleteConfirmation = true
+                                viewModel.showPrivateDeleteConfirmation = true
                             }
                         } label: {
                             Label(L10n.Library.actionDelete, systemImage: "trash")

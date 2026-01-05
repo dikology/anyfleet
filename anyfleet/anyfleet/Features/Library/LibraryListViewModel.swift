@@ -1,6 +1,25 @@
 import Foundation
 import Observation
 
+/// Represents the different content filters available in the library
+enum ContentFilter: String, CaseIterable, Identifiable {
+    case all
+    case checklists
+    case guides
+    case decks
+
+    var id: Self { self }
+
+    var title: String {
+        switch self {
+        case .all: return L10n.Library.filterAll
+        case .checklists: return L10n.Library.filterChecklists
+        case .guides: return L10n.Library.filterGuides
+        case .decks: return L10n.Library.filterDecks
+        }
+    }
+}
+
 /// Represents the different delete confirmation modals that can be shown
 enum DeleteAction {
     case showPublishedModal
@@ -24,6 +43,16 @@ final class LibraryListViewModel: ErrorHandling {
     var publishError: Error?
     var currentError: AppError?
     var showErrorBanner: Bool = false
+
+    // MARK: - UI State
+
+    var selectedFilter: ContentFilter = .all
+    var showingPublishConfirmation = false
+    var showingSignInModal = false
+    var pendingDeleteItem: LibraryModel?
+    var showPrivateDeleteConfirmation = false
+    var showPublishedDeleteConfirmation = false
+    var publishedDeleteModalItem: LibraryModel?
     
     // MARK: - Computed Properties
     
@@ -76,6 +105,20 @@ final class LibraryListViewModel: ErrorHandling {
     /// Whether there is any public content
     var hasPublicContent: Bool {
         !publicContent.isEmpty
+    }
+
+    /// Filtered library items based on selected filter
+    var filteredItems: [LibraryModel] {
+        switch selectedFilter {
+        case .all:
+            return library
+        case .checklists:
+            return checklists
+        case .guides:
+            return guides
+        case .decks:
+            return decks
+        }
     }
     
     // MARK: - Initialization
