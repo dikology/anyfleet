@@ -42,7 +42,12 @@ final class ChecklistReaderViewModel {
         }
         
         do {
-            let loaded = try await libraryStore.fetchChecklist(checklistID)
+            // Ensure library metadata is loaded for on-demand fetching
+            if libraryStore.myChecklists.isEmpty {
+                await libraryStore.loadLibrary()
+            }
+
+            let loaded: Checklist? = try await libraryStore.fetchFullContent(checklistID)
             await MainActor.run {
                 self.checklist = loaded
                 if loaded == nil {

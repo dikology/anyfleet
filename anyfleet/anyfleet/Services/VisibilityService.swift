@@ -279,13 +279,13 @@ final class VisibilityService: VisibilityServiceProtocol {
             
             switch item.type {
             case .checklist:
-                guard let checklist = try await libraryStore.fetchChecklist(item.id) else {
+                guard let checklist: Checklist = try await libraryStore.fetchFullContent(item.id) else {
                     throw PublishError.validationError("Checklist not found")
                 }
                 contentDict = try encodeChecklist(checklist)
                 
             case .practiceGuide:
-                guard let guide = try await libraryStore.fetchGuide(item.id) else {
+                guard let guide: PracticeGuide = try await libraryStore.fetchFullContent(item.id) else {
                     throw PublishError.validationError("Guide not found")
                 }
                 contentDict = try encodeGuide(guide)

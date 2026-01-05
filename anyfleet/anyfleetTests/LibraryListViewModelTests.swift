@@ -89,6 +89,12 @@ class MockLibraryStore: LibraryStoreProtocol {
             togglePinCalls.append(item)
         }
 
+        func fetchFullContent<T>(_ id: UUID) async throws -> T? {
+            // Mock implementation - return nil for simplicity in tests
+            // Tests can override this behavior if needed
+            return nil
+        }
+
         func forkContent(from sharedContent: SharedContentDetail) async throws {
             // Convert content type string to enum
             let contentType: ContentType

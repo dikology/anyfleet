@@ -17,27 +17,21 @@ struct LibraryStoreTests {
     actor MockLibraryRepository: LibraryRepository {
         // Stored test data
         private var libraryResult: [LibraryModel] = []
-        private var checklistsResult: [Checklist] = []
-        
+
         // Call counts
         private var fetchUserLibraryCallCount = 0
-        private var fetchUserChecklistsCallCount = 0
         private var fetchChecklistCallCount = 0
         private var saveChecklistCallCount = 0
-        
+
         // For fetchChecklist
         private var fetchChecklistResult: Checklist?
-        
+
         // MARK: - Configuration Helpers
-        
+
         func setLibraryResult(_ value: [LibraryModel]) {
             libraryResult = value
         }
-        
-        func setChecklistsResult(_ value: [Checklist]) {
-            checklistsResult = value
-        }
-        
+
         func setFetchChecklistResult(_ value: Checklist?) {
             fetchChecklistResult = value
         }
@@ -66,8 +60,7 @@ struct LibraryStoreTests {
         }
         
         func fetchUserChecklists() async throws -> [Checklist] {
-            fetchUserChecklistsCallCount += 1
-            return checklistsResult
+            return []
         }
         
         func fetchUserGuides() async throws -> [PracticeGuide] {
@@ -143,16 +136,15 @@ struct LibraryStoreTests {
     
     // MARK: - Tests
     
-    @Test("saveChecklist updates in-memory collections and metadata without full reload")
+    @Test("saveChecklist updates metadata without full reload and caches full content")
     @MainActor
-    func testSaveChecklistUpdatesInMemoryAndMetadata() async throws {
+    func testSaveChecklistUpdatesMetadataAndCachesFullContent() async throws {
         // Arrange
         let baseChecklist = makeChecklist()
         let baseMetadata = makeLibraryModel(from: baseChecklist)
-        
+
         let repository = MockLibraryRepository()
         await repository.setLibraryResult([baseMetadata])
-        await repository.setChecklistsResult([baseChecklist])
 
         // Create sync queue service (uses a separate LocalRepository)
         let database = try AppDatabase.makeEmpty()
@@ -161,12 +153,12 @@ struct LibraryStoreTests {
         let syncQueue = SyncQueueService(repository: syncRepository, apiClient: mockAPIClient)
 
         let store = LibraryStore(repository: repository, syncQueue: syncQueue)
-        
-        // Initial load to populate library + checklists
+
+        // Initial load to populate metadata only
         await store.loadLibrary()
         #expect(store.library.count == 1)
-        #expect(store.checklists.count == 1)
-        
+        #expect(store.myChecklists.count == 1)
+
         // Prepare updated checklist
         var updatedChecklist = baseChecklist
         updatedChecklist.title = "Updated Title"
@@ -174,16 +166,10 @@ struct LibraryStoreTests {
         updatedChecklist.tags = ["tag2"]
         updatedChecklist.updatedAt = Date().addingTimeInterval(60)
         updatedChecklist.syncStatus = .synced
-        
+
         // Act
         try await store.saveChecklist(updatedChecklist)
-        
-        // Assert: full models updated
-        #expect(store.checklists.count == 1)
-        #expect(store.checklists.first?.title == "Updated Title")
-        #expect(store.checklists.first?.description == "Updated Description")
-        #expect(store.checklists.first?.tags == ["tag2"])
-        
+
         // Assert: metadata updated in place (no extra rows)
         #expect(store.library.count == 1)
         let metadata = store.library.first!
@@ -191,17 +177,23 @@ struct LibraryStoreTests {
         #expect(metadata.description == "Updated Description")
         #expect(metadata.tags == ["tag2"])
         #expect(metadata.syncStatus == .synced)
-        
+
+        // Assert: full content is cached and retrievable
+        let cachedContent: Checklist? = try await store.fetchFullContent(baseChecklist.id)
+        #expect(cachedContent?.title == "Updated Title")
+        #expect(cachedContent?.description == "Updated Description")
+        #expect(cachedContent?.tags == ["tag2"])
+
         // Assert: repository.saveChecklist called once
         #expect(await repository.getSaveChecklistCallCount() == 1)
-        
+
         // Assert: fetchUserLibrary not called again after initial load (i.e. no full reload)
         #expect(await repository.getFetchUserLibraryCallCount() == 1)
     }
     
-    @Test("fetchChecklist caches repository result and avoids repeated fetches")
+    @Test("fetchFullContent caches repository result and avoids repeated fetches")
     @MainActor
-    func testFetchChecklistUsesCache() async throws {
+    func testFetchFullContentUsesCache() async throws {
         // Arrange
         let checklist = makeChecklist()
         let repository = MockLibraryRepository()
@@ -214,32 +206,31 @@ struct LibraryStoreTests {
         let syncQueue = SyncQueueService(repository: syncRepository, apiClient: mockAPIClient)
 
         let store = LibraryStore(repository: repository, syncQueue: syncQueue)
-        
+
         // Act: first fetch should hit repository
-        let first = try await store.fetchChecklist(checklist.id)
-        
+        let first: Checklist? = try await store.fetchFullContent(checklist.id)
+
         // Act: second fetch should be served from cache
-        let second = try await store.fetchChecklist(checklist.id)
-        
+        let second: Checklist? = try await store.fetchFullContent(checklist.id)
+
         // Assert: values are equal
         #expect(first?.id == checklist.id)
         #expect(second?.id == checklist.id)
-        
+
         // Repository should have been called only once
         #expect(await repository.getFetchChecklistCallCount() == 1)
     }
     
-    @Test("fetchChecklist uses in-memory collection before repository")
+    @Test("fetchFullContent caches content and serves subsequent requests from cache")
     @MainActor
-    func testFetchChecklistUsesInMemoryBeforeRepository() async throws {
+    func testFetchFullContentCachesAndServesFromCache() async throws {
         // Arrange
         let checklist = makeChecklist()
         let metadata = makeLibraryModel(from: checklist)
-        
+
         let repository = MockLibraryRepository()
         await repository.setLibraryResult([metadata])
-        await repository.setChecklistsResult([checklist])
-        await repository.setFetchChecklistResult(nil)
+        await repository.setFetchChecklistResult(checklist)
 
         // Create sync queue service (uses a separate LocalRepository)
         let database = try AppDatabase.makeEmpty()
@@ -248,17 +239,23 @@ struct LibraryStoreTests {
         let syncQueue = SyncQueueService(repository: syncRepository, apiClient: mockAPIClient)
 
         let store = LibraryStore(repository: repository, syncQueue: syncQueue)
-        
-        // Populate in-memory collections via loadLibrary
+
+        // Load metadata
         await store.loadLibrary()
-        #expect(store.checklists.count == 1)
-        
-        // Act
-        let fetched = try await store.fetchChecklist(checklist.id)
-        
-        // Assert: fetched from in-memory, not repository
-        #expect(fetched?.id == checklist.id)
-        #expect(await repository.getFetchChecklistCallCount() == 0)
+        #expect(store.library.count == 1)
+
+        // Act: first fetch should hit repository and cache result
+        let first: Checklist? = try await store.fetchFullContent(checklist.id)
+
+        // Act: second fetch should be served from cache
+        let second: Checklist? = try await store.fetchFullContent(checklist.id)
+
+        // Assert: both fetches return the same content
+        #expect(first?.id == checklist.id)
+        #expect(second?.id == checklist.id)
+
+        // Repository should have been called only once (first fetch)
+        #expect(await repository.getFetchChecklistCallCount() == 1)
     }
 }
 

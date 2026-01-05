@@ -12,6 +12,9 @@ protocol LibraryStoreProtocol: AnyObject {
     func loadLibrary() async
     func deleteContent(_ item: LibraryModel, shouldUnpublish: Bool) async throws
     func togglePin(for item: LibraryModel) async
+
+    /// Fetch full content model on-demand with caching
+    func fetchFullContent<T>(_ id: UUID) async throws -> T?
 }
 
 /// Store managing library content state and operations across the application.
@@ -45,17 +48,12 @@ final class LibraryStore: LibraryStoreProtocol {
     // MARK: - Properties
     
     /// Unified content collection (metadata for all types)
+    /// This is the single source of truth for library metadata
     private(set) var library: [LibraryModel] = []
-    
-    /// Type-specific collections (full models for editing)
-    /// These are loaded separately when needed for editing or execution
-    private(set) var checklists: [Checklist] = []
-    private(set) var guides: [PracticeGuide] = []
-    private(set) var decks: [FlashcardDeck] = []
-    
-    /// In-memory cache for frequently accessed checklists
-    private var checklistsCache: [UUID: Checklist] = [:]
-    private let maxChecklistCacheSize = 50
+
+    /// LRU cache for full content models loaded on-demand
+    /// Eliminates duplicate state and provides proper cache management
+    private let fullContentCache = LRUCache<UUID, AnyContent>(maxSize: 50)
     
     // Local repository for database operations
     // Sendable conformance required for Observable in Swift 6
@@ -96,27 +94,89 @@ final class LibraryStore: LibraryStoreProtocol {
         return try await repository.fetchLibraryItem(id)
     }
 
-    /// Load all library content
+    /// Fetch full content model on-demand with caching
+    /// - Parameter id: The content ID to fetch
+    /// - Returns: The full content model, or nil if not found
+    @MainActor
+    func fetchFullContent<T>(_ id: UUID) async throws -> T? {
+        // Check cache first
+        if let cached = fullContentCache.get(id)?.as(T.self) {
+            return cached
+        }
+
+        // Try to determine content type from metadata if available
+        let contentType: ContentType?
+        if let metadata = library.first(where: { $0.id == id }) {
+            contentType = metadata.type
+        } else {
+            // If metadata isn't loaded, try to fetch from repository directly
+            // This allows fetching content even when library metadata hasn't been loaded yet
+            if let checklist = try await repository.fetchChecklist(id) {
+                let content = AnyContent.checklist(checklist)
+                fullContentCache.set(content, forKey: id)
+                return content.as(T.self)
+            }
+            if let guide = try await repository.fetchGuide(id) {
+                let content = AnyContent.practiceGuide(guide)
+                fullContentCache.set(content, forKey: id)
+                return content.as(T.self)
+            }
+            if let deck = try await repository.fetchDeck(id) {
+                let content = AnyContent.flashcardDeck(deck)
+                fullContentCache.set(content, forKey: id)
+                return content.as(T.self)
+            }
+            return nil
+        }
+
+        // Fetch from repository based on known content type
+        let content: AnyContent?
+        switch contentType {
+        case .checklist:
+            if let checklist = try await repository.fetchChecklist(id) {
+                content = .checklist(checklist)
+            } else {
+                content = nil
+            }
+        case .practiceGuide:
+            if let guide = try await repository.fetchGuide(id) {
+                content = .practiceGuide(guide)
+            } else {
+                content = nil
+            }
+        case .flashcardDeck:
+            if let deck = try await repository.fetchDeck(id) {
+                content = .flashcardDeck(deck)
+            } else {
+                content = nil
+            }
+        case nil:
+            content = nil
+        }
+
+        // Cache the result if found
+        if let content = content {
+            fullContentCache.set(content, forKey: id)
+            return content.as(T.self)
+        }
+
+        return nil
+    }
+
+    /// Load all library content metadata
+    /// Full content models are loaded on-demand via fetchFullContent()
     @MainActor
     func loadLibrary() async {
         do {
-            // Load metadata for all content types in parallel
-            async let metadataTask = repository.fetchUserLibrary()
-            async let checklistsTask = repository.fetchUserChecklists()
-            async let guidesTask = repository.fetchUserGuides()
-            async let decksTask = repository.fetchUserDecks()
-            
-            // Wait for all tasks to complete
-            library = try await metadataTask
-            checklists = try await checklistsTask
-            guides = try await guidesTask
-            decks = try await decksTask
+            // Load only metadata - single source of truth
+            library = try await repository.fetchUserLibrary()
+
+            // Clear cache since metadata may have changed
+            fullContentCache.removeAll()
         } catch {
-            // On error, clear all collections
+            // On error, clear metadata collection
             library = []
-            checklists = []
-            guides = []
-            decks = []
+            fullContentCache.removeAll()
             print("[LibraryStore] Failed to load library: \(error.localizedDescription)")
         }
     }
@@ -128,8 +188,13 @@ final class LibraryStore: LibraryStoreProtocol {
     @MainActor
     func createChecklist(_ checklist: Checklist) async throws {
         try await repository.createChecklist(checklist)
-        // Reload library to reflect the new content
-        await loadLibrary()
+
+        // Add to metadata collection directly (no full reload needed)
+        if let metadata = try await repository.fetchLibraryItem(checklist.id) {
+            library.append(metadata)
+            // Cache the full content
+            fullContentCache.set(.checklist(checklist), forKey: checklist.id)
+        }
     }
     
     /// Create a new practice guide
@@ -137,17 +202,27 @@ final class LibraryStore: LibraryStoreProtocol {
     @MainActor
     func createGuide(_ guide: PracticeGuide) async throws {
         try await repository.createGuide(guide)
-        // Reload library to reflect the new content
-        await loadLibrary()
+
+        // Add to metadata collection directly (no full reload needed)
+        if let metadata = try await repository.fetchLibraryItem(guide.id) {
+            library.append(metadata)
+            // Cache the full content
+            fullContentCache.set(.practiceGuide(guide), forKey: guide.id)
+        }
     }
-    
+
     /// Create a new flashcard deck
     /// - Parameter deck: The full deck model to create
     @MainActor
     func createDeck(_ deck: FlashcardDeck) async throws {
         try await repository.createDeck(deck)
-        // Reload library to reflect the new content
-        await loadLibrary()
+
+        // Add to metadata collection directly (no full reload needed)
+        if let metadata = try await repository.fetchLibraryItem(deck.id) {
+            library.append(metadata)
+            // Cache the full content
+            fullContentCache.set(.flashcardDeck(deck), forKey: deck.id)
+        }
     }
 
     /// Fork content from public shared content
@@ -242,11 +317,6 @@ final class LibraryStore: LibraryStoreProtocol {
     func saveChecklist(_ checklist: Checklist) async throws {
         try await repository.saveChecklist(checklist)
 
-        // Update in-memory full-model cache
-        if let index = checklists.firstIndex(where: { $0.id == checklist.id }) {
-            checklists[index] = checklist
-        }
-
         // Update metadata only (avoid full reload)
         if let metadataIndex = library.firstIndex(where: { $0.id == checklist.id }) {
             var metadata = library[metadataIndex]
@@ -263,9 +333,8 @@ final class LibraryStore: LibraryStoreProtocol {
             }
         }
 
-        // Update cache
-        checklistsCache[checklist.id] = checklist
-        enforceChecklistCacheLimit()
+        // Update cache with full content
+        fullContentCache.set(.checklist(checklist), forKey: checklist.id)
     }
 
     /// Trigger automatic sync update for published content
@@ -374,11 +443,6 @@ final class LibraryStore: LibraryStoreProtocol {
     func saveGuide(_ guide: PracticeGuide) async throws {
         try await repository.saveGuide(guide)
 
-        // Update in-memory cache
-        if let index = guides.firstIndex(where: { $0.id == guide.id }) {
-            guides[index] = guide
-        }
-
         // Update metadata and check for published content sync
         if let metadataIndex = library.firstIndex(where: { $0.id == guide.id }) {
             var metadata = library[metadataIndex]
@@ -394,6 +458,9 @@ final class LibraryStore: LibraryStoreProtocol {
                 await triggerPublishUpdate(for: metadata, guide: guide)
             }
         }
+
+        // Update cache with full content
+        fullContentCache.set(.practiceGuide(guide), forKey: guide.id)
     }
     
     // MARK: - Deleting Content
@@ -417,18 +484,11 @@ final class LibraryStore: LibraryStoreProtocol {
         // Delete from local database (after sync completes)
         try await repository.deleteContent(item.id)
 
-        // Remove from in-memory collections
+        // Remove from metadata collection
         library.removeAll { $0.id == item.id }
 
-        // Remove from type-specific collections
-        switch item.type {
-        case .checklist:
-            checklists.removeAll { $0.id == item.id }
-        case .practiceGuide:
-            guides.removeAll { $0.id == item.id }
-        case .flashcardDeck:
-            decks.removeAll { $0.id == item.id }
-        }
+        // Remove from cache
+        fullContentCache.removeValue(forKey: item.id)
     }
     
     // MARK: - Metadata Updates
@@ -483,73 +543,69 @@ final class LibraryStore: LibraryStoreProtocol {
     /// - Returns: The full checklist model, or nil if not found
     @MainActor
     func fetchChecklist(_ checklistID: UUID) async throws -> Checklist? {
-        // Check cache first
-        if let cached = checklistsCache[checklistID] {
-            return cached
-        }
-        
-        // Then check in-memory collection
-        if let checklist = checklists.first(where: { $0.id == checklistID }) {
-            // Populate cache for future fast access
-            checklistsCache[checklistID] = checklist
-            enforceChecklistCacheLimit()
-            return checklist
-        }
-        
-        // Finally, fetch from repository
-        guard let checklist = try await repository.fetchChecklist(checklistID) else {
-            return nil
-        }
-        
-        // Add to cache with size-based eviction
-        checklistsCache[checklistID] = checklist
-        enforceChecklistCacheLimit()
-        return checklist
+        return try await fetchFullContent(checklistID)
     }
     
-    // MARK: - Cache Management
-    
-    private func enforceChecklistCacheLimit() {
-        guard checklistsCache.count > maxChecklistCacheSize else { return }
-        // Simple eviction: remove oldest key in dictionary order
-        let overflow = checklistsCache.count - maxChecklistCacheSize
-        let keysToRemove = Array(checklistsCache.keys.prefix(overflow))
-        for key in keysToRemove {
-            checklistsCache.removeValue(forKey: key)
-        }
-    }
     
     /// Fetch a full guide model by ID
     /// - Parameter guideID: The ID of the guide to fetch
     /// - Returns: The full guide model, or nil if not found
     @MainActor
     func fetchGuide(_ guideID: UUID) async throws -> PracticeGuide? {
-        // First check in-memory cache
-        if let guide = guides.first(where: { $0.id == guideID }) {
-            return guide
-        }
-        
-        // If not in cache, fetch from repository
-        return try await repository.fetchGuide(guideID)
+        return try await fetchFullContent(guideID)
     }
-    
+
     /// Fetch a full deck model by ID
     /// - Parameter deckID: The ID of the deck to fetch
     /// - Returns: The full deck model, or nil if not found
     @MainActor
     func fetchDeck(_ deckID: UUID) async throws -> FlashcardDeck? {
-        // First check in-memory cache
-        if let deck = decks.first(where: { $0.id == deckID }) {
-            return deck
-        }
-        
-        // If not in cache, fetch from repository
-        return try await repository.fetchDeck(deckID)
+        return try await fetchFullContent(deckID)
     }
 }
 
 // MARK: - Content Models
 // Note: Checklist, ChecklistSection, ChecklistItem, and ChecklistType are defined in Core/Models/Checklist.swift
+
+/// Type-erased container for any library content type.
+/// Used by the LRU cache to store different content models uniformly.
+enum AnyContent: Hashable, Sendable {
+    case checklist(Checklist)
+    case practiceGuide(PracticeGuide)
+    case flashcardDeck(FlashcardDeck)
+
+    /// Extract the content as a specific type if it matches.
+    func `as`<T>(_ type: T.Type) -> T? {
+        switch (self, type) {
+        case (.checklist(let content), _) where T.self == Checklist.self:
+            return content as? T
+        case (.practiceGuide(let content), _) where T.self == PracticeGuide.self:
+            return content as? T
+        case (.flashcardDeck(let content), _) where T.self == FlashcardDeck.self:
+            return content as? T
+        default:
+            return nil
+        }
+    }
+
+    /// The ID of the content, regardless of type.
+    var id: UUID {
+        switch self {
+        case .checklist(let content): return content.id
+        case .practiceGuide(let content): return content.id
+        case .flashcardDeck(let content): return content.id
+        }
+    }
+
+    /// The content type discriminator.
+    var contentType: ContentType {
+        switch self {
+        case .checklist: return .checklist
+        case .practiceGuide: return .practiceGuide
+        case .flashcardDeck: return .flashcardDeck
+        }
+    }
+}
 
 /// Full practice guide model with markdown content.
 ///

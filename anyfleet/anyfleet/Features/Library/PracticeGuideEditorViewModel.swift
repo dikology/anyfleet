@@ -50,7 +50,12 @@ final class PracticeGuideEditorViewModel {
         errorMessage = nil
         
         do {
-            if let loaded = try await libraryStore.fetchGuide(guideID) {
+            // Ensure library metadata is loaded for on-demand fetching
+            if libraryStore.myGuides.isEmpty {
+                await libraryStore.loadLibrary()
+            }
+
+            if let loaded: PracticeGuide = try await libraryStore.fetchFullContent(guideID) {
                 guide = loaded
             }
         } catch {

@@ -52,7 +52,12 @@ final class ChecklistEditorViewModel {
         errorMessage = nil
         
         do {
-            if let loaded = try await libraryStore.fetchChecklist(checklistID) {
+            // Ensure library metadata is loaded for on-demand fetching
+            if libraryStore.myChecklists.isEmpty {
+                await libraryStore.loadLibrary()
+            }
+
+            if let loaded: Checklist = try await libraryStore.fetchFullContent(checklistID) {
                 checklist = loaded
             }
         } catch {
