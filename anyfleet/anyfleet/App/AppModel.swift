@@ -36,20 +36,21 @@ enum AppRoute: Hashable {
 }
 
 @MainActor
-final class AppCoordinator: ObservableObject, AppCoordinatorProtocol {
+@Observable
+final class AppCoordinator: AppCoordinatorProtocol {
     private let dependencies: AppDependencies
     private let syncService: ContentSyncService
-    private var syncTimer: Timer?
+    private nonisolated(unsafe) var syncTimer: Timer?
     
     // Individual navigation paths per tab
-    @Published var homePath: [AppRoute] = []
-    @Published var libraryPath: [AppRoute] = []
-    @Published var discoverPath: [AppRoute] = []
-    @Published var chartersPath: [AppRoute] = []
-    @Published var profilePath: [AppRoute] = []
-    
+    var homePath: [AppRoute] = []
+    var libraryPath: [AppRoute] = []
+    var discoverPath: [AppRoute] = []
+    var chartersPath: [AppRoute] = []
+    var profilePath: [AppRoute] = []
+
     // Tab selection state
-    @Published var selectedTab: AppView.Tab = .home
+    var selectedTab: AppView.Tab = .home
     
     // MARK: - Initialization
     
@@ -75,6 +76,7 @@ final class AppCoordinator: ObservableObject, AppCoordinatorProtocol {
         }
     }
     
+    // Timer.invalidate() is thread-safe and doesn't require main actor isolation
     deinit {
         syncTimer?.invalidate()
     }

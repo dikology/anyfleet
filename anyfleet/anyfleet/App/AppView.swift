@@ -2,7 +2,7 @@ import SwiftUI
 
 struct AppView: View {
     @Environment(\.appDependencies) private var dependencies
-    @EnvironmentObject private var coordinator: AppCoordinator
+    @Environment(\.appCoordinator) private var coordinator
 
     enum Tab: Hashable {
         case home
@@ -13,9 +13,9 @@ struct AppView: View {
     }
     
     var body: some View {
-        TabView(selection: $coordinator.selectedTab) {
+        TabView(selection: Binding<Tab>(get: { coordinator.selectedTab }, set: { coordinator.selectedTab = $0 })) {
             // Home Tab
-            NavigationStack(path: $coordinator.homePath) {
+            NavigationStack(path: Binding(get: { coordinator.homePath }, set: { coordinator.homePath = $0 })) {
                 HomeView(
                     viewModel: HomeViewModel(
                         coordinator: coordinator,
@@ -32,8 +32,8 @@ struct AppView: View {
             }
             .tag(Tab.home)
             
-            // Charters Tab
-            NavigationStack(path: $coordinator.chartersPath) {
+                // Charters Tab
+                NavigationStack(path: Binding(get: { coordinator.chartersPath }, set: { coordinator.chartersPath = $0 })) {
                 CharterListView(
                     viewModel: CharterListViewModel(charterStore: dependencies.charterStore, coordinator: coordinator)
                 )
@@ -46,8 +46,8 @@ struct AppView: View {
             }
             .tag(Tab.charters)
 
-            // Library Tab
-            NavigationStack(path: $coordinator.libraryPath) {
+                // Library Tab
+                NavigationStack(path: Binding(get: { coordinator.libraryPath }, set: { coordinator.libraryPath = $0 })) {
                 LibraryListView(
                     viewModel: LibraryListViewModel(
                         libraryStore: dependencies.libraryStore,
@@ -65,8 +65,8 @@ struct AppView: View {
             }
             .tag(Tab.library)
 
-            // Discover Tab
-            NavigationStack(path: $coordinator.discoverPath) {
+                // Discover Tab
+                NavigationStack(path: Binding(get: { coordinator.discoverPath }, set: { coordinator.discoverPath = $0 })) {
                 DiscoverView(
                     viewModel: DiscoverViewModel(
                         apiClient: dependencies.apiClient,
@@ -83,8 +83,8 @@ struct AppView: View {
             }
             .tag(Tab.discover)
 
-            // Profile Tab
-            NavigationStack(path: $coordinator.profilePath) {
+                // Profile Tab
+                NavigationStack(path: Binding(get: { coordinator.profilePath }, set: { coordinator.profilePath = $0 })) {
                 ProfileView()
                     .navigationDestination(for: AppRoute.self) { route in
                         coordinator.destination(for: route)
@@ -104,6 +104,6 @@ struct AppView: View {
         let coordinator = AppCoordinator(dependencies: dependencies)
         return AppView()
             .environment(\.appDependencies, dependencies)
-            .environmentObject(coordinator)
+            .environment(coordinator)
     }
 }

@@ -4,7 +4,7 @@ import OSLog
 
 @MainActor
 @Observable
-final class ContentSyncService {
+final class ContentSyncService: ContentSyncServiceProtocol {
     private let syncQueue: SyncQueueService
     private let repository: LocalRepository
 

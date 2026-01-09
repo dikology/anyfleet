@@ -10,12 +10,12 @@ import SwiftUI
 @main
 struct anyfleetApp: App {
     @State private var dependencies = AppDependencies()
-    @StateObject private var coordinator: AppCoordinator
-    
+    @State private var coordinator: AppCoordinator
+
     init() {
         let deps = AppDependencies()
         _dependencies = State(initialValue: deps)
-        _coordinator = StateObject(wrappedValue: AppCoordinator(dependencies: deps))
+        _coordinator = State(initialValue: AppCoordinator(dependencies: deps))
     }
     
     var body: some Scene {
@@ -23,7 +23,7 @@ struct anyfleetApp: App {
             AppView()
                 .environment(\.appDependencies, dependencies)
                 .environment(dependencies.authService)
-                .environmentObject(coordinator)
+                .environment(\.appCoordinator, coordinator)
         }
     }
 }

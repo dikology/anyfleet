@@ -20,10 +20,21 @@ enum ContentFilter: String, CaseIterable, Identifiable {
     }
 }
 
-/// Represents the different delete confirmation modals that can be shown
-enum DeleteAction {
-    case showPublishedModal
-    case showPrivateModal
+/// Represents the different modals that can be shown in the library
+enum LibraryModal: Identifiable {
+    case publishConfirmation(LibraryModel)
+    case signIn
+    case deletePrivate(LibraryModel)
+    case deletePublished(LibraryModel)
+
+    var id: String {
+        switch self {
+        case .publishConfirmation(let item): return "publish-\(item.id)"
+        case .signIn: return "signin"
+        case .deletePrivate(let item): return "delete-private-\(item.id)"
+        case .deletePublished(let item): return "delete-published-\(item.id)"
+        }
+    }
 }
 
 @MainActor
@@ -43,18 +54,14 @@ final class LibraryListViewModel: ErrorHandling {
     var publishError: Error?
     var currentError: AppError?
     var showErrorBanner: Bool = false
+    var operationsInProgress: Set<UUID> = []
 
     // MARK: - UI State
 
     var selectedFilter: ContentFilter = .all {
         didSet { updateFilteredItems() }
     }
-    var showingPublishConfirmation = false
-    var showingSignInModal = false
-    var pendingDeleteItem: LibraryModel?
-    var showPrivateDeleteConfirmation = false
-    var showPublishedDeleteConfirmation = false
-    var publishedDeleteModalItem: LibraryModel?
+    var activeModal: LibraryModal?
     
     // MARK: - Computed Properties
     
@@ -107,6 +114,11 @@ final class LibraryListViewModel: ErrorHandling {
     /// Whether there is any public content
     var hasPublicContent: Bool {
         !publicContent.isEmpty
+    }
+
+    /// Check if an operation is currently in progress for a specific item
+    func isOperationInProgress(_ itemID: UUID) -> Bool {
+        operationsInProgress.contains(itemID)
     }
 
     /// Filtered library items based on selected filter (cached for performance)
@@ -249,10 +261,14 @@ final class LibraryListViewModel: ErrorHandling {
         return item.publicID != nil
     }
 
-    /// Initiate delete action and return the appropriate modal type to show
-    func initiateDelete(_ item: LibraryModel) -> DeleteAction {
+    /// Initiate delete action and set the appropriate modal
+    func initiateDelete(_ item: LibraryModel) {
         AppLogger.view.info("Delete initiated for item: \(item.id), title: '\(item.title)', publicID: \(item.publicID ?? "nil")")
-        return item.publicID != nil ? .showPublishedModal : .showPrivateModal
+        if item.publicID != nil {
+            activeModal = .deletePublished(item)
+        } else {
+            activeModal = .deletePrivate(item)
+        }
     }
     
     /// Toggle pinned state for a library item
@@ -268,6 +284,7 @@ final class LibraryListViewModel: ErrorHandling {
     func initiatePublish(_ item: LibraryModel) {
         AppLogger.view.info("Initiate publish for item: \(item.id)")
         pendingPublishItem = item
+        activeModal = .publishConfirmation(item)
         clearError()
     }
     
@@ -278,13 +295,17 @@ final class LibraryListViewModel: ErrorHandling {
             AppLogger.view.warning("confirmPublish called but no pending item")
             return
         }
-        
+
         AppLogger.view.info("Confirming publish for item: \(item.id)")
         clearError()
+
+        operationsInProgress.insert(item.id)
+        defer { operationsInProgress.remove(item.id) }
 
         do {
             let syncSummary = try await visibilityService.publishContent(item)
             pendingPublishItem = nil
+            activeModal = nil
             await loadLibrary()
             AppLogger.view.info("Publish confirmed and completed for item: \(item.id) - \(syncSummary.succeeded) succeeded, \(syncSummary.failed) failed")
         } catch {
@@ -297,6 +318,7 @@ final class LibraryListViewModel: ErrorHandling {
     func cancelPublish() {
         AppLogger.view.info("Cancelling publish")
         pendingPublishItem = nil
+        activeModal = nil
         clearError()
     }
     
@@ -304,6 +326,9 @@ final class LibraryListViewModel: ErrorHandling {
     /// - Parameter item: The library item to unpublish
     func unpublish(_ item: LibraryModel) async {
         AppLogger.view.info("Unpublishing item: \(item.id)")
+
+        operationsInProgress.insert(item.id)
+        defer { operationsInProgress.remove(item.id) }
 
         do {
             let syncSummary = try await visibilityService.unpublishContent(item)
@@ -319,8 +344,22 @@ final class LibraryListViewModel: ErrorHandling {
     /// - Parameter item: The library item to retry sync for
     func retrySync(for item: LibraryModel) async {
         AppLogger.view.info("Retrying sync for item: \(item.id)")
+
+        operationsInProgress.insert(item.id)
+        defer { operationsInProgress.remove(item.id) }
+
         await visibilityService.retrySync(for: item)
         // Reload to get updated sync status
         await loadLibrary()
+    }
+
+    /// Dismiss the currently active modal
+    func dismissModal() {
+        activeModal = nil
+    }
+
+    /// Show the sign in modal
+    func showSignInModal() {
+        activeModal = .signIn
     }
 }

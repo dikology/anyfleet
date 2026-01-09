@@ -339,5 +339,25 @@ struct AppCoordinatorTests {
         #expect(coordinator.chartersPath.count == 1)
         #expect(coordinator.chartersPath.first == .charterDetail(charter2Id))
     }
+
+    @Test("Cross-tab navigation to charter clears destination stack")
+    @MainActor
+    func crossTabNavigationClearsStack() async throws {
+        // Given
+        let deps = try AppDependencies.makeForTesting()
+        let coordinator = AppCoordinator(dependencies: deps)
+        coordinator.selectedTab = .home
+        coordinator.chartersPath = [.charterDetail(UUID())]
+
+        let charterID = UUID()
+
+        // When
+        coordinator.navigateToCharter(charterID)
+
+        // Then
+        #expect(coordinator.selectedTab == .charters)
+        #expect(coordinator.chartersPath.count == 1)
+        #expect(coordinator.chartersPath.first == .charterDetail(charterID))
+    }
 }
 

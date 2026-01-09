@@ -315,7 +315,107 @@ enum DesignSystem {
             .padding(Spacing.xxl)
         }
     }
-    
+
+    struct EmptyStateView: View {
+        let icon: String
+        let title: String
+        let message: String
+        let actionTitle: String?
+        let action: (() -> Void)?
+
+        init(
+            icon: String,
+            title: String,
+            message: String,
+            actionTitle: String? = nil,
+            action: (() -> Void)? = nil
+        ) {
+            self.icon = icon
+            self.title = title
+            self.message = message
+            self.actionTitle = actionTitle
+            self.action = action
+        }
+
+        var body: some View {
+            VStack(spacing: DesignSystem.Spacing.xl) {
+                Spacer()
+
+                // Icon
+                ZStack {
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    DesignSystem.Colors.primary.opacity(0.15),
+                                    DesignSystem.Colors.primary.opacity(0.05)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 120, height: 120)
+
+                    Image(systemName: icon)
+                        .font(.system(size: 48, weight: .medium))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [
+                                    DesignSystem.Colors.primary,
+                                    DesignSystem.Colors.primary.opacity(0.7)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                }
+
+                VStack(spacing: DesignSystem.Spacing.md) {
+                    Text(title)
+                        .font(.system(size: 26, weight: .bold))
+                        .foregroundColor(DesignSystem.Colors.textPrimary)
+                        .multilineTextAlignment(.center)
+
+                    Text(message)
+                        .font(DesignSystem.Typography.body)
+                        .foregroundColor(DesignSystem.Colors.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, DesignSystem.Spacing.xl)
+                }
+
+                if let actionTitle, let action {
+                    Button(action: action) {
+                        HStack(spacing: DesignSystem.Spacing.sm) {
+                            Image(systemName: "plus.circle.fill")
+                            Text(actionTitle)
+                        }
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, DesignSystem.Spacing.lg)
+                        .padding(.vertical, DesignSystem.Spacing.md)
+                        .background(DesignSystem.Colors.primary)
+                        .cornerRadius(12)
+                        .shadow(color: DesignSystem.Colors.primary.opacity(0.3), radius: 8, y: 4)
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                Spacer()
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(
+                LinearGradient(
+                    colors: [
+                        DesignSystem.Colors.background,
+                        DesignSystem.Colors.oceanDeep.opacity(0.03)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            )
+        }
+    }
+
     struct TimelineIndicator: View {
         let isActive: Bool
         
