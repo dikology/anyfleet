@@ -40,7 +40,7 @@ enum AppRoute: Hashable {
 final class AppCoordinator: AppCoordinatorProtocol {
     private let dependencies: AppDependencies
     private let syncService: ContentSyncService
-    private var syncTimer: Timer?
+    private nonisolated(unsafe) var syncTimer: Timer?
     
     // Individual navigation paths per tab
     var homePath: [AppRoute] = []
