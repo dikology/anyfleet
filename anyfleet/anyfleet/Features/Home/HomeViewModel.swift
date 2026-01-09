@@ -26,7 +26,7 @@ import Observation
 /// ```
 @MainActor
 @Observable
-final class HomeViewModel {
+final class HomeViewModel: ErrorHandling {
     // MARK: - Dependencies
     
     private let coordinator: AppCoordinator
@@ -35,6 +35,8 @@ final class HomeViewModel {
     
     // MARK: - State
 
+    var currentError: AppError?
+    var showErrorBanner: Bool = false
     var isLoading = false
 
     // MARK: - Derived State
@@ -122,18 +124,22 @@ final class HomeViewModel {
     func refresh() async {
         isLoading = true
         defer { isLoading = false }
-        
-        // Ensure charters are loaded before checking for active charter
-        if charterStore.charters.isEmpty {
-            try? await charterStore.loadCharters()
-        }
-        
-        // Ensure library content is loaded for pinned items
-        if libraryStore.library.isEmpty {
-            await libraryStore.loadLibrary()
-        }
 
-        AppLogger.view.info("Active charter: \(activeCharter?.name ?? "none")")
+        do {
+            // Ensure charters are loaded before checking for active charter
+            if charterStore.charters.isEmpty {
+                try await charterStore.loadCharters()
+            }
+
+            // Ensure library content is loaded for pinned items
+            if libraryStore.library.isEmpty {
+                await libraryStore.loadLibrary()
+            }
+
+            AppLogger.view.info("Active charter: \(activeCharter?.name ?? "none")")
+        } catch {
+            handleError(error)
+        }
         
         // Fetch checkin checklist for active charter if it exists
         // if let charterID = activeCharter?.id {

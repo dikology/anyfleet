@@ -30,7 +30,7 @@ struct CharterEditorViewModelTests {
         // Assert
         #expect(viewModel.form.name.isEmpty)
         #expect(viewModel.isSaving == false)
-        #expect(viewModel.saveError == nil)
+        #expect(viewModel.currentError == nil)
         #expect(viewModel.isNewCharter == true)
         #expect(didDismiss == false)
     }
@@ -80,7 +80,7 @@ struct CharterEditorViewModelTests {
         // Assert
         #expect(viewModel.isNewCharter == false)
         #expect(viewModel.isLoading == false)
-        #expect(viewModel.loadError == nil)
+        #expect(viewModel.currentError == nil)
     }
     
     @Test("Completion progress - default form")
@@ -292,7 +292,7 @@ struct CharterEditorViewModelTests {
         #expect(mockRepository.lastCreatedCharter?.boatName == "Test Boat")
         #expect(mockRepository.lastCreatedCharter?.location == "Test Location")
         #expect(viewModel.isSaving == false)
-        #expect(viewModel.saveError == nil)
+        #expect(viewModel.currentError == nil)
         #expect(didDismiss == true)
     }
     
@@ -350,7 +350,7 @@ struct CharterEditorViewModelTests {
         // Assert
         #expect(mockRepository.createCharterCallCount == 1)
         #expect(viewModel.isSaving == false)
-        #expect(viewModel.saveError != nil)
+        #expect(viewModel.currentError != nil)
         #expect(didDismiss == false)
     }
     
@@ -444,7 +444,7 @@ struct CharterEditorViewModelTests {
         #expect(viewModel.form.vessel == "Test Boat")
         #expect(viewModel.form.destination == "Test Location")
         #expect(viewModel.isLoading == false)
-        #expect(viewModel.loadError == nil)
+        #expect(viewModel.currentError == nil)
     }
     
     @Test("Load charter - does not load for new charter")
@@ -492,7 +492,7 @@ struct CharterEditorViewModelTests {
         
         // Assert
         #expect(viewModel.isLoading == false)
-        #expect(viewModel.loadError != nil)
+        #expect(viewModel.currentError != nil)
     }
     
     @Test("Save charter - update success")
@@ -534,7 +534,7 @@ struct CharterEditorViewModelTests {
         
         // Assert
         #expect(viewModel.isSaving == false)
-        #expect(viewModel.saveError == nil)
+        #expect(viewModel.currentError == nil)
         #expect(didDismiss == true)
     }
     
@@ -565,7 +565,7 @@ struct CharterEditorViewModelTests {
         
         // Assert
         #expect(viewModel.isSaving == false)
-        #expect(viewModel.saveError != nil)
+        #expect(viewModel.currentError != nil)
         #expect(didDismiss == false)
     }
     

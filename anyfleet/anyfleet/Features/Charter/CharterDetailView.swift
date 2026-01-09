@@ -44,10 +44,6 @@ struct CharterDetailView: View {
                             .progressViewStyle(.circular)
                             .frame(maxWidth: .infinity, alignment: .center)
                             .padding()
-                    } else if let error = viewModel.loadError {
-                        Text(error)
-                            .foregroundColor(DesignSystem.Colors.error)
-                            .padding()
                     }
                 }
                 .padding(.horizontal, DesignSystem.Spacing.screenPadding)
@@ -59,6 +55,21 @@ struct CharterDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .task {
             await viewModel.load()
+        }
+
+        // Error Banner
+        if viewModel.showErrorBanner, let error = viewModel.currentError {
+            VStack {
+                Spacer()
+                ErrorBanner(
+                    error: error,
+                    onDismiss: { viewModel.clearError() },
+                    onRetry: { Task { await viewModel.load() } }
+                )
+                .padding(.horizontal)
+                .padding(.bottom, 20)
+            }
+            .transition(.move(edge: .bottom).combined(with: .opacity))
         }
     }
     
