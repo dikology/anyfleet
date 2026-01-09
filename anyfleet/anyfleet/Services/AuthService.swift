@@ -8,7 +8,8 @@ enum AuthError: Error {
     case networkError
     case invalidResponse
     case unauthorized
-    
+
+    @MainActor
     var localizedDescription: String {
         switch self {
         case .invalidToken: return L10n.Error.authInvalidToken
