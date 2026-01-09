@@ -8,7 +8,7 @@ enum AuthError: Error {
     case networkError
     case invalidResponse
     case unauthorized
-
+    
     @MainActor
     var localizedDescription: String {
         switch self {
@@ -452,18 +452,5 @@ final class AuthService: AuthServiceProtocol {
         isAuthenticated = false
         currentUser = nil
         AppLogger.auth.info("Logout complete")
-    }
-}
-
-// MARK: - Environment Key
-
-private struct AuthServiceKey: EnvironmentKey {
-    static let defaultValue: AuthService = AuthService()
-}
-
-extension EnvironmentValues {
-    var authService: AuthService {
-        get { self[AuthServiceKey.self] }
-        set { self[AuthServiceKey.self] = newValue }
     }
 }

@@ -73,7 +73,7 @@ struct SignInView: View {
 
 // MARK: - Preview
 
-#Preview("Sign In View") {
+#Preview("Sign In View") { @MainActor in
     SignInView()
         .environment(AuthService())
 }
