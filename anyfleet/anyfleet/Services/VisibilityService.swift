@@ -57,20 +57,50 @@ final class ContentValidator {
     }
 }
 
+/// Protocol for content sync operations
+protocol ContentSyncServiceProtocol {
+    func enqueuePublish(
+        contentID: UUID,
+        visibility: ContentVisibility,
+        payload: Data
+    ) async throws -> SyncSummary
+
+    func enqueueUnpublish(
+        contentID: UUID,
+        publicID: String
+    ) async throws -> SyncSummary
+
+    func syncPending() async -> SyncSummary
+}
+
 /// Service for managing content visibility and publishing operations
 @MainActor
 @Observable
 final class VisibilityService: VisibilityServiceProtocol {
-    private let libraryStore: LibraryStore
+    private let libraryStore: LibraryStoreProtocol
     private let authService: AuthServiceProtocol
-    private let syncService: ContentSyncService
+    private let syncService: ContentSyncServiceProtocol
     private let validator = ContentValidator()
 
     /// Errors that can occur during publishing operations
-    enum PublishError: LocalizedError {
+    enum PublishError: LocalizedError, Equatable {
         case notAuthenticated
         case networkError(Error)
         case validationError(String)
+
+        static func == (lhs: PublishError, rhs: PublishError) -> Bool {
+            switch (lhs, rhs) {
+            case (.notAuthenticated, .notAuthenticated):
+                return true
+            case (.networkError(let lhsError), .networkError(let rhsError)):
+                // Compare error descriptions for testing purposes
+                return lhsError.localizedDescription == rhsError.localizedDescription
+            case (.validationError(let lhsMessage), .validationError(let rhsMessage)):
+                return lhsMessage == rhsMessage
+            default:
+                return false
+            }
+        }
 
         var errorDescription: String? {
             switch self {
@@ -110,9 +140,9 @@ final class VisibilityService: VisibilityServiceProtocol {
     // MARK: - Initialization
     
     init(
-        libraryStore: LibraryStore,
+        libraryStore: LibraryStoreProtocol,
         authService: AuthServiceProtocol,
-        syncService: ContentSyncService
+        syncService: ContentSyncServiceProtocol
     ) {
         self.libraryStore = libraryStore
         self.authService = authService
