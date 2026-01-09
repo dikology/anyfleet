@@ -51,16 +51,6 @@ struct LibraryListView: View {
             await viewModel.refresh()
         }
         .libraryModals(viewModel: viewModel)
-        .onChange(of: viewModel.pendingPublishItem) { oldValue, newValue in
-            viewModel.showingPublishConfirmation = newValue != nil
-        }
-        .onChange(of: viewModel.showPublishedDeleteConfirmation) { oldValue, newValue in
-            if !newValue {
-                // Sheet was dismissed, clean up state
-                viewModel.publishedDeleteModalItem = nil
-                viewModel.pendingDeleteItem = nil
-            }
-        }
     }
 
     @ViewBuilder
@@ -156,112 +146,94 @@ struct LibraryModalsModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .sheet(isPresented: $viewModel.showingPublishConfirmation) {
-                if let item = viewModel.pendingPublishItem {
-                    PublishConfirmationModal(
-                        item: item,
-                        isLoading: viewModel.isLoading,
-                        error: viewModel.publishError,
-                        onConfirm: {
-                            Task {
-                                await viewModel.confirmPublish()
-                                if viewModel.publishError == nil {
-                                    viewModel.showingPublishConfirmation = false
-                                }
-                            }
-                        },
-                        onCancel: {
-                            viewModel.cancelPublish()
-                            viewModel.showingPublishConfirmation = false
-                        },
-                        onRetry: {
-                            Task {
-                                await viewModel.confirmPublish()
-                            }
-                        }
-                    )
-                }
+            .sheet(item: $viewModel.activeModal) { modal in
+                modalContent(for: modal)
             }
-            .sheet(isPresented: $viewModel.showingSignInModal) {
-                SignInModalView(
-                    onSuccess: {
-                        viewModel.showingSignInModal = false
-                    },
-                    onDismiss: {
-                        viewModel.showingSignInModal = false
+    }
+
+    @ViewBuilder
+    private func modalContent(for modal: LibraryModal) -> some View {
+        switch modal {
+        case .publishConfirmation(let item):
+            PublishConfirmationModal(
+                item: item,
+                isLoading: viewModel.isLoading,
+                error: viewModel.publishError,
+                onConfirm: {
+                    Task {
+                        await viewModel.confirmPublish()
+                        if viewModel.publishError == nil {
+                            viewModel.dismissModal()
+                        }
                     }
-                )
-            }
-            .sheet(isPresented: $viewModel.showPrivateDeleteConfirmation) {
-                if let item = viewModel.pendingDeleteItem {
-                    DeleteConfirmationModal(
-                        item: item,
-                        isPublished: false,
-                        onConfirm: {
-                            Task {
-                                do {
-                                    try await viewModel.deleteContent(item)
-                                    viewModel.showPrivateDeleteConfirmation = false
-                                    viewModel.pendingDeleteItem = nil
-                                } catch {
-                                    AppLogger.view.error("Failed to delete content: \(error.localizedDescription)")
-                                }
-                            }
-                        },
-                        onCancel: {
-                            viewModel.showPrivateDeleteConfirmation = false
-                            viewModel.pendingDeleteItem = nil
-                        }
-                    )
+                },
+                onCancel: {
+                    viewModel.cancelPublish()
+                },
+                onRetry: {
+                    Task {
+                        await viewModel.confirmPublish()
+                    }
                 }
-            }
-            .sheet(isPresented: $viewModel.showPublishedDeleteConfirmation) {
-                if let item = viewModel.publishedDeleteModalItem {
-                    PublishedContentDeleteModal(
-                        item: item,
-                        onUnpublishAndDelete: {
-                            AppLogger.view.info("User selected 'Unpublish & Delete' for item: \(item.id)")
-                            Task {
-                                do {
-                                    try await viewModel.deleteAndUnpublishContent(item)
-                                    viewModel.showPublishedDeleteConfirmation = false
-                                    viewModel.publishedDeleteModalItem = nil
-                                    viewModel.pendingDeleteItem = nil
-                                } catch {
-                                    AppLogger.view.error("Failed to unpublish and delete content: \(error.localizedDescription)")
-                                }
-                            }
-                        },
-                        onKeepPublished: {
-                            AppLogger.view.info("User selected 'Keep Published' for item: \(item.id)")
-                            Task {
-                                do {
-                                    // For "Keep Published", delete local copy but keep content published on backend
-                                    try await viewModel.deleteLocalCopyKeepPublished(item)
-                                    viewModel.showPublishedDeleteConfirmation = false
-                                    viewModel.publishedDeleteModalItem = nil
-                                    viewModel.pendingDeleteItem = nil
-                                } catch {
-                                    AppLogger.view.error("Failed to delete local copy: \(error.localizedDescription)")
-                                }
-                            }
-                        },
-                        onCancel: {
-                            AppLogger.view.info("User cancelled published content deletion")
-                            viewModel.showPublishedDeleteConfirmation = false
-                            viewModel.publishedDeleteModalItem = nil
-                            viewModel.pendingDeleteItem = nil
-                        }
-                    )
-                } else {
-                    // Fallback for debugging - show empty state if item is missing
-                    Text("No item selected")
-                        .onAppear {
-                            AppLogger.view.error("PublishedContentDeleteModal presented with nil publishedDeleteModalItem")
-                            viewModel.showPublishedDeleteConfirmation = false
-                        }
+            )
+        case .signIn:
+            SignInModalView(
+                onSuccess: {
+                    viewModel.dismissModal()
+                },
+                onDismiss: {
+                    viewModel.dismissModal()
                 }
-            }
+            )
+        case .deletePrivate(let item):
+            DeleteConfirmationModal(
+                item: item,
+                isPublished: false,
+                onConfirm: {
+                    Task {
+                        do {
+                            try await viewModel.deleteContent(item)
+                            viewModel.dismissModal()
+                        } catch {
+                            AppLogger.view.error("Failed to delete content: \(error.localizedDescription)")
+                        }
+                    }
+                },
+                onCancel: {
+                    viewModel.dismissModal()
+                }
+            )
+        case .deletePublished(let item):
+            PublishedContentDeleteModal(
+                item: item,
+                onUnpublishAndDelete: {
+                    AppLogger.view.info("User selected 'Unpublish & Delete' for item: \(item.id)")
+                    Task {
+                        do {
+                            try await viewModel.deleteAndUnpublishContent(item)
+                            viewModel.dismissModal()
+                        } catch {
+                            AppLogger.view.error("Failed to unpublish and delete content: \(error.localizedDescription)")
+                        }
+                    }
+                },
+                onKeepPublished: {
+                    AppLogger.view.info("User selected 'Keep Published' for item: \(item.id)")
+                    Task {
+                        do {
+                            try await viewModel.deleteLocalCopyKeepPublished(item)
+                            viewModel.dismissModal()
+                        } catch {
+                            AppLogger.view.error("Failed to delete local copy: \(error.localizedDescription)")
+                        }
+                    }
+                },
+                onCancel: {
+                    AppLogger.view.info("User cancelled published content deletion")
+                    viewModel.dismissModal()
+                }
+            )
+        }
     }
 }
 
@@ -377,7 +349,7 @@ struct LibraryContentList: View {
                             }
                         },
                         onSignInRequired: {
-                            viewModel.showingSignInModal = true
+                            viewModel.showSignInModal()
                         },
                         onRetrySync: {
                             Task {
@@ -395,15 +367,7 @@ struct LibraryContentList: View {
                     .listRowBackground(Color.clear)
                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                         Button(role: .destructive) {
-                            viewModel.pendingDeleteItem = item
-                            let action = viewModel.initiateDelete(item)
-                            switch action {
-                            case .showPublishedModal:
-                                viewModel.publishedDeleteModalItem = item
-                                viewModel.showPublishedDeleteConfirmation = true
-                            case .showPrivateModal:
-                                viewModel.showPrivateDeleteConfirmation = true
-                            }
+                            viewModel.initiateDelete(item)
                         } label: {
                             Label(L10n.Library.actionDelete, systemImage: "trash")
                         }
