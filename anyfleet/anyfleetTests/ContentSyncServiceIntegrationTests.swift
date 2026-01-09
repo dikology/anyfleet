@@ -298,7 +298,7 @@ struct ContentSyncServiceIntegrationTests {
     @MainActor
     func testPublishSucceedsWhenCurrentUserLoadedByEnsureMethod() async throws {
         // Arrange
-        let (repository, apiClient, _, libraryStore, syncService) = try makeTestDependencies()
+        let (repository, _, _, libraryStore, syncService) = try makeTestDependencies()
 
         // Create a mock auth service where isAuthenticated is true but currentUser starts as nil
         // The ensureCurrentUserLoaded method will set it
@@ -320,7 +320,7 @@ struct ContentSyncServiceIntegrationTests {
             description: "Test description",
             sections: [],
             checklistType: .general,
-            tags: [],
+            tags: ["test", "integration"],
             createdAt: Date(),
             updatedAt: Date()
         )
@@ -384,7 +384,7 @@ struct ContentSyncServiceIntegrationTests {
             description: "Test description",
             sections: [],
             checklistType: .general,
-            tags: [],
+            tags: ["test", "authenticated"],
             createdAt: Date(),
             updatedAt: Date()
         )
@@ -422,7 +422,7 @@ struct ContentSyncServiceIntegrationTests {
     @MainActor
     func testUnpublishOperationStoresPublicID() async throws {
         // Arrange
-        let (repository, apiClient, _, libraryStore, syncService) = try makeTestDependencies()
+        let (repository, _, _, libraryStore, syncService) = try makeTestDependencies()
 
         // Create a checklist and mark it as published
         let checklistID = UUID()
@@ -447,14 +447,14 @@ struct ContentSyncServiceIntegrationTests {
         try await repository.updateLibraryMetadata(libraryModel)
 
         // Act - Unpublish the checklist
-        let visibilityService = VisibilityService(
+        let _ = VisibilityService(
             libraryStore: libraryStore,
             authService: MockAuthService(),
             syncService: syncService
         )
 
         // Create payload using the same method as unpublishContent
-        let payloadData = try JSONEncoder().encode(UnpublishPayload(publicID: publicID))
+        let _ = try JSONEncoder().encode(UnpublishPayload(publicID: publicID))
 
         // Act - Enqueue operation without processing for payload inspection
         try await syncService.enqueueUnpublishOnly(

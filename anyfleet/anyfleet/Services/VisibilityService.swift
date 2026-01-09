@@ -17,14 +17,54 @@ protocol VisibilityServiceProtocol: AnyObject {
     func retrySync(for item: LibraryModel) async
 }
 
+/// Validator for content publishing requirements
+final class ContentValidator {
+    func validate(_ item: LibraryModel) throws {
+        try validateTitle(item.title)
+        try validateDescription(item.description)
+        try validateTags(item.tags)
+    }
+
+    private func validateTitle(_ title: String) throws {
+        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            throw VisibilityService.PublishError.validationError("Title cannot be empty")
+        }
+        guard trimmed.count >= 3 else {
+            throw VisibilityService.PublishError.validationError("Title must be at least 3 characters")
+        }
+        guard trimmed.count <= 100 else {
+            throw VisibilityService.PublishError.validationError("Title must be 100 characters or less")
+        }
+    }
+
+    private func validateDescription(_ description: String?) throws {
+        guard let desc = description, !desc.isEmpty else {
+            throw VisibilityService.PublishError.validationError("Description is required for publishing")
+        }
+        guard desc.count <= 500 else {
+            throw VisibilityService.PublishError.validationError("Description must be 500 characters or less")
+        }
+    }
+
+    private func validateTags(_ tags: [String]) throws {
+        guard !tags.isEmpty else {
+            throw VisibilityService.PublishError.validationError("At least one tag is required")
+        }
+        guard tags.count <= 10 else {
+            throw VisibilityService.PublishError.validationError("Maximum 10 tags allowed")
+        }
+    }
+}
+
 /// Service for managing content visibility and publishing operations
 @MainActor
 @Observable
 final class VisibilityService: VisibilityServiceProtocol {
     private let libraryStore: LibraryStore
     private let authService: AuthServiceProtocol
-
     private let syncService: ContentSyncService
+    private let validator = ContentValidator()
 
     /// Errors that can occur during publishing operations
     enum PublishError: LocalizedError {
@@ -92,30 +132,6 @@ final class VisibilityService: VisibilityServiceProtocol {
     
     // MARK: - Validation
     
-    /// Validate content before publishing
-    /// - Parameter item: The library item to validate
-    /// - Throws: `PublishError.validationError` if validation fails
-    private func validateForPublishing(_ item: LibraryModel) throws {
-        // Title validation
-        let trimmedTitle = item.title.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard trimmedTitle.count >= 3 else {
-            throw PublishError.validationError("Title must be at least 3 characters")
-        }
-        
-        guard trimmedTitle.count <= 200 else {
-            throw PublishError.validationError("Title must be no more than 200 characters")
-        }
-        
-        // Description validation (optional but if provided, should be reasonable)
-        if let description = item.description {
-            let trimmedDescription = description.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard trimmedDescription.count <= 1000 else {
-                throw PublishError.validationError("Description must be no more than 1000 characters")
-            }
-        }
-        
-        AppLogger.auth.debug("Content validation passed for item: \(item.id)")
-    }
     
     /// Generate a URL-friendly slug from the title
     /// - Parameter title: The title to convert to a slug
@@ -138,72 +154,53 @@ final class VisibilityService: VisibilityServiceProtocol {
     /// - Parameter item: The library item to publish
     /// - Throws: `PublishError` if publishing fails
     func publishContent(_ item: LibraryModel) async throws -> SyncSummary {
-        AppLogger.auth.startOperation("Publish Content")
+        AppLogger.auth.info("Publishing content: \(item.id)")
 
-        // Check authentication and ensure user info is loaded
-        guard authService.isAuthenticated else {
-            AppLogger.auth.warning("Publish attempted without authentication")
-            throw PublishError.notAuthenticated
-        }
+        // 1. Auth check
+        try await ensureAuthenticated()
 
-        // Ensure current user is loaded (this will load it if not already loaded)
-        try await authService.ensureCurrentUserLoaded()
+        // 2. Validation
+        try validator.validate(item)
 
-        // Validate content
-        try validateForPublishing(item)
-
-        // Get current user info (should be available now)
-        guard let currentUser = authService.currentUser else {
-            AppLogger.auth.error("Current user not available after loading")
-            throw PublishError.notAuthenticated
-        }
-        
-        // Generate public metadata
+        // 3. Generate public metadata and update visibility
         let publicID = generatePublicID(from: item.title)
         let publishedAt = Date()
         let publicMetadata = PublicMetadata(
             publishedAt: publishedAt,
             publicID: publicID,
             canFork: true, // Default to allowing forks
-            authorUsername: currentUser.username ?? "Anonymous User"
+            authorUsername: authService.currentUser?.username ?? "Anonymous User"
         )
-        
-        // Update item with public visibility
-        var updated = item
-        updated.visibility = .public
-        updated.publishedAt = publishedAt
-        updated.publicID = publicID
-        updated.publicMetadata = publicMetadata
-        updated.syncStatus = .pending // Will be synced to backend later
-        updated.updatedAt = Date()
-        
-        AppLogger.auth.info("Publishing content: \(item.id), publicID: \(publicID)")
-        
-        do {
-            // Save to local database
-            try await libraryStore.updateLibraryMetadata(updated)
-            
-            let payload = try await encodeContentForSync(updated)
-            let syncSummary = try await syncService.enqueuePublish(
-                contentID: updated.id,
-                visibility: .public,
-                payload: payload
-            )
-            AppLogger.auth.completeOperation("Publish Content")
-            AppLogger.auth.info("Content published successfully: \(item.id)")
-            return syncSummary
-        } catch {
-            AppLogger.auth.failOperation("Publish Content", error: error)
-            
-            // Update sync status to error
-            var errorItem = updated
-            errorItem.syncStatus = .failed
-            try? await libraryStore.updateLibraryMetadata(errorItem)
-            
-            throw PublishError.networkError(error)
-        }
+
+        var updatedItem = item
+        updatedItem.visibility = .public
+        updatedItem.publishedAt = publishedAt
+        updatedItem.publicID = publicID
+        updatedItem.publicMetadata = publicMetadata
+        updatedItem.syncStatus = .pending // Will be synced to backend later
+        updatedItem.updatedAt = Date()
+
+        // 4. Persist and sync
+        try await libraryStore.updateLibraryMetadata(updatedItem)
+        let payload = try await encodeContentForSync(updatedItem)
+        let summary = try await syncService.enqueuePublish(
+            contentID: updatedItem.id,
+            visibility: .public,
+            payload: payload
+        )
+
+        AppLogger.auth.info("Content published successfully: \(item.id)")
+        return summary
     }
-    
+
+    private func ensureAuthenticated() async throws {
+        guard authService.isAuthenticated else {
+            AppLogger.auth.warning("Publish attempt without authentication")
+            throw PublishError.notAuthenticated
+        }
+        try await authService.ensureCurrentUserLoaded()
+    }
+
     /// Unpublish content (make it private)
     /// - Parameter item: The library item to unpublish
     /// - Throws: Error if unpublishing fails
