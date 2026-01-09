@@ -42,30 +42,29 @@ struct AuthServiceTests {
     
     // MARK: - Initialization Tests
     
-    @Test("AuthService initialization - singleton access")
+    @Test("AuthService initialization")
     @MainActor
-    func testInitialization_SingletonAccess() async throws {
-        // Test that AuthService singleton can be accessed
-        // Note: This tests the singleton pattern
-        let service1 = AuthService.shared
-        let service2 = AuthService.shared
-        
-        // Verify it's the same instance (singleton pattern)
-        #expect(service1 === service2)
-        
+    func testInitialization() async throws {
+        // Test that AuthService can be initialized
+        let service = AuthService()
+
         // Verify service has expected properties
         // Note: Actual authentication state depends on KeychainService which we can't easily mock
-        #expect(type(of: service1.isAuthenticated) == Bool.self)
+        #expect(type(of: service.isAuthenticated) == Bool.self)
     }
     
     @Test("AuthService conforms to AuthServiceProtocol")
+    @MainActor
     func testAuthServiceProtocolConformance() {
         // Arrange
-        let authService = AuthService.shared
+        let authService = AuthService()
 
         // Act & Assert - Should be able to use as protocol
+        // If this assignment fails to compile, AuthService doesn't conform to the protocol
         let protocolService: AuthServiceProtocol = authService
-        #expect(protocolService != nil)
+
+        // Verify the protocol service has the expected properties
+        #expect(protocolService.isAuthenticated == authService.isAuthenticated)
     }
 
     // MARK: - Error Conversion Tests
@@ -117,6 +116,7 @@ struct AuthServiceTests {
     // MARK: - Token Response Tests
     
     @Test("TokenResponse decoding - valid response")
+    @MainActor
     func testTokenResponse_Decoding() throws {
         let json = """
         {
@@ -146,6 +146,7 @@ struct AuthServiceTests {
     // MARK: - UserInfo Tests
     
     @Test("UserInfo - username optional")
+    @MainActor
     func testUserInfo_UsernameOptional() throws {
         let json = """
         {
@@ -264,6 +265,7 @@ struct AuthServiceTests {
     // MARK: - AnyCodable Tests
 
     @Test("AnyCodable encoding/decoding - string value")
+    @MainActor
     func testAnyCodable_StringEncoding() throws {
         // Arrange
         let originalValue = "test string"
@@ -282,6 +284,7 @@ struct AuthServiceTests {
     }
 
     @Test("AnyCodable encoding/decoding - dictionary with mixed types")
+    @MainActor
     func testAnyCodable_DictionaryEncoding() throws {
         // Arrange
         let originalDict: [String: Any] = [
@@ -307,6 +310,7 @@ struct AuthServiceTests {
     }
 
     @Test("AppleSignInRequest encoding - with user info")
+    @MainActor
     func testAppleSignInRequest_Encoding_WithUserInfo() throws {
         // Arrange
         let userInfo: [String: AnyCodable] = [
@@ -326,6 +330,7 @@ struct AuthServiceTests {
     }
 
     @Test("AppleSignInRequest encoding - without user info")
+    @MainActor
     func testAppleSignInRequest_Encoding_WithoutUserInfo() throws {
         // Arrange
         let request = AppleSignInRequest(identityToken: "test_token", userInfo: nil)

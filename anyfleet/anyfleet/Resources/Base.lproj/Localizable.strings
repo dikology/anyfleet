@@ -149,8 +149,8 @@
 "sectionEditor.done" = "Done";
 "sectionEditor.none" = "None";
 
-"profile.welcomeTitle" = "Welcome to Anyfleet";
-"profile.welcomeSubtitle" = "Sign in with Apple to sync your data across devices and access your account.";
+"profile.welcomeTitle" = "Discover sailing knowledge from sailors around the world";
+"profile.welcomeSubtitle" = "Sign in to explore checklists, guides, and flashcards shared by the community. Find inspiration for your next adventure and contribute your own content.";
 "profile.signOut" = "Sign Out";
 "profile.signedInAs" = "Signed in as: %@";
 "profile.accountTitle" = "Account";

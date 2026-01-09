@@ -48,7 +48,10 @@ final class AppDependencies {
     
     /// Repository for charter data operations
     let repository: LocalRepository
-    
+
+    /// Authentication service instance
+    let authService: AuthService
+
     // MARK: - Stores
     
     /// Shared charter store instance
@@ -103,8 +106,11 @@ final class AppDependencies {
         self.database = .shared
         self.repository = LocalRepository(database: database)
 
+        // Initialize auth service ONCE
+        self.authService = AuthService()
+
         // API client (needed by sync services)
-        self.apiClient = APIClient(authService: AuthService.shared)
+        self.apiClient = APIClient(authService: authService)
 
         // Initialize sync queue service (lowest level sync dependency)
         self.syncQueueService = SyncQueueService(
@@ -124,10 +130,10 @@ final class AppDependencies {
 
         // Initialize services
         self.localizationService = LocalizationService()
-        self.authStateObserver = AuthStateObserver(authService: AuthService.shared)
+        self.authStateObserver = AuthStateObserver(authService: authService)
         self.visibilityService = VisibilityService(
             libraryStore: libraryStore,
-            authService: AuthService.shared,
+            authService: authService,
             syncService: contentSyncService
         )
 
@@ -160,12 +166,15 @@ final class AppDependencies {
         repository: LocalRepository
     ) {
         AppLogger.dependencies.info("Initializing test AppDependencies")
-        
+
         self.database = database
         self.repository = repository
 
+        // Initialize auth service ONCE
+        self.authService = AuthService()
+
         // API client (needed by sync services)
-        self.apiClient = APIClient(authService: AuthService.shared)
+        self.apiClient = APIClient(authService: authService)
 
         // Initialize sync queue service (lowest level sync dependency)
         self.syncQueueService = SyncQueueService(
@@ -182,10 +191,10 @@ final class AppDependencies {
 
         // Initialize services
         self.localizationService = LocalizationService()
-        self.authStateObserver = AuthStateObserver(authService: AuthService.shared)
+        self.authStateObserver = AuthStateObserver(authService: authService)
         self.visibilityService = VisibilityService(
             libraryStore: libraryStore,
-            authService: AuthService.shared,
+            authService: authService,
             syncService: contentSyncService
         )
 

@@ -16,18 +16,18 @@ final class ProfileViewModel {
     var editedUsername = ""
     var isSavingProfile = false
     
-    @MainActor
-    func loadReputationMetrics() async {
-        isLoading = true
-        defer { isLoading = false }
-        
-        do {
-            // TODO: Call API when Phase 2 backend is ready
-            // self.contributionMetrics = try await authService.fetchMetrics()
-        } catch {
-            appError = error.toAppError()
-        }
-    }
+    // @MainActor
+    // func loadReputationMetrics() async {
+    //     isLoading = true
+    //     defer { isLoading = false }
+
+    //     // TODO: Call API when Phase 2 backend is ready
+    //     // do {
+    //     //     self.contributionMetrics = try await authService.fetchMetrics()
+    //     // } catch {
+    //     //     appError = error.toAppError()
+    //     // }
+    // }
     
     @MainActor
     func logout(from authService: AuthService) async {
@@ -35,7 +35,7 @@ final class ProfileViewModel {
         defer { isLoading = false }
 
         do {
-            try await authService.logout()
+            await authService.logout()
         } catch {
             appError = error.toAppError()
         }
@@ -87,7 +87,7 @@ final class ProfileViewModel {
         do {
             try await authService.handleAppleSignIn(result: result)
             // Load metrics after successful sign-in
-            await loadReputationMetrics()
+            //await loadReputationMetrics()
         } catch {
             appError = error.toAppError()
         }
@@ -144,7 +144,11 @@ enum VerificationTier: String, Codable, Sendable {
 
 struct ProfileView: View {
     @Environment(\.authService) private var authService
-    @State private var viewModel = ProfileViewModel()
+    @State private var viewModel: ProfileViewModel
+
+    init(viewModel: ProfileViewModel? = nil) {
+        _viewModel = State(initialValue: viewModel ?? ProfileViewModel())
+    }
     
     var body: some View {
         NavigationStack {
@@ -161,7 +165,8 @@ struct ProfileView: View {
             .navigationBarTitleDisplayMode(.inline)
             .task {
                 if authService.isAuthenticated {
-                    await viewModel.loadReputationMetrics()
+                    // TODO: Load reputation metrics when Phase 2 backend is ready
+                    // await loadReputationMetrics()
                 }
             }
         }
@@ -641,12 +646,24 @@ struct ProfileView: View {
             VStack(spacing: DesignSystem.Spacing.xxl) {
                 Spacer()
                 
-                DesignSystem.EmptyStateHero(
-                    icon: "person.circle.fill",
-                    title: L10n.Profile.welcomeTitle,
-                    message: L10n.Profile.welcomeSubtitle,
-                    accentColor: DesignSystem.Colors.primary
-                )
+                // Typography-focused welcome message
+                VStack(spacing: DesignSystem.Spacing.lg) {
+                    VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
+                        Text(L10n.Profile.welcomeTitle)
+                            .font(DesignSystem.Typography.largeTitle)
+                            .fontWeight(.bold)
+                            .foregroundColor(DesignSystem.Colors.textPrimary)
+                            .multilineTextAlignment(.leading)
+                        
+                        Text(L10n.Profile.welcomeSubtitle)
+                            .font(DesignSystem.Typography.body)
+                            .foregroundColor(DesignSystem.Colors.textSecondary)
+                            .multilineTextAlignment(.leading)
+                            .lineSpacing(4)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .padding(.horizontal, DesignSystem.Spacing.screenPadding)
                 
                 Spacer()
                 
@@ -724,10 +741,30 @@ struct ProfileView: View {
 
 #Preview("Unauthenticated") {
     ProfileView()
-        .environment(\.authService, AuthService.shared)
+        .environment(AuthService())
 }
 
 #Preview("Authenticated") {
-    ProfileView()
-        .environment(\.authService, AuthService.shared)
+    let authService = AuthService()
+    authService.isAuthenticated = true
+    authService.currentUser = UserInfo(
+        id: "user-123",
+        email: "john.doe@example.com",
+        username: "John Doe",
+        createdAt: "2024-01-15T10:30:00Z"
+    )
+
+    let viewModel = ProfileViewModel()
+    viewModel.contributionMetrics = ContributionMetrics(
+        totalContributions: 42,
+        totalForks: 15,
+        averageRating: 4.7,
+        verificationTier: .expert,
+        createdCount: 28,
+        forkedCount: 12,
+        importedCount: 2
+    )
+
+    return ProfileView(viewModel: viewModel)
+        .environment(\.authService, authService)
 }

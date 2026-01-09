@@ -2,7 +2,7 @@ import SwiftUI
 import AuthenticationServices
 
 struct SignInView: View {
-    @State private var authService = AuthService.shared
+    @Environment(AuthService.self) private var authService
     @State private var appError: AppError?
     @State private var isLoading = false
     
@@ -69,4 +69,11 @@ struct SignInView: View {
         
         isLoading = false
     }
+}
+
+// MARK: - Preview
+
+#Preview("Sign In View") {
+    SignInView()
+        .environment(AuthService())
 }

@@ -66,21 +66,22 @@ struct AppleSignInRequest: Encodable {
 @MainActor
 @Observable
 final class AuthService: AuthServiceProtocol {
-    static let shared = AuthService()
-    
     var isAuthenticated = false
     var currentUser: UserInfo?
-    
-    private let baseURL: String = {
-        #if targetEnvironment(simulator)
-        return "http://127.0.0.1:8000/api/v1"
-        #else
-        return "https://elegant-empathy-production-583b.up.railway.app/api/v1"
-        #endif
-    }()
+
+    private let baseURL: String
     private let keychain = KeychainService.shared
-    
-    private init() {
+
+    // Public initializer for DI
+    init(baseURL: String? = nil) {
+        self.baseURL = baseURL ?? {
+            #if targetEnvironment(simulator)
+            return "http://127.0.0.1:8000/api/v1"
+            #else
+            return "https://elegant-empathy-production-583b.up.railway.app/api/v1"
+            #endif
+        }()
+
         // Check if we have stored tokens
         if let _ = keychain.getAccessToken() {
             AppLogger.auth.info("Found stored access token, restoring session")
@@ -456,7 +457,7 @@ final class AuthService: AuthServiceProtocol {
 // MARK: - Environment Key
 
 private struct AuthServiceKey: EnvironmentKey {
-    static let defaultValue: AuthService = .shared
+    static let defaultValue: AuthService = AuthService()
 }
 
 extension EnvironmentValues {
