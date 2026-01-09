@@ -153,8 +153,8 @@
 "sectionEditor.done" = "Готово";
 "sectionEditor.none" = "Нет";
 
-"profile.welcomeTitle" = "Добро пожаловать";
-"profile.welcomeSubtitle" = "Войдите, чтобы иметь доступ к общему контенту";
+"profile.welcomeTitle" = "Откройте для себя знания о судоходстве со всего мира";
+"profile.welcomeSubtitle" = "Войдите, чтобы исследовать чек-листы, руководства и карточки, которыми поделилось сообщество. Найдите вдохновение для вашего следующего приключения и поделитесь своим контентом.";
 "profile.signOut" = "Выйти";
 "profile.signedInAs" = "%@";
 "profile.accountTitle" = "Аккаунт";

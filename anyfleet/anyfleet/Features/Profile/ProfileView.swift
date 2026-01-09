@@ -642,12 +642,24 @@ struct ProfileView: View {
             VStack(spacing: DesignSystem.Spacing.xxl) {
                 Spacer()
                 
-                DesignSystem.EmptyStateHero(
-                    icon: "person.circle.fill",
-                    title: L10n.Profile.welcomeTitle,
-                    message: L10n.Profile.welcomeSubtitle,
-                    accentColor: DesignSystem.Colors.primary
-                )
+                // Typography-focused welcome message
+                VStack(spacing: DesignSystem.Spacing.lg) {
+                    VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
+                        Text(L10n.Profile.welcomeTitle)
+                            .font(DesignSystem.Typography.largeTitle)
+                            .fontWeight(.bold)
+                            .foregroundColor(DesignSystem.Colors.textPrimary)
+                            .multilineTextAlignment(.leading)
+                        
+                        Text(L10n.Profile.welcomeSubtitle)
+                            .font(DesignSystem.Typography.body)
+                            .foregroundColor(DesignSystem.Colors.textSecondary)
+                            .multilineTextAlignment(.leading)
+                            .lineSpacing(4)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .padding(.horizontal, DesignSystem.Spacing.screenPadding)
                 
                 Spacer()
                 
