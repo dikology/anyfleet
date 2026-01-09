@@ -54,6 +54,7 @@ final class LibraryListViewModel: ErrorHandling {
     var publishError: Error?
     var currentError: AppError?
     var showErrorBanner: Bool = false
+    var operationsInProgress: Set<UUID> = []
 
     // MARK: - UI State
 
@@ -113,6 +114,11 @@ final class LibraryListViewModel: ErrorHandling {
     /// Whether there is any public content
     var hasPublicContent: Bool {
         !publicContent.isEmpty
+    }
+
+    /// Check if an operation is currently in progress for a specific item
+    func isOperationInProgress(_ itemID: UUID) -> Bool {
+        operationsInProgress.contains(itemID)
     }
 
     /// Filtered library items based on selected filter (cached for performance)
@@ -289,9 +295,12 @@ final class LibraryListViewModel: ErrorHandling {
             AppLogger.view.warning("confirmPublish called but no pending item")
             return
         }
-        
+
         AppLogger.view.info("Confirming publish for item: \(item.id)")
         clearError()
+
+        operationsInProgress.insert(item.id)
+        defer { operationsInProgress.remove(item.id) }
 
         do {
             let syncSummary = try await visibilityService.publishContent(item)
@@ -318,6 +327,9 @@ final class LibraryListViewModel: ErrorHandling {
     func unpublish(_ item: LibraryModel) async {
         AppLogger.view.info("Unpublishing item: \(item.id)")
 
+        operationsInProgress.insert(item.id)
+        defer { operationsInProgress.remove(item.id) }
+
         do {
             let syncSummary = try await visibilityService.unpublishContent(item)
             await loadLibrary()
@@ -332,6 +344,10 @@ final class LibraryListViewModel: ErrorHandling {
     /// - Parameter item: The library item to retry sync for
     func retrySync(for item: LibraryModel) async {
         AppLogger.view.info("Retrying sync for item: \(item.id)")
+
+        operationsInProgress.insert(item.id)
+        defer { operationsInProgress.remove(item.id) }
+
         await visibilityService.retrySync(for: item)
         // Reload to get updated sync status
         await loadLibrary()
