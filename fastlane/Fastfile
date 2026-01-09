@@ -22,8 +22,6 @@ platform :ios do
     scan(
       project: "anyfleet/anyfleet.xcodeproj",
       scheme: "anyfleet",
-      # Specify a specific device to avoid simulator discovery issues
-      device: "iPhone 16 Pro",
       # Let Fastlane auto-detect available simulators
       # This is more reliable across different environments
       ensure_devices_found: true,
@@ -34,7 +32,7 @@ platform :ios do
       # Disable parallel testing for CI reliability
       # This prevents random freezes and ensures Swift Testing output is properly displayed
       # The scheme already has parallelizable="NO", but we add these args for extra safety
-      xcargs: "-parallel-testing-worker-count 1 -parallel-testing-enabled NO -derivedDataPath ./fastlane/test_output/DerivedData",
+      xcargs: "-parallel-testing-worker-count 1 -parallel-testing-enabled NO",
       output_directory: "./fastlane/test_output",
       # xcbeautify doesn't support HTML output, only junit
       output_types: "junit",

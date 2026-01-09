@@ -53,14 +53,7 @@ jobs:
         run: bundle install
 
       - name: Run tests
-        run: |
-          # Clear any existing derived data that might have permission issues
-          rm -rf ~/Library/Developer/Xcode/DerivedData/anyfleet-*
-          # Ensure proper Xcode setup
-          sudo xcode-select -s /Applications/Xcode.app
-          # Pre-warm simulator service
-          xcrun simctl list devices > /dev/null
-          bundle exec fastlane test
+        run: bundle exec fastlane test
 
   deploy:
     name: Deploy to TestFlight
