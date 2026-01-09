@@ -15,8 +15,10 @@ enum AppError: LocalizedError, Identifiable {
     case authenticationError(AuthError)
     case unknown(Error)
     
+    @MainActor
     var id: String { errorDescription ?? "unknown" }
     
+    @MainActor
     var errorDescription: String? {
         switch self {
         case .notFound(let entity, let id):
@@ -34,6 +36,7 @@ enum AppError: LocalizedError, Identifiable {
         }
     }
     
+    @MainActor
     var recoverySuggestion: String? {
         // User-friendly suggestions
         switch self {
@@ -84,6 +87,7 @@ enum NetworkError: LocalizedError {
     case unreachableHost
     case unknown(Error)
     
+    @MainActor
     var errorDescription: String? {
         switch self {
         case .offline:
@@ -99,6 +103,7 @@ enum NetworkError: LocalizedError {
         }
     }
     
+    @MainActor
     var recoverySuggestion: String? {
         switch self {
         case .offline:
@@ -125,6 +130,7 @@ enum LibraryError: LocalizedError, Equatable {
     case validationFailed(String)
     case syncFailed(String)
 
+    @MainActor
     var errorDescription: String? {
         switch self {
         case .notFound(let id):
@@ -142,6 +148,7 @@ enum LibraryError: LocalizedError, Equatable {
         }
     }
 
+    @MainActor
     var recoverySuggestion: String? {
         switch self {
         case .networkUnavailable:

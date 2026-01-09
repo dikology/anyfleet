@@ -5,6 +5,8 @@ import AuthenticationServices
 
 @Observable
 final class ProfileViewModel {
+    private let authService: AuthService
+
     var appError: AppError?
     var isLoading = false
 
@@ -15,6 +17,10 @@ final class ProfileViewModel {
     var isEditingProfile = false
     var editedUsername = ""
     var isSavingProfile = false
+
+    init(authService: AuthService) {
+        self.authService = authService
+    }
     
     // @MainActor
     // func loadReputationMetrics() async {
@@ -23,14 +29,14 @@ final class ProfileViewModel {
 
     //     // TODO: Call API when Phase 2 backend is ready
     //     // do {
-    //     //     self.contributionMetrics = try await authService.fetchMetrics()
+    //     //     self.contributionMetrics = try await dependencies.authService.fetchMetrics()
     //     // } catch {
     //     //     appError = error.toAppError()
     //     // }
     // }
     
     @MainActor
-    func logout(from authService: AuthService) async {
+    func logout() async {
         isLoading = true
         defer { isLoading = false }
 
@@ -56,7 +62,7 @@ final class ProfileViewModel {
     }
 
     @MainActor
-    func saveProfile(from authService: AuthService) async {
+    func saveProfile() async {
         guard !editedUsername.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             appError = AppError.validationFailed(field: "username", reason: "Display name cannot be empty")
             return
@@ -77,8 +83,7 @@ final class ProfileViewModel {
     
     @MainActor
     func handleAppleSignIn(
-        result: Result<ASAuthorization, Error>,
-        authService: AuthService
+        result: Result<ASAuthorization, Error>
     ) async {
         isLoading = true
         appError = nil
@@ -143,11 +148,18 @@ enum VerificationTier: String, Codable, Sendable {
 // MARK: - Main View
 
 struct ProfileView: View {
-    @Environment(\.authService) private var authService
+    @Environment(\.appDependencies) private var dependencies
     @State private var viewModel: ProfileViewModel
 
+    @MainActor
     init(viewModel: ProfileViewModel? = nil) {
-        _viewModel = State(initialValue: viewModel ?? ProfileViewModel())
+        if let viewModel = viewModel {
+            _viewModel = State(initialValue: viewModel)
+        } else {
+            // Create a placeholder for previews and testing
+            let deps = AppDependencies()
+            _viewModel = State(initialValue: ProfileViewModel(authService: deps.authService))
+        }
     }
     
     var body: some View {
@@ -156,7 +168,7 @@ struct ProfileView: View {
                 DesignSystem.Colors.background
                     .ignoresSafeArea()
                 
-                if authService.isAuthenticated {
+                if dependencies.authService.isAuthenticated {
                     authenticatedContent
                 } else {
                     unauthenticatedContent
@@ -164,7 +176,7 @@ struct ProfileView: View {
             }
             .navigationBarTitleDisplayMode(.inline)
             .task {
-                if authService.isAuthenticated {
+                if dependencies.authService.isAuthenticated {
                     // TODO: Load reputation metrics when Phase 2 backend is ready
                     // await loadReputationMetrics()
                 }
@@ -185,7 +197,7 @@ struct ProfileView: View {
     private var authenticatedContent: some View {
         ScrollView {
             VStack(spacing: DesignSystem.Spacing.xl) {
-                if let user = authService.currentUser {
+                if let user = dependencies.authService.currentUser {
                     profileHeader(for: user)
                     
                     if let metrics = viewModel.contributionMetrics {
@@ -273,7 +285,7 @@ struct ProfileView: View {
 
                             Button(action: {
                                 Task {
-                                    await viewModel.saveProfile(from: authService)
+                                    await viewModel.saveProfile()
                                 }
                             }) {
                                 if viewModel.isSavingProfile {
@@ -518,7 +530,7 @@ struct ProfileView: View {
                 // Sign out button
                 Button(action: {
                     Task {
-                        await viewModel.logout(from: authService)
+                        await viewModel.logout()
                     }
                 }) {
                     HStack {
@@ -691,7 +703,7 @@ struct ProfileView: View {
                     },
                     onCompletion: { result in
                         Task {
-                            await viewModel.handleAppleSignIn(result: result, authService: authService)
+                            await viewModel.handleAppleSignIn(result: result)
                         }
                     }
                 )
@@ -739,12 +751,12 @@ struct ProfileView: View {
 
 // MARK: - Preview
 
-#Preview("Unauthenticated") {
+#Preview("Unauthenticated") { @MainActor in
     ProfileView()
         .environment(AuthService())
 }
 
-#Preview("Authenticated") {
+#Preview("Authenticated") { @MainActor in
     let authService = AuthService()
     authService.isAuthenticated = true
     authService.currentUser = UserInfo(
@@ -754,7 +766,7 @@ struct ProfileView: View {
         createdAt: "2024-01-15T10:30:00Z"
     )
 
-    let viewModel = ProfileViewModel()
+    let viewModel = ProfileViewModel(authService: authService)
     viewModel.contributionMetrics = ContributionMetrics(
         totalContributions: 42,
         totalForks: 15,
@@ -766,5 +778,4 @@ struct ProfileView: View {
     )
 
     return ProfileView(viewModel: viewModel)
-        .environment(\.authService, authService)
 }

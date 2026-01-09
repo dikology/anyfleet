@@ -66,6 +66,7 @@ protocol LibraryStoreProtocol: AnyObject {
 /// ```
 ///
 /// - Important: This class must be accessed from the main actor.
+@MainActor
 @Observable
 final class LibraryStore: LibraryStoreProtocol {
     // MARK: - Properties
@@ -80,7 +81,7 @@ final class LibraryStore: LibraryStoreProtocol {
     
     // Local repository for database operations
     // Sendable conformance required for Observable in Swift 6
-    nonisolated private let repository: any LibraryRepository
+    private let repository: any LibraryRepository
 
     // Sync queue service for handling content synchronization
     private let syncQueue: SyncQueueService
@@ -104,7 +105,7 @@ final class LibraryStore: LibraryStoreProtocol {
     
     // MARK: - Initialization
 
-    nonisolated init(repository: any LibraryRepository, syncQueue: SyncQueueService) {
+    init(repository: any LibraryRepository, syncQueue: SyncQueueService) {
         self.repository = repository
         self.syncQueue = syncQueue
     }
@@ -112,7 +113,6 @@ final class LibraryStore: LibraryStoreProtocol {
     // MARK: - Loading Content
 
     /// Fetch a single library item by ID
-    @MainActor
     func fetchLibraryItem(_ id: UUID) async throws -> LibraryModel? {
         return try await repository.fetchLibraryItem(id)
     }
@@ -120,7 +120,6 @@ final class LibraryStore: LibraryStoreProtocol {
     /// Fetch full content model on-demand with caching
     /// - Parameter id: The content ID to fetch
     /// - Returns: The full content model, or nil if not found
-    @MainActor
     func fetchFullContent<T>(_ id: UUID) async throws -> T? {
         // Check cache first
         if let cached = fullContentCache.get(id)?.as(T.self) {
@@ -218,7 +217,6 @@ final class LibraryStore: LibraryStoreProtocol {
 
     /// Load all library content metadata
     /// Full content models are loaded on-demand via fetchFullContent()
-    @MainActor
     func loadLibrary() async {
         do {
             // Load only metadata - single source of truth
@@ -238,7 +236,6 @@ final class LibraryStore: LibraryStoreProtocol {
     
     /// Create a new checklist
     /// - Parameter checklist: The full checklist model to create
-    @MainActor
     func createChecklist(_ checklist: Checklist) async throws {
         try await repository.createChecklist(checklist)
 
@@ -252,7 +249,6 @@ final class LibraryStore: LibraryStoreProtocol {
     
     /// Create a new practice guide
     /// - Parameter guide: The full guide model to create
-    @MainActor
     func createGuide(_ guide: PracticeGuide) async throws {
         try await repository.createGuide(guide)
 
@@ -266,7 +262,6 @@ final class LibraryStore: LibraryStoreProtocol {
 
     /// Create a new flashcard deck
     /// - Parameter deck: The full deck model to create
-    @MainActor
     func createDeck(_ deck: FlashcardDeck) async throws {
         try await repository.createDeck(deck)
 
@@ -279,7 +274,6 @@ final class LibraryStore: LibraryStoreProtocol {
     }
 
     /// Fork content from public shared content
-    @MainActor
     func forkContent(from sharedContent: SharedContentDetail) async throws {
         switch sharedContent.contentType {
         case "checklist":
@@ -373,7 +367,6 @@ final class LibraryStore: LibraryStoreProtocol {
     
     /// Save/update an existing checklist
     /// - Parameter checklist: The updated checklist model
-    @MainActor
     func saveChecklist(_ checklist: Checklist) async throws {
         try await repository.saveChecklist(checklist)
 
@@ -499,7 +492,6 @@ final class LibraryStore: LibraryStoreProtocol {
     
     /// Save/update an existing practice guide
     /// - Parameter guide: The updated guide model
-    @MainActor
     func saveGuide(_ guide: PracticeGuide) async throws {
         try await repository.saveGuide(guide)
 
@@ -530,7 +522,6 @@ final class LibraryStore: LibraryStoreProtocol {
     ///   - item: The library item to delete
     ///   - shouldUnpublish: Whether to unpublish from backend if content is published (default: true)
     ///                     Set to false for "keep published" deletion scenario
-    @MainActor
     func deleteContent(_ item: LibraryModel, shouldUnpublish: Bool = true) async throws {
         // If content is published and should be unpublished, enqueue unpublish operation
         if shouldUnpublish, let publicID = item.publicID {
@@ -557,7 +548,6 @@ final class LibraryStore: LibraryStoreProtocol {
     /// Update library metadata (e.g., visibility, sync status)
     /// - Parameter item: The updated library item metadata
     /// - Throws: Error if update fails
-    @MainActor
     func updateLibraryMetadata(_ item: LibraryModel) async throws {
         // Update in-memory collection
         if let index = library.firstIndex(where: { $0.id == item.id }) {
@@ -574,7 +564,6 @@ final class LibraryStore: LibraryStoreProtocol {
     // MARK: - Pinning
     
     /// Toggle pinned state for a library item and update its order.
-    @MainActor
     func togglePin(for item: LibraryModel) async {
         guard let index = library.firstIndex(where: { $0.id == item.id }) else { return }
         
@@ -603,7 +592,6 @@ final class LibraryStore: LibraryStoreProtocol {
     /// - Parameter checklistID: The ID of the checklist to fetch
     /// - Returns: The full checklist model
     /// - Throws: LibraryError.notFound if the checklist is not found
-    @MainActor
     func fetchChecklist(_ checklistID: UUID) async throws -> Checklist {
         guard let checklist = try await fetchFullContent(checklistID) as Checklist? else {
             throw LibraryError.notFound(checklistID)
@@ -616,7 +604,6 @@ final class LibraryStore: LibraryStoreProtocol {
     /// - Parameter guideID: The ID of the guide to fetch
     /// - Returns: The full guide model
     /// - Throws: LibraryError.notFound if the guide is not found
-    @MainActor
     func fetchGuide(_ guideID: UUID) async throws -> PracticeGuide {
         guard let guide = try await fetchFullContent(guideID) as PracticeGuide? else {
             throw LibraryError.notFound(guideID)
@@ -628,7 +615,6 @@ final class LibraryStore: LibraryStoreProtocol {
     /// - Parameter deckID: The ID of the deck to fetch
     /// - Returns: The full deck model
     /// - Throws: LibraryError.notFound if the deck is not found
-    @MainActor
     func fetchDeck(_ deckID: UUID) async throws -> FlashcardDeck {
         guard let deck = try await fetchFullContent(deckID) as FlashcardDeck? else {
             throw LibraryError.notFound(deckID)

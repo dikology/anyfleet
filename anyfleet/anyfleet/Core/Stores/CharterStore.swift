@@ -28,6 +28,7 @@ import SwiftUI
 ///
 /// - Important: This class must be accessed from the main actor.
 /// - Note: All operations are automatically logged using `AppLogger`.
+@MainActor
 @Observable
 final class CharterStore {
     // MARK: - Properties
@@ -36,7 +37,7 @@ final class CharterStore {
     
     /// Local repository for database operations
     // Sendable conformance required for Observable in Swift 6
-    nonisolated private let repository: any CharterRepository
+    private let repository: any CharterRepository
     
     // MARK: - Initialization
     
@@ -46,13 +47,12 @@ final class CharterStore {
     ///
     /// - Important: The repository must be injected; there is no default implementation
     ///              to ensure proper dependency injection throughout the app.
-    nonisolated init(repository: any CharterRepository) {
+    init(repository: any CharterRepository) {
         self.repository = repository
     }
     
     // MARK: - Charter Operations
 
-    @MainActor
     func createCharter(
         name: String,
         boatName: String?,
@@ -91,8 +91,7 @@ final class CharterStore {
             throw error
         }
     }
-    
-    @MainActor
+
     func loadCharters() async throws {
         AppLogger.store.startOperation("Load Charters")
         do {
@@ -105,7 +104,6 @@ final class CharterStore {
         }
     }
 
-    @MainActor
     func fetchCharter(_ charterID: UUID) async throws -> CharterModel {
         AppLogger.store.startOperation("Fetch Charter")
         AppLogger.store.info("Fetching charter with ID: \(charterID.uuidString)")
@@ -126,7 +124,6 @@ final class CharterStore {
     }
     
     /// Save/update an existing charter (or append if not already cached)
-    @MainActor
     func saveCharter(_ charter: CharterModel) async throws {
         AppLogger.store.startOperation("Save Charter")
         AppLogger.store.info("Saving charter with ID: \(charter.id.uuidString)")
@@ -148,7 +145,6 @@ final class CharterStore {
         }
     }
 
-    @MainActor
     func updateCharter(_ charterID: UUID, name: String, boatName: String?, location: String?, startDate: Date, endDate: Date, checkInChecklistID: UUID?) async throws -> CharterModel {
         AppLogger.store.startOperation("Update Charter")
         AppLogger.store.info("Updating charter with ID: \(charterID.uuidString)")
@@ -163,8 +159,7 @@ final class CharterStore {
             throw error
         }
     }
-    
-    @MainActor
+
     func deleteCharter(_ charterID: UUID) async throws {
         AppLogger.store.startOperation("Delete Charter")
         AppLogger.store.info("Deleting charter with ID: \(charterID.uuidString)")

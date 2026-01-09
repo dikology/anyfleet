@@ -9,6 +9,7 @@ struct DiscoverView: View {
     @State private var showingAuthorProfile = false
     @State private var selectedAuthorUsername: String?
 
+    @MainActor
     init(viewModel: DiscoverViewModel? = nil) {
         if let viewModel = viewModel {
             _viewModel = State(initialValue: viewModel)
@@ -148,58 +149,60 @@ struct DiscoverView: View {
 // MARK: - Preview
 
 #Preview {
-    let sampleContent: [DiscoverContent] = [
-        DiscoverContent(
-            id: UUID(),
-            title: "Pre-Departure Safety Checklist",
-            description: "Run through this before every sail: weather, rigging, engine, and crew briefing.",
-            contentType: .checklist,
-            tags: ["safety", "pre-departure", "crew"],
-            publicID: "pre-departure-checklist",
-            authorUsername: "SailorMaria",
-            viewCount: 42,
-            forkCount: 8,
-            createdAt: Date().addingTimeInterval(-60 * 60 * 24 * 7)
-        ),
-        DiscoverContent(
-            id: UUID(),
-            title: "Heavy Weather Tactics",
-            description: "Step-by-step guide for reefing, heaving-to, and staying safe when the wind picks up.",
-            contentType: .practiceGuide,
-            tags: ["heavy weather", "reefing", "safety"],
-            publicID: "heavy-weather-tactics",
-            authorUsername: "CaptainJohn",
-            viewCount: 127,
-            forkCount: 23,
-            createdAt: Date().addingTimeInterval(-60 * 60 * 24 * 14)
-        ),
-        DiscoverContent(
-            id: UUID(),
-            title: "COLREGs Flashcards",
-            description: "Flashcards to memorize the most important right-of-way rules and light patterns.",
-            contentType: .flashcardDeck,
-            tags: ["colregs", "rules", "night"],
-            publicID: "colregs-flashcards",
-            authorUsername: nil,
-            viewCount: 89,
-            forkCount: 15,
-            createdAt: Date().addingTimeInterval(-60 * 60 * 24 * 3)
+    MainActor.assumeIsolated {
+        let sampleContent: [DiscoverContent] = [
+            DiscoverContent(
+                id: UUID(),
+                title: "Pre-Departure Safety Checklist",
+                description: "Run through this before every sail: weather, rigging, engine, and crew briefing.",
+                contentType: .checklist,
+                tags: ["safety", "pre-departure", "crew"],
+                publicID: "pre-departure-checklist",
+                authorUsername: "SailorMaria",
+                viewCount: 42,
+                forkCount: 8,
+                createdAt: Date().addingTimeInterval(-60 * 60 * 24 * 7)
+            ),
+            DiscoverContent(
+                id: UUID(),
+                title: "Heavy Weather Tactics",
+                description: "Step-by-step guide for reefing, heaving-to, and staying safe when the wind picks up.",
+                contentType: .practiceGuide,
+                tags: ["heavy weather", "reefing", "safety"],
+                publicID: "heavy-weather-tactics",
+                authorUsername: "CaptainJohn",
+                viewCount: 127,
+                forkCount: 23,
+                createdAt: Date().addingTimeInterval(-60 * 60 * 24 * 14)
+            ),
+            DiscoverContent(
+                id: UUID(),
+                title: "COLREGs Flashcards",
+                description: "Flashcards to memorize the most important right-of-way rules and light patterns.",
+                contentType: .flashcardDeck,
+                tags: ["colregs", "rules", "night"],
+                publicID: "colregs-flashcards",
+                authorUsername: nil,
+                viewCount: 89,
+                forkCount: 15,
+                createdAt: Date().addingTimeInterval(-60 * 60 * 24 * 3)
+            )
+        ]
+
+        let dependencies = AppDependencies()
+        let coordinator = AppCoordinator(dependencies: dependencies)
+        let viewModel = DiscoverViewModel(
+            apiClient: dependencies.apiClient,
+            libraryStore: dependencies.libraryStore,
+            coordinator: coordinator
         )
-    ]
+        // For preview, inject sample data
+        viewModel.content = sampleContent
 
-    let dependencies = AppDependencies()
-    let coordinator = AppCoordinator(dependencies: dependencies)
-    let viewModel = DiscoverViewModel(
-        apiClient: dependencies.apiClient,
-        libraryStore: dependencies.libraryStore,
-        coordinator: coordinator
-    )
-    // For preview, inject sample data
-    viewModel.content = sampleContent
-
-    return NavigationStack {
-        DiscoverView(viewModel: viewModel)
+        return NavigationStack {
+            DiscoverView(viewModel: viewModel)
+        }
+        .environment(\.appDependencies, dependencies)
+        .environment(\.appCoordinator, coordinator)
     }
-    .environment(\.appDependencies, dependencies)
-    .environment(\.appCoordinator, coordinator)
 }

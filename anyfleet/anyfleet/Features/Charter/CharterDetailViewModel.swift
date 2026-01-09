@@ -21,8 +21,12 @@ final class CharterDetailViewModel {
     let charterID: UUID
     
     // MARK: - State
-    
-    var charter: CharterModel?
+
+    // Computed property - single source of truth from store
+    var charter: CharterModel? {
+        charterStore.charters.first(where: { $0.id == charterID })
+    }
+
     var isLoading = false
     var loadError: String?
     
@@ -52,10 +56,8 @@ final class CharterDetailViewModel {
         if charterStore.charters.isEmpty {
             try? await charterStore.loadCharters()
         }
-        
-        charter = charterStore.charters.first(where: { $0.id == charterID })
-        
-        if charter == nil {
+
+        guard charter != nil else {
             loadError = "Charter not found"
             return
         }
@@ -103,7 +105,6 @@ final class CharterDetailViewModel {
         
         do {
             try await charterStore.saveCharter(currentCharter)
-            charter = currentCharter
         } catch {
             AppLogger.store.failOperation("Save Charter Check‑In Checklist", error: error)
             // Keep in-memory link even if persistence fails so the UI can still navigate.

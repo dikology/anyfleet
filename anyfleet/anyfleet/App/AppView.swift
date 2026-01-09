@@ -99,9 +99,11 @@ struct AppView: View {
 }
 
 #Preview {
-    let dependencies = AppDependencies()
-    let coordinator = AppCoordinator(dependencies: dependencies)
-    AppView()
-        .environment(\.appDependencies, dependencies)
-        .environmentObject(coordinator)
+    MainActor.assumeIsolated {
+        let dependencies = AppDependencies()
+        let coordinator = AppCoordinator(dependencies: dependencies)
+        return AppView()
+            .environment(\.appDependencies, dependencies)
+            .environmentObject(coordinator)
+    }
 }

@@ -34,10 +34,27 @@ final class HomeViewModel {
     private let libraryStore: LibraryStore
     
     // MARK: - State
-    
-    var activeCharter: CharterModel?
-    var activeCharterChecklistID: UUID?
+
     var isLoading = false
+
+    // MARK: - Derived State
+
+    /// The currently active charter (latest with today in date range)
+    var activeCharter: CharterModel? {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+
+        return charterStore.charters
+            .filter { charter in
+                let start = calendar.startOfDay(for: charter.startDate)
+                let end = calendar.startOfDay(for: charter.endDate)
+                return start <= today && end >= today
+            }
+            .sorted { $0.startDate > $1.startDate } // Latest first
+            .first
+    }
+
+    var activeCharterChecklistID: UUID?
     
     // MARK: - Initialization
     
@@ -115,20 +132,7 @@ final class HomeViewModel {
         if libraryStore.library.isEmpty {
             await libraryStore.loadLibrary()
         }
-        
-        // Fetch active charter (latest with today in date range)
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        
-        activeCharter = charterStore.charters
-            .filter { charter in
-                let start = calendar.startOfDay(for: charter.startDate)
-                let end = calendar.startOfDay(for: charter.endDate)
-                return start <= today && end >= today
-            }
-            .sorted { $0.startDate > $1.startDate } // Latest first
-            .first
-        
+
         AppLogger.view.info("Active charter: \(activeCharter?.name ?? "none")")
         
         // Fetch checkin checklist for active charter if it exists

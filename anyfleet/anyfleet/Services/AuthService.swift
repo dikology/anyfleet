@@ -9,6 +9,7 @@ enum AuthError: Error {
     case invalidResponse
     case unauthorized
     
+    @MainActor
     var localizedDescription: String {
         switch self {
         case .invalidToken: return L10n.Error.authInvalidToken
@@ -274,77 +275,77 @@ final class AuthService: AuthServiceProtocol {
     // MARK: - Authenticated Requests
 
     func makeAuthenticatedRequest(to endpoint: String) async throws -> Data {
-        guard var accessToken = keychain.getAccessToken() else {
+        guard let accessToken = keychain.getAccessToken() else {
+            AppLogger.auth.warning("No access token available for authenticated request")
             throw AuthError.unauthorized
         }
-        
+
         let url = URL(string: "\(baseURL)\(endpoint)")!
         var request = URLRequest(url: url)
         request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-        
-        var (data, response): (Data, URLResponse)
-        do {
-            (data, response) = try await URLSession.shared.data(for: request)
-        } catch {
-            // Re-throw network errors as-is so they can be converted to NetworkError
-            throw error
-        }
-        
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+
         // If unauthorized, try refreshing token
         if let httpResponse = response as? HTTPURLResponse,
            httpResponse.statusCode == 401 {
-            do {
-                try await refreshAccessToken()
-                
-                // Retry request with new token
-                accessToken = keychain.getAccessToken()!
-                request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-                (data, response) = try await URLSession.shared.data(for: request)
-            } catch {
-                // If refresh fails due to network error, re-throw it
-                throw error
+            try await refreshAccessToken()
+
+            // Get refreshed token safely
+            guard let newAccessToken = keychain.getAccessToken() else {
+                throw AuthError.unauthorized
             }
+
+            request.setValue("Bearer \(newAccessToken)", forHTTPHeaderField: "Authorization")
+            let (retryData, retryResponse) = try await URLSession.shared.data(for: request)
+
+            guard let httpRetryResponse = retryResponse as? HTTPURLResponse,
+                  (200...299).contains(httpRetryResponse.statusCode) else {
+                throw AuthError.invalidResponse
+            }
+
+            return retryData
         }
-        
+
         guard let httpResponse = response as? HTTPURLResponse,
               (200...299).contains(httpResponse.statusCode) else {
             throw AuthError.invalidResponse
         }
-        
+
         return data
     }
 
     func makeAuthenticatedRequestWithRetry(request: URLRequest) async throws -> Data {
         var mutableRequest = request
 
-        guard var accessToken = keychain.getAccessToken() else {
+        guard let accessToken = keychain.getAccessToken() else {
+            AppLogger.auth.warning("No access token available for authenticated request")
             throw AuthError.unauthorized
         }
 
         mutableRequest.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
 
-        var (data, response): (Data, URLResponse)
-        do {
-            (data, response) = try await URLSession.shared.data(for: mutableRequest)
-        } catch {
-            // Re-throw network errors as-is so they can be converted to NetworkError
-            throw error
-        }
+        let (data, response) = try await URLSession.shared.data(for: mutableRequest)
 
         // If unauthorized, try refreshing token
         if let httpResponse = response as? HTTPURLResponse,
            httpResponse.statusCode == 401 {
-            do {
-                try await refreshAccessToken()
+            try await refreshAccessToken()
 
-                // Retry request with new token
-                accessToken = keychain.getAccessToken()!
-                mutableRequest.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-                (data, response) = try await URLSession.shared.data(for: mutableRequest)
-            } catch {
-                // If refresh fails due to network error, re-throw it
-                throw error
+            // Get refreshed token safely
+            guard let newAccessToken = keychain.getAccessToken() else {
+                throw AuthError.unauthorized
             }
+
+            mutableRequest.setValue("Bearer \(newAccessToken)", forHTTPHeaderField: "Authorization")
+            let (retryData, retryResponse) = try await URLSession.shared.data(for: mutableRequest)
+
+            guard let httpRetryResponse = retryResponse as? HTTPURLResponse,
+                  (200...299).contains(httpRetryResponse.statusCode) else {
+                throw AuthError.invalidResponse
+            }
+
+            return retryData
         }
 
         guard let httpResponse = response as? HTTPURLResponse,
@@ -451,18 +452,5 @@ final class AuthService: AuthServiceProtocol {
         isAuthenticated = false
         currentUser = nil
         AppLogger.auth.info("Logout complete")
-    }
-}
-
-// MARK: - Environment Key
-
-private struct AuthServiceKey: EnvironmentKey {
-    static let defaultValue: AuthService = AuthService()
-}
-
-extension EnvironmentValues {
-    var authService: AuthService {
-        get { self[AuthServiceKey.self] }
-        set { self[AuthServiceKey.self] = newValue }
     }
 }

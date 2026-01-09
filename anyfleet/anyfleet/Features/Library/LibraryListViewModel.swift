@@ -46,7 +46,9 @@ final class LibraryListViewModel: ErrorHandling {
 
     // MARK: - UI State
 
-    var selectedFilter: ContentFilter = .all
+    var selectedFilter: ContentFilter = .all {
+        didSet { updateFilteredItems() }
+    }
     var showingPublishConfirmation = false
     var showingSignInModal = false
     var pendingDeleteItem: LibraryModel?
@@ -107,17 +109,22 @@ final class LibraryListViewModel: ErrorHandling {
         !publicContent.isEmpty
     }
 
-    /// Filtered library items based on selected filter
-    var filteredItems: [LibraryModel] {
+    /// Filtered library items based on selected filter (cached for performance)
+    private(set) var filteredItems: [LibraryModel] = []
+
+    // MARK: - Private Methods
+
+    /// Update the cached filtered items based on current filter selection
+    private func updateFilteredItems() {
         switch selectedFilter {
         case .all:
-            return library
+            filteredItems = library
         case .checklists:
-            return checklists
+            filteredItems = checklists
         case .guides:
-            return guides
+            filteredItems = guides
         case .decks:
-            return decks
+            filteredItems = decks
         }
     }
     
@@ -201,7 +208,10 @@ final class LibraryListViewModel: ErrorHandling {
         clearError()
         
         await libraryStore.loadLibrary()
-        
+
+        // Update filtered items after loading
+        updateFilteredItems()
+
         isLoading = false
         AppLogger.view.completeOperation("Load Library")
         AppLogger.view.info("Loaded \(library.count) library items")

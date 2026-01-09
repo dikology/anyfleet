@@ -5,6 +5,7 @@ struct CharterListView: View {
     @Environment(\.appDependencies) private var dependencies
     @EnvironmentObject private var coordinator: AppCoordinator
     
+    @MainActor
     init(viewModel: CharterListViewModel? = nil) {
         if let viewModel = viewModel {
             _viewModel = State(initialValue: viewModel)

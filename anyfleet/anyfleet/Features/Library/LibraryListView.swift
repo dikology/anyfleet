@@ -5,6 +5,7 @@ struct LibraryListView: View {
     @Environment(\.appDependencies) private var dependencies
     @Environment(\.appCoordinator) private var coordinator
     
+    @MainActor
     init(viewModel: LibraryListViewModel? = nil) {
         if let viewModel = viewModel {
             _viewModel = State(initialValue: viewModel)
@@ -354,59 +355,57 @@ struct LibraryListView: View {
 // MARK: - Preview
 
 #Preview {
-    #if DEBUG
-    let sampleLibrary: [LibraryModel] = [
-        LibraryModel(
-            title: "Pre‑Departure Safety Checklist",
-            description: "Run through this before every sail: weather, rigging, engine, and crew briefing.",
-            type: .checklist,
-            visibility: .private,
-            creatorID: UUID(),
-            tags: ["safety", "pre‑departure", "crew"],
-            createdAt: Date().addingTimeInterval(-60 * 60 * 24 * 7),
-            updatedAt: Date().addingTimeInterval(-60 * 30)
-        ),
-        LibraryModel(
-            title: "Heavy Weather Tactics",
-            description: "Step‑by‑step guide for reefing, heaving‑to, and staying safe when the wind picks up.",
-            type: .practiceGuide,
-            visibility: .public,
-            creatorID: UUID(),
-            tags: ["heavy weather", "reefing", "safety"],
-            createdAt: Date().addingTimeInterval(-60 * 60 * 24 * 21),
-            updatedAt: Date().addingTimeInterval(-60 * 60 * 2)
-        ),
-        LibraryModel(
-            title: "COLREGs Flashcards",
-            description: "Flashcards to memorize the most important right‑of‑way rules and light patterns.",
-            type: .flashcardDeck,
-            visibility: .unlisted,
-            creatorID: UUID(),
-            tags: ["colregs", "rules", "night"],
-            createdAt: Date().addingTimeInterval(-60 * 60 * 24 * 3),
-            updatedAt: Date().addingTimeInterval(-60 * 10)
+    MainActor.assumeIsolated {
+        let sampleLibrary: [LibraryModel] = [
+            LibraryModel(
+                title: "Pre‑Departure Safety Checklist",
+                description: "Run through this before every sail: weather, rigging, engine, and crew briefing.",
+                type: .checklist,
+                visibility: .private,
+                creatorID: UUID(),
+                tags: ["safety", "pre‑departure", "crew"],
+                createdAt: Date().addingTimeInterval(-60 * 60 * 24 * 7),
+                updatedAt: Date().addingTimeInterval(-60 * 30)
+            ),
+            LibraryModel(
+                title: "Heavy Weather Tactics",
+                description: "Step‑by‑step guide for reefing, heaving‑to, and staying safe when the wind picks up.",
+                type: .practiceGuide,
+                visibility: .public,
+                creatorID: UUID(),
+                tags: ["heavy weather", "reefing", "safety"],
+                createdAt: Date().addingTimeInterval(-60 * 60 * 24 * 21),
+                updatedAt: Date().addingTimeInterval(-60 * 60 * 2)
+            ),
+            LibraryModel(
+                title: "COLREGs Flashcards",
+                description: "Flashcards to memorize the most important right‑of‑way rules and light patterns.",
+                type: .flashcardDeck,
+                visibility: .unlisted,
+                creatorID: UUID(),
+                tags: ["colregs", "rules", "night"],
+                createdAt: Date().addingTimeInterval(-60 * 60 * 24 * 3),
+                updatedAt: Date().addingTimeInterval(-60 * 10)
+            )
+        ]
+
+        let repository = PreviewLibraryRepository(sampleLibrary: sampleLibrary)
+        let dependencies = AppDependencies()
+        let libraryStore = LibraryStore(repository: repository, syncQueue: dependencies.syncQueueService)
+        let coordinator = AppCoordinator(dependencies: dependencies)
+        let viewModel = LibraryListViewModel(
+            libraryStore: libraryStore,
+            visibilityService: dependencies.visibilityService,
+            authObserver: dependencies.authStateObserver,
+            coordinator: coordinator
         )
-    ]
 
-    let repository = PreviewLibraryRepository(sampleLibrary: sampleLibrary)
-    let dependencies = AppDependencies()
-    let libraryStore = LibraryStore(repository: repository, syncQueue: dependencies.syncQueueService)
-    let coordinator = AppCoordinator(dependencies: dependencies)
-    let viewModel = LibraryListViewModel(
-        libraryStore: libraryStore,
-        visibilityService: dependencies.visibilityService,
-        authObserver: dependencies.authStateObserver,
-        coordinator: coordinator
-    )
-
-    NavigationStack {
-        LibraryListView(viewModel: viewModel)
+        return NavigationStack {
+            LibraryListView(viewModel: viewModel)
+        }
+        .environment(\.appDependencies, dependencies)
+        .environment(\.appCoordinator, coordinator)
     }
-    .environment(\.appDependencies, dependencies)
-    .environment(\.appCoordinator, coordinator)
-    #else
-    LibraryListView()
-    #endif
 }
 
 #if DEBUG
