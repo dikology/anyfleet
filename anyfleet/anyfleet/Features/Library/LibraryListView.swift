@@ -23,29 +23,15 @@ struct LibraryListView: View {
 
     var body: some View {
         ZStack {
-            Group {
-                if viewModel.isEmpty && !viewModel.isLoading {
-                    emptyState
-                } else {
-                    contentList
-                }
-            }
-            .navigationBarTitleDisplayMode(.inline)
-            .background(DesignSystem.Colors.background.ignoresSafeArea())
+            contentView
+                .background(DesignSystem.Colors.background.ignoresSafeArea())
 
-            // Error Banner
             if viewModel.showErrorBanner, let error = viewModel.currentError {
-                VStack {
-                    Spacer()
-                    ErrorBanner(
-                        error: error,
-                        onDismiss: { viewModel.clearError() },
-                        onRetry: { Task { await viewModel.loadLibrary() } }
-                    )
-                    .padding(.horizontal)
-                    .padding(.bottom, 20)
-                }
-                .transition(.move(edge: .bottom).combined(with: .opacity))
+                ErrorBannerOverlay(
+                    error: error,
+                    onDismiss: { viewModel.clearError() },
+                    onRetry: { Task { await viewModel.loadLibrary() } }
+                )
             }
         }
         .toolbar {
@@ -54,9 +40,8 @@ struct LibraryListView: View {
                     .font(DesignSystem.Typography.headline)
                     .foregroundColor(DesignSystem.Colors.textPrimary)
             }
-            
             ToolbarItem(placement: .primaryAction) {
-                createMenu
+                CreateContentMenu(viewModel: viewModel)
             }
         }
         .task {
@@ -65,112 +50,7 @@ struct LibraryListView: View {
         .refreshable {
             await viewModel.refresh()
         }
-        .sheet(isPresented: $viewModel.showingPublishConfirmation) {
-            if let item = viewModel.pendingPublishItem {
-                PublishConfirmationModal(
-                    item: item,
-                    isLoading: viewModel.isLoading,
-                    error: viewModel.publishError,
-                    onConfirm: {
-                        Task {
-                            await viewModel.confirmPublish()
-                            if viewModel.publishError == nil {
-                                viewModel.showingPublishConfirmation = false
-                            }
-                        }
-                    },
-                    onCancel: {
-                        viewModel.cancelPublish()
-                        viewModel.showingPublishConfirmation = false
-                    },
-                    onRetry: {
-                        Task {
-                            await viewModel.confirmPublish()
-                        }
-                    }
-                )
-            }
-        }
-        .sheet(isPresented: $viewModel.showingSignInModal) {
-            SignInModalView(
-                onSuccess: {
-                    viewModel.showingSignInModal = false
-                },
-                onDismiss: {
-                    viewModel.showingSignInModal = false
-                }
-            )
-        }
-        .sheet(isPresented: $viewModel.showPrivateDeleteConfirmation) {
-            if let item = viewModel.pendingDeleteItem {
-                DeleteConfirmationModal(
-                    item: item,
-                    isPublished: false,
-                    onConfirm: {
-                        Task {
-                            do {
-                                try await viewModel.deleteContent(item)
-                                viewModel.showPrivateDeleteConfirmation = false
-                                viewModel.pendingDeleteItem = nil
-                            } catch {
-                                AppLogger.view.error("Failed to delete content: \(error.localizedDescription)")
-                            }
-                        }
-                    },
-                    onCancel: {
-                        viewModel.showPrivateDeleteConfirmation = false
-                        viewModel.pendingDeleteItem = nil
-                    }
-                )
-            }
-        }
-        .sheet(isPresented: $viewModel.showPublishedDeleteConfirmation) {
-            if let item = viewModel.publishedDeleteModalItem {
-                PublishedContentDeleteModal(
-                    item: item,
-                    onUnpublishAndDelete: {
-                        AppLogger.view.info("User selected 'Unpublish & Delete' for item: \(item.id)")
-                        Task {
-                            do {
-                                try await viewModel.deleteAndUnpublishContent(item)
-                                viewModel.showPublishedDeleteConfirmation = false
-                                viewModel.publishedDeleteModalItem = nil
-                                viewModel.pendingDeleteItem = nil
-                            } catch {
-                                AppLogger.view.error("Failed to unpublish and delete content: \(error.localizedDescription)")
-                            }
-                        }
-                    },
-                    onKeepPublished: {
-                        AppLogger.view.info("User selected 'Keep Published' for item: \(item.id)")
-                        Task {
-                            do {
-                                // For "Keep Published", delete local copy but keep content published on backend
-                                try await viewModel.deleteLocalCopyKeepPublished(item)
-                                viewModel.showPublishedDeleteConfirmation = false
-                                viewModel.publishedDeleteModalItem = nil
-                                viewModel.pendingDeleteItem = nil
-                            } catch {
-                                AppLogger.view.error("Failed to delete local copy: \(error.localizedDescription)")
-                            }
-                        }
-                    },
-                    onCancel: {
-                        AppLogger.view.info("User cancelled published content deletion")
-                        viewModel.showPublishedDeleteConfirmation = false
-                        viewModel.publishedDeleteModalItem = nil
-                        viewModel.pendingDeleteItem = nil
-                    }
-                )
-            } else {
-                // Fallback for debugging - show empty state if item is missing
-                Text("No item selected")
-                    .onAppear {
-                        AppLogger.view.error("PublishedContentDeleteModal presented with nil publishedDeleteModalItem")
-                        viewModel.showPublishedDeleteConfirmation = false
-                    }
-            }
-        }
+        .libraryModals(viewModel: viewModel)
         .onChange(of: viewModel.pendingPublishItem) { oldValue, newValue in
             viewModel.showingPublishConfirmation = newValue != nil
         }
@@ -182,24 +62,246 @@ struct LibraryListView: View {
             }
         }
     }
-    
-    
-    // MARK: - Create Menu
-    
-    private var createMenu: some View {
+
+    @ViewBuilder
+    private var contentView: some View {
+        if viewModel.isEmpty && !viewModel.isLoading {
+            LibraryEmptyState()
+        } else {
+            LibraryContentList(viewModel: viewModel)
+        }
+    }
+}
+
+// MARK: - Preview
+
+#Preview {
+    MainActor.assumeIsolated {
+        let sampleLibrary: [LibraryModel] = [
+            LibraryModel(
+                title: "Pre‑Departure Safety Checklist",
+                description: "Run through this before every sail: weather, rigging, engine, and crew briefing.",
+                type: .checklist,
+                visibility: .private,
+                creatorID: UUID(),
+                tags: ["safety", "pre‑departure", "crew"],
+                createdAt: Date().addingTimeInterval(-60 * 60 * 24 * 7),
+                updatedAt: Date().addingTimeInterval(-60 * 30)
+            ),
+            LibraryModel(
+                title: "Heavy Weather Tactics",
+                description: "Step‑by‑step guide for reefing, heaving‑to, and staying safe when the wind picks up.",
+                type: .practiceGuide,
+                visibility: .public,
+                creatorID: UUID(),
+                tags: ["heavy weather", "reefing", "safety"],
+                createdAt: Date().addingTimeInterval(-60 * 60 * 24 * 21),
+                updatedAt: Date().addingTimeInterval(-60 * 60 * 2)
+            ),
+            LibraryModel(
+                title: "COLREGs Flashcards",
+                description: "Flashcards to memorize the most important right‑of‑way rules and light patterns.",
+                type: .flashcardDeck,
+                visibility: .unlisted,
+                creatorID: UUID(),
+                tags: ["colregs", "rules", "night"],
+                createdAt: Date().addingTimeInterval(-60 * 60 * 24 * 3),
+                updatedAt: Date().addingTimeInterval(-60 * 10)
+            )
+        ]
+
+        let repository = PreviewLibraryRepository(sampleLibrary: sampleLibrary)
+        let dependencies = AppDependencies()
+        let libraryStore = LibraryStore(repository: repository, syncQueue: dependencies.syncQueueService)
+        let coordinator = AppCoordinator(dependencies: dependencies)
+        let viewModel = LibraryListViewModel(
+            libraryStore: libraryStore,
+            visibilityService: dependencies.visibilityService,
+            authObserver: dependencies.authStateObserver,
+            coordinator: coordinator
+        )
+
+        return NavigationStack {
+            LibraryListView(viewModel: viewModel)
+        }
+        .environment(\.appDependencies, dependencies)
+        .environment(\.appCoordinator, coordinator)
+    }
+}
+
+// MARK: - Supporting Components
+
+struct ErrorBannerOverlay: View {
+    let error: AppError
+    let onDismiss: () -> Void
+    let onRetry: () -> Void
+
+    var body: some View {
+        VStack {
+            Spacer()
+            ErrorBanner(
+                error: error,
+                onDismiss: onDismiss,
+                onRetry: onRetry
+            )
+            .padding(.horizontal)
+            .padding(.bottom, 20)
+        }
+        .transition(.move(edge: .bottom).combined(with: .opacity))
+    }
+}
+
+struct LibraryModalsModifier: ViewModifier {
+    @Bindable var viewModel: LibraryListViewModel
+
+    func body(content: Content) -> some View {
+        content
+            .sheet(isPresented: $viewModel.showingPublishConfirmation) {
+                if let item = viewModel.pendingPublishItem {
+                    PublishConfirmationModal(
+                        item: item,
+                        isLoading: viewModel.isLoading,
+                        error: viewModel.publishError,
+                        onConfirm: {
+                            Task {
+                                await viewModel.confirmPublish()
+                                if viewModel.publishError == nil {
+                                    viewModel.showingPublishConfirmation = false
+                                }
+                            }
+                        },
+                        onCancel: {
+                            viewModel.cancelPublish()
+                            viewModel.showingPublishConfirmation = false
+                        },
+                        onRetry: {
+                            Task {
+                                await viewModel.confirmPublish()
+                            }
+                        }
+                    )
+                }
+            }
+            .sheet(isPresented: $viewModel.showingSignInModal) {
+                SignInModalView(
+                    onSuccess: {
+                        viewModel.showingSignInModal = false
+                    },
+                    onDismiss: {
+                        viewModel.showingSignInModal = false
+                    }
+                )
+            }
+            .sheet(isPresented: $viewModel.showPrivateDeleteConfirmation) {
+                if let item = viewModel.pendingDeleteItem {
+                    DeleteConfirmationModal(
+                        item: item,
+                        isPublished: false,
+                        onConfirm: {
+                            Task {
+                                do {
+                                    try await viewModel.deleteContent(item)
+                                    viewModel.showPrivateDeleteConfirmation = false
+                                    viewModel.pendingDeleteItem = nil
+                                } catch {
+                                    AppLogger.view.error("Failed to delete content: \(error.localizedDescription)")
+                                }
+                            }
+                        },
+                        onCancel: {
+                            viewModel.showPrivateDeleteConfirmation = false
+                            viewModel.pendingDeleteItem = nil
+                        }
+                    )
+                }
+            }
+            .sheet(isPresented: $viewModel.showPublishedDeleteConfirmation) {
+                if let item = viewModel.publishedDeleteModalItem {
+                    PublishedContentDeleteModal(
+                        item: item,
+                        onUnpublishAndDelete: {
+                            AppLogger.view.info("User selected 'Unpublish & Delete' for item: \(item.id)")
+                            Task {
+                                do {
+                                    try await viewModel.deleteAndUnpublishContent(item)
+                                    viewModel.showPublishedDeleteConfirmation = false
+                                    viewModel.publishedDeleteModalItem = nil
+                                    viewModel.pendingDeleteItem = nil
+                                } catch {
+                                    AppLogger.view.error("Failed to unpublish and delete content: \(error.localizedDescription)")
+                                }
+                            }
+                        },
+                        onKeepPublished: {
+                            AppLogger.view.info("User selected 'Keep Published' for item: \(item.id)")
+                            Task {
+                                do {
+                                    // For "Keep Published", delete local copy but keep content published on backend
+                                    try await viewModel.deleteLocalCopyKeepPublished(item)
+                                    viewModel.showPublishedDeleteConfirmation = false
+                                    viewModel.publishedDeleteModalItem = nil
+                                    viewModel.pendingDeleteItem = nil
+                                } catch {
+                                    AppLogger.view.error("Failed to delete local copy: \(error.localizedDescription)")
+                                }
+                            }
+                        },
+                        onCancel: {
+                            AppLogger.view.info("User cancelled published content deletion")
+                            viewModel.showPublishedDeleteConfirmation = false
+                            viewModel.publishedDeleteModalItem = nil
+                            viewModel.pendingDeleteItem = nil
+                        }
+                    )
+                } else {
+                    // Fallback for debugging - show empty state if item is missing
+                    Text("No item selected")
+                        .onAppear {
+                            AppLogger.view.error("PublishedContentDeleteModal presented with nil publishedDeleteModalItem")
+                            viewModel.showPublishedDeleteConfirmation = false
+                        }
+                }
+            }
+    }
+}
+
+extension View {
+    func libraryModals(viewModel: LibraryListViewModel) -> some View {
+        modifier(LibraryModalsModifier(viewModel: viewModel))
+    }
+}
+
+struct ContentFilterPicker: View {
+    @Binding var selection: ContentFilter
+
+    var body: some View {
+        Picker(L10n.Library.filterAccessibilityLabel, selection: $selection) {
+            ForEach(ContentFilter.allCases) { filter in
+                Text(filter.title).tag(filter)
+            }
+        }
+        .pickerStyle(.segmented)
+        .padding(.horizontal, DesignSystem.Spacing.lg)
+    }
+}
+
+struct CreateContentMenu: View {
+    let viewModel: LibraryListViewModel
+
+    var body: some View {
         Menu {
             Button {
                 viewModel.onCreateChecklistTapped()
             } label: {
                 Label(L10n.Library.newChecklist, systemImage: "checklist")
             }
-            
+
             Button {
                 viewModel.onCreateDeckTapped()
             } label: {
                 Label(L10n.Library.newFlashcardDeck, systemImage: "rectangle.stack")
             }
-            
+
             Button {
                 viewModel.onCreateGuideTapped()
             } label: {
@@ -211,10 +313,10 @@ struct LibraryListView: View {
                 .foregroundColor(DesignSystem.Colors.primary)
         }
     }
-    
-    // MARK: - Empty State
-    
-    private var emptyState: some View {
+}
+
+struct LibraryEmptyState: View {
+    var body: some View {
         DesignSystem.EmptyStateHero(
             icon: "book.fill",
             title: "Your Library Awaits",
@@ -233,19 +335,18 @@ struct LibraryListView: View {
             .ignoresSafeArea()
         )
     }
-    
-    // MARK: - Content List
-    
-    private var contentList: some View {
+}
+
+struct LibraryContentList: View {
+    let viewModel: LibraryListViewModel
+
+    var body: some View {
         VStack(spacing: DesignSystem.Spacing.md) {
-            Picker(L10n.Library.filterAccessibilityLabel, selection: $viewModel.selectedFilter) {
-                ForEach(ContentFilter.allCases) { filter in
-                    Text(filter.title).tag(filter)
-                }
-            }
-            .pickerStyle(.segmented)
-            .padding(.horizontal, DesignSystem.Spacing.lg)
-            
+            ContentFilterPicker(selection: Binding(
+                get: { viewModel.selectedFilter },
+                set: { viewModel.selectedFilter = $0 }
+            ))
+
             List {
                 ForEach(viewModel.filteredItems) { item in
                     LibraryItemRow(
@@ -306,7 +407,7 @@ struct LibraryListView: View {
                         } label: {
                             Label(L10n.Library.actionDelete, systemImage: "trash")
                         }
-                        
+
                         Button {
                             switch item.type {
                             case .checklist:
@@ -320,7 +421,7 @@ struct LibraryListView: View {
                             Label(L10n.Library.actionEdit, systemImage: "pencil")
                         }
                         .tint(.gray)
-                        
+
                         Button {
                             Task {
                                 await viewModel.togglePin(for: item)
@@ -349,62 +450,6 @@ struct LibraryListView: View {
                 .ignoresSafeArea()
             )
         }
-    }
-}
-
-// MARK: - Preview
-
-#Preview {
-    MainActor.assumeIsolated {
-        let sampleLibrary: [LibraryModel] = [
-            LibraryModel(
-                title: "Pre‑Departure Safety Checklist",
-                description: "Run through this before every sail: weather, rigging, engine, and crew briefing.",
-                type: .checklist,
-                visibility: .private,
-                creatorID: UUID(),
-                tags: ["safety", "pre‑departure", "crew"],
-                createdAt: Date().addingTimeInterval(-60 * 60 * 24 * 7),
-                updatedAt: Date().addingTimeInterval(-60 * 30)
-            ),
-            LibraryModel(
-                title: "Heavy Weather Tactics",
-                description: "Step‑by‑step guide for reefing, heaving‑to, and staying safe when the wind picks up.",
-                type: .practiceGuide,
-                visibility: .public,
-                creatorID: UUID(),
-                tags: ["heavy weather", "reefing", "safety"],
-                createdAt: Date().addingTimeInterval(-60 * 60 * 24 * 21),
-                updatedAt: Date().addingTimeInterval(-60 * 60 * 2)
-            ),
-            LibraryModel(
-                title: "COLREGs Flashcards",
-                description: "Flashcards to memorize the most important right‑of‑way rules and light patterns.",
-                type: .flashcardDeck,
-                visibility: .unlisted,
-                creatorID: UUID(),
-                tags: ["colregs", "rules", "night"],
-                createdAt: Date().addingTimeInterval(-60 * 60 * 24 * 3),
-                updatedAt: Date().addingTimeInterval(-60 * 10)
-            )
-        ]
-
-        let repository = PreviewLibraryRepository(sampleLibrary: sampleLibrary)
-        let dependencies = AppDependencies()
-        let libraryStore = LibraryStore(repository: repository, syncQueue: dependencies.syncQueueService)
-        let coordinator = AppCoordinator(dependencies: dependencies)
-        let viewModel = LibraryListViewModel(
-            libraryStore: libraryStore,
-            visibilityService: dependencies.visibilityService,
-            authObserver: dependencies.authStateObserver,
-            coordinator: coordinator
-        )
-
-        return NavigationStack {
-            LibraryListView(viewModel: viewModel)
-        }
-        .environment(\.appDependencies, dependencies)
-        .environment(\.appCoordinator, coordinator)
     }
 }
 
