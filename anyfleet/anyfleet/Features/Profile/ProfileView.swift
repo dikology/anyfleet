@@ -144,7 +144,11 @@ enum VerificationTier: String, Codable, Sendable {
 
 struct ProfileView: View {
     @Environment(\.authService) private var authService
-    @State private var viewModel = ProfileViewModel()
+    @State private var viewModel: ProfileViewModel
+
+    init(viewModel: ProfileViewModel? = nil) {
+        _viewModel = State(initialValue: viewModel ?? ProfileViewModel())
+    }
     
     var body: some View {
         NavigationStack {
@@ -741,6 +745,26 @@ struct ProfileView: View {
 }
 
 #Preview("Authenticated") {
-    ProfileView()
-        .environment(AuthService())
+    let authService = AuthService()
+    authService.isAuthenticated = true
+    authService.currentUser = UserInfo(
+        id: "user-123",
+        email: "john.doe@example.com",
+        username: "John Doe",
+        createdAt: "2024-01-15T10:30:00Z"
+    )
+
+    let viewModel = ProfileViewModel()
+    viewModel.contributionMetrics = ContributionMetrics(
+        totalContributions: 42,
+        totalForks: 15,
+        averageRating: 4.7,
+        verificationTier: .expert,
+        createdCount: 28,
+        forkedCount: 12,
+        importedCount: 2
+    )
+
+    return ProfileView(viewModel: viewModel)
+        .environment(\.authService, authService)
 }
