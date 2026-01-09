@@ -76,7 +76,7 @@ final class AppCoordinator: AppCoordinatorProtocol {
         }
     }
     
-    @MainActor
+    // Timer.invalidate() is thread-safe and doesn't require main actor isolation
     deinit {
         syncTimer?.invalidate()
     }

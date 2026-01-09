@@ -32,8 +32,7 @@ platform :ios do
       # Disable parallel testing for CI reliability
       # This prevents random freezes and ensures Swift Testing output is properly displayed
       # The scheme already has parallelizable="NO", but we add these args for extra safety
-      # Enable experimental Swift features for isolated deinit
-      xcargs: "-parallel-testing-worker-count 1 -parallel-testing-enabled NO OTHER_SWIFT_FLAGS=-enable-experimental-feature\\ IsolatedDeinit",
+      xcargs: "-parallel-testing-worker-count 1 -parallel-testing-enabled NO",
       output_directory: "./fastlane/test_output",
       # xcbeautify doesn't support HTML output, only junit
       output_types: "junit",
@@ -112,7 +111,7 @@ platform :ios do
         },
         signingStyle: "manual"
       },
-      xcargs: "-allowProvisioningUpdates OTHER_SWIFT_FLAGS=-enable-experimental-feature\\ IsolatedDeinit"
+      xcargs: "-allowProvisioningUpdates"
     )
   end
 
