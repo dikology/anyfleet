@@ -22,6 +22,7 @@ struct anyfleetApp: App {
         WindowGroup {
             AppView()
                 .environment(\.appDependencies, dependencies)
+                .environment(dependencies.authService)
                 .environmentObject(coordinator)
         }
     }

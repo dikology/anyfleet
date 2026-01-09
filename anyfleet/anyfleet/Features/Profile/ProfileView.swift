@@ -724,10 +724,10 @@ struct ProfileView: View {
 
 #Preview("Unauthenticated") {
     ProfileView()
-        .environment(\.authService, AuthService.shared)
+        .environment(AuthService())
 }
 
 #Preview("Authenticated") {
     ProfileView()
-        .environment(\.authService, AuthService.shared)
+        .environment(AuthService())
 }

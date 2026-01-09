@@ -10,7 +10,7 @@ import AuthenticationServices
 
 /// Modal view for signing in with Apple to enable publishing
 struct SignInModalView: View {
-    @State private var authService = AuthService.shared
+    @Environment(AuthService.self) private var authService
     @State private var appError: AppError?
     @State private var isLoading = false
     
