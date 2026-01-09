@@ -66,23 +66,15 @@ struct CharterListView: View {
     }
     
     private var emptyState: some View {
-        DesignSystem.EmptyStateHero(
+        DesignSystem.EmptyStateView(
             icon: "sailboat",
-            title: "Your Journey Awaits",
-            message: "Create your first charter and set sail on an unforgettable adventure. Every great voyage begins with a single plan.",
-            accentColor: DesignSystem.Colors.primary
+            title: "No Charters Yet",
+            message: "Create your first charter to start planning your sailing adventure. Track dates, vessels, and locations all in one place.",
+            actionTitle: "Create Charter",
+            action: { viewModel.onCreateCharterTapped() }
         )
-        .background(
-            LinearGradient(
-                colors: [
-                    DesignSystem.Colors.background,
-                    DesignSystem.Colors.oceanDeep.opacity(0.03)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
-        )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("No charters. Create your first charter to start planning.")
     }
     
     private var charterList: some View {

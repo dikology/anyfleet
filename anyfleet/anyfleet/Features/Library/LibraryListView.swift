@@ -289,23 +289,13 @@ struct CreateContentMenu: View {
 
 struct LibraryEmptyState: View {
     var body: some View {
-        DesignSystem.EmptyStateHero(
+        DesignSystem.EmptyStateView(
             icon: "book.fill",
             title: "Your Library Awaits",
-            message: "Create checklists, guides, and flashcard decks to organize your sailing knowledge. Every great sailor builds their own library of resources.",
-            accentColor: DesignSystem.Colors.primary
+            message: "Create checklists, guides, and flashcard decks to organize your sailing knowledge. Every great sailor builds their own library of resources."
         )
-        .background(
-            LinearGradient(
-                colors: [
-                    DesignSystem.Colors.background,
-                    DesignSystem.Colors.oceanDeep.opacity(0.03)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
-        )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Your library is empty. Create checklists, guides, and flashcard decks.")
     }
 }
 
