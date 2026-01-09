@@ -16,18 +16,18 @@ final class ProfileViewModel {
     var editedUsername = ""
     var isSavingProfile = false
     
-    @MainActor
-    func loadReputationMetrics() async {
-        isLoading = true
-        defer { isLoading = false }
-        
-        do {
-            // TODO: Call API when Phase 2 backend is ready
-            // self.contributionMetrics = try await authService.fetchMetrics()
-        } catch {
-            appError = error.toAppError()
-        }
-    }
+    // @MainActor
+    // func loadReputationMetrics() async {
+    //     isLoading = true
+    //     defer { isLoading = false }
+
+    //     // TODO: Call API when Phase 2 backend is ready
+    //     // do {
+    //     //     self.contributionMetrics = try await authService.fetchMetrics()
+    //     // } catch {
+    //     //     appError = error.toAppError()
+    //     // }
+    // }
     
     @MainActor
     func logout(from authService: AuthService) async {
@@ -35,7 +35,7 @@ final class ProfileViewModel {
         defer { isLoading = false }
 
         do {
-            try await authService.logout()
+            await authService.logout()
         } catch {
             appError = error.toAppError()
         }
@@ -87,7 +87,7 @@ final class ProfileViewModel {
         do {
             try await authService.handleAppleSignIn(result: result)
             // Load metrics after successful sign-in
-            await loadReputationMetrics()
+            //await loadReputationMetrics()
         } catch {
             appError = error.toAppError()
         }
@@ -161,7 +161,8 @@ struct ProfileView: View {
             .navigationBarTitleDisplayMode(.inline)
             .task {
                 if authService.isAuthenticated {
-                    await viewModel.loadReputationMetrics()
+                    // TODO: Load reputation metrics when Phase 2 backend is ready
+                    // await loadReputationMetrics()
                 }
             }
         }
