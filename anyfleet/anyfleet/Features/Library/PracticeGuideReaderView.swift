@@ -25,10 +25,6 @@ struct PracticeGuideReaderView: View {
                 } else if viewModel.isLoading {
                     ProgressView()
                         .tint(DesignSystem.Colors.primary)
-                } else if let error = viewModel.errorMessage {
-                    Text(error)
-                        .foregroundColor(DesignSystem.Colors.textSecondary)
-                        .padding()
                 } else {
                     // Show loading state instead of empty view
                     VStack(spacing: DesignSystem.Spacing.md) {
@@ -46,6 +42,21 @@ struct PracticeGuideReaderView: View {
         .navigationBarTitleDisplayMode(.inline)
         .task {
             await viewModel.loadGuide()
+        }
+
+        // Error Banner
+        if viewModel.showErrorBanner, let error = viewModel.currentError {
+            VStack {
+                Spacer()
+                ErrorBanner(
+                    error: error,
+                    onDismiss: { viewModel.clearError() },
+                    onRetry: { Task { await viewModel.loadGuide() } }
+                )
+                .padding(.horizontal)
+                .padding(.bottom, 20)
+            }
+            .transition(.move(edge: .bottom).combined(with: .opacity))
         }
     }
     

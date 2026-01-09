@@ -14,7 +14,7 @@ import Observation
 /// for a checklist instance scoped to a specific charter.
 @MainActor
 @Observable
-final class ChecklistExecutionViewModel {
+final class ChecklistExecutionViewModel: ErrorHandling {
     // MARK: - Dependencies
     
     private let libraryStore: LibraryStore
@@ -35,9 +35,9 @@ final class ChecklistExecutionViewModel {
     
     /// Whether the checklist is currently being loaded
     var isLoading = false
-    
-    /// Error that occurred during loading, if any
-    var loadError: Error?
+
+    var currentError: AppError?
+    var showErrorBanner: Bool = false
     
     // MARK: - Computed Properties
     
@@ -88,12 +88,11 @@ final class ChecklistExecutionViewModel {
     /// Loads the checklist from the library store and restores saved execution state.
     func load() async {
         guard !isLoading else { return }
-        
+
         AppLogger.view.startOperation("Load Checklist for Execution")
         isLoading = true
-        loadError = nil
         defer { isLoading = false }
-        
+
         do {
             // Step 1: Ensure library metadata is loaded (for on-demand fetching)
             if libraryStore.myChecklists.isEmpty {
@@ -102,8 +101,11 @@ final class ChecklistExecutionViewModel {
 
             // Step 2: Load checklist template
             checklist = try await libraryStore.fetchFullContent(checklistID)
-            
-            // Step 2: Load saved execution state
+            if checklist == nil {
+                throw AppError.notFound(entity: "Checklist", id: checklistID)
+            }
+
+            // Step 3: Load saved execution state
             if let savedState = try await executionRepository
                 .loadExecutionState(checklistID: checklistID, charterID: charterID) {
                 checkedItems = Set(savedState.itemStates
@@ -112,8 +114,8 @@ final class ChecklistExecutionViewModel {
                 )
                 AppLogger.view.debug("Restored \(checkedItems.count) checked items from saved state")
             }
-            
-            // Step 3: Expand sections that are marked as expanded by default
+
+            // Step 4: Expand sections that are marked as expanded by default
             if let checklist = checklist {
                 expandedSections = Set(
                     checklist.sections
@@ -121,12 +123,12 @@ final class ChecklistExecutionViewModel {
                         .map { $0.id }
                 )
             }
-            
+
             AppLogger.view.info("Loaded checklist: \(checklist?.title ?? "unknown")")
             AppLogger.view.completeOperation("Load Checklist for Execution")
         } catch {
             AppLogger.view.failOperation("Load Checklist for Execution", error: error)
-            loadError = error
+            handleError(error)
         }
     }
     

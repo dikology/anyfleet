@@ -26,7 +26,7 @@ import Observation
 /// ```
 @MainActor
 @Observable
-final class CharterEditorViewModel {
+final class CharterEditorViewModel: ErrorHandling {
     // MARK: - Dependencies
     
     private let charterStore: CharterStore
@@ -43,12 +43,9 @@ final class CharterEditorViewModel {
 
     /// Whether a load operation is in progress
     var isLoading = false
-    
-    /// Error that occurred during load, if any
-    var loadError: Error?
-    
-    /// Error that occurred during save, if any
-    var saveError: Error?
+
+    var currentError: AppError?
+    var showErrorBanner: Bool = false
     
     /// Progress through the form (0.0 to 1.0)
     var completionProgress: Double {
@@ -93,8 +90,8 @@ final class CharterEditorViewModel {
     func loadCharter() async {
         guard let charterID = charterID, !isNewCharter else { return }
         isLoading = true
-        loadError = nil
-        
+        defer { isLoading = false }
+
         do {
             let charter = try await charterStore.fetchCharter(charterID)
             // Map charter to form
@@ -104,23 +101,21 @@ final class CharterEditorViewModel {
             form.destination = charter.location ?? ""
             form.vessel = charter.boatName ?? ""
         } catch {
-            loadError = error
+            handleError(error)
         }
-        
-        isLoading = false
     }
     
     /// Saves the charter and dismisses the view on success.
     func saveCharter() async {
         AppLogger.view.startOperation("Save Charter")
-        
+
         guard !isSaving else {
             AppLogger.view.warning("Save already in progress, ignoring duplicate request")
             return
         }
-        
+
         isSaving = true
-        saveError = nil
+        defer { isSaving = false }
         
         do {
             if isNewCharter {
@@ -144,8 +139,6 @@ final class CharterEditorViewModel {
             AppLogger.view.info("Charter created successfully with ID: \(charter.id.uuidString)")
             AppLogger.view.completeOperation("Save Charter")
             
-            // Reset saving state before dismissing
-            isSaving = false
             onDismiss()
             } else {
                 guard let charterID = charterID else { return }
@@ -159,15 +152,12 @@ final class CharterEditorViewModel {
 
                 AppLogger.view.info("Charter updated successfully with ID: \(charter.id.uuidString)")
                 AppLogger.view.completeOperation("Save Charter")
-                
-                // Reset saving state before dismissing
-                isSaving = false
+
                 onDismiss()
             }
         } catch {
             AppLogger.view.failOperation("Save Charter", error: error)
-            saveError = error
-            isSaving = false
+            handleError(error)
         }
     }
     

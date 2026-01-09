@@ -4,10 +4,11 @@ import AuthenticationServices
 // MARK: - View Model
 
 @Observable
-final class ProfileViewModel {
+final class ProfileViewModel: ErrorHandling {
     private let authService: AuthService
 
-    var appError: AppError?
+    var currentError: AppError?
+    var showErrorBanner: Bool = false
     var isLoading = false
 
     // Phase 2: Reputation metrics
@@ -40,36 +41,32 @@ final class ProfileViewModel {
         isLoading = true
         defer { isLoading = false }
 
-        do {
-            await authService.logout()
-        } catch {
-            appError = error.toAppError()
-        }
+        await authService.logout()
     }
 
     @MainActor
     func startEditingProfile(currentUsername: String?) {
         isEditingProfile = true
         editedUsername = currentUsername ?? ""
-        appError = nil
+        clearError()
     }
 
     @MainActor
     func cancelEditingProfile() {
         isEditingProfile = false
         editedUsername = ""
-        appError = nil
+        clearError()
     }
 
     @MainActor
     func saveProfile() async {
         guard !editedUsername.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            appError = AppError.validationFailed(field: "username", reason: "Display name cannot be empty")
+            handleError(AppError.validationFailed(field: "username", reason: "Display name cannot be empty"))
             return
         }
 
         isSavingProfile = true
-        appError = nil
+        clearError()
         defer { isSavingProfile = false }
 
         do {
@@ -77,7 +74,7 @@ final class ProfileViewModel {
             isEditingProfile = false
             editedUsername = ""
         } catch {
-            appError = error.toAppError()
+            handleError(error)
         }
     }
     
@@ -86,15 +83,15 @@ final class ProfileViewModel {
         result: Result<ASAuthorization, Error>
     ) async {
         isLoading = true
-        appError = nil
+        clearError()
         defer { isLoading = false }
-        
+
         do {
             try await authService.handleAppleSignIn(result: result)
             // Load metrics after successful sign-in
             //await loadReputationMetrics()
         } catch {
-            appError = error.toAppError()
+            handleError(error)
         }
     }
 }
@@ -208,10 +205,10 @@ struct ProfileView: View {
                     accountManagementSection(user: user)
                 }
                 
-                if let error = viewModel.appError {
+                if viewModel.showErrorBanner, let error = viewModel.currentError {
                     ErrorBanner(
                         error: error,
-                        onDismiss: { viewModel.appError = nil },
+                        onDismiss: { viewModel.clearError() },
                         onRetry: nil
                     )
                 }
@@ -724,10 +721,10 @@ struct ProfileView: View {
                     .padding(.vertical, DesignSystem.Spacing.xs)
                 }
                 
-                if let error = viewModel.appError {
+                if viewModel.showErrorBanner, let error = viewModel.currentError {
                     ErrorBanner(
                         error: error,
-                        onDismiss: { viewModel.appError = nil },
+                        onDismiss: { viewModel.clearError() },
                         onRetry: nil
                     )
                 }

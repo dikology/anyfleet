@@ -35,21 +35,6 @@ struct ChecklistExecutionView: View {
                 ProgressView()
                     .progressViewStyle(.circular)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else if let error = viewModel.loadError {
-                VStack(spacing: DesignSystem.Spacing.md) {
-                    Image(systemName: "exclamationmark.triangle")
-                        .font(.system(size: 48))
-                        .foregroundColor(DesignSystem.Colors.error)
-                    Text("Failed to load checklist")
-                        .font(DesignSystem.Typography.headline)
-                        .foregroundColor(DesignSystem.Colors.textPrimary)
-                    Text(error.localizedDescription)
-                        .font(DesignSystem.Typography.caption)
-                        .foregroundColor(DesignSystem.Colors.textSecondary)
-                        .multilineTextAlignment(.center)
-                }
-                .padding(DesignSystem.Spacing.xl)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
         .navigationTitle(viewModel.checklist?.checklistType.displayName ?? "Checklist")
@@ -65,6 +50,21 @@ struct ChecklistExecutionView: View {
         }
         .task {
             await viewModel.load()
+        }
+
+        // Error Banner
+        if viewModel.showErrorBanner, let error = viewModel.currentError {
+            VStack {
+                Spacer()
+                ErrorBanner(
+                    error: error,
+                    onDismiss: { viewModel.clearError() },
+                    onRetry: { Task { await viewModel.load() } }
+                )
+                .padding(.horizontal)
+                .padding(.bottom, 20)
+            }
+            .transition(.move(edge: .bottom).combined(with: .opacity))
         }
     }
     

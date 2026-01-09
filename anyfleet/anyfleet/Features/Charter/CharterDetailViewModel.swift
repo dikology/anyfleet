@@ -10,7 +10,7 @@ import Observation
 
 @MainActor
 @Observable
-final class CharterDetailViewModel {
+final class CharterDetailViewModel: ErrorHandling {
     // MARK: - Dependencies
     
     private let charterStore: CharterStore
@@ -22,13 +22,15 @@ final class CharterDetailViewModel {
     
     // MARK: - State
 
+    var currentError: AppError?
+    var showErrorBanner: Bool = false
+
     // Computed property - single source of truth from store
     var charter: CharterModel? {
         charterStore.charters.first(where: { $0.id == charterID })
     }
 
     var isLoading = false
-    var loadError: String?
     
     /// ID of the charter-scoped check‑in checklist (backed by a library checklist template)
     var checkInChecklistID: UUID?
@@ -51,23 +53,26 @@ final class CharterDetailViewModel {
         guard !isLoading else { return }
         isLoading = true
         defer { isLoading = false }
-        
-        // Ensure charters are loaded
-        if charterStore.charters.isEmpty {
-            try? await charterStore.loadCharters()
-        }
 
-        guard charter != nil else {
-            loadError = "Charter not found"
-            return
+        do {
+            // Ensure charters are loaded
+            if charterStore.charters.isEmpty {
+                try await charterStore.loadCharters()
+            }
+
+            guard charter != nil else {
+                throw AppError.notFound(entity: "Charter", id: charterID)
+            }
+
+            // Ensure library content is loaded so we can look for check‑in templates
+            if libraryStore.myChecklists.isEmpty {
+                await libraryStore.loadLibrary()
+            }
+
+            await ensureCheckInChecklist()
+        } catch {
+            handleError(error)
         }
-        
-        // Ensure library content is loaded so we can look for check‑in templates
-        if libraryStore.myChecklists.isEmpty {
-            await libraryStore.loadLibrary()
-        }
-        
-        await ensureCheckInChecklist()
     }
     
     // MARK: - Checklist Wiring
@@ -106,8 +111,9 @@ final class CharterDetailViewModel {
         do {
             try await charterStore.saveCharter(currentCharter)
         } catch {
+            // Log the error but don't propagate it since we want to keep the in-memory link
+            // so the UI can still navigate, even if persistence fails
             AppLogger.store.failOperation("Save Charter Check‑In Checklist", error: error)
-            // Keep in-memory link even if persistence fails so the UI can still navigate.
         }
     }
 }

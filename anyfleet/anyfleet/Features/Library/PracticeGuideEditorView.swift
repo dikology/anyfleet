@@ -23,12 +23,20 @@ struct PracticeGuideEditorView: View {
             .task {
                 await viewModel.loadGuide()
             }
-            .alert("Error", isPresented: errorAlertBinding) {
-                Button("OK") { viewModel.errorMessage = nil }
-            } message: {
-                if let error = viewModel.errorMessage {
-                    Text(error)
+
+            // Error Banner
+            if viewModel.showErrorBanner, let error = viewModel.currentError {
+                VStack {
+                    Spacer()
+                    ErrorBanner(
+                        error: error,
+                        onDismiss: { viewModel.clearError() },
+                        onRetry: nil
+                    )
+                    .padding(.horizontal)
+                    .padding(.bottom, 20)
                 }
+                .transition(.move(edge: .bottom).combined(with: .opacity))
             }
     }
     
@@ -182,14 +190,6 @@ struct PracticeGuideEditorView: View {
         }
     }
     
-    // MARK: - Error Alert
-    
-    private var errorAlertBinding: Binding<Bool> {
-        Binding(
-            get: { viewModel.errorMessage != nil },
-            set: { if !$0 { viewModel.errorMessage = nil } }
-        )
-    }
 }
 
 #Preview("New Practice Guide") {
