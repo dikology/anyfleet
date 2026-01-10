@@ -52,8 +52,24 @@ struct ChecklistReaderView: View {
                 }
             }
         }
-        .navigationTitle(viewModel.checklist?.title ?? "Checklist")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                if let title = viewModel.checklist?.title {
+                    Text(title)
+                        .font(DesignSystem.Typography.headline)
+                        .foregroundColor(DesignSystem.Colors.textPrimary)
+                        .minimumScaleFactor(0.5)
+                        .lineLimit(1)
+                } else {
+                    Text("Checklist")
+                        .font(DesignSystem.Typography.headline)
+                        .foregroundColor(DesignSystem.Colors.textPrimary)
+                        .minimumScaleFactor(0.5)
+                        .lineLimit(1)
+                }
+            }
+        }
         .task {
             await viewModel.loadChecklist()
         }
@@ -83,11 +99,6 @@ struct ChecklistReaderView: View {
     
     private func headerView(for checklist: Checklist) -> some View {
         VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
-            // Title
-            Text(checklist.title)
-                .font(DesignSystem.Typography.headline)
-                .foregroundColor(DesignSystem.Colors.textPrimary)
-            
             // Description
             if let description = checklist.description, !description.isEmpty {
                 Text(description)
