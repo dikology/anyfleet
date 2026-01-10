@@ -122,7 +122,7 @@ final class ChecklistEditorViewModel: ErrorHandling {
         guard let sectionIndex = checklist.sections.firstIndex(where: { $0.id == sectionID }) else { return }
         
         let newItem = ChecklistItem(
-            title: "New Item",
+            title: "",
             sortOrder: checklist.sections[sectionIndex].items.count
         )
         
