@@ -29,7 +29,7 @@ struct VisibilityBadge: View {
                 .font(DesignSystem.Typography.caption)
             
             if visibility == .public {
-                Text("·")
+                Text("")
                     .foregroundColor(DesignSystem.Colors.textSecondary)
             }
         }
