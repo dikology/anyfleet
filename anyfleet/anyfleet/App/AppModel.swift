@@ -1,5 +1,6 @@
 import SwiftUI
 import Combine
+import UIKit
 
 /// Protocol defining the interface for app navigation coordination.
 /// Used for dependency injection and testing.
@@ -40,7 +41,8 @@ enum AppRoute: Hashable {
 final class AppCoordinator: AppCoordinatorProtocol {
     private let dependencies: AppDependencies
     private let syncService: ContentSyncService
-    private nonisolated(unsafe) var syncTimer: Timer?
+    private var syncTimer: Timer?
+    private var cancellables = Set<AnyCancellable>()
     
     // Individual navigation paths per tab
     var homePath: [AppRoute] = []
@@ -57,6 +59,7 @@ final class AppCoordinator: AppCoordinatorProtocol {
     init(dependencies: AppDependencies) {
         self.dependencies = dependencies
         self.syncService = dependencies.contentSyncService
+        observeAppLifecycle()
         startBackgroundSync()
     }
 
@@ -68,6 +71,38 @@ final class AppCoordinator: AppCoordinatorProtocol {
             }
         }
     }
+
+    private func observeAppLifecycle() {
+        NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)
+            .sink { [weak self] _ in
+                self?.pauseBackgroundSync()
+            }
+            .store(in: &cancellables)
+
+        NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)
+            .sink { [weak self] _ in
+                self?.resumeBackgroundSync()
+            }
+            .store(in: &cancellables)
+    }
+
+    private func pauseBackgroundSync() {
+        AppLogger.sync.info("Pausing background sync (app inactive)")
+        syncTimer?.invalidate()
+        syncTimer = nil
+    }
+
+    private func resumeBackgroundSync() {
+        AppLogger.sync.info("Resuming background sync (app active)")
+
+        // Immediate sync on resume
+        Task { @MainActor in
+            await syncService.syncPending()
+        }
+
+        // Restart timer
+        startBackgroundSync()
+    }
     
     func applicationDidBecomeActive() {
         // Trigger immediate sync when app becomes active
@@ -75,12 +110,7 @@ final class AppCoordinator: AppCoordinatorProtocol {
             await syncService.syncPending()
         }
     }
-    
-    // Timer.invalidate() is thread-safe and doesn't require main actor isolation
-    deinit {
-        syncTimer?.invalidate()
-    }
-    
+
     // MARK: - Tab-Specific Navigation
 
     func navigateToLibrary() {

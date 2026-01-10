@@ -36,6 +36,9 @@ enum AppLogger {
 
     /// Services-related logging
     static let services = Logger(subsystem: "com.anyfleet.app", category: "Services")
+
+    /// Sync-related logging
+    static let sync = Logger(subsystem: "com.anyfleet.app", category: "Sync")
 }
 
 // MARK: - Convenience Extensions
