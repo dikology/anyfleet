@@ -41,8 +41,8 @@ enum AppRoute: Hashable {
 final class AppCoordinator: AppCoordinatorProtocol {
     private let dependencies: AppDependencies
     private let syncService: ContentSyncService
-    private nonisolated var syncTimer: Timer?
-    private nonisolated var cancellables = Set<AnyCancellable>()
+    private var syncTimer: Timer?
+    private var cancellables = Set<AnyCancellable>()
     
     // Individual navigation paths per tab
     var homePath: [AppRoute] = []
@@ -110,13 +110,7 @@ final class AppCoordinator: AppCoordinatorProtocol {
             await syncService.syncPending()
         }
     }
-    
-    // Timer.invalidate() is thread-safe and doesn't require main actor isolation
-    deinit {
-        syncTimer?.invalidate()
-        cancellables.removeAll()
-    }
-    
+
     // MARK: - Tab-Specific Navigation
 
     func navigateToLibrary() {

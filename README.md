@@ -1,9 +1,75 @@
-# anyfleet
+# AnyFleet Sailing
 
-AnyFleet is a sailing charter management app with three main features:
-- **Charters:** Create and manage sailing charters with dates, locations, and vessels
-- **Library:** Build reusable content (checklists, practice guides, flashcard decks) with publishing/sharing capabilities
-- **Discover:** Browse and fork community-published content
+AnyFleet is an offline-first iOS app for charter yacht management and crew education. It empowers sailors to organize their charter trips, create comprehensive checklists, and build a personal knowledge library of best practices.
+
+## Features
+
+### 🛥️ Charters
+Create and manage sailing charters with comprehensive details:
+- Charter planning with dates, locations, and vessel information
+- Associate checklists for check-in, daily operations, and maintenance
+- Active charter tracking with progress monitoring
+- Charter-centric content organization
+
+### 📚 Library
+Build and organize your personal sailing knowledge base:
+- **Checklists**: Structured checklists with sections and items for various yacht operations (pre-charter, check-in, daily, post-charter, emergency, maintenance, safety, provisioning)
+- **Practice Guides**: Markdown-based guides for procedures and best practices
+- **Flashcard Decks**: Study materials for crew education and certification prep
+- Full CRUD operations with rich content creation tools
+- Content tagging and categorization
+- Private content by default with options for sharing
+
+### 🔍 Discover
+Explore community-created content:
+- Browse publicly shared checklists, guides, and decks
+- Fork content to customize for your needs
+- Attribution tracking for original creators
+- Community ratings and reviews
+
+## Technology Stack
+
+- **Platform**: iOS (SwiftUI)
+- **Architecture**: MVVM with SwiftUI, offline-first design
+- **Data Storage**: SQLite (via GRDB) for local persistence
+- **State Management**: Observable objects with SwiftUI environment
+- **Design System**: Custom component library with consistent theming
+- **Networking**: Background sync service for content sharing
+- **Testing**: Comprehensive unit and UI test suites
+
+## Development
+
+### Prerequisites
+- Xcode 15.0+
+- iOS 17.0+
+- Swift 5.9+
+
+### Setup
+1. Clone the repository
+2. Open `anyfleet.xcodeproj` in Xcode
+3. Build and run on simulator or device
+
+### Project Structure
+```
+anyfleet/
+├── Core/           # Domain models, stores, utilities
+├── Features/       # Feature-specific views and view models
+├── DesignSystem/   # Reusable UI components and theming
+├── Data/          # Database and data access layers
+├── Services/      # External service integrations
+└── Resources/     # Localization and assets
+```
+
+## Philosophy
+
+**"Your personal sailing companion."** AnyFleet is built on core principles:
+
+- **Offline-First**: All core functionality works without internet connectivity
+- **Personal Ownership**: Users create and manage their own content library
+- **Charter-Centric**: Content is organized around charter trips with execution tracking
+- **Community-Powered**: Future phases will enable content sharing and collaboration
+
+Currently in **Phase 1: Personal Utility Foundation**, focusing on individual productivity and offline capabilities. Phase 2 will introduce community features and content sharing.
 
 ## CI/CD
 
