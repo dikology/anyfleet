@@ -71,6 +71,8 @@ anyfleet/
 
 Currently in **Phase 1: Personal Utility Foundation**, focusing on individual productivity and offline capabilities. Phase 2 will introduce community features and content sharing.
 
+For a comprehensive roadmap of future phases including social discovery, community frameworks, location intelligence, and advanced moderation systems, see the [AnyFleet Vision Document](docs/anyfleet-vision.md).
+
 ## CI/CD
 
 This project uses Fastlane and GitHub Actions for continuous integration and deployment.
