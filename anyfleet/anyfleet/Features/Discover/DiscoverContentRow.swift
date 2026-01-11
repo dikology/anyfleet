@@ -1,14 +1,11 @@
 import SwiftUI
 
-/// Redesigned discover content row with modern UX/UI best practices
-/// - Clickable author avatar opening profile modal
-/// - Fork action via swipe gesture
-/// - Optimized information hierarchy
+/// discover content row
 struct DiscoverContentRow: View {
     let content: DiscoverContent
     let onTap: () -> Void
-    let onAuthorTapped: (String) -> Void  // NEW: Open author profile
-    let onForkTapped: () -> Void  // NEW: Fork action
+    let onAuthorTapped: (String) -> Void
+    let onForkTapped: () -> Void
     
     @State private var isPressed = false
     @State private var showSwipeActions = false
@@ -16,7 +13,7 @@ struct DiscoverContentRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             
-            // SECTION 2: Content (Title + Description)
+            // SECTION 1: Content (Title + Description)
             VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
                 // Icon + Title
                 HStack(alignment: .top, spacing: DesignSystem.Spacing.md) {
@@ -46,7 +43,7 @@ struct DiscoverContentRow: View {
                         .font(.system(size: 13, weight: .regular))
                         .foregroundColor(DesignSystem.Colors.textSecondary)
                         .lineLimit(2)
-                        .padding(.leading, 44) // Align with title
+                        .padding(.leading, 44)
                 }
             }
             .padding(.horizontal, DesignSystem.Spacing.lg)
@@ -60,10 +57,11 @@ struct DiscoverContentRow: View {
                 .background(DesignSystem.Colors.border.opacity(0.3))
                 .padding(.horizontal, DesignSystem.Spacing.lg)
             
-            // SECTION 3: Tags & Footer
+            // SECTION 2: Tags
             VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
-                // Tags
-                if !content.tags.isEmpty {
+                // Tags and Content Type Badge
+                HStack(alignment: .center, spacing: DesignSystem.Spacing.xs) {
+                    // Left side: Tags
                     HStack(spacing: DesignSystem.Spacing.xs) {
                         ForEach(content.tags.prefix(3), id: \.self) { tag in
                             Text(tag)
@@ -76,19 +74,19 @@ struct DiscoverContentRow: View {
                                         .fill(DesignSystem.Colors.primary.opacity(0.08))
                                 )
                         }
-                        
+
                         if content.tags.count > 3 {
                             Text("+\(content.tags.count - 3)")
                                 .font(.system(size: 11, weight: .medium))
                                 .foregroundColor(DesignSystem.Colors.textSecondary)
                         }
-                        
-                        Spacer()
-                        
-                        // Content Type Badge
-                        contentTypeBadge
-                        
                     }
+                    .layoutPriority(1)
+
+                    Spacer()
+
+                    // Right side: Content Type Badge (always shown)
+                    contentTypeBadge
                 }
             }
             .padding(.horizontal, DesignSystem.Spacing.lg)
@@ -199,7 +197,6 @@ struct DiscoverContentRow: View {
                 .foregroundColor(DesignSystem.Colors.primary)
         }
         .frame(width: 36, height: 36)
-        //.flexibleFrame(alignment: .top)
     }
     
     private var contentTypeBadge: some View {
@@ -210,7 +207,8 @@ struct DiscoverContentRow: View {
             .padding(.vertical, 4)
             .background(
                 Capsule()
-                    .fill(DesignSystem.Colors.primary.opacity(0.12))
+                    .fill(DesignSystem.Colors.primary.opacity(0.15))
+                    .stroke(DesignSystem.Colors.primary.opacity(0.3), lineWidth: 1)
             )
     }
     
