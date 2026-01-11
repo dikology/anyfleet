@@ -13,6 +13,12 @@ final class AuthorModalUITests: XCTestCase {
 
     override func setUpWithError() throws {
         continueAfterFailure = false
+
+        // Configure app for UI testing with mock data
+        app.launchArguments = ["-ui-testing"]
+        app.launchEnvironment = [
+            "UITesting": "true"
+        ]
         app.launch()
 
         // Wait for app to be ready
@@ -28,8 +34,10 @@ final class AuthorModalUITests: XCTestCase {
 
     @MainActor
     func testAuthorModalOpensWithUsername() throws {
-        // Navigate to Discover tab (assuming it exists)
-        // This test assumes the app has a Discover tab and content with authors
+        // Navigate to Discover tab (third tab: home=0, library=1, discover=2)
+        let tabBar = app.tabBars.firstMatch
+        XCTAssertTrue(tabBar.waitForExistence(timeout: 5), "Tab bar should exist")
+        tabBar.buttons.element(boundBy: 3).tap()
 
         // Wait for discover content to load
         let discoverScrollView = app.scrollViews.firstMatch
@@ -75,10 +83,13 @@ final class AuthorModalUITests: XCTestCase {
 
     @MainActor
     func testAuthorModalContentPersistence() throws {
+        // Navigate to Discover tab (third tab: home=0, library=1, discover=2)
+        let tabBar = app.tabBars.firstMatch
+        XCTAssertTrue(tabBar.waitForExistence(timeout: 5), "Tab bar should exist")
+        tabBar.buttons.element(boundBy: 3).tap()
+
         // Test that modal content persists across multiple opens
         // This specifically tests for the reported bug where modal opens empty first time
-
-        // Navigate to Discover
         let discoverScrollView = app.scrollViews.firstMatch
         XCTAssertTrue(discoverScrollView.waitForExistence(timeout: 10))
 
@@ -122,6 +133,11 @@ final class AuthorModalUITests: XCTestCase {
 
     @MainActor
     func testAuthorModalWithDifferentAuthors() throws {
+        // Navigate to Discover tab (third tab: home=0, library=1, discover=2)
+        let tabBar = app.tabBars.firstMatch
+        XCTAssertTrue(tabBar.waitForExistence(timeout: 5), "Tab bar should exist")
+        tabBar.buttons.element(boundBy: 3).tap()
+
         // Test that different authors show different modals
         // This helps catch issues where modal state doesn't update properly
 
