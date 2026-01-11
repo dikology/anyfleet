@@ -133,7 +133,7 @@ final class DiscoverViewModel: ErrorHandling {
                 publicID: "pre-departure-checklist",
                 authorUsername: "SailorMaria",
                 viewCount: 42,
-                forkCount: 8,
+                forkCount: 2,
                 createdAt: Date().addingTimeInterval(-60 * 60 * 24 * 7)
             ),
             DiscoverContent(
@@ -145,7 +145,7 @@ final class DiscoverViewModel: ErrorHandling {
                 publicID: "heavy-weather-tactics",
                 authorUsername: "CaptainJohn",
                 viewCount: 127,
-                forkCount: 23,
+                forkCount: 1,
                 createdAt: Date().addingTimeInterval(-60 * 60 * 24 * 14)
             ),
             DiscoverContent(
@@ -157,7 +157,7 @@ final class DiscoverViewModel: ErrorHandling {
                 publicID: "colregs-flashcards",
                 authorUsername: "NavExpert",
                 viewCount: 89,
-                forkCount: 15,
+                forkCount: 0,
                 createdAt: Date().addingTimeInterval(-60 * 60 * 24 * 3)
             )
         ]

@@ -40,16 +40,19 @@ final class AuthorModalUITests: XCTestCase {
         tabBar.buttons.element(boundBy: 3).tap()
 
         // Wait for discover content to load
-        let discoverScrollView = app.scrollViews.firstMatch
-        XCTAssertTrue(discoverScrollView.waitForExistence(timeout: 10), "Discover content should load")
+        let discoverList = app.collectionViews.firstMatch
+        XCTAssertTrue(discoverList.waitForExistence(timeout: 10), "Discover content should load")
 
-        // Look for author avatars (circles that can be tapped)
-        // Author avatars are implemented as circles in the UI
-        let authorAvatars = app.buttons.matching(NSPredicate(format: "identifier CONTAINS 'author' OR label BEGINSWITH 'author'")).firstMatch
+        // Look for author avatars using accessibility labels
+        let authorAvatar = app.buttons.matching(NSPredicate(format: "label CONTAINS 'Author'")).firstMatch
 
-        if authorAvatars.exists {
+        // Debug: print all available buttons to understand the accessibility hierarchy
+        let allButtons = app.buttons.allElementsBoundByIndex
+        print("Available buttons: \(allButtons.map { $0.label })")
+
+        if authorAvatar.exists {
             // Tap on the first available author avatar
-            authorAvatars.tap()
+            authorAvatar.tap()
 
             // Wait for modal to appear
             let modalTitle = app.staticTexts["Author Profile"]
@@ -90,19 +93,19 @@ final class AuthorModalUITests: XCTestCase {
 
         // Test that modal content persists across multiple opens
         // This specifically tests for the reported bug where modal opens empty first time
-        let discoverScrollView = app.scrollViews.firstMatch
-        XCTAssertTrue(discoverScrollView.waitForExistence(timeout: 10))
+        let discoverList = app.collectionViews.firstMatch
+        XCTAssertTrue(discoverList.waitForExistence(timeout: 10))
 
         // Find author avatar
-        let authorAvatars = app.buttons.matching(NSPredicate(format: "identifier CONTAINS 'author' OR label BEGINSWITH 'author'")).firstMatch
+        let authorAvatar = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Author '")).firstMatch
 
-        guard authorAvatars.exists else {
+        guard authorAvatar.exists else {
             XCTFail("No author avatars available for testing")
             return
         }
 
         // First tap - should show content
-        authorAvatars.tap()
+        authorAvatar.tap()
 
         let modalTitle = app.staticTexts["Author Profile"]
         XCTAssertTrue(modalTitle.waitForExistence(timeout: 5))
@@ -117,7 +120,7 @@ final class AuthorModalUITests: XCTestCase {
         XCTAssertFalse(modalTitle.exists)
 
         // Second tap - should show same content
-        authorAvatars.tap()
+        authorAvatar.tap()
         XCTAssertTrue(modalTitle.waitForExistence(timeout: 5))
 
         let secondUsernameText = app.staticTexts.matching(NSPredicate(format: "label != '' AND label != ' '")).firstMatch
@@ -141,11 +144,15 @@ final class AuthorModalUITests: XCTestCase {
         // Test that different authors show different modals
         // This helps catch issues where modal state doesn't update properly
 
-        let discoverScrollView = app.scrollViews.firstMatch
-        XCTAssertTrue(discoverScrollView.waitForExistence(timeout: 10))
+        let discoverList = app.collectionViews.firstMatch
+        XCTAssertTrue(discoverList.waitForExistence(timeout: 10))
 
         // Find all author avatars
-        let authorAvatars = app.buttons.matching(NSPredicate(format: "identifier CONTAINS 'author' OR label BEGINSWITH 'author'"))
+        let authorAvatars = app.buttons.matching(NSPredicate(format: "label CONTAINS 'Author'"))
+
+        // Debug: print all available buttons to understand the accessibility hierarchy
+        let allButtons = app.buttons.allElementsBoundByIndex
+        print("Available buttons: \(allButtons.map { $0.label })")
 
         if authorAvatars.count >= 2 {
             // Test first author

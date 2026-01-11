@@ -187,61 +187,69 @@ struct DiscoverContentRow: View {
         HStack(spacing: -8) {
             // Original author avatar (if exists) - show first
             if let originalAuthor = content.originalAuthorUsername {
-                ZStack {
-                    Circle()
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    hashColor(originalAuthor).opacity(0.7),
-                                    hashColor(originalAuthor).opacity(0.5)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-
-                    Text(originalAuthor.prefix(1).uppercased())
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(.white)
-                }
-                .frame(width: 24, height: 24)
-                .overlay(
-                    Circle()
-                        .stroke(DesignSystem.Colors.surface, lineWidth: 2)
-                )
-                .onTapGesture {
+                Button(action: {
                     // TODO: Show timeline modal when implemented
                     print("Tapped original author: \(originalAuthor)")
+                }) {
+                    ZStack {
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [
+                                        hashColor(originalAuthor).opacity(0.7),
+                                        hashColor(originalAuthor).opacity(0.5)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+
+                        Text(originalAuthor.prefix(1).uppercased())
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(.white)
+                    }
+                    .frame(width: 24, height: 24)
+                    .overlay(
+                        Circle()
+                            .stroke(DesignSystem.Colors.surface, lineWidth: 2)
+                    )
                 }
+                .accessibilityLabel("Original author \(originalAuthor)")
+                .accessibilityHint("Tap to view attribution timeline")
+                .buttonStyle(.plain)
             }
 
             // Current/main author avatar (always shown)
             if let currentAuthor = content.authorUsername {
-                ZStack {
-                    Circle()
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    hashColor(currentAuthor).opacity(0.7),
-                                    hashColor(currentAuthor).opacity(0.5)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-
-                    Text(currentAuthor.prefix(1).uppercased())
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(.white)
-                }
-                .frame(width: 24, height: 24)
-                .overlay(
-                    Circle()
-                        .stroke(DesignSystem.Colors.surface, lineWidth: 2)
-                )
-                .onTapGesture {
+                Button(action: {
                     onAuthorTapped(currentAuthor)
+                }) {
+                    ZStack {
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [
+                                        hashColor(currentAuthor).opacity(0.7),
+                                        hashColor(currentAuthor).opacity(0.5)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+
+                        Text(currentAuthor.prefix(1).uppercased())
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(.white)
+                    }
+                    .frame(width: 24, height: 24)
+                    .overlay(
+                        Circle()
+                            .stroke(DesignSystem.Colors.surface, lineWidth: 2)
+                    )
                 }
+                .accessibilityLabel("Author \(currentAuthor)")
+                .accessibilityHint("Tap to view author profile")
+                .buttonStyle(.plain)
             } else {
                 // Anonymous author fallback
                 ZStack {
@@ -261,23 +269,27 @@ struct DiscoverContentRow: View {
 
             // Show "3+" indicator if there are multiple contributors
             if content.forkCount > 2 {
-                ZStack {
-                    Circle()
-                        .fill(DesignSystem.Colors.textSecondary.opacity(0.8))
-
-                    Text("3+")
-                        .font(.system(size: 10, weight: .semibold))
-                        .foregroundColor(.white)
-                }
-                .frame(width: 24, height: 24)
-                .overlay(
-                    Circle()
-                        .stroke(DesignSystem.Colors.surface, lineWidth: 2)
-                )
-                .onTapGesture {
+                Button(action: {
                     // TODO: Show timeline modal when implemented
                     print("Tapped attribution chain - show timeline modal")
+                }) {
+                    ZStack {
+                        Circle()
+                            .fill(DesignSystem.Colors.textSecondary.opacity(0.8))
+
+                        Text("3+")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundColor(.white)
+                    }
+                    .frame(width: 24, height: 24)
+                    .overlay(
+                        Circle()
+                            .stroke(DesignSystem.Colors.surface, lineWidth: 2)
+                    )
                 }
+                .accessibilityLabel("Multiple contributors")
+                .accessibilityHint("Tap to view attribution timeline")
+                .buttonStyle(.plain)
             }
         }
     }
