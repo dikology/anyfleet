@@ -60,6 +60,7 @@ struct AuthorProfileModal: View {
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, DesignSystem.Spacing.md)
                     }
+                    .accessibilityIdentifier("modal_close_button")
                     .padding(.horizontal, DesignSystem.Spacing.xl)
                     .padding(.bottom, DesignSystem.Spacing.xl)
                 }
@@ -72,6 +73,7 @@ struct AuthorProfileModal: View {
                         Image(systemName: "xmark")
                             .foregroundColor(DesignSystem.Colors.primary)
                     }
+                    .accessibilityIdentifier("modal_xmark_button")
                 }
             }
         }

@@ -27,8 +27,9 @@ final class AuthorModalUITests: XCTestCase {
 
     override func tearDownWithError() throws {
         // Clean up any modal state
-        if app.buttons["xmark"].exists {
-            app.buttons["xmark"].tap()
+        let modalXButton = app.buttons.matching(NSPredicate(format: "identifier == 'modal_xmark_button'")).firstMatch
+        if modalXButton.exists {
+            modalXButton.tap()
         }
     }
 
@@ -61,13 +62,19 @@ final class AuthorModalUITests: XCTestCase {
             let comingSoonText = app.staticTexts.matching(NSPredicate(format: "identifier == 'coming_soon_title'")).firstMatch
             XCTAssertTrue(comingSoonText.exists, "Coming Soon message should be displayed")
 
-            // Close modal
-            let closeButton = app.buttons["Close"]
-            if closeButton.exists {
-                closeButton.tap()
+            // Close modal - use the modal's specific close button first, then fallback to modal xmark
+            let modalCloseButton = app.buttons.matching(NSPredicate(format: "identifier == 'modal_close_button'")).firstMatch
+            if modalCloseButton.exists {
+                modalCloseButton.tap()
             } else {
-                // Try X button
-                app.buttons["xmark"].tap()
+                // Try modal X button
+                let modalXButton = app.buttons.matching(NSPredicate(format: "identifier == 'modal_xmark_button'")).firstMatch
+                if modalXButton.exists {
+                    modalXButton.tap()
+                } else {
+                    // Final fallback
+                    app.buttons["xmark"].firstMatch.tap()
+                }
             }
 
             // Verify modal is dismissed - check that username element is no longer present
@@ -114,7 +121,8 @@ final class AuthorModalUITests: XCTestCase {
         let firstUsername = "SailorMaria"
 
         // Close modal
-        app.buttons["xmark"].tap()
+        let modalXButton = app.buttons.matching(NSPredicate(format: "identifier == 'modal_xmark_button'")).firstMatch
+        modalXButton.tap()
         XCTAssertFalse(usernameElement.exists, "Modal should be dismissed")
 
         // Second tap - should show same content
@@ -131,7 +139,8 @@ final class AuthorModalUITests: XCTestCase {
         XCTAssertEqual(firstUsername, secondUsername, "Username should be the same on first and second modal open")
 
         // Clean up
-        app.buttons["xmark"].tap()
+        let modalXButtonCleanup = app.buttons.matching(NSPredicate(format: "identifier == 'modal_xmark_button'")).firstMatch
+        modalXButtonCleanup.tap()
     }
 
     @MainActor
@@ -159,7 +168,8 @@ final class AuthorModalUITests: XCTestCase {
             XCTAssertEqual(firstUsernameElement.label, "SailorMaria", "First username should be SailorMaria")
 
             let firstUsername = "SailorMaria"
-            app.buttons["xmark"].tap()
+            let modalXButton1 = app.buttons.matching(NSPredicate(format: "identifier == 'modal_xmark_button'")).firstMatch
+            modalXButton1.tap()
 
             // Test second author (CaptainJohn)
             authorAvatars.element(boundBy: 1).tap()
@@ -174,7 +184,8 @@ final class AuthorModalUITests: XCTestCase {
             XCTAssertNotEqual(firstUsername, "", "First username should not be empty")
             XCTAssertNotEqual(secondUsername, "", "Second username should not be empty")
 
-            app.buttons["xmark"].tap()
+            let modalXButton2 = app.buttons.matching(NSPredicate(format: "identifier == 'modal_xmark_button'")).firstMatch
+            modalXButton2.tap()
         } else {
             // Document that we couldn't test multiple authors
             print("Only \(authorAvatars.count) author avatars found - cannot test multiple author modal behavior")
