@@ -48,9 +48,9 @@ final class ContentValidator {
     }
 
     private func validateTags(_ tags: [String]) throws {
-        guard !tags.isEmpty else {
-            throw VisibilityService.PublishError.validationError("At least one tag is required")
-        }
+        // guard !tags.isEmpty else {
+        //     throw VisibilityService.PublishError.validationError("At least one tag is required")
+        // }
         guard tags.count <= 10 else {
             throw VisibilityService.PublishError.validationError("Maximum 10 tags allowed")
         }
