@@ -79,7 +79,7 @@ struct AppView: View {
                     }
             }
             .tabItem {
-                Label("Discover", systemImage: "globe")
+                Label(L10n.Discover, systemImage: "globe")
             }
             .tag(Tab.discover)
 
