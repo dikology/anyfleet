@@ -6,8 +6,12 @@ struct DiscoverView: View {
     @Environment(\.appCoordinator) private var coordinator
 
     // Modal state
-    @State private var showingAuthorProfile = false
-    @State private var selectedAuthorUsername: String?
+    @State private var selectedAuthorUsername: AuthorProfileItem?
+
+    private struct AuthorProfileItem: Identifiable {
+        let username: String
+        var id: String { username }
+    }
 
     @MainActor
     init(viewModel: DiscoverViewModel? = nil) {
@@ -51,16 +55,13 @@ struct DiscoverView: View {
                 .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
-        .sheet(isPresented: $showingAuthorProfile) {
-            if let username = selectedAuthorUsername {
-                AuthorProfileModal(
-                    username: username,
-                    onDismiss: {
-                        showingAuthorProfile = false
-                        selectedAuthorUsername = nil
-                    }
-                )
-            }
+        .sheet(item: $selectedAuthorUsername) { item in
+            AuthorProfileModal(
+                username: item.username,
+                onDismiss: {
+                    selectedAuthorUsername = nil
+                }
+            )
         }
         .toolbar {
             ToolbarItem(placement: .principal) {
@@ -110,8 +111,7 @@ struct DiscoverView: View {
                         viewModel.onContentTapped(content)
                     },
                     onAuthorTapped: { username in
-                        selectedAuthorUsername = username
-                        showingAuthorProfile = true
+                        selectedAuthorUsername = AuthorProfileItem(username: username)
                         viewModel.onAuthorTapped(username)
                     },
                     onForkTapped: {

@@ -35,9 +35,9 @@ final class AppDatabase: Sendable {
     
     /// Creates a database with the given writer
     nonisolated init(_ dbWriter: any DatabaseWriter) throws {
-        AppLogger.database.debug("Initializing AppDatabase")
+        //AppLogger.database.debug("Initializing AppDatabase")
         self.dbWriter = dbWriter
-        AppLogger.database.debug("Running database migrations")
+        // AppLogger.database.debug("Running database migrations")
         try migrator.migrate(dbWriter)
         AppLogger.database.info("AppDatabase initialized and migrations completed")
     }
@@ -54,7 +54,7 @@ final class AppDatabase: Sendable {
         #endif
         
         migrator.registerMigration("v1.0.0_createInitialSchema") { db in
-            AppLogger.database.debug("Running migration: v1.0.0_createInitialSchema")
+            // AppLogger.database.debug("Running migration: v1.0.0_createInitialSchema")
             // MARK: Charters Table
             try db.create(table: "charters") { t in
                 t.primaryKey("id", .text).notNull()
@@ -74,7 +74,7 @@ final class AppDatabase: Sendable {
         }
         
         migrator.registerMigration("v1.1.0_createLibrarySchema") { db in
-            AppLogger.database.debug("Running migration: v1.1.0_createLibrarySchema")
+            // AppLogger.database.debug("Running migration: v1.1.0_createLibrarySchema")
             
             // MARK: Library Content Metadata Table
             try db.create(table: "library_content") { t in
@@ -120,7 +120,7 @@ final class AppDatabase: Sendable {
         }
         
         migrator.registerMigration("v1.2.0_createChecklistExecutionSchema") { db in
-            AppLogger.database.debug("Running migration: v1.2.0_createChecklistExecutionSchema")
+            // AppLogger.database.debug("Running migration: v1.2.0_createChecklistExecutionSchema")
             
             // MARK: Checklist Execution States Table
             try db.create(table: "checklistExecutionStates") { t in
@@ -151,7 +151,7 @@ final class AppDatabase: Sendable {
         }
         
         migrator.registerMigration("v1.3.0_addPinnedColumnsToLibrary") { db in
-            AppLogger.database.debug("Running migration: v1.3.0_addPinnedColumnsToLibrary")
+            // AppLogger.database.debug("Running migration: v1.3.0_addPinnedColumnsToLibrary")
             
             try db.alter(table: "library_content") { t in
                 t.add(column: "isPinned", .integer).notNull().defaults(to: false)
@@ -168,7 +168,7 @@ final class AppDatabase: Sendable {
         }
         
         migrator.registerMigration("v1.4.0_createPracticeGuidesTable") { db in
-            AppLogger.database.debug("Running migration: v1.4.0_createPracticeGuidesTable")
+            // AppLogger.database.debug("Running migration: v1.4.0_createPracticeGuidesTable")
             
             // MARK: Practice Guides Table (full content)
             try db.create(table: "practice_guides") { t in
@@ -191,7 +191,7 @@ final class AppDatabase: Sendable {
         }
         
         migrator.registerMigration("v1.5.0_addVisibilityFields") { db in
-            AppLogger.database.debug("Running migration: v1.5.0_addVisibilityFields")
+            // AppLogger.database.debug("Running migration: v1.5.0_addVisibilityFields")
             
             try db.alter(table: "library_content") { t in
                 t.add(column: "publishedAt", .datetime)
@@ -203,7 +203,7 @@ final class AppDatabase: Sendable {
         }
 
         migrator.registerMigration("v1.6.0_createSyncQueueTable") { db in
-            AppLogger.database.debug("Running migration: v1.6.0_createSyncQueueTable")
+            // AppLogger.database.debug("Running migration: v1.6.0_createSyncQueueTable")
             
             try db.create(table: "sync_queue") { t in
                 t.autoIncrementedPrimaryKey("id")
@@ -232,7 +232,7 @@ final class AppDatabase: Sendable {
         }
 
         migrator.registerMigration("v1.7.0_addForkAttributionColumns") { db in
-            AppLogger.database.debug("Running migration: v1.7.0_addForkAttributionColumns")
+            // AppLogger.database.debug("Running migration: v1.7.0_addForkAttributionColumns")
 
             try db.alter(table: "library_content") { t in
                 t.add(column: "originalAuthorUsername", .text)
@@ -276,7 +276,7 @@ final class AppDatabase: Sendable {
             // }
             #endif
             
-            AppLogger.database.debug("Creating DatabaseQueue")
+            // AppLogger.database.debug("Creating DatabaseQueue")
             let dbQueue = try DatabaseQueue(path: databaseURL.path, configuration: config)
             AppLogger.database.info("DatabaseQueue created successfully")
             return try AppDatabase(dbQueue)
