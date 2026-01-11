@@ -13,6 +13,7 @@ import OSLog
 /// Used for dependency injection and testing.
 protocol AuthStateObserverProtocol: AnyObject {
     var isSignedIn: Bool { get }
+    var currentUser: UserInfo? { get }
     var currentUserID: UUID? { get }
 }
 

@@ -148,15 +148,16 @@ struct ProfileView: View {
     @Environment(\.appDependencies) private var dependencies
     @State private var viewModel: ProfileViewModel
 
+    // Use the AuthStateObserver for reactive authentication state
+    private var authObserver: AuthStateObserverProtocol {
+        dependencies.authStateObserver
+    }
+
     @MainActor
     init(viewModel: ProfileViewModel? = nil) {
-        if let viewModel = viewModel {
-            _viewModel = State(initialValue: viewModel)
-        } else {
-            // Create a placeholder for previews and testing
-            let deps = AppDependencies()
-            _viewModel = State(initialValue: ProfileViewModel(authService: deps.authService))
-        }
+        // Initialize with provided viewModel or create a placeholder
+        let initialViewModel = viewModel ?? ProfileViewModel(authService: AuthService())
+        _viewModel = State(initialValue: initialViewModel)
     }
     
     var body: some View {
@@ -164,16 +165,18 @@ struct ProfileView: View {
             ZStack {
                 DesignSystem.Colors.background
                     .ignoresSafeArea()
-                
-                if dependencies.authService.isAuthenticated {
-                    authenticatedContent
+
+                if authObserver.isSignedIn {
+                    authenticatedContent(viewModel: viewModel)
                 } else {
-                    unauthenticatedContent
+                    unauthenticatedContent(viewModel: viewModel)
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
             .task {
-                if dependencies.authService.isAuthenticated {
+                // Replace the placeholder viewModel with one using environment dependencies
+                viewModel = ProfileViewModel(authService: dependencies.authService)
+                if authObserver.isSignedIn {
                     // TODO: Load reputation metrics when Phase 2 backend is ready
                     // await loadReputationMetrics()
                 }
@@ -189,12 +192,12 @@ struct ProfileView: View {
     }
     
     // MARK: - Authenticated Content
-    
+
     @MainActor
-    private var authenticatedContent: some View {
+    private func authenticatedContent(viewModel: ProfileViewModel) -> some View {
         ScrollView {
             VStack(spacing: DesignSystem.Spacing.xl) {
-                if let user = dependencies.authService.currentUser {
+                if let user = authObserver.currentUser {
                     profileHeader(for: user)
                     
                     if let metrics = viewModel.contributionMetrics {
@@ -218,7 +221,7 @@ struct ProfileView: View {
         }
     }
     
-    // MARK: - Profile Header (Redesigned)
+    // MARK: - Profile Header
     
     @MainActor
     private func profileHeader(for user: UserInfo) -> some View {
@@ -645,9 +648,9 @@ struct ProfileView: View {
     }
     
     // MARK: - Unauthenticated Content
-    
+
     @MainActor
-    private var unauthenticatedContent: some View {
+    private func unauthenticatedContent(viewModel: ProfileViewModel) -> some View {
         ZStack {
             DesignSystem.Colors.background
                 .ignoresSafeArea()

@@ -170,6 +170,12 @@ class MockVisibilityService: VisibilityServiceProtocol {
 @MainActor
 class MockAuthStateObserver: AuthStateObserverProtocol {
         let isSignedIn: Bool = true
+        let currentUser: UserInfo? = UserInfo(
+            id: "test-user-id",
+            email: "test@example.com",
+            username: "testuser",
+            createdAt: "2024-01-01T00:00:00Z"
+        )
         let currentUserID: UUID? = UUID()
     }
 

@@ -17,26 +17,45 @@ struct PublishActionView: View {
     
     var body: some View {
         if item.visibility == .public {
-            // Unpublish button
-            Button(action: onUnpublish) {
-                HStack(spacing: DesignSystem.Spacing.xs) {
-                    Image(systemName: "eye.slash")
-                        .font(.system(size: 14, weight: .medium))
-                    Text("Unpublish")
-                        .font(DesignSystem.Typography.caption)
-                        .fontWeight(.semibold)
+            // Unpublish button - only show if signed in
+            if isSignedIn {
+                Button(action: onUnpublish) {
+                    HStack(spacing: DesignSystem.Spacing.xs) {
+                        Image(systemName: "eye.slash")
+                            .font(.system(size: 14, weight: .medium))
+                        Text("Unpublish")
+                            .font(DesignSystem.Typography.caption)
+                            .fontWeight(.semibold)
+                    }
+                    .padding(.horizontal, DesignSystem.Spacing.md)
+                    .padding(.vertical, DesignSystem.Spacing.xs)
+                    .background(DesignSystem.Colors.surface)
+                    .foregroundColor(DesignSystem.Colors.textPrimary)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(DesignSystem.Colors.border, lineWidth: 1)
+                    )
+                    .cornerRadius(8)
                 }
-                .padding(.horizontal, DesignSystem.Spacing.md)
-                .padding(.vertical, DesignSystem.Spacing.xs)
-                .background(DesignSystem.Colors.surface)
-                .foregroundColor(DesignSystem.Colors.textPrimary)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(DesignSystem.Colors.border, lineWidth: 1)
-                )
-                .cornerRadius(8)
+                .buttonStyle(PlainButtonStyle())
+            } else {
+                // Show sign-in prompt for unpublish
+                Button(action: onSignInRequired) {
+                    HStack(spacing: DesignSystem.Spacing.xs) {
+                        Image(systemName: "eye.slash")
+                            .font(.system(size: 14, weight: .medium))
+                        Text("Sign In to Unpublish")
+                            .font(DesignSystem.Typography.caption)
+                            .fontWeight(.semibold)
+                    }
+                    .padding(.horizontal, DesignSystem.Spacing.md)
+                    .padding(.vertical, DesignSystem.Spacing.xs)
+                    .background(DesignSystem.Colors.border.opacity(0.3))
+                    .foregroundColor(DesignSystem.Colors.textSecondary)
+                    .cornerRadius(8)
+                }
+                .buttonStyle(PlainButtonStyle())
             }
-            .buttonStyle(PlainButtonStyle())
         } else {
             // Publish button
             Button(action: {
