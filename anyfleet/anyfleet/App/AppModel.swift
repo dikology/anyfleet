@@ -10,6 +10,9 @@ protocol AppCoordinatorProtocol: AnyObject {
     func editDeck(_ deckID: UUID?)
     func viewChecklist(_ checklistID: UUID)
     func viewGuide(_ guideID: UUID)
+
+    func push(_ route: AppRoute, to tab: AppView.Tab)
+    func navigateToLibrary()
 }
 
 enum AppRoute: Hashable {

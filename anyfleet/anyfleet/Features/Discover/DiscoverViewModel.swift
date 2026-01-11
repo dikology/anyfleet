@@ -7,8 +7,8 @@ final class DiscoverViewModel: ErrorHandling {
     // MARK: - Dependencies
 
     private let apiClient: APIClientProtocol
-    private let libraryStore: LibraryStore
-    private let coordinator: AppCoordinator
+    private let libraryStore: LibraryStoreProtocol
+    private let coordinator: AppCoordinatorProtocol
 
     // MARK: - State
 
@@ -27,8 +27,8 @@ final class DiscoverViewModel: ErrorHandling {
 
     init(
         apiClient: APIClientProtocol,
-        libraryStore: LibraryStore,
-        coordinator: AppCoordinator
+        libraryStore: LibraryStoreProtocol,
+        coordinator: AppCoordinatorProtocol
     ) {
         self.apiClient = apiClient
         self.libraryStore = libraryStore

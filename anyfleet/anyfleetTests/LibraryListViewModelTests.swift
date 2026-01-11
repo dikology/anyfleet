@@ -224,6 +224,14 @@ class MockAppCoordinator: AppCoordinatorProtocol {
         func showLibrary() {}
         func showCharterList() {}
         func showCharterRecord() {}
+
+        func push(_ route: AppRoute, to tab: AppView.Tab) {
+            // Mock implementation - do nothing
+        }
+
+        func navigateToLibrary() {
+            // Mock implementation - do nothing
+        }
     }
 
     // MARK: - Helpers
