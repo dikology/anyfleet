@@ -50,16 +50,15 @@ final class AuthorModalUITests: XCTestCase {
             // Tap on the first available author avatar
             authorAvatar.tap()
 
-            // Wait for modal to appear
-            let modalTitle = app.staticTexts["Author Profile"]
-            XCTAssertTrue(modalTitle.waitForExistence(timeout: 5), "Author profile modal should appear")
+            // Wait for modal to appear - check for accessibility identifiers
+            let usernameElement = app.staticTexts.matching(NSPredicate(format: "identifier == 'author_username'")).firstMatch
+            XCTAssertTrue(usernameElement.waitForExistence(timeout: 5), "Username should be displayed in modal")
 
             // Verify username is displayed (should not be empty on first open)
-            let usernameText = app.staticTexts.matching(NSPredicate(format: "label != '' AND label != ' '")).firstMatch
-            XCTAssertTrue(usernameText.exists, "Username should be displayed in modal")
+            XCTAssertFalse(usernameElement.label.isEmpty, "Username should not be empty")
 
             // Verify "Coming Soon" message is present
-            let comingSoonText = app.staticTexts["Coming Soon"]
+            let comingSoonText = app.staticTexts.matching(NSPredicate(format: "identifier == 'coming_soon_title'")).firstMatch
             XCTAssertTrue(comingSoonText.exists, "Coming Soon message should be displayed")
 
             // Close modal
@@ -71,8 +70,8 @@ final class AuthorModalUITests: XCTestCase {
                 app.buttons["xmark"].tap()
             }
 
-            // Verify modal is dismissed
-            XCTAssertFalse(modalTitle.exists, "Modal should be dismissed")
+            // Verify modal is dismissed - check that username element is no longer present
+            XCTAssertFalse(usernameElement.exists, "Modal should be dismissed")
         } else {
             // If no author avatars found, this test documents that author modal functionality
             // is not accessible in the current UI state - which could indicate the issue
@@ -104,25 +103,26 @@ final class AuthorModalUITests: XCTestCase {
         authorAvatar.tap()
 
         // Wait for modal to appear - check for username text
-        let usernameText = app.staticTexts["SailorMaria"] // The username that was tapped
-        XCTAssertTrue(usernameText.waitForExistence(timeout: 5), "Modal should appear with username")
+        let usernameElement = app.staticTexts.matching(NSPredicate(format: "identifier == 'author_username'")).firstMatch
+        XCTAssertTrue(usernameElement.waitForExistence(timeout: 5), "Modal should appear with username")
+        XCTAssertEqual(usernameElement.label, "SailorMaria", "Username should match tapped author")
 
         // Also check for "Coming Soon" text to verify modal content
-        let comingSoonText = app.staticTexts["Coming Soon"]
+        let comingSoonText = app.staticTexts.matching(NSPredicate(format: "identifier == 'coming_soon_title'")).firstMatch
         XCTAssertTrue(comingSoonText.exists, "Modal should show Coming Soon content")
 
         let firstUsername = "SailorMaria"
 
         // Close modal
         app.buttons["xmark"].tap()
-        XCTAssertFalse(usernameText.exists, "Modal should be dismissed")
+        XCTAssertFalse(usernameElement.exists, "Modal should be dismissed")
 
         // Second tap - should show same content
         authorAvatar.tap()
-        XCTAssertTrue(usernameText.waitForExistence(timeout: 5), "Modal should appear again with username")
+        XCTAssertTrue(usernameElement.waitForExistence(timeout: 5), "Modal should appear again with username")
 
         // Verify the second modal also shows "Coming Soon" content
-        let secondComingSoonText = app.staticTexts["Coming Soon"]
+        let secondComingSoonText = app.staticTexts.matching(NSPredicate(format: "identifier == 'coming_soon_title'")).firstMatch
         XCTAssertTrue(secondComingSoonText.exists, "Second modal should show Coming Soon content")
 
         let secondUsername = "SailorMaria"
@@ -154,8 +154,9 @@ final class AuthorModalUITests: XCTestCase {
             // Test first author (SailorMaria)
             authorAvatars.element(boundBy: 0).tap()
 
-            let firstUsernameText = app.staticTexts["SailorMaria"]
-            XCTAssertTrue(firstUsernameText.waitForExistence(timeout: 5), "First author modal should appear")
+            let firstUsernameElement = app.staticTexts.matching(NSPredicate(format: "identifier == 'author_username'")).firstMatch
+            XCTAssertTrue(firstUsernameElement.waitForExistence(timeout: 5), "First author modal should appear")
+            XCTAssertEqual(firstUsernameElement.label, "SailorMaria", "First username should be SailorMaria")
 
             let firstUsername = "SailorMaria"
             app.buttons["xmark"].tap()
@@ -163,8 +164,9 @@ final class AuthorModalUITests: XCTestCase {
             // Test second author (CaptainJohn)
             authorAvatars.element(boundBy: 1).tap()
 
-            let secondUsernameText = app.staticTexts["CaptainJohn"]
-            XCTAssertTrue(secondUsernameText.waitForExistence(timeout: 5), "Second author modal should appear")
+            let secondUsernameElement = app.staticTexts.matching(NSPredicate(format: "identifier == 'author_username'")).firstMatch
+            XCTAssertTrue(secondUsernameElement.waitForExistence(timeout: 5), "Second author modal should appear")
+            XCTAssertEqual(secondUsernameElement.label, "CaptainJohn", "Second username should be CaptainJohn")
 
             let secondUsername = "CaptainJohn"
 
