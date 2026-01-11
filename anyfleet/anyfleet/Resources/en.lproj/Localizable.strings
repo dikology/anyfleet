@@ -216,6 +216,10 @@
 "error.databaseError.recovery" = "The database operation failed. Please try again later.";
 "error.unknown.recovery" = "An unknown error occurred. Please try again later.";
 
+"error.librarySyncFailed" = "Library sync failed: %@";
+"error.libraryInvalidContent" = "Invalid content data: %@";
+"error.libraryNotFound" = "Library item %@ not found";
+
 "charter.detail.title" = "Charter";
 "charter.detail.checkInChecklist.title" = "Check-In Checklist";
 "charter.detail.checkInChecklist.subtitle" = "Run this before guests arrive to make sure the boat is truly ready.";

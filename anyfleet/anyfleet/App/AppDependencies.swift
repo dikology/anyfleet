@@ -40,7 +40,19 @@ import OSLog
 @Observable
 @MainActor
 final class AppDependencies {
-    
+
+    // MARK: - Observable State
+
+    /// Whether the user is currently authenticated
+    var isAuthenticated: Bool {
+        authService.isAuthenticated
+    }
+
+    /// The current authenticated user
+    var currentUser: UserInfo? {
+        authService.currentUser
+    }
+
     // MARK: - Data Layer
     
     /// Shared database instance for the application

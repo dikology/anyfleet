@@ -195,6 +195,10 @@
 "error.network.unreachableHost" = "Сервер недоступен";
 "error.network.unknown" = "Сетевая ошибка: %@";
 
+"error.librarySyncFailed" = "Синхронизация библиотеки не удалась: %@";
+"error.libraryInvalidContent" = "Неверные данные контента: %@";
+"error.libraryNotFound" = "Элемент библиотеки %@ не найден";
+
 "charter.detail.title" = "Чартер";
 "charter.detail.checkInChecklist.title" = "Чек-лист приёмки";
 "charter.detail.checkInChecklist.subtitle" = "Выполните это перед прибытием гостей, чтобы убедиться, что лодка действительно готова.";

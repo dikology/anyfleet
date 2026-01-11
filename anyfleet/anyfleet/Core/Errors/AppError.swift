@@ -129,6 +129,7 @@ enum LibraryError: LocalizedError, Equatable {
     case permissionDenied
     case validationFailed(String)
     case syncFailed(String)
+    case invalidContentData(String)
 
     @MainActor
     var errorDescription: String? {
@@ -145,6 +146,8 @@ enum LibraryError: LocalizedError, Equatable {
             return String(format: L10n.Error.validationFailed, "content", reason)
         case .syncFailed(let reason):
             return String(format: L10n.Error.librarySyncFailed, reason)
+        case .invalidContentData(let reason):
+            return String(format: L10n.Error.libraryInvalidContent, reason)
         }
     }
 
@@ -159,7 +162,7 @@ enum LibraryError: LocalizedError, Equatable {
             return L10n.Error.libraryNotFoundRecovery
         case .syncFailed:
             return L10n.Error.librarySyncFailedRecovery
-        case .invalidState, .validationFailed:
+        case .invalidState, .validationFailed, .invalidContentData:
             return L10n.Error.genericRecovery
         }
     }

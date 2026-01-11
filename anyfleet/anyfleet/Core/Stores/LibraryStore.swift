@@ -243,11 +243,27 @@ final class LibraryStore: LibraryStoreProtocol {
 
     private func forkChecklist(from sharedContent: SharedContentDetail) async throws {
         AppLogger.store.info("Forking checklist: \(sharedContent.title)")
-        let checklistData = try JSONSerialization.data(withJSONObject: sharedContent.contentData)
+
+        // Ensure contentData is JSON serializable by re-encoding it
+        // This handles cases where AnyCodable produces non-JSON-serializable objects
+        let normalizedContentData: [String: Any]
+        do {
+            let tempData = try JSONSerialization.data(withJSONObject: sharedContent.contentData, options: [])
+            let jsonObject = try JSONSerialization.jsonObject(with: tempData, options: [])
+            guard let dict = jsonObject as? [String: Any] else {
+                throw LibraryError.invalidContentData("Content data is not a valid dictionary")
+            }
+            normalizedContentData = dict
+        } catch {
+            AppLogger.store.error("Failed to normalize content data for checklist: \(sharedContent.publicID)", error: error)
+            throw LibraryError.invalidContentData("Content data contains non-serializable values: \(error.localizedDescription)")
+        }
+
+        let checklistData = try JSONSerialization.data(withJSONObject: normalizedContentData, options: [])
         AppLogger.store.debug("Checklist JSON data created, size: \(checklistData.count) bytes")
 
         let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
+        // Use default date decoding strategy (timestamps) to match how VisibilityService encodes
         var checklist = try decoder.decode(Checklist.self, from: checklistData)
         AppLogger.store.debug("Checklist decoded successfully")
 

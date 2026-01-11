@@ -523,6 +523,12 @@ enum L10n {
             comment: "Library sync failed error"
         )
 
+        static let libraryInvalidContent = NSLocalizedString(
+            "error.libraryInvalidContent",
+            tableName: "Localizable",
+            comment: "Invalid content data error"
+        )
+
         static let libraryNotFoundRecovery = NSLocalizedString(
             "error.library.notFound.recovery",
             tableName: "Localizable",

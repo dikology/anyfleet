@@ -168,14 +168,45 @@ struct AppDependenciesTests {
     func testLocalizationServiceInitialized() async throws {
         // Arrange
         let dependencies = AppDependencies()
-        
+
         // Act & Assert - verify service is functional
         let language = dependencies.localizationService.effectiveLanguage
         #expect(language == .english || language == .russian)
-        
+
         // Test localization works
         let testString = dependencies.localizationService.localized("home")
         #expect(!testString.isEmpty)
+    }
+
+    @Test("AppDependencies - authentication state reactivity")
+    @MainActor
+    func testAuthenticationStateReactivity() async throws {
+        // Arrange - use test dependencies to avoid keychain pollution
+        let dependencies = try AppDependencies.makeForTesting()
+
+        // Simulate authentication by directly setting the auth service state
+        // (In real usage, this would happen through the AuthService methods)
+        dependencies.authService.isAuthenticated = true
+        let testUser = UserInfo(
+            id: "test-user-id",
+            email: "test@example.com",
+            username: "testuser",
+            createdAt: "2024-01-01T00:00:00Z"
+        )
+        dependencies.authService.currentUser = testUser
+
+        // Assert that the computed properties reflect the change
+        #expect(dependencies.isAuthenticated == true)
+        #expect(dependencies.currentUser?.email == "test@example.com")
+        #expect(dependencies.currentUser?.username == "testuser")
+
+        // Simulate logout
+        dependencies.authService.isAuthenticated = false
+        dependencies.authService.currentUser = nil
+
+        // Assert that the computed properties reflect the logout
+        #expect(!dependencies.isAuthenticated)
+        #expect(dependencies.currentUser == nil)
     }
 }
 
