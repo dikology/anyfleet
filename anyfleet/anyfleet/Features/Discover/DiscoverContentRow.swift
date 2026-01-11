@@ -102,39 +102,10 @@ struct DiscoverContentRow: View {
 
             // SECTION 3: Author & Fork
             HStack(spacing: DesignSystem.Spacing.md) {
-                // Author Avatar - Clickable
-                if let author = content.authorUsername {
-                    Button(action: { onAuthorTapped(author) }) {
-                        authorAvatarView(username: author)
-                    }
-                    .buttonStyle(.plain)
-                    .contentShape(Circle())
-                } else {
-                    // Anonymous author fallback
-                    ZStack {
-                        Circle()
-                            .fill(DesignSystem.Colors.primary.opacity(0.1))
-                        
-                        Image(systemName: "questionmark.circle.fill")
-                            .font(.system(size: 20))
-                            .foregroundColor(DesignSystem.Colors.textSecondary)
-                    }
-                    .frame(width: 36, height: 36)
-                }
-                
-                // Author Info
+                // Author Info with Attribution Avatar Stack
                 VStack(alignment: .leading, spacing: 2) {
-                    // Attribution info for forks
-                    if let originalAuthor = content.originalAuthorUsername {
-                        HStack(spacing: 4) {
-                            Image(systemName: "arrow.triangle.branch")
-                                .font(.system(size: 10, weight: .medium))
-                                .foregroundColor(DesignSystem.Colors.textSecondary)
-                            Text("Forked from @\(originalAuthor)")
-                                .font(.system(size: 10, weight: .regular))
-                                .foregroundColor(DesignSystem.Colors.textSecondary)
-                        }
-                    }
+                    // Attribution avatar stack (includes all authors)
+                    attributionAvatarStack
 
                     Text(content.createdAt.formatted(.relative(presentation: .named)))
                         .font(.system(size: 11, weight: .regular))
@@ -211,6 +182,105 @@ struct DiscoverContentRow: View {
                     .stroke(DesignSystem.Colors.primary.opacity(0.3), lineWidth: 1)
             )
     }
+
+    private var attributionAvatarStack: some View {
+        HStack(spacing: -8) {
+            // Original author avatar (if exists) - show first
+            if let originalAuthor = content.originalAuthorUsername {
+                ZStack {
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    hashColor(originalAuthor).opacity(0.7),
+                                    hashColor(originalAuthor).opacity(0.5)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+
+                    Text(originalAuthor.prefix(1).uppercased())
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(.white)
+                }
+                .frame(width: 24, height: 24)
+                .overlay(
+                    Circle()
+                        .stroke(DesignSystem.Colors.surface, lineWidth: 2)
+                )
+                .onTapGesture {
+                    // TODO: Show timeline modal when implemented
+                    print("Tapped original author: \(originalAuthor)")
+                }
+            }
+
+            // Current/main author avatar (always shown)
+            if let currentAuthor = content.authorUsername {
+                ZStack {
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    hashColor(currentAuthor).opacity(0.7),
+                                    hashColor(currentAuthor).opacity(0.5)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+
+                    Text(currentAuthor.prefix(1).uppercased())
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(.white)
+                }
+                .frame(width: 24, height: 24)
+                .overlay(
+                    Circle()
+                        .stroke(DesignSystem.Colors.surface, lineWidth: 2)
+                )
+                .onTapGesture {
+                    onAuthorTapped(currentAuthor)
+                }
+            } else {
+                // Anonymous author fallback
+                ZStack {
+                    Circle()
+                        .fill(DesignSystem.Colors.primary.opacity(0.1))
+
+                    Image(systemName: "questionmark.circle.fill")
+                        .font(.system(size: 12))
+                        .foregroundColor(DesignSystem.Colors.textSecondary)
+                }
+                .frame(width: 24, height: 24)
+                .overlay(
+                    Circle()
+                        .stroke(DesignSystem.Colors.surface, lineWidth: 2)
+                )
+            }
+
+            // Show "3+" indicator if there are multiple contributors
+            if content.forkCount > 2 {
+                ZStack {
+                    Circle()
+                        .fill(DesignSystem.Colors.textSecondary.opacity(0.8))
+
+                    Text("3+")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundColor(.white)
+                }
+                .frame(width: 24, height: 24)
+                .overlay(
+                    Circle()
+                        .stroke(DesignSystem.Colors.surface, lineWidth: 2)
+                )
+                .onTapGesture {
+                    // TODO: Show timeline modal when implemented
+                    print("Tapped attribution chain - show timeline modal")
+                }
+            }
+        }
+    }
     
     private func authorAvatarView(username: String) -> some View {
         ZStack {
@@ -255,7 +325,7 @@ struct DiscoverContentRow: View {
 
 // MARK: - Preview
 
-#Preview("Redesigned Discover Content Row") {
+#Preview("Discover Content Row with Avatar Stack") {
     VStack(spacing: DesignSystem.Spacing.lg) {
         DiscoverContentRow(
             content: DiscoverContent(
