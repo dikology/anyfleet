@@ -72,15 +72,18 @@ nonisolated struct ChecklistItemState: Sendable {
     let itemID: UUID
     var isChecked: Bool
     var checkedAt: Date?
-    
+    var notes: String?
+
     init(
         itemID: UUID,
         isChecked: Bool = false,
-        checkedAt: Date? = nil
+        checkedAt: Date? = nil,
+        notes: String? = nil
     ) {
         self.itemID = itemID
         self.isChecked = isChecked
         self.checkedAt = checkedAt
+        self.notes = notes
     }
 }
 

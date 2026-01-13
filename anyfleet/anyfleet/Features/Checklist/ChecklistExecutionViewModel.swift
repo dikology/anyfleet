@@ -29,6 +29,9 @@ final class ChecklistExecutionViewModel: ErrorHandling {
     
     /// Set of checked item IDs
     var checkedItems: Set<UUID> = []
+
+    /// Dictionary of item notes keyed by item ID
+    var itemNotes: [UUID: String] = [:]
     
     /// Set of expanded section IDs
     var expandedSections: Set<UUID> = []
@@ -87,6 +90,8 @@ final class ChecklistExecutionViewModel: ErrorHandling {
     
     /// Loads the checklist from the library store and restores saved execution state.
     func load() async {
+        // Skip loading if checklist is already set (useful for previews)
+        guard checklist == nil else { return }
         guard !isLoading else { return }
 
         AppLogger.view.startOperation("Load Checklist for Execution")
@@ -112,7 +117,14 @@ final class ChecklistExecutionViewModel: ErrorHandling {
                     .filter { $0.value.isChecked }
                     .map { $0.key }
                 )
-                AppLogger.view.debug("Restored \(checkedItems.count) checked items from saved state")
+                itemNotes = savedState.itemStates
+                    .compactMap { (itemID, state) -> (UUID, String)? in
+                        guard let notes = state.notes, !notes.isEmpty else { return nil }
+                        return (itemID, notes)
+                    }
+                    .reduce(into: [:]) { $0[$1.0] = $1.1 }
+
+                AppLogger.view.debug("Restored \(checkedItems.count) checked items and \(itemNotes.count) items with notes from saved state")
             }
 
             // Step 4: Expand sections that are marked as expanded by default
@@ -199,6 +211,44 @@ final class ChecklistExecutionViewModel: ErrorHandling {
     /// - Returns: True if the section is expanded, false otherwise
     func isSectionExpanded(_ sectionID: UUID) -> Bool {
         expandedSections.contains(sectionID)
+    }
+
+    /// Save notes for a checklist item.
+    ///
+    /// - Parameters:
+    ///   - itemID: The ID of the item to save notes for
+    ///   - notes: The notes text (nil to clear notes)
+    func saveNotes(for itemID: UUID, notes: String?) {
+        // Update local state
+        if let notes = notes, !notes.isEmpty {
+            itemNotes[itemID] = notes
+        } else {
+            itemNotes.removeValue(forKey: itemID)
+        }
+
+        // Save to database
+        Task {
+            do {
+                try await executionRepository.saveItemNotes(
+                    checklistID: checklistID,
+                    charterID: charterID,
+                    itemID: itemID,
+                    notes: notes
+                )
+                AppLogger.view.debug("Saved notes for item \(itemID.uuidString)")
+            } catch {
+                AppLogger.view.failOperation("Save Item Notes", error: error)
+                // Silently fail but log - don't block UI
+            }
+        }
+    }
+
+    /// Returns the notes for a specific item.
+    ///
+    /// - Parameter itemID: The ID of the item to get notes for
+    /// - Returns: The notes text, or nil if no notes exist
+    func notes(for itemID: UUID) -> String? {
+        itemNotes[itemID]
     }
 }
 

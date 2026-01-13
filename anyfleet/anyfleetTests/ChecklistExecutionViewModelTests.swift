@@ -298,6 +298,9 @@ final class MockExecutionRepository: ChecklistExecutionRepository, @unchecked Se
     var saveItemStateCallCount = 0
     var lastSavedItemID: UUID?
     var lastSavedIsChecked: Bool?
+    var saveItemNotesCallCount = 0
+    var lastSavedNotesItemID: UUID?
+    var lastSavedNotes: String?
     var loadExecutionStateCallCount = 0
     var clearExecutionStateCallCount = 0
     
@@ -313,10 +316,12 @@ final class MockExecutionRepository: ChecklistExecutionRepository, @unchecked Se
         
         // Update or create saved state
         if var state = savedState, state.checklistID == checklistID, state.charterID == charterID {
+            let existingNotes = state.itemStates[itemID]?.notes
             state.itemStates[itemID] = ChecklistItemState(
                 itemID: itemID,
                 isChecked: isChecked,
-                checkedAt: isChecked ? Date() : nil
+                checkedAt: isChecked ? Date() : nil,
+                notes: existingNotes
             )
             state.lastUpdated = Date()
             savedState = state
@@ -334,7 +339,52 @@ final class MockExecutionRepository: ChecklistExecutionRepository, @unchecked Se
             )
         }
     }
-    
+
+    func saveItemNotes(
+        checklistID: UUID,
+        charterID: UUID,
+        itemID: UUID,
+        notes: String?
+    ) async throws {
+        saveItemNotesCallCount += 1
+        lastSavedNotesItemID = itemID
+        lastSavedNotes = notes
+
+        // Update or create saved state
+        if var state = savedState, state.checklistID == checklistID, state.charterID == charterID {
+            if let existingItemState = state.itemStates[itemID] {
+                state.itemStates[itemID] = ChecklistItemState(
+                    itemID: itemID,
+                    isChecked: existingItemState.isChecked,
+                    checkedAt: existingItemState.checkedAt,
+                    notes: notes
+                )
+            } else {
+                state.itemStates[itemID] = ChecklistItemState(
+                    itemID: itemID,
+                    isChecked: false,
+                    checkedAt: nil,
+                    notes: notes
+                )
+            }
+            state.lastUpdated = Date()
+            savedState = state
+        } else {
+            savedState = ChecklistExecutionState(
+                checklistID: checklistID,
+                charterID: charterID,
+                itemStates: [
+                    itemID: ChecklistItemState(
+                        itemID: itemID,
+                        isChecked: false,
+                        checkedAt: nil,
+                        notes: notes
+                    )
+                ]
+            )
+        }
+    }
+
     func loadExecutionState(
         checklistID: UUID,
         charterID: UUID
