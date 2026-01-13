@@ -16,7 +16,7 @@ struct CharterSummaryCard: View {
             
             VStack(spacing: DesignSystem.Spacing.md) {
                 DesignSystem.Form.SummaryRow(icon: "📅", title: L10n.charterSummaryDates, value: form.dateSummary, detail: "\(form.nights) \(L10n.charterSummaryNights)")
-                DesignSystem.Form.SummaryRow(icon: "🧭", title: L10n.charterSummaryRegion, value: form.destination, detail: form.regionDetails ?? L10n.charterSummarySelectARegion)
+                DesignSystem.Form.SummaryRow(icon: "🧭", title: L10n.charterCreateDestination, value: form.destination.isEmpty ? L10n.charterCreateChooseWhereYouWillSail : form.destination, detail: nil)
                 DesignSystem.Form.SummaryRow(icon: "⛵", title: L10n.charterSummaryVessel, value: form.vessel, detail: "\(L10n.charterSummaryUpto) \(form.guests) \(L10n.charterSummaryUpToGuests)")
                 
             }
@@ -31,7 +31,7 @@ struct CharterSummaryCard: View {
             .disabled(!isValid)
             .opacity(isValid ? 1.0 : 0.6)
             
-            Text("\(L10n.charterSummaryStep) \(Int(progress * 6)) \(L10n.charterSummaryOf) 6")
+            Text("\(L10n.charterSummaryStep) \(Int(progress * 5)) \(L10n.charterSummaryOf) 5")
                 .font(DesignSystem.Typography.caption)
                 .foregroundColor(DesignSystem.Colors.textSecondary)
         }

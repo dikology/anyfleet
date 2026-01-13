@@ -164,12 +164,11 @@ final class CharterEditorViewModel: ErrorHandling {
     // MARK: - Private Helpers
     
     private func calculateProgress() -> Double {
-        let total = 6.0
+        let total = 5.0
         var count = 0.0
         if !form.name.isEmpty { count += 1 }
         if form.startDate != .now { count += 1 }
         if form.endDate != .now { count += 1 }
-        if !form.region.isEmpty { count += 1 }
         if !form.vessel.isEmpty { count += 1 }
         if form.guests > 0 { count += 1 }
         return count / total
