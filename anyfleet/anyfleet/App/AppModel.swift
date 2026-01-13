@@ -329,10 +329,12 @@ final class AppCoordinator: AppCoordinatorProtocol {
                 )
             )
         case .discoverContent(let publicID):
-            // TODO: Implement discover content reader when ready
-            // For MVP, this will navigate to appropriate reader based on content type
-            Text("Discover Content: \(publicID)")
-                .navigationTitle("Content")
+            DiscoverContentReaderView(
+                viewModel: DiscoverContentReaderViewModel(
+                    apiClient: dependencies.apiClient,
+                    publicID: publicID
+                )
+            )
         }
     }
 }
