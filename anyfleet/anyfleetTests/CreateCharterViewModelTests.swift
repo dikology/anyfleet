@@ -94,11 +94,9 @@ struct CharterEditorViewModelTests {
             charterID: nil,
             onDismiss: {}
         )
-        
+
         // Act & Assert
-        // Default form has startDate, endDate, region, vessel, and guests populated
-        // Only name is empty, so 5/6 fields = ~0.833
-        let expected = 5.0 / 6.0
+        let expected = 3.0 / 5.0
         #expect(abs(viewModel.completionProgress - expected) < 0.001)
     }
     
@@ -113,7 +111,7 @@ struct CharterEditorViewModelTests {
             charterID: nil,
             onDismiss: {}
         )
-        
+
         // Act - Clear optional string fields and set guests to 0
         viewModel.form.name = ""
         viewModel.form.region = ""
@@ -121,10 +119,10 @@ struct CharterEditorViewModelTests {
         viewModel.form.guests = 0
         // Note: Dates always have values (can't be "empty")
         // So startDate and endDate still count as filled
-        
+
         // Assert
-        // Only dates are filled (2/6) = 0.333...
-        let expected = 2.0 / 6.0
+        // Only dates are filled (2/5) = 0.4
+        let expected = 2.0 / 5.0
         #expect(abs(viewModel.completionProgress - expected) < 0.001)
     }
     
@@ -139,16 +137,16 @@ struct CharterEditorViewModelTests {
             charterID: nil,
             onDismiss: {}
         )
-        
+
         // Act - Clear some fields to make it truly partial
         viewModel.form.name = ""        // Empty
         viewModel.form.region = ""      // Empty
         viewModel.form.vessel = ""      // Empty
         // startDate, endDate, and guests still have default values
-        
+
         // Assert
-        // 3 fields filled (startDate, endDate, guests) out of 6 = 0.5
-        #expect(viewModel.completionProgress == 0.5)
+        // 3 fields filled (startDate, endDate, guests) out of 5 = 0.6
+        #expect(viewModel.completionProgress == 0.6)
     }
     
     @Test("Completion progress - fully filled form")
