@@ -87,6 +87,8 @@ final class ChecklistExecutionViewModel: ErrorHandling {
     
     /// Loads the checklist from the library store and restores saved execution state.
     func load() async {
+        // Skip loading if checklist is already set (useful for previews)
+        guard checklist == nil else { return }
         guard !isLoading else { return }
 
         AppLogger.view.startOperation("Load Checklist for Execution")

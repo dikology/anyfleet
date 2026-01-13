@@ -289,21 +289,77 @@ struct ChecklistExecutionView: View {
     }
 }
 
-#Preview {
-    MainActor.assumeIsolated {
+// MARK: - Preview
+
+private func makePreviewView() -> some View {
+    return MainActor.assumeIsolated {
         let dependencies = try! AppDependencies.makeForTesting()
-        
-        return NavigationStack {
-            ChecklistExecutionView(
-                viewModel: ChecklistExecutionViewModel(
-                    libraryStore: dependencies.libraryStore,
-                    executionRepository: dependencies.executionRepository,
-                    charterID: UUID(),
-                    checklistID: UUID()
+
+        // Create a sample checklist
+        let sampleChecklist = Checklist(
+            title: "Pre-Departure Safety Checklist",
+            description: "Essential safety checks before leaving port",
+            sections: [
+                ChecklistSection(
+                    title: "Engine & Systems",
+                    icon: "engine.combustion",
+                    items: [
+                        ChecklistItem(title: "Check engine oil level", isRequired: true, estimatedMinutes: 2),
+                        ChecklistItem(title: "Test bilge pump operation", isRequired: true),
+                        ChecklistItem(title: "Verify fuel tank levels", estimatedMinutes: 5),
+                        ChecklistItem(title: "Check battery connections", isOptional: true)
+                    ]
+                ),
+                ChecklistSection(
+                    title: "Safety Equipment",
+                    icon: "shield.checkered",
+                    description: "Verify all safety equipment is accessible and functional",
+                    items: [
+                        ChecklistItem(title: "Life jackets accessible", isRequired: true),
+                        ChecklistItem(title: "Fire extinguishers checked", isRequired: true),
+                        ChecklistItem(title: "Flares and emergency kit ready", isOptional: true),
+                        ChecklistItem(title: "First aid kit stocked", isRequired: true, estimatedMinutes: 10)
+                    ]
+                ),
+                ChecklistSection(
+                    title: "Navigation",
+                    icon: "compass",
+                    items: [
+                        ChecklistItem(title: "GPS and chartplotter working", isRequired: true),
+                        ChecklistItem(title: "VHF radio tested", isRequired: true),
+                        ChecklistItem(title: "Check navigation lights", isRequired: true)
+                    ]
                 )
-            )
+            ],
+            checklistType: .preCharter
+        )
+
+        let charterID = UUID()
+        let checklistID = sampleChecklist.id
+
+        let viewModel = ChecklistExecutionViewModel(
+            libraryStore: dependencies.libraryStore,
+            executionRepository: dependencies.executionRepository,
+            charterID: charterID,
+            checklistID: checklistID
+        )
+
+        // Set the checklist directly in the viewModel for preview
+        viewModel.checklist = sampleChecklist
+
+        // Set some items as checked for demonstration
+        viewModel.checkedItems = Set([
+            sampleChecklist.sections[0].items[0].id, // Check engine oil level
+            sampleChecklist.sections[1].items[0].id, // Life jackets accessible
+        ])
+
+        return NavigationStack {
+            ChecklistExecutionView(viewModel: viewModel)
         }
         .environment(\.appDependencies, dependencies)
     }
 }
 
+#Preview("Checklist Execution") {
+    makePreviewView()
+}
