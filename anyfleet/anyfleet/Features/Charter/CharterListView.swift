@@ -3,7 +3,7 @@ import SwiftUI
 struct CharterListView: View {
     @State private var viewModel: CharterListViewModel
     @Environment(\.appDependencies) private var dependencies
-    @Environment(AppCoordinator.self) private var coordinator
+    @Environment(\.appCoordinator) private var coordinator
     
     @MainActor
     init(viewModel: CharterListViewModel? = nil) {
