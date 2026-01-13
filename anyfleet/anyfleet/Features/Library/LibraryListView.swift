@@ -407,7 +407,6 @@ struct LibraryContentList: View {
     }
 }
 
-#if DEBUG
 private struct PreviewLibraryRepository: LibraryRepository {
     let sampleLibrary: [LibraryModel]
 
@@ -441,5 +440,4 @@ private struct PreviewLibraryRepository: LibraryRepository {
 
     func deleteContent(_ contentID: UUID) async throws {}
 }
-#endif
 
