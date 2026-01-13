@@ -574,7 +574,65 @@ extension LocalRepository {
             }
         }
     }
-    
+
+    func saveItemNotes(
+        checklistID: UUID,
+        charterID: UUID,
+        itemID: UUID,
+        notes: String?
+    ) async throws {
+        AppLogger.repository.startOperation("Save Execution Item Notes")
+        defer { AppLogger.repository.completeOperation("Save Execution Item Notes") }
+
+        try await database.dbWriter.write { db in
+            // Load existing state or create new
+            let existingRecord = try ChecklistExecutionRecord
+                .fetch(checklistID: checklistID, charterID: charterID, db: db)
+
+            if let record = existingRecord {
+                // Update existing
+                var state = try record.toDomainModel()
+                if let existingItemState = state.itemStates[itemID] {
+                    state.itemStates[itemID] = ChecklistItemState(
+                        itemID: itemID,
+                        isChecked: existingItemState.isChecked,
+                        checkedAt: existingItemState.checkedAt,
+                        notes: notes
+                    )
+                } else {
+                    // Create new item state with notes
+                    state.itemStates[itemID] = ChecklistItemState(
+                        itemID: itemID,
+                        isChecked: false,
+                        checkedAt: nil,
+                        notes: notes
+                    )
+                }
+                state.lastUpdated = Date()
+
+                try ChecklistExecutionRecord.saveState(state, db: db)
+            } else {
+                // Create new state with notes
+                let newState = ChecklistExecutionState(
+                    id: UUID(),
+                    checklistID: checklistID,
+                    charterID: charterID,
+                    itemStates: [itemID: ChecklistItemState(
+                        itemID: itemID,
+                        isChecked: false,
+                        checkedAt: nil,
+                        notes: notes
+                    )],
+                    createdAt: Date(),
+                    lastUpdated: Date(),
+                    completedAt: nil,
+                    syncStatus: .pending
+                )
+                try ChecklistExecutionRecord.saveState(newState, db: db)
+            }
+        }
+    }
+
     func loadExecutionState(
         checklistID: UUID,
         charterID: UUID

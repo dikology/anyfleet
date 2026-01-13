@@ -30,6 +30,24 @@ protocol ChecklistExecutionRepository: Sendable {
         itemID: UUID,
         isChecked: Bool
     ) async throws
+
+    /// Save or update notes for a single item.
+    ///
+    /// This method updates the notes for an item during execution.
+    /// Implementation should update the execution state and persist immediately.
+    ///
+    /// - Parameters:
+    ///   - checklistID: The checklist being executed
+    ///   - charterID: The charter this execution is scoped to
+    ///   - itemID: The specific item being updated
+    ///   - notes: The notes text (nil to clear notes)
+    /// - Throws: Persistence errors
+    func saveItemNotes(
+        checklistID: UUID,
+        charterID: UUID,
+        itemID: UUID,
+        notes: String?
+    ) async throws
     
     /// Load the complete execution state for a checklist in a charter.
     ///

@@ -62,7 +62,7 @@ nonisolated struct ChecklistExecutionRecord: Codable, FetchableRecord, Persistab
         // Convert itemStates dictionary to JSON
         let itemStatesDictRaw = Dictionary(
             uniqueKeysWithValues: domain.itemStates.map { (key, value) in
-                (key.uuidString, ItemStateJSON(checked: value.isChecked, checkedAt: value.checkedAt))
+                (key.uuidString, ItemStateJSON(checked: value.isChecked, checkedAt: value.checkedAt, notes: value.notes))
             }
         )
         
@@ -107,7 +107,8 @@ nonisolated struct ChecklistExecutionRecord: Codable, FetchableRecord, Persistab
             result[uuid] = ChecklistItemState(
                 itemID: uuid,
                 isChecked: pair.value.checked,
-                checkedAt: pair.value.checkedAt
+                checkedAt: pair.value.checkedAt,
+                notes: pair.value.notes
             )
         }
         
@@ -130,6 +131,7 @@ nonisolated struct ChecklistExecutionRecord: Codable, FetchableRecord, Persistab
 private struct ItemStateJSON: Codable {
     let checked: Bool
     let checkedAt: Date?
+    let notes: String?
 }
 
 // MARK: - Database Operations

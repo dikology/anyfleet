@@ -10,6 +10,8 @@ import SwiftUI
 struct ChecklistExecutionView: View {
     @State private var viewModel: ChecklistExecutionViewModel
     @Environment(\.dismiss) private var dismiss
+    @State private var editingNotesForItem: UUID?
+    @State private var notesText: String = ""
     
     init(viewModel: ChecklistExecutionViewModel) {
         _viewModel = State(initialValue: viewModel)
@@ -222,70 +224,150 @@ struct ChecklistExecutionView: View {
     }
     
     // MARK: - Item Row
-    
+
     private func itemRow(_ item: ChecklistItem) -> some View {
-        Button {
-            viewModel.toggleItem(item.id)
-        } label: {
-            HStack(spacing: DesignSystem.Spacing.sm) {
-                // Checkbox
-                ZStack {
-                    if viewModel.isItemChecked(item.id) {
-                        Circle()
-                            .fill(DesignSystem.Colors.primary)
-                        Image(systemName: "checkmark")
-                            .font(.system(size: 14, weight: .bold))
-                            .foregroundColor(.white)
-                    } else {
-                        Circle()
-                            .strokeBorder(
-                                item.isRequired ? DesignSystem.Colors.error : DesignSystem.Colors.border,
-                                lineWidth: 2
-                            )
-                    }
-                }
-                .frame(width: 24, height: 24)
-                
-                VStack(alignment: .leading, spacing: 2) {
-                    HStack(spacing: DesignSystem.Spacing.xs) {
-                        Text(item.title)
-                            .font(DesignSystem.Typography.body)
-                            .foregroundColor(
-                                viewModel.isItemChecked(item.id)
-                                ? DesignSystem.Colors.textSecondary
-                                : DesignSystem.Colors.textPrimary
-                            )
-                            .strikethrough(viewModel.isItemChecked(item.id))
-                            .lineLimit(2)
-                        
-                        if item.isRequired {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                                .font(.system(size: 12))
-                                .foregroundColor(DesignSystem.Colors.error)
+        VStack(spacing: 0) {
+            Button {
+                viewModel.toggleItem(item.id)
+            } label: {
+                HStack(spacing: DesignSystem.Spacing.sm) {
+                    // Checkbox
+                    ZStack {
+                        if viewModel.isItemChecked(item.id) {
+                            Circle()
+                                .fill(DesignSystem.Colors.primary)
+                            Image(systemName: "checkmark")
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundColor(.white)
+                        } else {
+                            Circle()
+                                .strokeBorder(
+                                    item.isRequired ? DesignSystem.Colors.error : DesignSystem.Colors.border,
+                                    lineWidth: 2
+                                )
                         }
                     }
-                    
-                    if let description = item.itemDescription, !description.isEmpty {
-                        Text(description)
-                            .font(DesignSystem.Typography.caption)
-                            .foregroundColor(DesignSystem.Colors.textSecondary)
-                            .lineLimit(1)
+                    .frame(width: 24, height: 24)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        HStack(spacing: DesignSystem.Spacing.xs) {
+                            Text(item.title)
+                                .font(DesignSystem.Typography.body)
+                                .foregroundColor(
+                                    viewModel.isItemChecked(item.id)
+                                    ? DesignSystem.Colors.textSecondary
+                                    : DesignSystem.Colors.textPrimary
+                                )
+                                .strikethrough(viewModel.isItemChecked(item.id))
+                                .lineLimit(2)
+
+                            if item.isRequired {
+                                Image(systemName: "exclamationmark.triangle.fill")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(DesignSystem.Colors.error)
+                            }
+                        }
+
+                        if let description = item.itemDescription, !description.isEmpty {
+                            Text(description)
+                                .font(DesignSystem.Typography.caption)
+                                .foregroundColor(DesignSystem.Colors.textSecondary)
+                                .lineLimit(1)
+                        }
+
+                        // Notes preview
+                        if let notes = viewModel.notes(for: item.id), !notes.isEmpty {
+                            Text("Notes: \(notes)")
+                                .font(DesignSystem.Typography.caption)
+                                .foregroundColor(DesignSystem.Colors.primary.opacity(0.8))
+                                .lineLimit(1)
+                        }
+                    }
+
+                    Spacer()
+
+                    HStack(spacing: DesignSystem.Spacing.sm) {
+                        // Notes button
+                        Button {
+                            startEditingNotes(for: item)
+                        } label: {
+                            Image(systemName: viewModel.notes(for: item.id) != nil ? "note.text" : "note.text.badge.plus")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(viewModel.notes(for: item.id) != nil ? DesignSystem.Colors.primary : DesignSystem.Colors.textSecondary)
+                        }
+                        .buttonStyle(.plain)
+
+                        // Time estimate
+                        if let minutes = item.estimatedMinutes {
+                            Text("\(minutes)m")
+                                .font(DesignSystem.Typography.caption)
+                                .foregroundColor(DesignSystem.Colors.textSecondary)
+                        }
                     }
                 }
-                
-                Spacer()
-                
-                // Time estimate
-                if let minutes = item.estimatedMinutes {
-                    Text("\(minutes)m")
-                        .font(DesignSystem.Typography.caption)
-                        .foregroundColor(DesignSystem.Colors.textSecondary)
+                .padding(DesignSystem.Spacing.lg)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+
+            // Notes editing overlay
+            if editingNotesForItem == item.id {
+                notesEditor(for: item)
+            }
+        }
+    }
+
+    private func startEditingNotes(for item: ChecklistItem) {
+        editingNotesForItem = item.id
+        notesText = viewModel.notes(for: item.id) ?? ""
+    }
+
+    private func notesEditor(for item: ChecklistItem) -> some View {
+        VStack(spacing: DesignSystem.Spacing.sm) {
+            Divider()
+                .background(DesignSystem.Colors.border.opacity(0.5))
+
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
+                Text("Notes")
+                    .font(DesignSystem.Typography.caption)
+                    .foregroundColor(DesignSystem.Colors.textSecondary)
+
+                TextEditor(text: $notesText)
+                    .font(DesignSystem.Typography.body)
+                    .foregroundColor(DesignSystem.Colors.textPrimary)
+                    .frame(minHeight: 80)
+                    .padding(DesignSystem.Spacing.sm)
+                    .background(DesignSystem.Colors.surfaceAlt)
+                    .cornerRadius(8)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(DesignSystem.Colors.border, lineWidth: 1)
+                    )
+
+                HStack {
+                    Spacer()
+
+                    Button("Cancel") {
+                        editingNotesForItem = nil
+                        notesText = ""
+                    }
+                    .font(DesignSystem.Typography.caption)
+                    .foregroundColor(DesignSystem.Colors.textSecondary)
+
+                    Button("Save") {
+                        viewModel.saveNotes(for: item.id, notes: notesText.isEmpty ? nil : notesText)
+                        editingNotesForItem = nil
+                        notesText = ""
+                    }
+                    .font(DesignSystem.Typography.caption)
+                    .foregroundColor(DesignSystem.Colors.primary)
+                    .fontWeight(.semibold)
                 }
             }
-            .padding(DesignSystem.Spacing.lg)
-            .contentShape(Rectangle())
+            .padding(.horizontal, DesignSystem.Spacing.lg)
+            .padding(.vertical, DesignSystem.Spacing.md)
         }
-        .buttonStyle(.plain)
+        .background(DesignSystem.Colors.surface)
     }
 }
 
@@ -352,6 +434,13 @@ private func makePreviewView() -> some View {
             sampleChecklist.sections[0].items[0].id, // Check engine oil level
             sampleChecklist.sections[1].items[0].id, // Life jackets accessible
         ])
+
+        // Set some notes for demonstration
+        viewModel.itemNotes = [
+            sampleChecklist.sections[0].items[1].id: "Tested bilge pump - working correctly at 12V",
+            sampleChecklist.sections[1].items[2].id: "Emergency kit restocked with fresh flares",
+            sampleChecklist.sections[2].items[0].id: "GPS updated with latest charts"
+        ]
 
         return NavigationStack {
             ChecklistExecutionView(viewModel: viewModel)
