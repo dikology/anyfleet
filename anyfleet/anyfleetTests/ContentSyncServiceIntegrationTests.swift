@@ -944,12 +944,174 @@ struct ContentSyncServiceIntegrationTests {
         #expect(item?.visibility == .public, "Database should preserve public visibility after publish update")
         #expect(item?.publicID == actualPublicID)
     }
+
+    @Test("Publish-edit-publish cycle maintains JSON structure consistency")
+    @MainActor
+    func testPublishEditPublishMaintainsJSONStructure() async throws {
+        // This test ensures JSON structures are consistent between initial publish and publish updates
+        // and that discover parsing works correctly with the published data
+
+        let (repository, apiClient, _, libraryStore, syncService) = try makeTestDependencies()
+
+        // Create a checklist with all required fields including section properties
+        let checklistID = UUID()
+        let sectionID = UUID()
+        let itemID = UUID()
+        let checklist = Checklist(
+            id: checklistID,
+            title: "JSON Structure Test Checklist",
+            description: "Test checklist for JSON structure consistency",
+            sections: [
+                ChecklistSection(
+                    id: sectionID,
+                    title: "Test Section",
+                    icon: "star",
+                    description: "Section description",
+                    items: [
+                        ChecklistItem(
+                            id: itemID,
+                            title: "Test Item",
+                            itemDescription: "Item description",
+                            isOptional: false,
+                            isRequired: true,
+                            tags: ["test"],
+                            estimatedMinutes: 30,
+                            sortOrder: 0
+                        )
+                    ],
+                    isExpandedByDefault: true,
+                    sortOrder: 0
+                )
+            ],
+            checklistType: .general,
+            tags: ["test", "json-structure"],
+            createdAt: Date(),
+            updatedAt: Date()
+        )
+
+        try await repository.createChecklist(checklist)
+
+        // Create library metadata
+        let libraryModel = LibraryModel(
+            id: checklistID,
+            title: checklist.title,
+            description: checklist.description,
+            type: .checklist,
+            visibility: .private,
+            creatorID: UUID(),
+            tags: checklist.tags,
+            createdAt: checklist.createdAt,
+            updatedAt: checklist.updatedAt
+        )
+        try await repository.updateLibraryMetadata(libraryModel)
+
+        // Publish using VisibilityService
+        let mockAuthService = MockAuthService()
+        mockAuthService.mockCurrentUser = UserInfo(id: "test-user", email: "test@example.com", username: "testuser", createdAt: "2024-01-01T00:00:00Z")
+        let visibilityService = VisibilityService(libraryStore: libraryStore, authService: mockAuthService, syncService: syncService)
+
+        let publishSummary = try await visibilityService.publishContent(libraryModel)
+        #expect(publishSummary.succeeded == 1)
+
+        // Process the publish operation
+        let _ = await syncService.syncPending()
+
+        // Get published item
+        var publishedItem = try await repository.fetchLibraryItem(checklistID)
+        #expect(publishedItem?.publicID != nil)
+        let publicID = publishedItem!.publicID!
+
+        // Edit the checklist
+        var editedChecklist = checklist
+        editedChecklist.title = "Edited JSON Structure Test Checklist"
+        editedChecklist.updatedAt = Date()
+        try await libraryStore.saveChecklist(editedChecklist)
+
+        // Trigger sync to process any pending operations
+        let _ = await syncService.syncPending()
+
+        // Verify the JSON structures are consistent by testing discover parsing
+        // Create mock API response with the published content data
+        let mockDetail = SharedContentDetail(
+            id: checklistID,
+            title: editedChecklist.title,
+            description: editedChecklist.description,
+            contentType: "checklist",
+            contentData: [
+                "id": editedChecklist.id.uuidString,
+                "title": editedChecklist.title,
+                "description": editedChecklist.description as Any,
+                "sections": editedChecklist.sections.map { section in
+                    [
+                        "id": section.id.uuidString,
+                        "title": section.title,
+                        "icon": section.icon as Any,
+                        "description": section.description as Any,
+                        "isExpandedByDefault": section.isExpandedByDefault,
+                        "sortOrder": section.sortOrder,
+                        "items": section.items.map { item in
+                            [
+                                "id": item.id.uuidString,
+                                "title": item.title,
+                                "itemDescription": item.itemDescription as Any,
+                                "isOptional": item.isOptional,
+                                "isRequired": item.isRequired,
+                                "tags": item.tags,
+                                "estimatedMinutes": item.estimatedMinutes as Any,
+                                "sortOrder": item.sortOrder
+                            ]
+                        }
+                    ]
+                },
+                "checklistType": editedChecklist.checklistType.rawValue,
+                "tags": editedChecklist.tags,
+                "createdAt": editedChecklist.createdAt.ISO8601Format(),
+                "updatedAt": editedChecklist.updatedAt.ISO8601Format(),
+                "syncStatus": editedChecklist.syncStatus.rawValue
+            ],
+            tags: editedChecklist.tags,
+            publicID: publicID,
+            canFork: true,
+            authorUsername: "testuser",
+            viewCount: 0,
+            forkCount: 0,
+            createdAt: editedChecklist.createdAt,
+            updatedAt: editedChecklist.updatedAt
+        )
+
+        // Test that DiscoverContentReaderViewModel can parse this data without errors
+        let viewModel = DiscoverContentReaderViewModel(apiClient: apiClient, publicID: publicID)
+
+        // Simulate successful API fetch by setting up the mock
+        apiClient.mockPublicContentResponse = mockDetail
+
+        // This should not throw an error now that we've fixed the date decoding and section properties
+        try await viewModel.loadContent()
+
+        #expect(viewModel.parsedContent != nil, "Should successfully parse published content")
+        #expect(viewModel.currentError == nil, "Should not have any parsing errors")
+
+        if case .checklist(let parsedChecklist) = viewModel.parsedContent {
+            #expect(parsedChecklist.id == checklistID)
+            #expect(parsedChecklist.title == editedChecklist.title)
+            #expect(parsedChecklist.sections.count == 1)
+
+            let parsedSection = parsedChecklist.sections[0]
+            #expect(parsedSection.isExpandedByDefault == true, "Section should have isExpandedByDefault property")
+            #expect(parsedSection.sortOrder == 0, "Section should have sortOrder property")
+            #expect(parsedSection.icon == "star", "Section should have icon property")
+            #expect(parsedSection.description == "Section description", "Section should have description property")
+        } else {
+            Issue.record("Parsed content should be a checklist")
+        }
+    }
 }
 
 // MARK: - Mock API Client
 
 class MockAPIClient: APIClientProtocol {
     var shouldFail = false
+    var mockPublicContentResponse: SharedContentDetail?
 
     func publishContent(
         title: String,
@@ -986,7 +1148,12 @@ class MockAPIClient: APIClientProtocol {
     }
 
     func fetchPublicContent(publicID: String) async throws -> SharedContentDetail {
-        // Mock implementation - return mock content detail for tests
+        // Return mock response if set, otherwise default mock
+        if let mockResponse = mockPublicContentResponse {
+            return mockResponse
+        }
+
+        // Default mock implementation
         return SharedContentDetail(
             id: UUID(),
             title: "Mock Content",
