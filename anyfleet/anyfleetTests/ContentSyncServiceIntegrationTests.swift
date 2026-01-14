@@ -673,6 +673,277 @@ struct ContentSyncServiceIntegrationTests {
         #expect(pendingOperations.count == 1)
         #expect(pendingOperations[0].retryCount >= 3) // Should have reached max retries
     }
+
+    @Test("Publish-edit-publish cycle - published content should remain public after editing")
+    @MainActor
+    func testPublishEditPublishCycleMaintainsVisibility() async throws {
+        // This test reproduces the bug described in edit-published.md
+        // where published content becomes private after editing and saving
+
+        let (repository, _, _, libraryStore, syncService) = try makeTestDependencies()
+
+        // 1. Create and save a checklist
+        let checklistID = UUID()
+        let checklist = Checklist(
+            id: checklistID,
+            title: "Publish-Edit Cycle Test Checklist",
+            description: "Test checklist for publish-edit cycle",
+            sections: [
+                ChecklistSection(
+                    id: UUID(),
+                    title: "Test Section",
+                    items: [
+                        ChecklistItem(
+                            id: UUID(),
+                            title: "Test Item",
+                            itemDescription: nil,
+                            isOptional: false,
+                            isRequired: true,
+                            tags: [],
+                            estimatedMinutes: nil,
+                            sortOrder: 0
+                        )
+                    ]
+                )
+            ],
+            checklistType: .general,
+            tags: ["test", "publish-edit"],
+            createdAt: Date(),
+            updatedAt: Date()
+        )
+
+        try await repository.createChecklist(checklist)
+
+        // Create library metadata (initially private)
+        let libraryModel = LibraryModel(
+            id: checklistID,
+            title: checklist.title,
+            description: checklist.description,
+            type: .checklist,
+            visibility: .private,
+            creatorID: UUID(),
+            tags: checklist.tags,
+            createdAt: checklist.createdAt,
+            updatedAt: checklist.updatedAt
+        )
+
+        try await repository.updateLibraryMetadata(libraryModel)
+
+        // 2. Publish the content
+        let mockAuthService = MockAuthService()
+        mockAuthService.mockCurrentUser = UserInfo(
+            id: "test-user-id",
+            email: "test@example.com",
+            username: "testuser",
+            createdAt: "2024-12-24T10:00:00Z"
+        )
+
+        let visibilityService = VisibilityService(
+            libraryStore: libraryStore,
+            authService: mockAuthService,
+            syncService: syncService
+        )
+
+        // Publish the content
+        let publishSummary = try await visibilityService.publishContent(libraryModel)
+        #expect(publishSummary.succeeded == 1)
+        #expect(publishSummary.failed == 0)
+
+        // Verify content is now public after publishing
+        var updatedItem = try await repository.fetchLibraryItem(checklistID)
+        #expect(updatedItem?.visibility == .public, "Content should be public after publishing")
+        #expect(updatedItem?.publicID != nil, "Content should have publicID after publishing")
+
+        // 3. Simulate app restart by reloading from database
+        // This simulates what happens when the app is restarted
+        updatedItem = try await repository.fetchLibraryItem(checklistID)
+        #expect(updatedItem?.visibility == .public, "Content should remain public after 'app restart'")
+
+        // 4. Edit the content (simulate saving changes)
+        // This is what triggers the bug - editing published content
+        var editedChecklist = checklist
+        editedChecklist.title = "Edited Publish-Edit Cycle Test Checklist"
+        editedChecklist.updatedAt = Date()
+
+        // Save the edited checklist (this should trigger publish_update)
+        try await libraryStore.saveChecklist(editedChecklist)
+
+        // The publish update should have been processed by enqueuePublishUpdate already
+        // syncPending() should find no additional operations to process
+        let finalSyncSummary = await syncService.syncPending()
+        #expect(finalSyncSummary.attempted == 0, "No additional operations should be pending")
+
+        // 5. Verify content is still public after editing
+        let finalItem = try await repository.fetchLibraryItem(checklistID)
+
+        // This assertion should pass, but currently fails due to the bug
+        #expect(finalItem?.visibility == .public, "Content should remain public after editing")
+        #expect(finalItem?.publicID != nil, "Content should retain publicID after editing")
+        #expect(finalItem?.title == "Edited Publish-Edit Cycle Test Checklist", "Title should be updated")
+
+        // Additional verification: check that no additional sync operations were needed
+        #expect(finalSyncSummary.attempted == 0, "No additional sync operations should be pending")
+    }
+
+    @Test("Publish-edit-publish cycle preserves visibility through multiple edits")
+    @MainActor
+    func testPublishMultipleEditsMaintainsVisibility() async throws {
+        let (repository, _, _, libraryStore, syncService) = try makeTestDependencies()
+
+        // Create and publish content
+        let checklistID = UUID()
+        let checklist = Checklist(
+            id: checklistID,
+            title: "Multiple Edits Test",
+            description: "Test multiple edits maintain visibility",
+            sections: [],
+            checklistType: .general,
+            tags: ["test"],
+            createdAt: Date(),
+            updatedAt: Date()
+        )
+
+        try await repository.createChecklist(checklist)
+        let libraryModel = LibraryModel(
+            id: checklistID,
+            title: checklist.title,
+            description: checklist.description,
+            type: .checklist,
+            visibility: .private,
+            creatorID: UUID(),
+            tags: checklist.tags,
+            createdAt: checklist.createdAt,
+            updatedAt: checklist.updatedAt
+        )
+        try await repository.updateLibraryMetadata(libraryModel)
+
+        // Publish
+        let mockAuthService = MockAuthService()
+        mockAuthService.mockCurrentUser = UserInfo(id: "user", email: "test@example.com", username: "testuser", createdAt: "2024-01-01T00:00:00Z")
+        let visibilityService = VisibilityService(libraryStore: libraryStore, authService: mockAuthService, syncService: syncService)
+        let publishSummary = try await visibilityService.publishContent(libraryModel)
+        #expect(publishSummary.succeeded == 1)
+
+        // Verify published
+        var item = try await repository.fetchLibraryItem(checklistID)
+        #expect(item?.visibility == .public)
+
+        // First edit
+        var editedChecklist = checklist
+        editedChecklist.title = "First Edit"
+        editedChecklist.updatedAt = Date()
+        try await libraryStore.saveChecklist(editedChecklist)
+        let _ = await syncService.syncPending()
+
+        item = try await repository.fetchLibraryItem(checklistID)
+        #expect(item?.visibility == .public, "Should remain public after first edit")
+        #expect(item?.title == "First Edit")
+
+        // Second edit
+        editedChecklist.title = "Second Edit"
+        editedChecklist.updatedAt = Date()
+        try await libraryStore.saveChecklist(editedChecklist)
+        let _ = await syncService.syncPending()
+
+        item = try await repository.fetchLibraryItem(checklistID)
+        #expect(item?.visibility == .public, "Should remain public after second edit")
+        #expect(item?.title == "Second Edit")
+    }
+
+    @Test("Publish operation correctly sets visibility in database")
+    @MainActor
+    func testPublishOperationDatabaseVisibility() async throws {
+        let (repository, _, _, libraryStore, syncService) = try makeTestDependencies()
+
+        // Create private content
+        let checklistID = UUID()
+        let checklist = Checklist(id: checklistID, title: "DB Visibility Test", description: "Test description for database visibility", sections: [], checklistType: .general, tags: [], createdAt: Date(), updatedAt: Date())
+        try await repository.createChecklist(checklist)
+
+        let libraryModel = LibraryModel(id: checklistID, title: checklist.title, description: checklist.description, type: .checklist, visibility: .private, creatorID: UUID(), tags: checklist.tags, createdAt: checklist.createdAt, updatedAt: checklist.updatedAt)
+        try await repository.updateLibraryMetadata(libraryModel)
+
+        // Verify initially private
+        var item = try await repository.fetchLibraryItem(checklistID)
+        #expect(item?.visibility == .private)
+
+        // Publish using VisibilityService (which uses SyncQueueService internally)
+        let mockAuthService = MockAuthService()
+        mockAuthService.mockCurrentUser = UserInfo(id: "test-user-id", email: "test@example.com", username: "testuser", createdAt: "2024-12-24T10:00:00Z")
+        let visibilityService = VisibilityService(libraryStore: libraryStore, authService: mockAuthService, syncService: syncService)
+
+        let summary = try await visibilityService.publishContent(libraryModel)
+
+        #expect(summary.succeeded == 1)
+
+        // Verify database has correct visibility
+        item = try await repository.fetchLibraryItem(checklistID)
+        #expect(item?.visibility == .public, "Database should have public visibility after publish")
+        #expect(item?.publicID != nil, "Content should have a generated publicID")
+    }
+
+    @Test("Publish update operation preserves visibility in database")
+    @MainActor
+    func testPublishUpdatePreservesVisibility() async throws {
+        let (repository, _, _, libraryStore, syncService) = try makeTestDependencies()
+
+        // Create and publish content using VisibilityService
+        let checklistID = UUID()
+        let checklist = Checklist(id: checklistID, title: "Update Visibility Test", description: "Test description for update visibility", sections: [], checklistType: .general, tags: [], createdAt: Date(), updatedAt: Date())
+        try await repository.createChecklist(checklist)
+
+        let libraryModel = LibraryModel(
+            id: checklistID,
+            title: checklist.title,
+            description: checklist.description,
+            type: .checklist,
+            visibility: .private,
+            creatorID: UUID(),
+            tags: checklist.tags,
+            createdAt: checklist.createdAt,
+            updatedAt: checklist.updatedAt
+        )
+        try await repository.updateLibraryMetadata(libraryModel)
+
+        // Publish using VisibilityService
+        let mockAuthService = MockAuthService()
+        mockAuthService.mockCurrentUser = UserInfo(id: "test-user-id", email: "test@example.com", username: "testuser", createdAt: "2024-12-24T10:00:00Z")
+        let visibilityService = VisibilityService(libraryStore: libraryStore, authService: mockAuthService, syncService: syncService)
+
+        let publishSummary = try await visibilityService.publishContent(libraryModel)
+        #expect(publishSummary.succeeded == 1)
+
+        // Get the published item to get the actual publicID
+        var publishedItem = try await repository.fetchLibraryItem(checklistID)
+        #expect(publishedItem?.publicID != nil)
+        let actualPublicID = publishedItem!.publicID!
+
+        // Verify initially public
+        var item = try await repository.fetchLibraryItem(checklistID)
+        #expect(item?.visibility == .public)
+
+        // Update published content
+        let payload = ContentPublishPayload(
+            title: "Updated Title",
+            description: nil,
+            contentType: "checklist",
+            contentData: ["id": checklistID.uuidString, "title": "Updated Title"],
+            tags: [],
+            language: "en",
+            publicID: actualPublicID
+        )
+        let encoder = JSONEncoder()
+        let payloadData = try encoder.encode(payload)
+
+        let summary = try await syncService.enqueuePublishUpdate(contentID: checklistID, payload: payloadData)
+
+        #expect(summary.succeeded == 1)
+
+        // Verify database still has public visibility
+        item = try await repository.fetchLibraryItem(checklistID)
+        #expect(item?.visibility == .public, "Database should preserve public visibility after publish update")
+        #expect(item?.publicID == actualPublicID)
+    }
 }
 
 // MARK: - Mock API Client

@@ -13,6 +13,7 @@ final class MockSyncService: ContentSyncServiceProtocol {
     // Track method calls
     var enqueuePublishCallCount = 0
     var enqueueUnpublishCallCount = 0
+    var enqueuePublishUpdateCallCount = 0
     var syncPendingCallCount = 0
 
     // Mock data
@@ -26,6 +27,9 @@ final class MockSyncService: ContentSyncServiceProtocol {
 
     var lastEnqueueUnpublishContentID: UUID?
     var lastEnqueueUnpublishPublicID: String?
+
+    var lastEnqueuePublishUpdateContentID: UUID?
+    var lastEnqueuePublishUpdatePayload: Data?
 
     func enqueuePublish(
         contentID: UUID,
@@ -51,6 +55,21 @@ final class MockSyncService: ContentSyncServiceProtocol {
         enqueueUnpublishCallCount += 1
         lastEnqueueUnpublishContentID = contentID
         lastEnqueueUnpublishPublicID = publicID
+
+        if shouldFail {
+            throw NSError(domain: "MockSyncService", code: 1, userInfo: [NSLocalizedDescriptionKey: "Mock sync failure"])
+        }
+
+        return mockSyncSummary
+    }
+
+    func enqueuePublishUpdate(
+        contentID: UUID,
+        payload: Data
+    ) async throws -> SyncSummary {
+        enqueuePublishUpdateCallCount += 1
+        lastEnqueuePublishUpdateContentID = contentID
+        lastEnqueuePublishUpdatePayload = payload
 
         if shouldFail {
             throw NSError(domain: "MockSyncService", code: 1, userInfo: [NSLocalizedDescriptionKey: "Mock sync failure"])

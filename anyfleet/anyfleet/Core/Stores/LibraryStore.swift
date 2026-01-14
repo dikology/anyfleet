@@ -336,7 +336,7 @@ final class LibraryStore: LibraryStoreProtocol {
     func saveChecklist(_ checklist: Checklist) async throws {
         try await repository.saveChecklist(checklist)
 
-        // Update metadata only (avoid full reload)
+        // Update metadata in database and in-memory array
         if let metadataIndex = library.firstIndex(where: { $0.id == checklist.id }) {
             var metadata = library[metadataIndex]
             metadata.title = checklist.title
@@ -344,6 +344,10 @@ final class LibraryStore: LibraryStoreProtocol {
             metadata.tags = checklist.tags
             metadata.updatedAt = checklist.updatedAt
             metadata.syncStatus = checklist.syncStatus
+
+            // Persist metadata changes to database
+            try await repository.updateLibraryMetadata(metadata)
+
             library[metadataIndex] = metadata
 
             // If this is published content, trigger automatic sync update
