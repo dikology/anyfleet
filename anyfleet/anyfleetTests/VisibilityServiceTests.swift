@@ -165,4 +165,53 @@ final class MockLibraryStoreForVisibility: LibraryStoreProtocol {
         #expect(mockStore.lastUpdatedItem?.visibility == .public)
         #expect(mockSync.enqueuePublishCallCount == 1)
     }
+
+    @Test("Date encoding strategy produces ISO 8601 dates that can be decoded correctly")
+    @MainActor
+    func testDateEncodingStrategyCompatibility() async throws {
+        // Given: Create a checklist with specific dates
+        let testDate = Date(timeIntervalSince1970: 1700000000) // Fixed date for testing
+        let checklist = Checklist(
+            id: UUID(),
+            title: "Date Encoding Test",
+            description: "Testing date encoding/decoding compatibility",
+            sections: [
+                ChecklistSection(
+                    title: "Test Section",
+                    items: [
+                        ChecklistItem(title: "Test Item")
+                    ]
+                )
+            ],
+            checklistType: .general,
+            tags: ["test"],
+            createdAt: testDate,
+            updatedAt: testDate,
+            syncStatus: .pending
+        )
+
+        // When: Encode the checklist using the same method as VisibilityService
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        let encodedData = try encoder.encode(checklist)
+
+        // Convert to dictionary (simulating what encodeChecklist does)
+        let json = try JSONSerialization.jsonObject(with: encodedData)
+        guard let jsonDict = json as? [String: Any] else {
+            Issue.record("Failed to convert encoded data to dictionary")
+            return
+        }
+
+        // Now decode it using the same method as DiscoverContentReaderViewModel
+        let checklistData = try JSONSerialization.data(withJSONObject: jsonDict)
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        let decodedChecklist = try decoder.decode(Checklist.self, from: checklistData)
+
+        // Then: Verify dates are preserved correctly
+        #expect(decodedChecklist.createdAt == testDate)
+        #expect(decodedChecklist.updatedAt == testDate)
+        #expect(decodedChecklist.title == "Date Encoding Test")
+        #expect(decodedChecklist.description == "Testing date encoding/decoding compatibility")
+    }
 }
