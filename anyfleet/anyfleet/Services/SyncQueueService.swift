@@ -304,6 +304,7 @@ final class SyncQueueService {
                 canFork: response.canFork,
                 authorUsername: response.authorUsername ?? "Unknown"
             )
+            item.visibility = .public // Ensure visibility is set to public after successful publish
             item.syncStatus = .synced
             try await repository.updateLibraryMetadata(item)
         }
@@ -399,6 +400,8 @@ final class SyncQueueService {
         // Update local model with server response
         if var item = try await repository.fetchLibraryItem(operation.contentID) {
             item.updatedAt = response.updatedAt ?? Date()
+            item.publicID = response.publicID // Update publicID in case it changed
+            item.visibility = .public // Ensure published content remains public after update
             item.syncStatus = .synced
             try await repository.updateLibraryMetadata(item)
         }

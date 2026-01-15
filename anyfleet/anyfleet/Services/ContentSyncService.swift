@@ -54,7 +54,7 @@ final class ContentSyncService: ContentSyncServiceProtocol {
     func enqueuePublishUpdate(
         contentID: UUID,
         payload: Data
-    ) async throws {
+    ) async throws -> SyncSummary {
         AppLogger.auth.info("Enqueuing publish_update operation for content: \(contentID)")
 
         let summary = try await syncQueue.enqueuePublishUpdate(
@@ -63,6 +63,7 @@ final class ContentSyncService: ContentSyncServiceProtocol {
         )
 
         AppLogger.auth.info("Publish update sync completed: \(summary.succeeded) succeeded, \(summary.failed) failed")
+        return summary
     }
 
     /// Enqueue a publish operation without immediately syncing (for testing)

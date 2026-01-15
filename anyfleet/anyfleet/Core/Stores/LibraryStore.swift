@@ -336,7 +336,7 @@ final class LibraryStore: LibraryStoreProtocol {
     func saveChecklist(_ checklist: Checklist) async throws {
         try await repository.saveChecklist(checklist)
 
-        // Update metadata only (avoid full reload)
+        // Update metadata in database and in-memory array
         if let metadataIndex = library.firstIndex(where: { $0.id == checklist.id }) {
             var metadata = library[metadataIndex]
             metadata.title = checklist.title
@@ -344,6 +344,10 @@ final class LibraryStore: LibraryStoreProtocol {
             metadata.tags = checklist.tags
             metadata.updatedAt = checklist.updatedAt
             metadata.syncStatus = checklist.syncStatus
+
+            // Persist metadata changes to database
+            try await repository.updateLibraryMetadata(metadata)
+
             library[metadataIndex] = metadata
 
             // If this is published content, trigger automatic sync update
@@ -359,6 +363,7 @@ final class LibraryStore: LibraryStoreProtocol {
     /// Trigger automatic sync update for published content
     private func triggerPublishUpdate(for metadata: LibraryModel, checklist: Checklist) async {
         do {
+            AppLogger.store.info("Creating publish update payload for checklist: \(checklist.id)")
             // Create the full content data payload
             let contentData: [String: Any] = [
                 "id": checklist.id.uuidString,
@@ -368,6 +373,10 @@ final class LibraryStore: LibraryStoreProtocol {
                     [
                         "id": section.id.uuidString,
                         "title": section.title,
+                        "icon": section.icon as Any,
+                        "description": section.description as Any,
+                        "isExpandedByDefault": section.isExpandedByDefault,
+                        "sortOrder": section.sortOrder,
                         "items": section.items.map { item in
                             [
                                 "id": item.id.uuidString,
@@ -399,6 +408,12 @@ final class LibraryStore: LibraryStoreProtocol {
                 publicID: metadata.publicID!,
                 forkedFromID: metadata.forkedFromID
             )
+
+            // Debug log the payload structure for troubleshooting
+            if let debugData = try? JSONSerialization.data(withJSONObject: contentData, options: .prettyPrinted),
+               let debugString = String(data: debugData, encoding: .utf8) {
+                AppLogger.store.debug("Checklist publish update payload structure:\n\(debugString)")
+            }
 
             let encoder = JSONEncoder()
             encoder.dateEncodingStrategy = .iso8601

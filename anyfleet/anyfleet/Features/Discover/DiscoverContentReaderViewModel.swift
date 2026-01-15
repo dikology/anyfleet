@@ -91,6 +91,14 @@ final class DiscoverContentReaderViewModel: ErrorHandling {
 
         let checklistData = try JSONSerialization.data(withJSONObject: normalizedContentData, options: [])
         let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+
+        // Debug log the content data structure for troubleshooting
+        if let debugData = try? JSONSerialization.data(withJSONObject: normalizedContentData, options: .prettyPrinted),
+           let debugString = String(data: debugData, encoding: .utf8) {
+            AppLogger.view.debug("Discover checklist content data structure:\n\(debugString)")
+        }
+
         var checklist = try decoder.decode(Checklist.self, from: checklistData)
 
         // Override metadata with the shared content info

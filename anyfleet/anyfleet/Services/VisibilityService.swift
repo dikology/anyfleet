@@ -70,6 +70,11 @@ protocol ContentSyncServiceProtocol {
         publicID: String
     ) async throws -> SyncSummary
 
+    func enqueuePublishUpdate(
+        contentID: UUID,
+        payload: Data
+    ) async throws -> SyncSummary
+
     func syncPending() async -> SyncSummary
 }
 
