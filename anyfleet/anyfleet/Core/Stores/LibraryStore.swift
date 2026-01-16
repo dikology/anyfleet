@@ -263,7 +263,7 @@ final class LibraryStore: LibraryStoreProtocol {
         AppLogger.store.debug("Checklist JSON data created, size: \(checklistData.count) bytes")
 
         let decoder = JSONDecoder()
-        // Use default date decoding strategy (timestamps) to match how VisibilityService encodes
+        decoder.dateDecodingStrategy = .iso8601
         var checklist = try decoder.decode(Checklist.self, from: checklistData)
         AppLogger.store.debug("Checklist decoded successfully")
 
