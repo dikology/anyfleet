@@ -260,6 +260,300 @@ struct LibraryStoreTests {
         // Repository should have been called only once (first fetch)
         #expect(await repository.getFetchChecklistCallCount() == 1)
     }
+    
+    // MARK: - Forking Tests
+    
+    @Test("forkChecklist successfully decodes ISO8601 dates from API response")
+    @MainActor
+    func testForkChecklistWithISO8601Dates() async throws {
+        // Arrange - Create a real database and repository
+        let database = try AppDatabase.makeEmpty()
+        let repository = LocalRepository(database: database)
+        let mockAPIClient = MockAPIClient()
+        let syncQueue = SyncQueueService(repository: repository, apiClient: mockAPIClient)
+        let store = LibraryStore(repository: repository, syncQueue: syncQueue)
+        
+        // Create SharedContentDetail with ISO8601 formatted dates
+        // This simulates what comes from the backend API
+        let sharedContent = SharedContentDetail(
+            id: UUID(),
+            title: "Test Checklist",
+            description: "Test Description",
+            contentType: "checklist",
+            contentData: [
+                "id": UUID().uuidString,
+                "title": "Test Checklist",
+                "description": "Test Description",
+                "sections": [
+                    [
+                        "id": UUID().uuidString,
+                        "title": "Section 1",
+                        "icon": "checkmark",
+                        "description": "Section description",
+                        "items": [
+                            [
+                                "id": UUID().uuidString,
+                                "title": "Item 1",
+                                "itemDescription": "Item description",
+                                "isOptional": false,
+                                "isRequired": true,
+                                "tags": ["tag1"],
+                                "estimatedMinutes": 5,
+                                "sortOrder": 0
+                            ]
+                        ],
+                        "isExpandedByDefault": true,
+                        "sortOrder": 0
+                    ]
+                ],
+                "checklistType": "general",
+                "tags": ["test"],
+                "createdAt": "2024-01-15T10:30:00Z",  // ISO8601 format
+                "updatedAt": "2024-01-15T11:30:00Z",  // ISO8601 format
+                "syncStatus": "pending"
+            ],
+            tags: ["test"],
+            publicID: "test-checklist-123",
+            canFork: true,
+            authorUsername: "testuser",
+            viewCount: 10,
+            forkCount: 2,
+            createdAt: Date(),
+            updatedAt: Date(),
+            forkedFromID: nil,
+            originalAuthorUsername: nil,
+            originalContentPublicID: nil
+        )
+        
+        // Act - Fork the checklist
+        try await store.forkContent(from: sharedContent)
+        
+        // Assert - Verify checklist was forked successfully
+        await store.loadLibrary()
+        #expect(store.library.count == 1)
+        #expect(store.myChecklists.count == 1)
+        
+        let metadata = store.myChecklists.first!
+        #expect(metadata.title == "Test Checklist")
+        #expect(metadata.description == "Test Description")
+        #expect(metadata.tags == ["test"])
+        #expect(metadata.originalAuthorUsername == "testuser")
+        #expect(metadata.originalContentPublicID == "test-checklist-123")
+        
+        // Verify full checklist can be loaded
+        let checklist: Checklist? = try await store.fetchFullContent(metadata.id)
+        #expect(checklist != nil)
+        #expect(checklist?.sections.count == 1)
+        #expect(checklist?.sections.first?.items.count == 1)
+    }
+    
+    @Test("forkPracticeGuide successfully decodes ISO8601 dates from API response")
+    @MainActor
+    func testForkPracticeGuideWithISO8601Dates() async throws {
+        // Arrange
+        let database = try AppDatabase.makeEmpty()
+        let repository = LocalRepository(database: database)
+        let mockAPIClient = MockAPIClient()
+        let syncQueue = SyncQueueService(repository: repository, apiClient: mockAPIClient)
+        let store = LibraryStore(repository: repository, syncQueue: syncQueue)
+        
+        // Create SharedContentDetail with ISO8601 formatted dates
+        let sharedContent = SharedContentDetail(
+            id: UUID(),
+            title: "Test Guide",
+            description: "Test Guide Description",
+            contentType: "practice_guide",
+            contentData: [
+                "id": UUID().uuidString,
+                "title": "Test Guide",
+                "description": "Test Guide Description",
+                "markdown": "# Test Guide\n\nThis is a test guide.",
+                "tags": ["guide", "test"],
+                "createdAt": "2024-01-15T10:30:00Z",
+                "updatedAt": "2024-01-15T11:30:00Z",
+                "syncStatus": "pending"
+            ],
+            tags: ["guide", "test"],
+            publicID: "test-guide-123",
+            canFork: true,
+            authorUsername: "guideauthor",
+            viewCount: 5,
+            forkCount: 1,
+            createdAt: Date(),
+            updatedAt: Date(),
+            forkedFromID: nil,
+            originalAuthorUsername: nil,
+            originalContentPublicID: nil
+        )
+        
+        // Act
+        try await store.forkContent(from: sharedContent)
+        
+        // Assert
+        await store.loadLibrary()
+        #expect(store.library.count == 1)
+        #expect(store.myGuides.count == 1)
+        
+        let metadata = store.myGuides.first!
+        #expect(metadata.title == "Test Guide")
+        #expect(metadata.description == "Test Guide Description")
+        #expect(metadata.tags == ["guide", "test"])
+        #expect(metadata.originalAuthorUsername == "guideauthor")
+        #expect(metadata.originalContentPublicID == "test-guide-123")
+        
+        // Verify full guide can be loaded
+        let guide: PracticeGuide? = try await store.fetchFullContent(metadata.id)
+        #expect(guide != nil)
+        #expect(guide?.markdown == "# Test Guide\n\nThis is a test guide.")
+    }
+    
+    @Test("forkChecklist handles complex nested structures")
+    @MainActor
+    func testForkChecklistWithComplexStructure() async throws {
+        // Arrange
+        let database = try AppDatabase.makeEmpty()
+        let repository = LocalRepository(database: database)
+        let mockAPIClient = MockAPIClient()
+        let syncQueue = SyncQueueService(repository: repository, apiClient: mockAPIClient)
+        let store = LibraryStore(repository: repository, syncQueue: syncQueue)
+        
+        // Create a complex checklist with multiple sections and items
+        let sharedContent = SharedContentDetail(
+            id: UUID(),
+            title: "Complex Checklist",
+            description: "A checklist with multiple sections",
+            contentType: "checklist",
+            contentData: [
+                "id": UUID().uuidString,
+                "title": "Complex Checklist",
+                "description": "A checklist with multiple sections",
+                "sections": [
+                    [
+                        "id": UUID().uuidString,
+                        "title": "Section 1",
+                        "icon": "checkmark",
+                        "description": "First section",
+                        "items": [
+                            [
+                                "id": UUID().uuidString,
+                                "title": "Item 1.1",
+                                "itemDescription": "First item",
+                                "isOptional": false,
+                                "isRequired": true,
+                                "tags": ["important"],
+                                "estimatedMinutes": 5,
+                                "sortOrder": 0
+                            ],
+                            [
+                                "id": UUID().uuidString,
+                                "title": "Item 1.2",
+                                "itemDescription": "Second item",
+                                "isOptional": true,
+                                "isRequired": false,
+                                "tags": ["optional"],
+                                "estimatedMinutes": 10,
+                                "sortOrder": 1
+                            ]
+                        ],
+                        "isExpandedByDefault": true,
+                        "sortOrder": 0
+                    ],
+                    [
+                        "id": UUID().uuidString,
+                        "title": "Section 2",
+                        "icon": "star",
+                        "description": "Second section",
+                        "items": [
+                            [
+                                "id": UUID().uuidString,
+                                "title": "Item 2.1",
+                                "itemDescription": nil,
+                                "isOptional": false,
+                                "isRequired": false,
+                                "tags": [],
+                                "estimatedMinutes": nil,
+                                "sortOrder": 0
+                            ]
+                        ],
+                        "isExpandedByDefault": false,
+                        "sortOrder": 1
+                    ]
+                ],
+                "checklistType": "safety",
+                "tags": ["safety", "complex"],
+                "createdAt": "2024-01-15T10:30:00Z",
+                "updatedAt": "2024-01-15T11:30:00Z",
+                "syncStatus": "pending"
+            ],
+            tags: ["safety", "complex"],
+            publicID: "complex-checklist-456",
+            canFork: true,
+            authorUsername: "complexuser",
+            viewCount: 20,
+            forkCount: 5,
+            createdAt: Date(),
+            updatedAt: Date(),
+            forkedFromID: nil,
+            originalAuthorUsername: nil,
+            originalContentPublicID: nil
+        )
+        
+        // Act
+        try await store.forkContent(from: sharedContent)
+        
+        // Assert
+        await store.loadLibrary()
+        #expect(store.library.count == 1)
+        
+        let metadata = store.myChecklists.first!
+        let checklist: Checklist? = try await store.fetchFullContent(metadata.id)
+        
+        #expect(checklist != nil)
+        #expect(checklist?.sections.count == 2)
+        #expect(checklist?.sections[0].items.count == 2)
+        #expect(checklist?.sections[1].items.count == 1)
+        #expect(checklist?.checklistType == .safety)
+        #expect(checklist?.totalItems == 3)
+    }
+    
+    @Test("forkContent handles unknown content type gracefully")
+    @MainActor
+    func testForkContentWithUnknownType() async throws {
+        // Arrange
+        let database = try AppDatabase.makeEmpty()
+        let repository = LocalRepository(database: database)
+        let mockAPIClient = MockAPIClient()
+        let syncQueue = SyncQueueService(repository: repository, apiClient: mockAPIClient)
+        let store = LibraryStore(repository: repository, syncQueue: syncQueue)
+        
+        let sharedContent = SharedContentDetail(
+            id: UUID(),
+            title: "Unknown Content",
+            description: "Content of unknown type",
+            contentType: "unknown_type",
+            contentData: [:],
+            tags: [],
+            publicID: "unknown-123",
+            canFork: true,
+            authorUsername: "unknownuser",
+            viewCount: 0,
+            forkCount: 0,
+            createdAt: Date(),
+            updatedAt: Date(),
+            forkedFromID: nil,
+            originalAuthorUsername: nil,
+            originalContentPublicID: nil
+        )
+        
+        // Act & Assert
+        do {
+            try await store.forkContent(from: sharedContent)
+            #expect(Bool(false), "Should have thrown an error for unknown content type")
+        } catch {
+            // Expected error
+            #expect(error is NSError)
+        }
+    }
 }
 
 
