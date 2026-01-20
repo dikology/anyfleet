@@ -42,9 +42,20 @@ struct UserInfo: Codable {
     let username: String?
     let createdAt: String
     
+    // Phase 1 additions
+    let profileImageUrl: String?
+    let profileImageThumbnailUrl: String?
+    let bio: String?
+    let location: String?
+    let nationality: String?
+    let profileVisibility: String?
+    
     enum CodingKeys: String, CodingKey {
-        case id, email, username
+        case id, email, username, bio, location, nationality
         case createdAt = "created_at"
+        case profileImageUrl = "profile_image_url"
+        case profileImageThumbnailUrl = "profile_image_thumbnail_url"
+        case profileVisibility = "profile_visibility"
     }
 }
 
@@ -400,15 +411,31 @@ final class AuthService: AuthServiceProtocol {
 
     // MARK: - Profile Update
 
-    func updateProfile(username: String) async throws -> UserInfo {
-        AppLogger.auth.info("Updating profile with username: \(username)")
+    func updateProfile(username: String? = nil, bio: String? = nil, location: String? = nil, nationality: String? = nil, profileVisibility: String? = nil) async throws -> UserInfo {
+        AppLogger.auth.info("Updating profile")
 
         let url = URL(string: "\(baseURL)/auth/me")!
         var request = URLRequest(url: url)
-        request.httpMethod = "PUT"
+        request.httpMethod = "PATCH"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
-        let body = ["username": username]
+        var body: [String: String?] = [:]
+        if let username = username {
+            body["username"] = username
+        }
+        if let bio = bio {
+            body["bio"] = bio
+        }
+        if let location = location {
+            body["location"] = location
+        }
+        if let nationality = nationality {
+            body["nationality"] = nationality
+        }
+        if let profileVisibility = profileVisibility {
+            body["profile_visibility"] = profileVisibility
+        }
+
         request.httpBody = try JSONEncoder().encode(body)
 
         let data = try await makeAuthenticatedRequestWithRetry(request: request)
@@ -418,6 +445,36 @@ final class AuthService: AuthServiceProtocol {
         currentUser = updatedUser
 
         AppLogger.auth.info("Profile updated successfully for user: \(updatedUser.email)")
+        return updatedUser
+    }
+    
+    func uploadProfileImage(_ imageData: Data) async throws -> UserInfo {
+        AppLogger.auth.info("Uploading profile image")
+        
+        let url = URL(string: "\(baseURL)/profile/upload-image")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        
+        // Create multipart form data
+        let boundary = UUID().uuidString
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        
+        var body = Data()
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"file\"; filename=\"profile.jpg\"\r\n".data(using: .utf8)!)
+        body.append("Content-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
+        body.append(imageData)
+        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+        
+        request.httpBody = body
+        
+        let data = try await makeAuthenticatedRequestWithRetry(request: request)
+        let updatedUser = try JSONDecoder().decode(UserInfo.self, from: data)
+        
+        // Update local state
+        currentUser = updatedUser
+        
+        AppLogger.auth.info("Profile image uploaded successfully")
         return updatedUser
     }
 

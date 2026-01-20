@@ -225,3 +225,39 @@
 "charter.detail.checkInChecklist.empty.title" = "No check-in checklist yet";
 "charter.detail.checkInChecklist.empty.description" = "Create a checklist of type \"Check-In\" in your Library and it will automatically appear here for this charter.";
 
+// Common
+"common.close" = "Close";
+"common.cancel" = "Cancel";
+"common.save" = "Save";
+
+// Author Profile
+"authorProfile.title" = "Author Profile";
+"authorProfile.comingSoonTitle" = "Coming Soon";
+"authorProfile.comingSoonMessage" = "Author profiles with detailed information, content listings, and more features are coming in a future update.";
+"authorProfile.verified" = "Verified";
+"authorProfile.getInTouch" = "Get In Touch";
+
+// Profile Image
+"profile.image.upload" = "Upload Profile Photo";
+"profile.image.change" = "Change Photo";
+"profile.image.remove" = "Remove Photo";
+"profile.image.error" = "Failed to upload image. Please try again.";
+
+// Bio
+"profile.bio.title" = "Bio";
+"profile.bio.placeholder" = "Tell others about yourself, your sailing experience, and what you're passionate about...";
+"profile.bio.characterLimit" = "%d / 2000 characters";
+
+// Location
+"profile.location.title" = "Location";
+"profile.location.placeholder" = "e.g., Ireland, Mediterranean";
+
+// Nationality
+"profile.nationality.title" = "Nationality";
+"profile.nationality.placeholder" = "e.g., Irish, American";
+
+// Completion
+"profile.completion.title" = "Profile %d%% complete";
+"profile.completion.addPhoto" = "Add a profile photo";
+"profile.completion.addBio" = "Write your bio";
+"profile.completion.addLocation" = "Add your location";

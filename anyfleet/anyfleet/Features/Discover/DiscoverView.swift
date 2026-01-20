@@ -6,11 +6,11 @@ struct DiscoverView: View {
     @Environment(\.appCoordinator) private var coordinator
 
     // Modal state
-    @State private var selectedAuthorUsername: AuthorProfileItem?
+    @State private var selectedAuthor: AuthorProfileWrapper?
 
-    private struct AuthorProfileItem: Identifiable {
-        let username: String
-        var id: String { username }
+    private struct AuthorProfileWrapper: Identifiable {
+        let profile: AuthorProfile
+        var id: String { profile.username }
     }
 
     @MainActor
@@ -55,11 +55,11 @@ struct DiscoverView: View {
                 .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
-        .sheet(item: $selectedAuthorUsername) { item in
+        .sheet(item: $selectedAuthor) { item in
             AuthorProfileModal(
-                username: item.username,
+                author: item.profile,
                 onDismiss: {
-                    selectedAuthorUsername = nil
+                    selectedAuthor = nil
                 }
             )
         }
@@ -111,7 +111,20 @@ struct DiscoverView: View {
                         viewModel.onContentTapped(content)
                     },
                     onAuthorTapped: { username in
-                        selectedAuthorUsername = AuthorProfileItem(username: username)
+                        // Create a minimal author profile for the modal
+                        // TODO: Fetch full profile data from backend when Phase 2 author API is ready
+                        let authorProfile = AuthorProfile(
+                            username: username,
+                            email: "", // Not available in discover content
+                            profileImageUrl: nil,
+                            profileImageThumbnailUrl: nil,
+                            bio: nil,
+                            location: nil,
+                            nationality: nil,
+                            isVerified: false,
+                            stats: nil
+                        )
+                        selectedAuthor = AuthorProfileWrapper(profile: authorProfile)
                         viewModel.onAuthorTapped(username)
                     },
                     onForkTapped: {

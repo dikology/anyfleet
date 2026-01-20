@@ -345,6 +345,115 @@ enum L10n {
             tableName: "Localizable",
             comment: "Placeholder for display name input field"
         )
+        
+        // Profile Image
+        enum Image {
+            static let upload = NSLocalizedString(
+                "profile.image.upload",
+                tableName: "Localizable",
+                comment: "Upload profile photo button"
+            )
+            
+            static let change = NSLocalizedString(
+                "profile.image.change",
+                tableName: "Localizable",
+                comment: "Change photo button"
+            )
+            
+            static let remove = NSLocalizedString(
+                "profile.image.remove",
+                tableName: "Localizable",
+                comment: "Remove photo button"
+            )
+            
+            static let error = NSLocalizedString(
+                "profile.image.error",
+                tableName: "Localizable",
+                comment: "Image upload error message"
+            )
+        }
+        
+        // Bio
+        enum Bio {
+            static let title = NSLocalizedString(
+                "profile.bio.title",
+                tableName: "Localizable",
+                comment: "Bio section title"
+            )
+            
+            static let placeholder = NSLocalizedString(
+                "profile.bio.placeholder",
+                tableName: "Localizable",
+                comment: "Bio placeholder text"
+            )
+            
+            static func characterLimit(_ count: Int) -> String {
+                String(format: NSLocalizedString(
+                    "profile.bio.characterLimit",
+                    tableName: "Localizable",
+                    comment: "Bio character limit counter"
+                ), count)
+            }
+        }
+        
+        // Location
+        enum Location {
+            static let title = NSLocalizedString(
+                "profile.location.title",
+                tableName: "Localizable",
+                comment: "Location section title"
+            )
+            
+            static let placeholder = NSLocalizedString(
+                "profile.location.placeholder",
+                tableName: "Localizable",
+                comment: "Location placeholder text"
+            )
+        }
+        
+        // Nationality
+        enum Nationality {
+            static let title = NSLocalizedString(
+                "profile.nationality.title",
+                tableName: "Localizable",
+                comment: "Nationality section title"
+            )
+            
+            static let placeholder = NSLocalizedString(
+                "profile.nationality.placeholder",
+                tableName: "Localizable",
+                comment: "Nationality placeholder text"
+            )
+        }
+        
+        // Completion
+        enum Completion {
+            static func title(_ percentage: Int) -> String {
+                String(format: NSLocalizedString(
+                    "profile.completion.title",
+                    tableName: "Localizable",
+                    comment: "Profile completion percentage"
+                ), percentage)
+            }
+            
+            static let addPhoto = NSLocalizedString(
+                "profile.completion.addPhoto",
+                tableName: "Localizable",
+                comment: "Add profile photo prompt"
+            )
+            
+            static let addBio = NSLocalizedString(
+                "profile.completion.addBio",
+                tableName: "Localizable",
+                comment: "Add bio prompt"
+            )
+            
+            static let addLocation = NSLocalizedString(
+                "profile.completion.addLocation",
+                tableName: "Localizable",
+                comment: "Add location prompt"
+            )
+        }
     }
     
     enum Error {
@@ -1319,6 +1428,18 @@ enum L10n {
             "authorProfile.comingSoonMessage",
             tableName: "Localizable",
             comment: "Coming soon message explaining future features"
+        )
+        
+        static let verified = NSLocalizedString(
+            "authorProfile.verified",
+            tableName: "Localizable",
+            comment: "Verified badge text"
+        )
+        
+        static let getInTouch = NSLocalizedString(
+            "authorProfile.getInTouch",
+            tableName: "Localizable",
+            comment: "Get in touch button text"
         )
     }
 }

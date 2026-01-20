@@ -1,11 +1,14 @@
 import SwiftUI
 import AuthenticationServices
+import PhotosUI
 
 // MARK: - View Model
 
+@MainActor
 @Observable
 final class ProfileViewModel: ErrorHandling {
     private let authService: AuthService
+    private var imageUploadService: ImageUploadService?
 
     var currentError: AppError?
     var showErrorBanner: Bool = false
@@ -17,10 +20,18 @@ final class ProfileViewModel: ErrorHandling {
     // Profile editing
     var isEditingProfile = false
     var editedUsername = ""
+    var editedBio = ""
+    var editedLocation = ""
+    var editedNationality = ""
     var isSavingProfile = false
+    
+    // Profile image
+    var selectedPhotoItem: PhotosPickerItem?
+    var isUploadingImage = false
 
     init(authService: AuthService) {
         self.authService = authService
+        self.imageUploadService = ImageUploadService(authService: authService)
     }
     
     // @MainActor
@@ -45,9 +56,12 @@ final class ProfileViewModel: ErrorHandling {
     }
 
     @MainActor
-    func startEditingProfile(currentUsername: String?) {
+    func startEditingProfile(user: UserInfo) {
         isEditingProfile = true
-        editedUsername = currentUsername ?? ""
+        editedUsername = user.username ?? ""
+        editedBio = user.bio ?? ""
+        editedLocation = user.location ?? ""
+        editedNationality = user.nationality ?? ""
         clearError()
     }
 
@@ -55,6 +69,10 @@ final class ProfileViewModel: ErrorHandling {
     func cancelEditingProfile() {
         isEditingProfile = false
         editedUsername = ""
+        editedBio = ""
+        editedLocation = ""
+        editedNationality = ""
+        selectedPhotoItem = nil
         clearError()
     }
 
@@ -70,12 +88,69 @@ final class ProfileViewModel: ErrorHandling {
         defer { isSavingProfile = false }
 
         do {
-            _ = try await authService.updateProfile(username: editedUsername.trimmingCharacters(in: .whitespacesAndNewlines))
+            let trimmedUsername = editedUsername.trimmingCharacters(in: .whitespacesAndNewlines)
+            let trimmedBio = editedBio.trimmingCharacters(in: .whitespacesAndNewlines)
+            let trimmedLocation = editedLocation.trimmingCharacters(in: .whitespacesAndNewlines)
+            let trimmedNationality = editedNationality.trimmingCharacters(in: .whitespacesAndNewlines)
+            
+            _ = try await authService.updateProfile(
+                username: trimmedUsername,
+                bio: trimmedBio.isEmpty ? nil : trimmedBio,
+                location: trimmedLocation.isEmpty ? nil : trimmedLocation,
+                nationality: trimmedNationality.isEmpty ? nil : trimmedNationality
+            )
             isEditingProfile = false
             editedUsername = ""
+            editedBio = ""
+            editedLocation = ""
+            editedNationality = ""
         } catch {
             handleError(error)
         }
+    }
+    
+    @MainActor
+    func handlePhotoSelection() async {
+        guard let selectedPhotoItem = selectedPhotoItem,
+              let imageUploadService = imageUploadService else {
+            return
+        }
+        
+        isUploadingImage = true
+        clearError()
+        defer {
+            isUploadingImage = false
+            self.selectedPhotoItem = nil
+        }
+        
+        do {
+            _ = try await imageUploadService.processAndUploadImage(selectedPhotoItem)
+        } catch {
+            handleError(error)
+        }
+    }
+    
+    func calculateProfileCompletion(for user: UserInfo) -> Int {
+        var completedFields = 0
+        let totalFields = 5
+        
+        // Username is always filled (required)
+        completedFields += 1
+        
+        if user.profileImageUrl != nil {
+            completedFields += 1
+        }
+        if let bio = user.bio, !bio.isEmpty {
+            completedFields += 1
+        }
+        if let location = user.location, !location.isEmpty {
+            completedFields += 1
+        }
+        if let nationality = user.nationality, !nationality.isEmpty {
+            completedFields += 1
+        }
+        
+        return Int((Double(completedFields) / Double(totalFields)) * 100)
     }
     
     @MainActor
@@ -144,6 +219,7 @@ enum VerificationTier: String, Codable, Sendable {
 
 // MARK: - Main View
 
+@MainActor
 struct ProfileView: View {
     @Environment(\.appDependencies) private var dependencies
     @State private var viewModel: ProfileViewModel
@@ -226,136 +302,377 @@ struct ProfileView: View {
     @MainActor
     private func profileHeader(for user: UserInfo) -> some View {
         VStack(spacing: DesignSystem.Spacing.lg) {
-            // Avatar with verification badge
-            ZStack(alignment: .bottomTrailing) {
-                Circle()
-                    .fill(DesignSystem.Gradients.primary)
-                    .frame(width: 120, height: 120)
-                    .shadow(color: DesignSystem.Colors.shadowStrong, radius: 8, x: 0, y: 4)
-
-                Circle()
-                    .fill(DesignSystem.Colors.onPrimary.opacity(0.2))
-                    .frame(width: 100, height: 100)
-
-                Image(systemName: "person.fill")
-                    .font(.system(size: 40, weight: .medium))
-                    .foregroundStyle(DesignSystem.Gradients.primary)
-
-                // Verification badge overlay
-                if let metrics = viewModel.contributionMetrics {
-                    verificationBadge(tier: metrics.verificationTier)
-                        .frame(width: 36, height: 36)
-                        .offset(x: -8, y: -8)
-                }
-            }
-            .padding(.top, DesignSystem.Spacing.md)
-
-            // User info
-            VStack(spacing: DesignSystem.Spacing.xs) {
-                if viewModel.isEditingProfile {
-                    // Editing mode
-                    VStack(spacing: DesignSystem.Spacing.sm) {
-                        Text(L10n.Profile.displayNameTitle)
-                            .font(DesignSystem.Typography.body)
-                            .foregroundColor(DesignSystem.Colors.textSecondary)
-
-                        TextField(L10n.Profile.displayNamePlaceholder, text: $viewModel.editedUsername)
-                            .font(DesignSystem.Typography.largeTitle)
-                            .foregroundColor(DesignSystem.Colors.textPrimary)
-                            .multilineTextAlignment(.center)
-                            .padding(DesignSystem.Spacing.sm)
-                            .background(DesignSystem.Colors.surface.opacity(0.5))
-                            .cornerRadius(DesignSystem.Spacing.sm)
-                            .autocorrectionDisabled(true)
-                            .textInputAutocapitalization(.words)
-
-                        HStack(spacing: DesignSystem.Spacing.md) {
-                            Button(action: {
-                                viewModel.cancelEditingProfile()
-                            }) {
-                                Text(L10n.Common.cancel)
-                                    .font(DesignSystem.Typography.body)
-                                    .foregroundColor(DesignSystem.Colors.textSecondary)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, DesignSystem.Spacing.sm)
-                                    .background(DesignSystem.Colors.surface)
-                                    .cornerRadius(DesignSystem.Spacing.sm)
-                            }
-                            .disabled(viewModel.isSavingProfile)
-
-                            Button(action: {
-                                Task {
-                                    await viewModel.saveProfile()
-                                }
-                            }) {
-                                if viewModel.isSavingProfile {
-                                    ProgressView()
-                                        .tint(DesignSystem.Colors.onPrimary)
-                                } else {
-                                    Text(L10n.Common.save)
-                                        .font(DesignSystem.Typography.body)
-                                        .foregroundColor(DesignSystem.Colors.onPrimary)
-                                }
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, DesignSystem.Spacing.sm)
-                            .background(DesignSystem.Gradients.primary)
-                            .cornerRadius(DesignSystem.Spacing.sm)
-                            .disabled(viewModel.isSavingProfile)
+            // Hero image section
+            ZStack(alignment: .bottom) {
+                // Background image or gradient
+                if let imageUrl = user.profileImageUrl, let url = URL(string: imageUrl) {
+                    AsyncImage(url: url) { phase in
+                        switch phase {
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(height: 200)
+                                .clipped()
+                        case .failure, .empty:
+                            placeholderHeroImage()
+                        @unknown default:
+                            placeholderHeroImage()
                         }
                     }
                 } else {
-                    // Display mode
-                    HStack(spacing: DesignSystem.Spacing.sm) {
-                        VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
-                            Text(user.username ?? user.email)
-                                .font(DesignSystem.Typography.largeTitle)
-                                .foregroundColor(DesignSystem.Colors.textPrimary)
-                                .lineSpacing(1.0)
-
-                            Text(user.email)
-                                .font(DesignSystem.Typography.body)
-                                .foregroundColor(DesignSystem.Colors.textSecondary)
-                        }
-
-                        Spacer()
-
-                        Button(action: {
-                            viewModel.startEditingProfile(currentUsername: user.username)
-                        }) {
-                            Image(systemName: "pencil")
-                                .font(.system(size: 16, weight: .medium))
-                                .foregroundColor(DesignSystem.Colors.primary)
-                                .frame(width: 32, height: 32)
-                                .background(DesignSystem.Colors.surface)
+                    placeholderHeroImage()
+                }
+                
+                // Dark gradient overlay
+                LinearGradient(
+                    colors: [Color.black.opacity(0.0), Color.black.opacity(0.7)],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: 200)
+                
+                // Profile image button overlay (bottom center)
+                VStack {
+                    Spacer()
+                    
+                    PhotosPicker(selection: $viewModel.selectedPhotoItem, matching: .images) {
+                        ZStack(alignment: .bottomTrailing) {
+                            if let imageUrl = user.profileImageThumbnailUrl, let url = URL(string: imageUrl) {
+                                AsyncImage(url: url) { phase in
+                                    switch phase {
+                                    case .success(let image):
+                                        image
+                                            .resizable()
+                                            .aspectRatio(contentMode: .fill)
+                                            .frame(width: 100, height: 100)
+                                            .clipShape(Circle())
+                                    case .failure, .empty:
+                                        placeholderAvatar()
+                                    @unknown default:
+                                        placeholderAvatar()
+                                    }
+                                }
+                            } else {
+                                placeholderAvatar()
+                            }
+                            
+                            // Camera button overlay
+                            Image(systemName: "camera.fill")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(.white)
+                                .frame(width: 28, height: 28)
+                                .background(DesignSystem.Colors.primary)
                                 .clipShape(Circle())
                                 .overlay(
                                     Circle()
-                                        .stroke(DesignSystem.Colors.border, lineWidth: 1)
+                                        .stroke(Color.white, lineWidth: 2)
                                 )
+                                .offset(x: 4, y: 4)
+                            
+                            // Verification badge
+                            if let metrics = viewModel.contributionMetrics {
+                                verificationBadge(tier: metrics.verificationTier)
+                                    .frame(width: 32, height: 32)
+                                    .offset(x: -4, y: 4)
+                            }
                         }
                     }
-                    .padding(.vertical, DesignSystem.Spacing.sm)
-                    .padding(.horizontal, DesignSystem.Spacing.sm)
-                }
-
-                if let createdAt = formatDate(user.createdAt) {
-                    HStack(spacing: DesignSystem.Spacing.xs) {
-                        Image(systemName: "calendar")
-                            .font(.system(size: 12, weight: .medium))
-                        Text(L10n.Profile.memberSincePrefix + " " + createdAt)
-                            .font(DesignSystem.Typography.caption)
+                    .disabled(viewModel.isUploadingImage)
+                    .onChange(of: viewModel.selectedPhotoItem) {
+                        Task {
+                            await viewModel.handlePhotoSelection()
+                        }
                     }
-                    .foregroundColor(DesignSystem.Colors.textSecondary)
-                    .padding(.vertical, DesignSystem.Spacing.xs)
-                    .padding(.horizontal, DesignSystem.Spacing.sm)
-                    .background(DesignSystem.Colors.border.opacity(0.3))
-                    .cornerRadius(DesignSystem.Spacing.sm)
+                    .padding(.bottom, DesignSystem.Spacing.md)
+                }
+            }
+            .frame(height: 200)
+            .cornerRadius(DesignSystem.Spacing.md)
+            .shadow(color: DesignSystem.Colors.shadowStrong, radius: 8, x: 0, y: 4)
+            
+            // Profile completion badge
+            let completionPercentage = viewModel.calculateProfileCompletion(for: user)
+            if completionPercentage < 100 {
+                HStack(spacing: DesignSystem.Spacing.xs) {
+                    Image(systemName: "chart.pie.fill")
+                        .font(.system(size: 12))
+                    Text(L10n.Profile.Completion.title(completionPercentage))
+                        .font(DesignSystem.Typography.caption)
+                }
+                .foregroundColor(DesignSystem.Colors.warning)
+                .padding(.horizontal, DesignSystem.Spacing.sm)
+                .padding(.vertical, DesignSystem.Spacing.xs)
+                .background(DesignSystem.Colors.warning.opacity(0.1))
+                .cornerRadius(DesignSystem.Spacing.sm)
+            }
+
+            // User info
+            VStack(spacing: DesignSystem.Spacing.md) {
+                if viewModel.isEditingProfile {
+                    // Editing mode
+                    editingProfileForm(user: user)
+                } else {
+                    // Display mode
+                    displayProfileInfo(user: user)
                 }
             }
         }
-        .heroCardStyle()
+        .padding(DesignSystem.Spacing.md)
+        .background(DesignSystem.Colors.surface)
+        .cornerRadius(DesignSystem.Spacing.lg)
+        .overlay(
+            RoundedRectangle(cornerRadius: DesignSystem.Spacing.lg)
+                .stroke(DesignSystem.Colors.border, lineWidth: 1)
+        )
         .padding(.top, DesignSystem.Spacing.lg)
+    }
+    
+    @MainActor
+    private func placeholderHeroImage() -> some View {
+        Rectangle()
+            .fill(DesignSystem.Gradients.primary)
+            .frame(height: 200)
+    }
+    
+    @MainActor
+    private func placeholderAvatar() -> some View {
+        ZStack {
+            Circle()
+                .fill(DesignSystem.Gradients.primary)
+                .frame(width: 100, height: 100)
+            
+            Circle()
+                .fill(DesignSystem.Colors.onPrimary.opacity(0.2))
+                .frame(width: 80, height: 80)
+            
+            Image(systemName: "person.fill")
+                .font(.system(size: 32, weight: .medium))
+                .foregroundStyle(DesignSystem.Gradients.primary)
+        }
+        .frame(width: 100, height: 100)
+    }
+    
+    @MainActor
+    private func editingProfileForm(user: UserInfo) -> some View {
+        VStack(spacing: DesignSystem.Spacing.md) {
+            // Username
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
+                Text(L10n.Profile.displayNameTitle)
+                    .font(DesignSystem.Typography.caption)
+                    .foregroundColor(DesignSystem.Colors.textSecondary)
+                
+                TextField(L10n.Profile.displayNamePlaceholder, text: $viewModel.editedUsername)
+                    .font(DesignSystem.Typography.body)
+                    .foregroundColor(DesignSystem.Colors.textPrimary)
+                    .padding(DesignSystem.Spacing.sm)
+                    .background(DesignSystem.Colors.background)
+                    .cornerRadius(DesignSystem.Spacing.sm)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: DesignSystem.Spacing.sm)
+                            .stroke(DesignSystem.Colors.border, lineWidth: 1)
+                    )
+                    .autocorrectionDisabled(true)
+                    .textInputAutocapitalization(.words)
+            }
+            
+            // Bio
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
+                HStack {
+                    Text(L10n.Profile.Bio.title)
+                        .font(DesignSystem.Typography.caption)
+                        .foregroundColor(DesignSystem.Colors.textSecondary)
+                    
+                    Spacer()
+                    
+                    Text(L10n.Profile.Bio.characterLimit(viewModel.editedBio.count))
+                        .font(DesignSystem.Typography.caption)
+                        .foregroundColor(viewModel.editedBio.count > 2000 ? DesignSystem.Colors.error : DesignSystem.Colors.textSecondary)
+                }
+                
+                TextEditor(text: $viewModel.editedBio)
+                    .font(DesignSystem.Typography.body)
+                    .foregroundColor(DesignSystem.Colors.textPrimary)
+                    .frame(minHeight: 100)
+                    .padding(DesignSystem.Spacing.xs)
+                    .background(DesignSystem.Colors.background)
+                    .cornerRadius(DesignSystem.Spacing.sm)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: DesignSystem.Spacing.sm)
+                            .stroke(DesignSystem.Colors.border, lineWidth: 1)
+                    )
+            }
+            
+            // Location
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
+                Text(L10n.Profile.Location.title)
+                    .font(DesignSystem.Typography.caption)
+                    .foregroundColor(DesignSystem.Colors.textSecondary)
+                
+                TextField(L10n.Profile.Location.placeholder, text: $viewModel.editedLocation)
+                    .font(DesignSystem.Typography.body)
+                    .foregroundColor(DesignSystem.Colors.textPrimary)
+                    .padding(DesignSystem.Spacing.sm)
+                    .background(DesignSystem.Colors.background)
+                    .cornerRadius(DesignSystem.Spacing.sm)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: DesignSystem.Spacing.sm)
+                            .stroke(DesignSystem.Colors.border, lineWidth: 1)
+                    )
+            }
+            
+            // Nationality
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
+                Text(L10n.Profile.Nationality.title)
+                    .font(DesignSystem.Typography.caption)
+                    .foregroundColor(DesignSystem.Colors.textSecondary)
+                
+                TextField(L10n.Profile.Nationality.placeholder, text: $viewModel.editedNationality)
+                    .font(DesignSystem.Typography.body)
+                    .foregroundColor(DesignSystem.Colors.textPrimary)
+                    .padding(DesignSystem.Spacing.sm)
+                    .background(DesignSystem.Colors.background)
+                    .cornerRadius(DesignSystem.Spacing.sm)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: DesignSystem.Spacing.sm)
+                            .stroke(DesignSystem.Colors.border, lineWidth: 1)
+                    )
+            }
+            
+            // Action buttons
+            HStack(spacing: DesignSystem.Spacing.md) {
+                Button(action: {
+                    viewModel.cancelEditingProfile()
+                }) {
+                    Text(L10n.Common.cancel)
+                        .font(DesignSystem.Typography.body)
+                        .foregroundColor(DesignSystem.Colors.textSecondary)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, DesignSystem.Spacing.md)
+                        .background(DesignSystem.Colors.surface)
+                        .cornerRadius(DesignSystem.Spacing.md)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: DesignSystem.Spacing.md)
+                                .stroke(DesignSystem.Colors.border, lineWidth: 1)
+                        )
+                }
+                .disabled(viewModel.isSavingProfile)
+
+                Button(action: {
+                    Task {
+                        await viewModel.saveProfile()
+                    }
+                }) {
+                    if viewModel.isSavingProfile {
+                        ProgressView()
+                            .tint(DesignSystem.Colors.onPrimary)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, DesignSystem.Spacing.md)
+                    } else {
+                        Text(L10n.Common.save)
+                            .font(DesignSystem.Typography.body)
+                            .foregroundColor(DesignSystem.Colors.onPrimary)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, DesignSystem.Spacing.md)
+                    }
+                }
+                .background(DesignSystem.Gradients.primary)
+                .cornerRadius(DesignSystem.Spacing.md)
+                .disabled(viewModel.isSavingProfile || viewModel.editedBio.count > 2000)
+            }
+        }
+    }
+    
+    @MainActor
+    private func displayProfileInfo(user: UserInfo) -> some View {
+        VStack(spacing: DesignSystem.Spacing.md) {
+            // Username and email
+            HStack {
+                VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
+                    Text(user.username ?? user.email)
+                        .font(DesignSystem.Typography.title)
+                        .foregroundColor(DesignSystem.Colors.textPrimary)
+
+                    Text(user.email)
+                        .font(DesignSystem.Typography.body)
+                        .foregroundColor(DesignSystem.Colors.textSecondary)
+                }
+
+                Spacer()
+
+                Button(action: {
+                    viewModel.startEditingProfile(user: user)
+                }) {
+                    Image(systemName: "pencil")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(DesignSystem.Colors.primary)
+                        .frame(width: 36, height: 36)
+                        .background(DesignSystem.Colors.background)
+                        .clipShape(Circle())
+                        .overlay(
+                            Circle()
+                                .stroke(DesignSystem.Colors.border, lineWidth: 1)
+                        )
+                }
+            }
+            
+            // Bio
+            if let bio = user.bio, !bio.isEmpty {
+                VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
+                    Text(L10n.Profile.Bio.title)
+                        .font(DesignSystem.Typography.caption)
+                        .foregroundColor(DesignSystem.Colors.textSecondary)
+                    
+                    Text(bio)
+                        .font(DesignSystem.Typography.body)
+                        .foregroundColor(DesignSystem.Colors.textPrimary)
+                        .lineSpacing(4)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            
+            // Location and Nationality
+            HStack(spacing: DesignSystem.Spacing.md) {
+                if let location = user.location, !location.isEmpty {
+                    HStack(spacing: DesignSystem.Spacing.xs) {
+                        Image(systemName: "mappin.circle.fill")
+                            .font(.system(size: 14))
+                            .foregroundColor(DesignSystem.Colors.primary)
+                        Text(location)
+                            .font(DesignSystem.Typography.caption)
+                            .foregroundColor(DesignSystem.Colors.textSecondary)
+                    }
+                }
+                
+                if let nationality = user.nationality, !nationality.isEmpty {
+                    HStack(spacing: DesignSystem.Spacing.xs) {
+                        Image(systemName: "flag.fill")
+                            .font(.system(size: 14))
+                            .foregroundColor(DesignSystem.Colors.primary)
+                        Text(nationality)
+                            .font(DesignSystem.Typography.caption)
+                            .foregroundColor(DesignSystem.Colors.textSecondary)
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            // Member since
+            if let createdAt = formatDate(user.createdAt) {
+                HStack(spacing: DesignSystem.Spacing.xs) {
+                    Image(systemName: "calendar")
+                        .font(.system(size: 12, weight: .medium))
+                    Text(L10n.Profile.memberSincePrefix + " " + createdAt)
+                        .font(DesignSystem.Typography.caption)
+                }
+                .foregroundColor(DesignSystem.Colors.textSecondary)
+                .padding(.vertical, DesignSystem.Spacing.xs)
+                .padding(.horizontal, DesignSystem.Spacing.sm)
+                .background(DesignSystem.Colors.border.opacity(0.3))
+                .cornerRadius(DesignSystem.Spacing.sm)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
     }
     
     // MARK: - Verification Badge
@@ -763,7 +1080,13 @@ struct ProfileView: View {
         id: "user-123",
         email: "john.doe@example.com",
         username: "John Doe",
-        createdAt: "2024-01-15T10:30:00Z"
+        createdAt: "2024-01-15T10:30:00Z",
+        profileImageUrl: nil,
+        profileImageThumbnailUrl: nil,
+        bio: "Experienced sailor with 15 years on the water. Passionate about teaching newcomers the art of sailing and exploring the Mediterranean coast.",
+        location: "Cork, Ireland",
+        nationality: "Irish",
+        profileVisibility: "public"
     )
 
     let viewModel = ProfileViewModel(authService: authService)
