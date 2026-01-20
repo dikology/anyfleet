@@ -191,7 +191,13 @@ struct AppDependenciesTests {
             id: "test-user-id",
             email: "test@example.com",
             username: "testuser",
-            createdAt: "2024-01-01T00:00:00Z"
+            createdAt: "2024-01-01T00:00:00Z",
+            profileImageUrl: nil,
+            profileImageThumbnailUrl: nil,
+            bio: nil,
+            location: nil,
+            nationality: nil,
+            profileVisibility: "public"
         )
         dependencies.authService.currentUser = testUser
 

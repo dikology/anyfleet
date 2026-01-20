@@ -39,7 +39,13 @@ final class MockAuthService: AuthServiceProtocol {
                 id: "mock-user-id",
                 email: "mock@example.com",
                 username: "mockuser",
-                createdAt: ISO8601DateFormatter().string(from: Date())
+                createdAt: ISO8601DateFormatter().string(from: Date()),
+                profileImageUrl: nil,
+                profileImageThumbnailUrl: nil,
+                bio: nil,
+                location: nil,
+                nationality: nil,
+                profileVisibility: "public"
             )
         }
 

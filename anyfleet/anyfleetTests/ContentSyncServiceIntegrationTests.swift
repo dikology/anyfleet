@@ -174,7 +174,13 @@ struct ContentSyncServiceIntegrationTests {
             id: "test-user-id",
             email: "test@example.com",
             username: "testuser",
-            createdAt: "2024-12-24T10:00:00Z"
+            createdAt: "2024-12-24T10:00:00Z",
+            profileImageUrl: nil,
+            profileImageThumbnailUrl: nil,
+            bio: nil,
+            location: nil,
+            nationality: nil,
+            profileVisibility: "public"
         )
 
         let visibilityService = VisibilityService(
@@ -250,7 +256,13 @@ struct ContentSyncServiceIntegrationTests {
             id: "test-user-id",
             email: "test@example.com",
             username: "testuser",
-            createdAt: "2024-12-24T10:00:00Z"
+            createdAt: "2024-12-24T10:00:00Z",
+            profileImageUrl: nil,
+            profileImageThumbnailUrl: nil,
+            bio: nil,
+            location: nil,
+            nationality: nil,
+            profileVisibility: "public"
         )
 
         let visibilityService = VisibilityService(
@@ -358,7 +370,7 @@ struct ContentSyncServiceIntegrationTests {
     @MainActor
     func testPublishSucceedsWhenAuthenticatedAndCurrentUserLoaded() async throws {
         // Arrange
-        let (repository, apiClient, _, libraryStore, syncService) = try makeTestDependencies()
+        let (repository, _, _, libraryStore, syncService) = try makeTestDependencies()
 
         // Create a mock auth service with both authentication state set
         let mockAuthService = MockAuthService()
@@ -367,7 +379,13 @@ struct ContentSyncServiceIntegrationTests {
             id: "test-user-id",
             email: "test@example.com",
             username: "testuser",
-            createdAt: ISO8601DateFormatter().string(from: Date())
+            createdAt: ISO8601DateFormatter().string(from: Date()),
+            profileImageUrl: nil,
+            profileImageThumbnailUrl: nil,
+            bio: nil,
+            location: nil,
+            nationality: nil,
+            profileVisibility: "public"
         )
 
         let visibilityService = VisibilityService(
@@ -735,7 +753,13 @@ struct ContentSyncServiceIntegrationTests {
             id: "test-user-id",
             email: "test@example.com",
             username: "testuser",
-            createdAt: "2024-12-24T10:00:00Z"
+            createdAt: "2024-12-24T10:00:00Z",
+            profileImageUrl: nil,
+            profileImageThumbnailUrl: nil,
+            bio: nil,
+            location: nil,
+            nationality: nil,
+            profileVisibility: "public"
         )
 
         let visibilityService = VisibilityService(
@@ -819,7 +843,7 @@ struct ContentSyncServiceIntegrationTests {
 
         // Publish
         let mockAuthService = MockAuthService()
-        mockAuthService.mockCurrentUser = UserInfo(id: "user", email: "test@example.com", username: "testuser", createdAt: "2024-01-01T00:00:00Z")
+        mockAuthService.mockCurrentUser = UserInfo(id: "user", email: "test@example.com", username: "testuser", createdAt: "2024-01-01T00:00:00Z", profileImageUrl: nil, profileImageThumbnailUrl: nil, bio: nil, location: nil, nationality: nil, profileVisibility: "public")
         let visibilityService = VisibilityService(libraryStore: libraryStore, authService: mockAuthService, syncService: syncService)
         let publishSummary = try await visibilityService.publishContent(libraryModel)
         #expect(publishSummary.succeeded == 1)
@@ -869,7 +893,7 @@ struct ContentSyncServiceIntegrationTests {
 
         // Publish using VisibilityService (which uses SyncQueueService internally)
         let mockAuthService = MockAuthService()
-        mockAuthService.mockCurrentUser = UserInfo(id: "test-user-id", email: "test@example.com", username: "testuser", createdAt: "2024-12-24T10:00:00Z")
+        mockAuthService.mockCurrentUser = UserInfo(id: "test-user-id", email: "test@example.com", username: "testuser", createdAt: "2024-12-24T10:00:00Z", profileImageUrl: nil, profileImageThumbnailUrl: nil, bio: nil, location: nil, nationality: nil, profileVisibility: "public")
         let visibilityService = VisibilityService(libraryStore: libraryStore, authService: mockAuthService, syncService: syncService)
 
         let summary = try await visibilityService.publishContent(libraryModel)
@@ -907,7 +931,7 @@ struct ContentSyncServiceIntegrationTests {
 
         // Publish using VisibilityService
         let mockAuthService = MockAuthService()
-        mockAuthService.mockCurrentUser = UserInfo(id: "test-user-id", email: "test@example.com", username: "testuser", createdAt: "2024-12-24T10:00:00Z")
+        mockAuthService.mockCurrentUser = UserInfo(id: "test-user-id", email: "test@example.com", username: "testuser", createdAt: "2024-12-24T10:00:00Z", profileImageUrl: nil, profileImageThumbnailUrl: nil, bio: nil, location: nil, nationality: nil, profileVisibility: "public")
         let visibilityService = VisibilityService(libraryStore: libraryStore, authService: mockAuthService, syncService: syncService)
 
         let publishSummary = try await visibilityService.publishContent(libraryModel)
@@ -1007,7 +1031,7 @@ struct ContentSyncServiceIntegrationTests {
 
         // Publish using VisibilityService
         let mockAuthService = MockAuthService()
-        mockAuthService.mockCurrentUser = UserInfo(id: "test-user", email: "test@example.com", username: "testuser", createdAt: "2024-01-01T00:00:00Z")
+        mockAuthService.mockCurrentUser = UserInfo(id: "test-user", email: "test@example.com", username: "testuser", createdAt: "2024-01-01T00:00:00Z", profileImageUrl: nil, profileImageThumbnailUrl: nil, bio: nil, location: nil, nationality: nil, profileVisibility: "public")
         let visibilityService = VisibilityService(libraryStore: libraryStore, authService: mockAuthService, syncService: syncService)
 
         let publishSummary = try await visibilityService.publishContent(libraryModel)

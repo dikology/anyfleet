@@ -152,7 +152,7 @@ struct DiscoverAttributionTests {
         // Test that APIClient can publish content with forked_from_id
         let mockAuthService = MockAuthService()
         mockAuthService.mockIsAuthenticated = true
-        mockAuthService.mockCurrentUser = UserInfo(id: UUID().uuidString, email: "test@example.com", username: "testuser", createdAt: "2024-01-01T00:00:00Z")
+        mockAuthService.mockCurrentUser = UserInfo(id: UUID().uuidString, email: "test@example.com", username: "testuser", createdAt: "2024-01-01T00:00:00Z", profileImageUrl: nil, profileImageThumbnailUrl: nil, bio: nil, location: nil, nationality: nil, profileVisibility: "public")
 
         let apiClient = APIClient(authService: mockAuthService)
 
