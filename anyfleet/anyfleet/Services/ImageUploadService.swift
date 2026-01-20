@@ -2,7 +2,6 @@ import SwiftUI
 import PhotosUI
 import OSLog
 
-@MainActor
 @Observable
 final class ImageUploadService {
     var isUploading = false

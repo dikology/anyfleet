@@ -4,7 +4,6 @@ import PhotosUI
 
 // MARK: - View Model
 
-@MainActor
 @Observable
 final class ProfileViewModel: ErrorHandling {
     private let authService: AuthService
@@ -301,9 +300,9 @@ struct ProfileView: View {
     
     @MainActor
     private func profileHeader(for user: UserInfo) -> some View {
-        VStack(spacing: DesignSystem.Spacing.lg) {
-            // Hero image section
-            ZStack(alignment: .bottom) {
+        VStack(spacing: DesignSystem.Spacing.xl) {
+            // Hero image section - Cinematic composition
+            ZStack(alignment: .bottomLeading) {
                 // Background image or gradient
                 if let imageUrl = user.profileImageUrl, let url = URL(string: imageUrl) {
                     AsyncImage(url: url) { phase in
@@ -312,8 +311,17 @@ struct ProfileView: View {
                             image
                                 .resizable()
                                 .aspectRatio(contentMode: .fill)
-                                .frame(height: 200)
+                                .frame(height: 280)
                                 .clipped()
+                                .overlay(
+                                    // Cinematic vignette effect
+                                    RadialGradient(
+                                        gradient: Gradient(colors: [Color.clear, Color.black.opacity(0.3)]),
+                                        center: .center,
+                                        startRadius: 100,
+                                        endRadius: 400
+                                    )
+                                )
                         case .failure, .empty:
                             placeholderHeroImage()
                         @unknown default:
@@ -323,20 +331,40 @@ struct ProfileView: View {
                 } else {
                     placeholderHeroImage()
                 }
-                
-                // Dark gradient overlay
-                LinearGradient(
-                    colors: [Color.black.opacity(0.0), Color.black.opacity(0.7)],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .frame(height: 200)
-                
-                // Profile image button overlay (bottom center)
-                VStack {
+
+                // Multi-layer gradient overlay for cinematic effect
+                ZStack {
+                    // Base gradient
+                    LinearGradient(
+                        colors: [
+                            Color.black.opacity(0.1),
+                            Color.black.opacity(0.3),
+                            Color.black.opacity(0.6)
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+
+                    // Accent gradient for depth
+                    LinearGradient(
+                        colors: [
+                            DesignSystem.Colors.oceanDeep.opacity(0.2),
+                            Color.clear,
+                            DesignSystem.Colors.primary.opacity(0.1)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                }
+                .frame(height: 280)
+
+                // Content overlay
+                VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
                     Spacer()
-                    
-                    PhotosPicker(selection: $viewModel.selectedPhotoItem, matching: .images) {
+
+                    // Profile image and basic info
+                    HStack(spacing: DesignSystem.Spacing.lg) {
+                        // Profile image with camera overlay
                         ZStack(alignment: .bottomTrailing) {
                             if let imageUrl = user.profileImageThumbnailUrl, let url = URL(string: imageUrl) {
                                 AsyncImage(url: url) { phase in
@@ -345,66 +373,79 @@ struct ProfileView: View {
                                         image
                                             .resizable()
                                             .aspectRatio(contentMode: .fill)
-                                            .frame(width: 100, height: 100)
+                                            .frame(width: 80, height: 80)
                                             .clipShape(Circle())
+                                            .overlay(
+                                                Circle()
+                                                    .stroke(Color.white.opacity(0.8), lineWidth: 3)
+                                            )
                                     case .failure, .empty:
-                                        placeholderAvatar()
+                                        placeholderAvatar(size: 80)
                                     @unknown default:
-                                        placeholderAvatar()
+                                        placeholderAvatar(size: 80)
                                     }
                                 }
                             } else {
-                                placeholderAvatar()
+                                placeholderAvatar(size: 80)
                             }
-                            
-                            // Camera button overlay
-                            Image(systemName: "camera.fill")
-                                .font(.system(size: 14, weight: .medium))
-                                .foregroundColor(.white)
-                                .frame(width: 28, height: 28)
-                                .background(DesignSystem.Colors.primary)
-                                .clipShape(Circle())
-                                .overlay(
-                                    Circle()
-                                        .stroke(Color.white, lineWidth: 2)
-                                )
-                                .offset(x: 4, y: 4)
-                            
-                            // Verification badge
-                            if let metrics = viewModel.contributionMetrics {
-                                verificationBadge(tier: metrics.verificationTier)
-                                    .frame(width: 32, height: 32)
-                                    .offset(x: -4, y: 4)
+
+                            // Camera button
+                            PhotosPicker(selection: $viewModel.selectedPhotoItem, matching: .images) {
+                                Image(systemName: "camera.fill")
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundColor(.white)
+                                    .frame(width: 24, height: 24)
+                                    .background(DesignSystem.Colors.primary)
+                                    .clipShape(Circle())
+                                    .overlay(
+                                        Circle()
+                                            .stroke(Color.white, lineWidth: 1.5)
+                                    )
+                                    .shadow(color: Color.black.opacity(0.3), radius: 4, x: 0, y: 2)
+                            }
+                            .disabled(viewModel.isUploadingImage)
+                            .onChange(of: viewModel.selectedPhotoItem) {
+                                Task {
+                                    await viewModel.handlePhotoSelection()
+                                }
                             }
                         }
-                    }
-                    .disabled(viewModel.isUploadingImage)
-                    .onChange(of: viewModel.selectedPhotoItem) {
-                        Task {
-                            await viewModel.handlePhotoSelection()
+
+                        // Name and verification
+                        VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
+                            HStack(spacing: DesignSystem.Spacing.sm) {
+                                Text(user.username ?? user.email)
+                                    .font(DesignSystem.Typography.title)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.white)
+                                    .shadow(color: Color.black.opacity(0.5), radius: 4, x: 0, y: 2)
+
+                                // Verification badge
+                                if let metrics = viewModel.contributionMetrics {
+                                    verificationBadge(tier: metrics.verificationTier)
+                                        .frame(width: 28, height: 28)
+                                }
+                            }
+
+                            Text(user.email)
+                                .font(DesignSystem.Typography.caption)
+                                .foregroundColor(.white.opacity(0.8))
+                                .shadow(color: Color.black.opacity(0.3), radius: 2, x: 0, y: 1)
                         }
                     }
-                    .padding(.bottom, DesignSystem.Spacing.md)
+                    .padding(.leading, DesignSystem.Spacing.lg)
+                    .padding(.bottom, DesignSystem.Spacing.lg)
                 }
             }
-            .frame(height: 200)
-            .cornerRadius(DesignSystem.Spacing.md)
-            .shadow(color: DesignSystem.Colors.shadowStrong, radius: 8, x: 0, y: 4)
+            .frame(height: 280)
+            .clipShape(RoundedRectangle(cornerRadius: 20))
+            .shadow(color: DesignSystem.Colors.shadowStrong.opacity(0.3), radius: 16, x: 0, y: 8)
             
-            // Profile completion badge
+            // Profile completion section
             let completionPercentage = viewModel.calculateProfileCompletion(for: user)
             if completionPercentage < 100 {
-                HStack(spacing: DesignSystem.Spacing.xs) {
-                    Image(systemName: "chart.pie.fill")
-                        .font(.system(size: 12))
-                    Text(L10n.Profile.Completion.title(completionPercentage))
-                        .font(DesignSystem.Typography.caption)
-                }
-                .foregroundColor(DesignSystem.Colors.warning)
-                .padding(.horizontal, DesignSystem.Spacing.sm)
-                .padding(.vertical, DesignSystem.Spacing.xs)
-                .background(DesignSystem.Colors.warning.opacity(0.1))
-                .cornerRadius(DesignSystem.Spacing.sm)
+                profileCompletionSection(for: user, percentage: completionPercentage)
+                    .padding(.horizontal, DesignSystem.Spacing.lg)
             }
 
             // User info
@@ -436,21 +477,142 @@ struct ProfileView: View {
     }
     
     @MainActor
-    private func placeholderAvatar() -> some View {
-        ZStack {
+    private func placeholderAvatar(size: CGFloat = 100) -> some View {
+        let innerSize = size * 0.8
+        let iconSize = size * 0.32
+
+        return ZStack {
             Circle()
                 .fill(DesignSystem.Gradients.primary)
-                .frame(width: 100, height: 100)
-            
+                .frame(width: size, height: size)
+
             Circle()
                 .fill(DesignSystem.Colors.onPrimary.opacity(0.2))
-                .frame(width: 80, height: 80)
-            
+                .frame(width: innerSize, height: innerSize)
+
             Image(systemName: "person.fill")
-                .font(.system(size: 32, weight: .medium))
+                .font(.system(size: iconSize, weight: .medium))
                 .foregroundStyle(DesignSystem.Gradients.primary)
         }
-        .frame(width: 100, height: 100)
+        .frame(width: size, height: size)
+    }
+
+    @MainActor
+    private func profileCompletionSection(for user: UserInfo, percentage: Int) -> some View {
+        VStack(spacing: DesignSystem.Spacing.md) {
+            // Header
+            HStack {
+                Image(systemName: "chart.pie.fill")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(DesignSystem.Colors.primary)
+
+                Text(L10n.Profile.Completion.title(percentage))
+                    .font(DesignSystem.Typography.body)
+                    .fontWeight(.semibold)
+                    .foregroundColor(DesignSystem.Colors.textPrimary)
+
+                Spacer()
+
+                Text("\(percentage)%")
+                    .font(DesignSystem.Typography.caption)
+                    .fontWeight(.bold)
+                    .foregroundColor(DesignSystem.Colors.primary)
+                    .padding(.horizontal, DesignSystem.Spacing.sm)
+                    .padding(.vertical, DesignSystem.Spacing.xs)
+                    .background(DesignSystem.Colors.primary.opacity(0.1))
+                    .cornerRadius(DesignSystem.Spacing.sm)
+            }
+
+            // Progress bar
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(DesignSystem.Colors.border.opacity(0.3))
+                        .frame(height: 6)
+
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(
+                            LinearGradient(
+                                colors: [DesignSystem.Colors.primary, DesignSystem.Colors.primary.opacity(0.7)],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .frame(width: geometry.size.width * CGFloat(percentage) / 100, height: 6)
+                }
+            }
+            .frame(height: 6)
+
+            // Actionable completion items
+            VStack(spacing: DesignSystem.Spacing.sm) {
+                if user.profileImageUrl == nil {
+                    completionItem(
+                        icon: "camera.fill",
+                        title: L10n.Profile.Completion.addPhoto,
+                        action: {
+                            // Photo picker will be triggered via the hero section
+                        }
+                    )
+                }
+
+                if user.bio == nil || user.bio!.isEmpty {
+                    completionItem(
+                        icon: "text.bubble.fill",
+                        title: L10n.Profile.Completion.addBio,
+                        action: {
+                            viewModel.startEditingProfile(user: user)
+                        }
+                    )
+                }
+
+                if user.location == nil || user.location!.isEmpty {
+                    completionItem(
+                        icon: "mappin.circle.fill",
+                        title: L10n.Profile.Completion.addLocation,
+                        action: {
+                            viewModel.startEditingProfile(user: user)
+                        }
+                    )
+                }
+            }
+        }
+        .padding(DesignSystem.Spacing.md)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(DesignSystem.Colors.surface)
+                .shadow(color: DesignSystem.Colors.shadowStrong.opacity(0.1), radius: 8, x: 0, y: 4)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(DesignSystem.Colors.primary.opacity(0.2), lineWidth: 1)
+        )
+    }
+
+    @MainActor
+    private func completionItem(icon: String, title: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: DesignSystem.Spacing.md) {
+                Image(systemName: icon)
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(DesignSystem.Colors.primary)
+                    .frame(width: 24, height: 24)
+                    .background(DesignSystem.Colors.primary.opacity(0.1))
+                    .cornerRadius(6)
+
+                Text(title)
+                    .font(DesignSystem.Typography.body)
+                    .foregroundColor(DesignSystem.Colors.textPrimary)
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(DesignSystem.Colors.textSecondary)
+            }
+            .padding(.vertical, DesignSystem.Spacing.sm)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
     
     @MainActor
@@ -585,12 +747,13 @@ struct ProfileView: View {
     
     @MainActor
     private func displayProfileInfo(user: UserInfo) -> some View {
-        VStack(spacing: DesignSystem.Spacing.md) {
-            // Username and email
+        VStack(spacing: DesignSystem.Spacing.lg) {
+            // Header with edit button
             HStack {
                 VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
                     Text(user.username ?? user.email)
                         .font(DesignSystem.Typography.title)
+                        .fontWeight(.bold)
                         .foregroundColor(DesignSystem.Colors.textPrimary)
 
                     Text(user.email)
@@ -603,76 +766,147 @@ struct ProfileView: View {
                 Button(action: {
                     viewModel.startEditingProfile(user: user)
                 }) {
-                    Image(systemName: "pencil")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(DesignSystem.Colors.primary)
-                        .frame(width: 36, height: 36)
-                        .background(DesignSystem.Colors.background)
-                        .clipShape(Circle())
-                        .overlay(
-                            Circle()
-                                .stroke(DesignSystem.Colors.border, lineWidth: 1)
-                        )
+                    HStack(spacing: DesignSystem.Spacing.xs) {
+                        Text("Edit")
+                            .font(DesignSystem.Typography.caption)
+                            .fontWeight(.medium)
+                        Image(systemName: "pencil")
+                            .font(.system(size: 14, weight: .medium))
+                    }
+                    .foregroundColor(DesignSystem.Colors.primary)
+                    .padding(.horizontal, DesignSystem.Spacing.sm)
+                    .padding(.vertical, DesignSystem.Spacing.xs)
+                    .background(DesignSystem.Colors.primary.opacity(0.1))
+                    .cornerRadius(DesignSystem.Spacing.sm)
                 }
             }
-            
-            // Bio
+
+            // Bio Card
             if let bio = user.bio, !bio.isEmpty {
-                VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
-                    Text(L10n.Profile.Bio.title)
-                        .font(DesignSystem.Typography.caption)
-                        .foregroundColor(DesignSystem.Colors.textSecondary)
-                    
+                VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
+                    HStack(spacing: DesignSystem.Spacing.xs) {
+                        Image(systemName: "text.bubble.fill")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(DesignSystem.Colors.primary)
+                        Text(L10n.Profile.Bio.title)
+                            .font(DesignSystem.Typography.caption)
+                            .fontWeight(.semibold)
+                            .foregroundColor(DesignSystem.Colors.textPrimary)
+                    }
+
                     Text(bio)
                         .font(DesignSystem.Typography.body)
                         .foregroundColor(DesignSystem.Colors.textPrimary)
                         .lineSpacing(4)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(DesignSystem.Spacing.md)
+                .background(DesignSystem.Colors.surfaceAlt)
+                .cornerRadius(12)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(DesignSystem.Colors.border.opacity(0.5), lineWidth: 1)
+                )
             }
-            
-            // Location and Nationality
-            HStack(spacing: DesignSystem.Spacing.md) {
-                if let location = user.location, !location.isEmpty {
-                    HStack(spacing: DesignSystem.Spacing.xs) {
-                        Image(systemName: "mappin.circle.fill")
-                            .font(.system(size: 14))
-                            .foregroundColor(DesignSystem.Colors.primary)
-                        Text(location)
-                            .font(DesignSystem.Typography.caption)
-                            .foregroundColor(DesignSystem.Colors.textSecondary)
-                    }
-                }
-                
-                if let nationality = user.nationality, !nationality.isEmpty {
-                    HStack(spacing: DesignSystem.Spacing.xs) {
-                        Image(systemName: "flag.fill")
-                            .font(.system(size: 14))
-                            .foregroundColor(DesignSystem.Colors.primary)
-                        Text(nationality)
-                            .font(DesignSystem.Typography.caption)
-                            .foregroundColor(DesignSystem.Colors.textSecondary)
-                    }
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
 
-            // Member since
+            // Maritime Info Cards
+            HStack(spacing: DesignSystem.Spacing.md) {
+                // Location Card
+                if let location = user.location, !location.isEmpty {
+                    infoCard(
+                        icon: "mappin.circle.fill",
+                        title: L10n.Profile.Location.title,
+                        value: location,
+                        gradient: LinearGradient(
+                            colors: [DesignSystem.Colors.primary.opacity(0.1), DesignSystem.Colors.primary.opacity(0.05)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                }
+
+                // Nationality Card
+                if let nationality = user.nationality, !nationality.isEmpty {
+                    infoCard(
+                        icon: "flag.fill",
+                        title: L10n.Profile.Nationality.title,
+                        value: nationality,
+                        gradient: LinearGradient(
+                            colors: [DesignSystem.Colors.warning.opacity(0.1), DesignSystem.Colors.warning.opacity(0.05)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                }
+            }
+
+            // Member since badge
             if let createdAt = formatDate(user.createdAt) {
                 HStack(spacing: DesignSystem.Spacing.xs) {
-                    Image(systemName: "calendar")
-                        .font(.system(size: 12, weight: .medium))
+                    Image(systemName: "calendar.badge.clock")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(DesignSystem.Colors.info)
                     Text(L10n.Profile.memberSincePrefix + " " + createdAt)
                         .font(DesignSystem.Typography.caption)
+                        .fontWeight(.medium)
                 }
                 .foregroundColor(DesignSystem.Colors.textSecondary)
-                .padding(.vertical, DesignSystem.Spacing.xs)
-                .padding(.horizontal, DesignSystem.Spacing.sm)
-                .background(DesignSystem.Colors.border.opacity(0.3))
-                .cornerRadius(DesignSystem.Spacing.sm)
+                .padding(.vertical, DesignSystem.Spacing.sm)
+                .padding(.horizontal, DesignSystem.Spacing.md)
+                .background(
+                    RoundedRectangle(cornerRadius: DesignSystem.Spacing.md)
+                        .fill(DesignSystem.Colors.info.opacity(0.1))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: DesignSystem.Spacing.md)
+                                .stroke(DesignSystem.Colors.info.opacity(0.3), lineWidth: 1)
+                        )
+                )
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
+
+            // Maritime-themed decorative element
+            HStack(spacing: DesignSystem.Spacing.xs) {
+                ForEach(0..<3) { _ in
+                    Image(systemName: "waveform.path")
+                        .font(.system(size: 12))
+                        .foregroundColor(DesignSystem.Colors.primary.opacity(0.3))
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .center)
+            .padding(.top, DesignSystem.Spacing.sm)
         }
+        .padding(.horizontal, DesignSystem.Spacing.md)
+        .padding(.vertical, DesignSystem.Spacing.lg)
+    }
+
+    @MainActor
+    private func infoCard(icon: String, title: String, value: String, gradient: LinearGradient) -> some View {
+        VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
+            HStack(spacing: DesignSystem.Spacing.xs) {
+                Image(systemName: icon)
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(DesignSystem.Colors.primary)
+                Text(title)
+                    .font(DesignSystem.Typography.caption)
+                    .fontWeight(.semibold)
+                    .foregroundColor(DesignSystem.Colors.textSecondary)
+            }
+
+            Text(value)
+                .font(DesignSystem.Typography.body)
+                .fontWeight(.medium)
+                .foregroundColor(DesignSystem.Colors.textPrimary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(DesignSystem.Spacing.md)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(gradient)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(DesignSystem.Colors.border.opacity(0.3), lineWidth: 1)
+                )
+        )
     }
     
     // MARK: - Verification Badge

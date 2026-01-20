@@ -75,7 +75,6 @@ struct AppleSignInRequest: Encodable {
     }
 }
 
-@MainActor
 @Observable
 final class AuthService: AuthServiceProtocol {
     var isAuthenticated = false
