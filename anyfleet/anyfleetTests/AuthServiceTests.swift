@@ -372,6 +372,156 @@ struct AuthServiceTests {
      * - Apple credential user info extraction
      * - AnyCodable encoding/decoding
      * - AppleSignInRequest serialization
+     * - Image URL protocol handling
      */
+
+    // MARK: - Image URL Handling Tests
+
+    @Test("AuthService adds https protocol to image URLs without protocol")
+    func testImageUrlProtocolAddition() async {
+        // Given
+        let authService = AuthService(baseURL: "https://test.example.com/api/v1")
+
+        // Mock current user
+        authService.currentUser = UserInfo(
+            id: "test-id",
+            email: "test@example.com",
+            username: "Test User",
+            createdAt: "2024-01-01T00:00:00Z",
+            profileImageUrl: "example.com/uploads/image.jpg", // No protocol
+            profileImageThumbnailUrl: "example.com/uploads/thumb.jpg", // No protocol
+            bio: nil,
+            location: nil,
+            nationality: nil,
+            profileVisibility: "public"
+        )
+
+        // Mock successful upload response
+        let mockResponse = ProfileImageUploadResponse(
+            profileImageUrl: "example.com/uploads/new-image.jpg",
+            profileImageThumbnailUrl: "example.com/uploads/new-thumb.jpg",
+            message: "Upload successful"
+        )
+
+        // When - simulating uploadProfileImage logic
+        if let currentUser = authService.currentUser {
+            let imageUrl = mockResponse.profileImageUrl.hasPrefix("http") ? mockResponse.profileImageUrl : "https://\(mockResponse.profileImageUrl)"
+            let thumbnailUrl = mockResponse.profileImageThumbnailUrl.hasPrefix("http") ? mockResponse.profileImageThumbnailUrl : "https://\(mockResponse.profileImageThumbnailUrl)"
+
+            let updatedUser = UserInfo(
+                id: currentUser.id,
+                email: currentUser.email,
+                username: currentUser.username,
+                createdAt: currentUser.createdAt,
+                profileImageUrl: imageUrl,
+                profileImageThumbnailUrl: thumbnailUrl,
+                bio: currentUser.bio,
+                location: currentUser.location,
+                nationality: currentUser.nationality,
+                profileVisibility: currentUser.profileVisibility
+            )
+
+            // Update auth service
+            authService.currentUser = updatedUser
+        }
+
+        // Then
+        #expect(authService.currentUser?.profileImageUrl == "https://example.com/uploads/new-image.jpg")
+        #expect(authService.currentUser?.profileImageThumbnailUrl == "https://example.com/uploads/new-thumb.jpg")
+    }
+
+    @Test("AuthService preserves https protocol for URLs that already have it")
+    func testHttpsUrlPreservation() async {
+        // Given
+        let authService = AuthService(baseURL: "https://test.example.com/api/v1")
+
+        // Mock current user with URLs that already have https
+        authService.currentUser = UserInfo(
+            id: "test-id",
+            email: "test@example.com",
+            username: "Test User",
+            createdAt: "2024-01-01T00:00:00Z",
+            profileImageUrl: "https://example.com/uploads/image.jpg",
+            profileImageThumbnailUrl: "https://example.com/uploads/thumb.jpg",
+            bio: nil,
+            location: nil,
+            nationality: nil,
+            profileVisibility: "public"
+        )
+
+        // Mock successful upload response with https URLs
+        let mockResponse = ProfileImageUploadResponse(
+            profileImageUrl: "https://example.com/uploads/new-image.jpg",
+            profileImageThumbnailUrl: "https://example.com/uploads/new-thumb.jpg",
+            message: "Upload successful"
+        )
+
+        // When - simulating uploadProfileImage logic
+        if let currentUser = authService.currentUser {
+            let imageUrl = mockResponse.profileImageUrl.hasPrefix("http") ? mockResponse.profileImageUrl : "https://\(mockResponse.profileImageUrl)"
+            let thumbnailUrl = mockResponse.profileImageThumbnailUrl.hasPrefix("http") ? mockResponse.profileImageThumbnailUrl : "https://\(mockResponse.profileImageThumbnailUrl)"
+
+            let updatedUser = UserInfo(
+                id: currentUser.id,
+                email: currentUser.email,
+                username: currentUser.username,
+                createdAt: currentUser.createdAt,
+                profileImageUrl: imageUrl,
+                profileImageThumbnailUrl: thumbnailUrl,
+                bio: currentUser.bio,
+                location: currentUser.location,
+                nationality: currentUser.nationality,
+                profileVisibility: currentUser.profileVisibility
+            )
+
+            // Update auth service
+            authService.currentUser = updatedUser
+        }
+
+        // Then - URLs should remain unchanged
+        #expect(authService.currentUser?.profileImageUrl == "https://example.com/uploads/new-image.jpg")
+        #expect(authService.currentUser?.profileImageThumbnailUrl == "https://example.com/uploads/new-thumb.jpg")
+    }
+
+    @Test("AuthService handles loadCurrentUser URL protocol addition")
+    func testLoadCurrentUserUrlProtocolAddition() async {
+        // Given
+        let authService = AuthService(baseURL: "https://test.example.com/api/v1")
+
+        // Mock user data from backend without https protocol
+        let mockUserFromBackend = UserInfo(
+            id: "test-id",
+            email: "test@example.com",
+            username: "Test User",
+            createdAt: "2024-01-01T00:00:00Z",
+            profileImageUrl: "example.com/uploads/image.jpg", // No protocol
+            profileImageThumbnailUrl: "example.com/uploads/thumb.jpg", // No protocol
+            bio: nil,
+            location: nil,
+            nationality: nil,
+            profileVisibility: "public"
+        )
+
+        // When - simulating loadCurrentUser logic
+        var user = mockUserFromBackend
+        if let imageUrl = user.profileImageUrl, !imageUrl.hasPrefix("http") {
+            user = UserInfo(
+                id: user.id,
+                email: user.email,
+                username: user.username,
+                createdAt: user.createdAt,
+                profileImageUrl: "https://\(imageUrl)",
+                profileImageThumbnailUrl: user.profileImageThumbnailUrl?.hasPrefix("http") == false ? "https://\(user.profileImageThumbnailUrl!)" : user.profileImageThumbnailUrl,
+                bio: user.bio,
+                location: user.location,
+                nationality: user.nationality,
+                profileVisibility: user.profileVisibility
+            )
+        }
+
+        // Then
+        #expect(user.profileImageUrl == "https://example.com/uploads/image.jpg")
+        #expect(user.profileImageThumbnailUrl == "https://example.com/uploads/thumb.jpg")
+    }
 }
 

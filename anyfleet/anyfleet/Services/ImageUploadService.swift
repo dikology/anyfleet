@@ -8,9 +8,9 @@ final class ImageUploadService {
     var uploadProgress: Double = 0.0
     var uploadError: AppError?
     
-    private let authService: AuthService
-    
-    init(authService: AuthService) {
+    private let authService: AuthServiceProtocol
+
+    init(authService: AuthServiceProtocol) {
         self.authService = authService
     }
     

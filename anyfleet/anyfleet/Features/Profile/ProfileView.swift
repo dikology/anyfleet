@@ -6,8 +6,9 @@ import PhotosUI
 
 @Observable
 final class ProfileViewModel: ErrorHandling {
-    private let authService: AuthService
+    private let authService: AuthServiceProtocol
     private var imageUploadService: ImageUploadService?
+    let authObserver: AuthStateObserverProtocol
 
     var currentError: AppError?
     var showErrorBanner: Bool = false
@@ -23,13 +24,23 @@ final class ProfileViewModel: ErrorHandling {
     var editedLocation = ""
     var editedNationality = ""
     var isSavingProfile = false
-    
+
     // Profile image
     var selectedPhotoItem: PhotosPickerItem?
     var isUploadingImage = false
 
-    init(authService: AuthService) {
+    // Auth state (exposed through viewModel for proper observation)
+    var isSignedIn: Bool {
+        authObserver.isSignedIn
+    }
+
+    var currentUser: UserInfo? {
+        authObserver.currentUser
+    }
+
+    init(authService: AuthServiceProtocol, authObserver: AuthStateObserverProtocol? = nil) {
         self.authService = authService
+        self.authObserver = authObserver ?? AuthStateObserver(authService: authService)
         self.imageUploadService = ImageUploadService(authService: authService)
     }
     
@@ -83,7 +94,8 @@ final class ProfileViewModel: ErrorHandling {
                 username: trimmedUsername,
                 bio: trimmedBio.isEmpty ? nil : trimmedBio,
                 location: trimmedLocation.isEmpty ? nil : trimmedLocation,
-                nationality: trimmedNationality.isEmpty ? nil : trimmedNationality
+                nationality: trimmedNationality.isEmpty ? nil : trimmedNationality,
+                profileVisibility: nil
             )
             isEditingProfile = false
             editedUsername = ""
@@ -173,15 +185,15 @@ struct ProfileView: View {
     @Environment(\.appDependencies) private var dependencies
     @State private var viewModel: ProfileViewModel
 
-    // Use the AuthStateObserver for reactive authentication state
-    @State private var authObserver: AuthStateObserverProtocol?
-
     @MainActor
-    init(viewModel: ProfileViewModel? = nil, authObserver: AuthStateObserverProtocol? = nil) {
-        // Initialize with provided viewModel or create a placeholder
-        let initialViewModel = viewModel ?? ProfileViewModel(authService: AuthService())
-        _viewModel = State(initialValue: initialViewModel)
-        _authObserver = State(initialValue: authObserver)
+    init(viewModel: ProfileViewModel? = nil) {
+        if let viewModel = viewModel {
+            _viewModel = State(initialValue: viewModel)
+        } else {
+            // Create a placeholder for previews and testing
+            let deps = AppDependencies()
+            _viewModel = State(initialValue: ProfileViewModel(authService: deps.authService, authObserver: deps.authStateObserver))
+        }
     }
     
     var body: some View {
@@ -190,20 +202,15 @@ struct ProfileView: View {
                 DesignSystem.Colors.background
                     .ignoresSafeArea()
 
-                if let authObserver = authObserver, authObserver.isSignedIn {
-                    authenticatedContent(viewModel: viewModel, authObserver: authObserver)
+                if viewModel.isSignedIn {
+                    authenticatedContent(viewModel: viewModel)
                 } else {
                     unauthenticatedContent(viewModel: viewModel)
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
             .task {
-                // Initialize authObserver and viewModel with environment dependencies (if not provided)
-                if authObserver == nil {
-                    authObserver = dependencies.authStateObserver
-                }
-                // Note: viewModel is already initialized with the correct authService in init()
-                if let authObserver = authObserver, authObserver.isSignedIn {
+                if viewModel.isSignedIn {
                     // TODO: Load reputation metrics when Phase 2 backend is ready
                     // await loadReputationMetrics()
                 }
@@ -221,10 +228,10 @@ struct ProfileView: View {
     // MARK: - Authenticated Content
 
     @MainActor
-    private func authenticatedContent(viewModel: ProfileViewModel, authObserver: AuthStateObserverProtocol) -> some View {
+    private func authenticatedContent(viewModel: ProfileViewModel) -> some View {
         ScrollView {
             VStack(spacing: DesignSystem.Spacing.xl) {
-                if let user = authObserver.currentUser {
+                if let user = viewModel.currentUser {
                     DesignSystem.Profile.Hero(
                         user: user,
                         verificationTier: viewModel.contributionMetrics?.verificationTier,
@@ -619,7 +626,8 @@ struct ProfileView: View {
 #Preview("Unauthenticated") { @MainActor in
     let authService = AuthService()
     let authObserver = AuthStateObserver(authService: authService)
-    return ProfileView(authObserver: authObserver)
+    let viewModel = ProfileViewModel(authService: authService, authObserver: authObserver)
+    return ProfileView(viewModel: viewModel)
 }
 
 #Preview("Authenticated") { @MainActor in
@@ -639,7 +647,7 @@ struct ProfileView: View {
     )
 
     let authObserver = AuthStateObserver(authService: authService)
-    let viewModel = ProfileViewModel(authService: authService)
+    let viewModel = ProfileViewModel(authService: authService, authObserver: authObserver)
     viewModel.contributionMetrics = ContributionMetrics(
         totalContributions: 42,
         totalForks: 15,
@@ -650,5 +658,5 @@ struct ProfileView: View {
         importedCount: 2
     )
 
-    return ProfileView(viewModel: viewModel, authObserver: authObserver)
+    return ProfileView(viewModel: viewModel)
 }

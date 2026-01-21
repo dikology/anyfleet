@@ -85,7 +85,7 @@ struct AppView: View {
 
                 // Profile Tab
                 NavigationStack(path: Binding(get: { coordinator.profilePath }, set: { coordinator.profilePath = $0 })) {
-                ProfileView()
+                ProfileView(viewModel: ProfileViewModel(authService: dependencies.authService, authObserver: dependencies.authStateObserver))
                     .navigationDestination(for: AppRoute.self) { route in
                         coordinator.destination(for: route)
                     }
