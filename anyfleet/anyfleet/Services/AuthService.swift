@@ -75,6 +75,18 @@ struct AppleSignInRequest: Encodable {
     }
 }
 
+struct ProfileImageUploadResponse: Codable {
+    let profileImageUrl: String
+    let profileImageThumbnailUrl: String
+    let message: String
+
+    enum CodingKeys: String, CodingKey {
+        case profileImageUrl = "profile_image_url"
+        case profileImageThumbnailUrl = "profile_image_thumbnail_url"
+        case message
+    }
+}
+
 @Observable
 final class AuthService: AuthServiceProtocol {
     var isAuthenticated = false
@@ -448,32 +460,62 @@ final class AuthService: AuthServiceProtocol {
     }
     
     func uploadProfileImage(_ imageData: Data) async throws -> UserInfo {
-        AppLogger.auth.info("Uploading profile image")
-        
+        AppLogger.auth.info("Uploading profile image (\(imageData.count) bytes)")
+
         let url = URL(string: "\(baseURL)/profile/upload-image")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
-        
+
         // Create multipart form data
         let boundary = UUID().uuidString
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-        
+
         var body = Data()
+        // Try different field names that backend might expect
         body.append("--\(boundary)\r\n".data(using: .utf8)!)
         body.append("Content-Disposition: form-data; name=\"file\"; filename=\"profile.jpg\"\r\n".data(using: .utf8)!)
         body.append("Content-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
         body.append(imageData)
         body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
-        
+
         request.httpBody = body
-        
+
+        AppLogger.auth.debug("Sending multipart request with boundary: \(boundary)")
+        AppLogger.auth.debug("Request body size: \(body.count) bytes")
+
         let data = try await makeAuthenticatedRequestWithRetry(request: request)
-        let updatedUser = try JSONDecoder().decode(UserInfo.self, from: data)
-        
-        // Update local state
-        currentUser = updatedUser
-        
+
+        // Log response for debugging
+        if let responseString = String(data: data, encoding: .utf8) {
+            AppLogger.auth.debug("Upload response: \(responseString)")
+        }
+
+        let uploadResponse = try JSONDecoder().decode(ProfileImageUploadResponse.self, from: data)
+
+        // Update current user with new image URLs
+        if let currentUser = currentUser {
+            let updatedUser = UserInfo(
+                id: currentUser.id,
+                email: currentUser.email,
+                username: currentUser.username,
+                createdAt: currentUser.createdAt,
+                profileImageUrl: uploadResponse.profileImageUrl,
+                profileImageThumbnailUrl: uploadResponse.profileImageThumbnailUrl,
+                bio: currentUser.bio,
+                location: currentUser.location,
+                nationality: currentUser.nationality,
+                profileVisibility: currentUser.profileVisibility
+            )
+            self.currentUser = updatedUser
+        }
+
         AppLogger.auth.info("Profile image uploaded successfully")
+
+        // Return the updated current user
+        guard let updatedUser = currentUser else {
+            throw AuthError.invalidResponse
+        }
+
         return updatedUser
     }
 

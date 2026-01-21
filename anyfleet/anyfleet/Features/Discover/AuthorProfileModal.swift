@@ -12,7 +12,7 @@ struct AuthorProfileModal: View {
         NavigationStack {
             ZStack {
                 // Full-screen backdrop image or gradient (Profile Card style)
-                if let imageUrl = author.profileImageUrl, let url = URL(string: imageUrl) {
+                if let url = createProfileImageURL(author.profileImageUrl) {
                     AsyncImage(url: url) { phase in
                         switch phase {
                         case .success(let image):
@@ -60,7 +60,7 @@ struct AuthorProfileModal: View {
                     VStack(spacing: DesignSystem.Spacing.lg) {
                         // Profile image with verification overlay
                         ZStack(alignment: .bottomTrailing) {
-                            if let thumbnailUrl = author.profileImageThumbnailUrl, let url = URL(string: thumbnailUrl) {
+                            if let url = createProfileImageURL(author.profileImageThumbnailUrl) {
                                 AsyncImage(url: url) { phase in
                                     switch phase {
                                     case .success(let image):
@@ -299,6 +299,21 @@ struct AuthorProfileModal: View {
                 .stroke(Color.white, lineWidth: 3)
                 .shadow(color: Color.black.opacity(0.3), radius: 4, x: 0, y: 2)
         )
+    }
+
+    // Helper function to create proper URLs from backend responses
+    private func createProfileImageURL(_ urlString: String?) -> URL? {
+        guard let urlString = urlString else { return nil }
+
+        // If URL already has protocol, use as-is
+        if urlString.hasPrefix("http://") || urlString.hasPrefix("https://") {
+            return URL(string: urlString)
+        }
+
+        // Otherwise, assume it's a relative path and add the base URL
+        let baseURL = "https://elegant-empathy-production-583b.up.railway.app"
+        let fullURLString = baseURL + (urlString.hasPrefix("/") ? "" : "/") + urlString
+        return URL(string: fullURLString)
     }
 }
 

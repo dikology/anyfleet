@@ -112,19 +112,24 @@ final class ProfileViewModel: ErrorHandling {
     func handlePhotoSelection() async {
         guard let selectedPhotoItem = selectedPhotoItem,
               let imageUploadService = imageUploadService else {
+            AppLogger.services.warning("No photo item or image upload service available")
             return
         }
-        
+
+        AppLogger.services.info("Starting photo upload process")
         isUploadingImage = true
         clearError()
         defer {
             isUploadingImage = false
             self.selectedPhotoItem = nil
+            AppLogger.services.debug("Photo upload process completed")
         }
-        
+
         do {
             _ = try await imageUploadService.processAndUploadImage(selectedPhotoItem)
+            AppLogger.services.info("Photo uploaded successfully")
         } catch {
+            AppLogger.services.error("Photo upload failed", error: error)
             handleError(error)
         }
     }
@@ -304,7 +309,7 @@ struct ProfileView: View {
             // Hero image section - Cinematic composition
             ZStack(alignment: .bottomLeading) {
                 // Background image or gradient
-                if let imageUrl = user.profileImageUrl, let url = URL(string: imageUrl) {
+                if let url = createProfileImageURL(user.profileImageUrl) {
                     AsyncImage(url: url) { phase in
                         switch phase {
                         case .success(let image):
@@ -366,7 +371,7 @@ struct ProfileView: View {
                     HStack(spacing: DesignSystem.Spacing.lg) {
                         // Profile image with camera overlay
                         ZStack(alignment: .bottomTrailing) {
-                            if let imageUrl = user.profileImageThumbnailUrl, let url = URL(string: imageUrl) {
+                            if let url = createProfileImageURL(user.profileImageThumbnailUrl) {
                                 AsyncImage(url: url) { phase in
                                     switch phase {
                                     case .success(let image):
@@ -405,6 +410,7 @@ struct ProfileView: View {
                             }
                             .disabled(viewModel.isUploadingImage)
                             .onChange(of: viewModel.selectedPhotoItem) {
+                                guard viewModel.selectedPhotoItem != nil else { return }
                                 Task {
                                     await viewModel.handlePhotoSelection()
                                 }
@@ -473,7 +479,22 @@ struct ProfileView: View {
     private func placeholderHeroImage() -> some View {
         Rectangle()
             .fill(DesignSystem.Gradients.primary)
-            .frame(height: 200)
+            .frame(height: 280)
+    }
+
+    // Helper function to create proper URLs from backend responses
+    private func createProfileImageURL(_ urlString: String?) -> URL? {
+        guard let urlString = urlString else { return nil }
+
+        // If URL already has protocol, use as-is
+        if urlString.hasPrefix("http://") || urlString.hasPrefix("https://") {
+            return URL(string: urlString)
+        }
+
+        // Otherwise, assume it's a relative path and add the base URL
+        let baseURL = "https://elegant-empathy-production-583b.up.railway.app"
+        let fullURLString = baseURL + (urlString.hasPrefix("/") ? "" : "/") + urlString
+        return URL(string: fullURLString)
     }
     
     @MainActor

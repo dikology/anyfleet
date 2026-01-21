@@ -35,11 +35,20 @@ final class ImageUploadService {
         
         // Load image data
         guard let imageData = try await loadImageData(from: selectedItem) else {
-            AppLogger.services.error("Failed to load image data")
+            AppLogger.services.error("Failed to load image data from PhotosPickerItem")
             let error = AppError.validationFailed(field: "image", reason: "Failed to load image data")
             uploadError = error
             throw error
         }
+
+        guard !imageData.isEmpty else {
+            AppLogger.services.error("Image data is empty")
+            let error = AppError.validationFailed(field: "image", reason: "Image data is empty")
+            uploadError = error
+            throw error
+        }
+
+        AppLogger.services.debug("Loaded \(imageData.count) bytes of image data")
         
         uploadProgress = 0.3
         
@@ -70,10 +79,27 @@ final class ImageUploadService {
     // MARK: - Private Helpers
     
     private func loadImageData(from item: PhotosPickerItem) async throws -> Data? {
-        guard let data = try await item.loadTransferable(type: Data.self) else {
+        AppLogger.services.debug("Loading image data from PhotosPickerItem")
+
+        do {
+            // Load as Data directly - this is the recommended approach for PhotosPicker
+            let data = try await item.loadTransferable(type: Data.self)
+
+            if let data = data {
+                AppLogger.services.debug("Successfully loaded \(data.count) bytes of image data")
+                guard !data.isEmpty else {
+                    AppLogger.services.warning("Loaded image data is empty")
+                    return nil
+                }
+                return data
+            } else {
+                AppLogger.services.warning("PhotosPickerItem returned nil data")
+                return nil
+            }
+        } catch {
+            AppLogger.services.error("Failed to load transferable data from PhotosPickerItem", error: error)
             return nil
         }
-        return data
     }
     
     private func compressImage(_ imageData: Data) -> Data? {
