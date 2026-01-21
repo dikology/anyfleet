@@ -232,10 +232,11 @@ struct ProfileView: View {
     @State private var authObserver: AuthStateObserverProtocol?
 
     @MainActor
-    init(viewModel: ProfileViewModel? = nil) {
+    init(viewModel: ProfileViewModel? = nil, authObserver: AuthStateObserverProtocol? = nil) {
         // Initialize with provided viewModel or create a placeholder
         let initialViewModel = viewModel ?? ProfileViewModel(authService: AuthService())
         _viewModel = State(initialValue: initialViewModel)
+        _authObserver = State(initialValue: authObserver)
     }
     
     var body: some View {
@@ -252,9 +253,11 @@ struct ProfileView: View {
             }
             .navigationBarTitleDisplayMode(.inline)
             .task {
-                // Initialize authObserver and viewModel with environment dependencies
-                authObserver = dependencies.authStateObserver
-                viewModel = ProfileViewModel(authService: dependencies.authService)
+                // Initialize authObserver and viewModel with environment dependencies (if not provided)
+                if authObserver == nil {
+                    authObserver = dependencies.authStateObserver
+                }
+                // Note: viewModel is already initialized with the correct authService in init()
                 if let authObserver = authObserver, authObserver.isSignedIn {
                     // TODO: Load reputation metrics when Phase 2 backend is ready
                     // await loadReputationMetrics()
@@ -1342,8 +1345,9 @@ struct ProfileView: View {
 // MARK: - Preview
 
 #Preview("Unauthenticated") { @MainActor in
-    ProfileView()
-        .environment(AuthService())
+    let authService = AuthService()
+    let authObserver = AuthStateObserver(authService: authService)
+    return ProfileView(authObserver: authObserver)
 }
 
 #Preview("Authenticated") { @MainActor in
@@ -1362,6 +1366,7 @@ struct ProfileView: View {
         profileVisibility: "public"
     )
 
+    let authObserver = AuthStateObserver(authService: authService)
     let viewModel = ProfileViewModel(authService: authService)
     viewModel.contributionMetrics = ContributionMetrics(
         totalContributions: 42,
@@ -1373,5 +1378,5 @@ struct ProfileView: View {
         importedCount: 2
     )
 
-    return ProfileView(viewModel: viewModel)
+    return ProfileView(viewModel: viewModel, authObserver: authObserver)
 }
