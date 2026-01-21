@@ -321,11 +321,57 @@ struct UserInfo: Codable {
 
 ---
 
+## Phase 1 Current Limitations
+
+### Author Profile Modal
+**Issue:** AuthorProfileModal cannot display profile images or detailed information for other users because there are no backend endpoints to fetch public user profiles.
+
+**Current State:**
+- ✅ Modal displays with basic username
+- ❌ No profile images (backend doesn't provide public profile access)
+- ❌ No bio, location, or other profile details
+- ❌ No verification status or reputation metrics
+
+**Impact:** Users can discover content authors but cannot view their profiles, reducing engagement and trust-building.
+
+---
+
 ## Phase 2: Professional Credentials & Experience
 **Timeline:** Week 3-4  
 **Goal:** Add maritime-specific credentials, skills, and experience tracking
 
 ### Backend Changes
+
+#### 2.0 Public Profile API
+**New endpoint:** `GET /api/v1/users/{username}`
+
+**Purpose:** Allow users to view other users' public profiles, enabling the AuthorProfileModal to display profile images, bio, location, and verification status.
+
+**Response:**
+```json
+{
+  "id": "uuid",
+  "username": "sailor123",
+  "profile_image_url": "https://...",
+  "profile_image_thumbnail_url": "https://...",
+  "bio": "Experienced sailor...",
+  "location": "Mediterranean",
+  "nationality": "Italian",
+  "is_verified": true,
+  "verification_tier": "expert",
+  "created_at": "2024-01-01T00:00:00Z",
+  "stats": {
+    "total_contributions": 42,
+    "average_rating": 4.8,
+    "total_forks": 15
+  }
+}
+```
+
+**Privacy Considerations:**
+- Only return public profile data
+- Respect user's profile_visibility setting
+- Return 404 for private profiles
 
 #### 2.1 New Tables
 
@@ -451,6 +497,57 @@ class FullProfileResponse(BaseModel):
 ```
 
 ### iOS App Changes
+
+#### 2.2 Public Profile API Integration
+**File:** `anyfleet/Services/AuthService.swift`
+
+**Add method:**
+```swift
+func fetchPublicProfile(username: String) async throws -> PublicUserProfile {
+    let url = URL(string: "\(baseURL)/users/\(username)")!
+    let data = try await makeAuthenticatedRequest(to: url.absoluteString)
+    return try JSONDecoder().decode(PublicUserProfile.self, from: data)
+}
+```
+
+**New Model:** `anyfleet/Core/Models/PublicUserProfile.swift`
+```swift
+struct PublicUserProfile: Codable {
+    let id: String
+    let username: String
+    let profileImageUrl: String?
+    let profileImageThumbnailUrl: String?
+    let bio: String?
+    let location: String?
+    let nationality: String?
+    let isVerified: Bool
+    let verificationTier: String?
+    let createdAt: String
+    let stats: PublicUserStats?
+}
+
+struct PublicUserStats: Codable {
+    let totalContributions: Int
+    let averageRating: Double
+    let totalForks: Int
+}
+```
+
+#### 2.3 Enhanced AuthorProfileModal
+**File:** `anyfleet/Features/Discover/AuthorProfileModal.swift`
+
+**Update initialization to fetch real profile data:**
+```swift
+// Replace hardcoded AuthorProfile with API call
+@State private var authorProfile: PublicUserProfile?
+
+init(username: String) {
+    self.username = username
+}
+
+// In task modifier:
+authorProfile = try await authService.fetchPublicProfile(username: username)
+```
 
 #### 2.4 New Models
 **File:** `anyfleet/Core/Models/ProfileModels.swift` (new file)
