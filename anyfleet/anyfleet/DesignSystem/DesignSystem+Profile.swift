@@ -14,62 +14,74 @@ extension DesignSystem {
       let onEditTap: () -> Void
       let onPhotoSelect: (PhotosPickerItem) -> Void
       let isUploadingImage: Bool
-      
+
+      private var heroHeight: CGFloat {
+        user.profileImageUrl != nil ? 380 : 240
+      }
+
       var body: some View {
         VStack(spacing: 0) {
           // Hero background section
           ZStack(alignment: .bottomLeading) {
             // Background image with gradient overlay
             heroBackgroundView
-            
+
             // Content overlay
-            VStack(alignment: .leading, spacing: Spacing.lg) {
+            VStack(alignment: .leading, spacing: 0) {
               Spacer()
-                
-              // Profile image + camera button
-              profileImageStackView
-              
-              HStack(spacing: Spacing.lg) {
-                
-                
-                // Name, email, verification
-                VStack(alignment: .leading, spacing: Spacing.xs) {
-                  Text(user.username ?? user.email)
-                    .font(Typography.title)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-                    .shadow(color: Color.black.opacity(0.5), radius: 4, x: 0, y: 2)
-                  
-                  Text(user.email)
-                    .font(Typography.caption)
-                    .foregroundColor(.white.opacity(0.8))
-                    .shadow(color: Color.black.opacity(0.3), radius: 2, x: 0, y: 1)
-                }
-                
-                if let tier = verificationTier {
-                    verificationBadgeView(tier)
-                    .frame(width: 28, height: 28)
-                }
-                
+                .frame(height: Spacing.xl)
+
+              // Profile image + camera button (centered horizontally)
+              HStack {
                 Spacer()
-                
-                // Edit button
-                Button(action: onEditTap) {
-                  Image(systemName: "pencil")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(.white)
-                    .frame(width: 32, height: 32)
-                    .background(Colors.primary)
-                    .clipShape(Circle())
-                }
-                .padding(5)
+                profileImageStackView
+                Spacer()
               }
-              .padding(.leading, Spacing.lg)
+
+              Spacer()
+                .frame(minHeight: Spacing.lg, maxHeight: Spacing.xxl)
+
+              // User info section at bottom
+              VStack(alignment: .leading, spacing: Spacing.sm) {
+                HStack(spacing: Spacing.lg) {
+                  // Name, email, verification
+                  VStack(alignment: .leading, spacing: Spacing.xs) {
+                    Text(user.username ?? user.email)
+                      .font(Typography.title)
+                      .fontWeight(.bold)
+                      .foregroundColor(.white)
+                      .shadow(color: Color.black.opacity(0.5), radius: 4, x: 0, y: 2)
+
+                    Text(user.email)
+                      .font(Typography.caption)
+                      .foregroundColor(.white.opacity(0.8))
+                      .shadow(color: Color.black.opacity(0.3), radius: 2, x: 0, y: 1)
+                  }
+
+                  if let tier = verificationTier {
+                      verificationBadgeView(tier)
+                      .frame(width: 28, height: 28)
+                  }
+
+                  Spacer()
+
+                  // Edit button
+                  Button(action: onEditTap) {
+                    Image(systemName: "pencil")
+                      .font(.system(size: 14, weight: .semibold))
+                      .foregroundColor(.white)
+                      .frame(width: 32, height: 32)
+                      .background(Colors.primary)
+                      .clipShape(Circle())
+                  }
+                }
+              }
+              .padding(.horizontal, Spacing.lg)
               .padding(.bottom, Spacing.lg)
             }
-            .frame(height: 240)
+            .frame(height: heroHeight)
           }
-          .frame(height: 240)
+          .frame(height: heroHeight)
           .clipShape(RoundedRectangle(cornerRadius: 20))
           .shadow(color: Colors.shadowStrong.opacity(0.3), radius: 16, x: 0, y: 8)
         }

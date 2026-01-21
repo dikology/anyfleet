@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import AuthenticationServices
 @testable import anyfleet
 
 /// Mock auth service that implements AuthServiceProtocol for testing
@@ -51,6 +52,85 @@ final class MockAuthService: AuthServiceProtocol {
 
         if !mockIsAuthenticated {
             throw AuthError.unauthorized
+        }
+    }
+
+    func logout() async {
+        mockIsAuthenticated = false
+        mockCurrentUser = nil
+    }
+
+    func updateProfile(username: String?, bio: String?, location: String?, nationality: String?, profileVisibility: String?) async throws -> UserInfo {
+        // For mock, just update the current user with new values
+        guard var user = mockCurrentUser else {
+            throw AuthError.unauthorized
+        }
+
+        if let username = username {
+            user = UserInfo(
+                id: user.id,
+                email: user.email,
+                username: username,
+                createdAt: user.createdAt,
+                profileImageUrl: user.profileImageUrl,
+                profileImageThumbnailUrl: user.profileImageThumbnailUrl,
+                bio: bio ?? user.bio,
+                location: location ?? user.location,
+                nationality: nationality ?? user.nationality,
+                profileVisibility: profileVisibility ?? user.profileVisibility
+            )
+        }
+
+        mockCurrentUser = user
+        return user
+    }
+
+    func uploadProfileImage(_ imageData: Data) async throws -> UserInfo {
+        // For mock, simulate successful upload by updating current user with new image URLs
+        guard var user = mockCurrentUser else {
+            throw AuthError.unauthorized
+        }
+
+        // Create mock URLs for the uploaded image
+        let mockImageUrl = "https://example.com/uploads/profile_\(UUID().uuidString).jpg"
+        let mockThumbnailUrl = "https://example.com/uploads/profile_\(UUID().uuidString)_thumb.jpg"
+
+        user = UserInfo(
+            id: user.id,
+            email: user.email,
+            username: user.username,
+            createdAt: user.createdAt,
+            profileImageUrl: mockImageUrl,
+            profileImageThumbnailUrl: mockThumbnailUrl,
+            bio: user.bio,
+            location: user.location,
+            nationality: user.nationality,
+            profileVisibility: user.profileVisibility
+        )
+
+        mockCurrentUser = user
+        return user
+    }
+
+    func handleAppleSignIn(result: Result<ASAuthorization, Error>) async throws {
+        // For mock, just set authenticated state
+        switch result {
+        case .success:
+            mockIsAuthenticated = true
+            mockCurrentUser = UserInfo(
+                id: "apple-user-id",
+                email: "apple@example.com",
+                username: "Apple User",
+                createdAt: ISO8601DateFormatter().string(from: Date()),
+                profileImageUrl: nil,
+                profileImageThumbnailUrl: nil,
+                bio: nil,
+                location: nil,
+                nationality: nil,
+                profileVisibility: "public"
+            )
+        case .failure:
+            throw AuthError.invalidToken
         }
     }
 }

@@ -217,8 +217,25 @@ final class AuthService: AuthServiceProtocol {
         keychain.saveRefreshToken(tokenResponse.refreshToken)
         AppLogger.auth.info("Tokens stored securely in keychain")
         
+        // Ensure image URLs have proper protocol
+        var user = tokenResponse.user
+        if let imageUrl = user.profileImageUrl, !imageUrl.hasPrefix("http") {
+            user = UserInfo(
+                id: user.id,
+                email: user.email,
+                username: user.username,
+                createdAt: user.createdAt,
+                profileImageUrl: "https://\(imageUrl)",
+                profileImageThumbnailUrl: user.profileImageThumbnailUrl?.hasPrefix("http") == false ? "https://\(user.profileImageThumbnailUrl!)" : user.profileImageThumbnailUrl,
+                bio: user.bio,
+                location: user.location,
+                nationality: user.nationality,
+                profileVisibility: user.profileVisibility
+            )
+        }
+
         // Update state
-        currentUser = tokenResponse.user
+        currentUser = user
         isAuthenticated = true
         let usernameInfo = tokenResponse.user.username != nil ? " (username: \(tokenResponse.user.username!))" : " (no username)"
         AppLogger.auth.info("Sign-in successful for user: \(tokenResponse.user.email)\(usernameInfo)")
@@ -266,13 +283,30 @@ final class AuthService: AuthServiceProtocol {
         }
         
         let tokenResponse = try JSONDecoder().decode(TokenResponse.self, from: data)
-        
+
+        // Ensure image URLs have proper protocol
+        var user = tokenResponse.user
+        if let imageUrl = user.profileImageUrl, !imageUrl.hasPrefix("http") {
+            user = UserInfo(
+                id: user.id,
+                email: user.email,
+                username: user.username,
+                createdAt: user.createdAt,
+                profileImageUrl: "https://\(imageUrl)",
+                profileImageThumbnailUrl: user.profileImageThumbnailUrl?.hasPrefix("http") == false ? "https://\(user.profileImageThumbnailUrl!)" : user.profileImageThumbnailUrl,
+                bio: user.bio,
+                location: user.location,
+                nationality: user.nationality,
+                profileVisibility: user.profileVisibility
+            )
+        }
+
         // Update stored tokens
         keychain.saveAccessToken(tokenResponse.accessToken)
         keychain.saveRefreshToken(tokenResponse.refreshToken)
         AppLogger.auth.info("Tokens refreshed successfully")
-        
-        currentUser = tokenResponse.user
+
+        currentUser = user
     }
     
     // MARK: - Token Access
@@ -412,7 +446,25 @@ final class AuthService: AuthServiceProtocol {
         AppLogger.auth.debug("Loading current user info")
         do {
             let data = try await makeAuthenticatedRequest(to: "/auth/me")
-            currentUser = try JSONDecoder().decode(UserInfo.self, from: data)
+            var user = try JSONDecoder().decode(UserInfo.self, from: data)
+
+            // Ensure image URLs have proper protocol
+            if let imageUrl = user.profileImageUrl, !imageUrl.hasPrefix("http") {
+                user = UserInfo(
+                    id: user.id,
+                    email: user.email,
+                    username: user.username,
+                    createdAt: user.createdAt,
+                    profileImageUrl: "https://\(imageUrl)",
+                    profileImageThumbnailUrl: user.profileImageThumbnailUrl?.hasPrefix("http") == false ? "https://\(user.profileImageThumbnailUrl!)" : user.profileImageThumbnailUrl,
+                    bio: user.bio,
+                    location: user.location,
+                    nationality: user.nationality,
+                    profileVisibility: user.profileVisibility
+                )
+            }
+
+            currentUser = user
             AppLogger.auth.info("Current user loaded: \(currentUser?.email ?? "unknown")")
         } catch {
             AppLogger.auth.error("Failed to load user", error: error)
@@ -495,13 +547,18 @@ final class AuthService: AuthServiceProtocol {
         // Update current user with new image URLs
         if let currentUser = currentUser {
             let oldImageUrl = currentUser.profileImageUrl
+
+            // Ensure URLs have proper protocol
+            let imageUrl = uploadResponse.profileImageUrl.hasPrefix("http") ? uploadResponse.profileImageUrl : "https://\(uploadResponse.profileImageUrl)"
+            let thumbnailUrl = uploadResponse.profileImageThumbnailUrl.hasPrefix("http") ? uploadResponse.profileImageThumbnailUrl : "https://\(uploadResponse.profileImageThumbnailUrl)"
+
             let updatedUser = UserInfo(
                 id: currentUser.id,
                 email: currentUser.email,
                 username: currentUser.username,
                 createdAt: currentUser.createdAt,
-                profileImageUrl: uploadResponse.profileImageUrl,
-                profileImageThumbnailUrl: uploadResponse.profileImageThumbnailUrl,
+                profileImageUrl: imageUrl,
+                profileImageThumbnailUrl: thumbnailUrl,
                 bio: currentUser.bio,
                 location: currentUser.location,
                 nationality: currentUser.nationality,

@@ -1,11 +1,16 @@
 import Foundation
+import AuthenticationServices
 
-/// Protocol for authentication service functionality needed by APIClient
+/// Protocol for authentication service functionality needed by APIClient and views
 protocol AuthServiceProtocol {
     var isAuthenticated: Bool { get }
     var currentUser: UserInfo? { get }
     func getAccessToken() async throws -> String
     func ensureCurrentUserLoaded() async throws
+    func logout() async
+    func updateProfile(username: String?, bio: String?, location: String?, nationality: String?, profileVisibility: String?) async throws -> UserInfo
+    func uploadProfileImage(_ imageData: Data) async throws -> UserInfo
+    func handleAppleSignIn(result: Result<ASAuthorization, Error>) async throws
 }
 
 /// Protocol for API client functionality for testing

@@ -25,7 +25,7 @@ protocol AuthStateObserverProtocol: AnyObject {
 @MainActor
 @Observable
 final class AuthStateObserver: AuthStateObserverProtocol {
-    private let authService: AuthService
+    private let authService: AuthServiceProtocol
     
     /// Whether the user is currently signed in
     var isSignedIn: Bool {
@@ -64,7 +64,7 @@ final class AuthStateObserver: AuthStateObserverProtocol {
     
     /// Creates an AuthStateObserver
     /// - Parameter authService: The AuthService to observe
-    init(authService: AuthService) {
+    init(authService: AuthServiceProtocol) {
         self.authService = authService
         AppLogger.auth.debug("AuthStateObserver initialized")
     }
