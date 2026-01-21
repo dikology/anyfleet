@@ -1,11 +1,13 @@
 import SwiftUI
 import AuthenticationServices
+import PhotosUI
 
 // MARK: - View Model
 
 @Observable
 final class ProfileViewModel: ErrorHandling {
     private let authService: AuthService
+    private var imageUploadService: ImageUploadService?
 
     var currentError: AppError?
     var showErrorBanner: Bool = false
@@ -17,24 +19,19 @@ final class ProfileViewModel: ErrorHandling {
     // Profile editing
     var isEditingProfile = false
     var editedUsername = ""
+    var editedBio = ""
+    var editedLocation = ""
+    var editedNationality = ""
     var isSavingProfile = false
+    
+    // Profile image
+    var selectedPhotoItem: PhotosPickerItem?
+    var isUploadingImage = false
 
     init(authService: AuthService) {
         self.authService = authService
+        self.imageUploadService = ImageUploadService(authService: authService)
     }
-    
-    // @MainActor
-    // func loadReputationMetrics() async {
-    //     isLoading = true
-    //     defer { isLoading = false }
-
-    //     // TODO: Call API when Phase 2 backend is ready
-    //     // do {
-    //     //     self.contributionMetrics = try await dependencies.authService.fetchMetrics()
-    //     // } catch {
-    //     //     appError = error.toAppError()
-    //     // }
-    // }
     
     @MainActor
     func logout() async {
@@ -45,9 +42,12 @@ final class ProfileViewModel: ErrorHandling {
     }
 
     @MainActor
-    func startEditingProfile(currentUsername: String?) {
+    func startEditingProfile(user: UserInfo) {
         isEditingProfile = true
-        editedUsername = currentUsername ?? ""
+        editedUsername = user.username ?? ""
+        editedBio = user.bio ?? ""
+        editedLocation = user.location ?? ""
+        editedNationality = user.nationality ?? ""
         clearError()
     }
 
@@ -55,6 +55,10 @@ final class ProfileViewModel: ErrorHandling {
     func cancelEditingProfile() {
         isEditingProfile = false
         editedUsername = ""
+        editedBio = ""
+        editedLocation = ""
+        editedNationality = ""
+        selectedPhotoItem = nil
         clearError()
     }
 
@@ -70,12 +74,68 @@ final class ProfileViewModel: ErrorHandling {
         defer { isSavingProfile = false }
 
         do {
-            _ = try await authService.updateProfile(username: editedUsername.trimmingCharacters(in: .whitespacesAndNewlines))
+            let trimmedUsername = editedUsername.trimmingCharacters(in: .whitespacesAndNewlines)
+            let trimmedBio = editedBio.trimmingCharacters(in: .whitespacesAndNewlines)
+            let trimmedLocation = editedLocation.trimmingCharacters(in: .whitespacesAndNewlines)
+            let trimmedNationality = editedNationality.trimmingCharacters(in: .whitespacesAndNewlines)
+            
+            _ = try await authService.updateProfile(
+                username: trimmedUsername,
+                bio: trimmedBio.isEmpty ? nil : trimmedBio,
+                location: trimmedLocation.isEmpty ? nil : trimmedLocation,
+                nationality: trimmedNationality.isEmpty ? nil : trimmedNationality
+            )
             isEditingProfile = false
             editedUsername = ""
+            editedBio = ""
+            editedLocation = ""
+            editedNationality = ""
         } catch {
             handleError(error)
         }
+    }
+    
+    @MainActor
+    func handlePhotoSelection() async {
+        guard let selectedPhotoItem = selectedPhotoItem,
+              let imageUploadService = imageUploadService else {
+            AppLogger.services.warning("No photo item or image upload service available")
+            return
+        }
+
+        AppLogger.services.info("Starting photo upload process")
+        isUploadingImage = true
+        clearError()
+        defer {
+            isUploadingImage = false
+            self.selectedPhotoItem = nil
+            AppLogger.services.debug("Photo upload process completed")
+        }
+
+        do {
+            _ = try await imageUploadService.processAndUploadImage(selectedPhotoItem)
+            AppLogger.services.info("Photo uploaded successfully")
+        } catch {
+            AppLogger.services.error("Photo upload failed", error: error)
+            handleError(error)
+        }
+    }
+    
+    func calculateProfileCompletion(for user: UserInfo) -> Int {
+        var completedFields = 0
+        let totalFields = 3
+        
+        // Username is always filled (required)
+        completedFields += 1
+        
+        if user.profileImageUrl != nil {
+            completedFields += 1
+        }
+        if let bio = user.bio, !bio.isEmpty {
+            completedFields += 1
+        }
+        
+        return Int((Double(completedFields) / Double(totalFields)) * 100)
     }
     
     @MainActor
@@ -88,8 +148,6 @@ final class ProfileViewModel: ErrorHandling {
 
         do {
             try await authService.handleAppleSignIn(result: result)
-            // Load metrics after successful sign-in
-            //await loadReputationMetrics()
         } catch {
             handleError(error)
         }
@@ -102,62 +160,28 @@ struct ContributionMetrics: Codable, Sendable {
     let totalContributions: Int
     let totalForks: Int
     let averageRating: Double
-    let verificationTier: VerificationTier
+    let verificationTier: DesignSystem.Profile.VerificationTier
     let createdCount: Int
     let forkedCount: Int
     let importedCount: Int
 }
 
-enum VerificationTier: String, Codable, Sendable {
-    case new = "new"
-    case contributor = "contributor"
-    case trusted = "trusted"
-    case expert = "expert"
-
-    var displayName: String {
-        switch self {
-        case .new: L10n.Profile.VerificationTier.new
-        case .contributor: L10n.Profile.VerificationTier.contributor
-        case .trusted: L10n.Profile.VerificationTier.trusted
-        case .expert: L10n.Profile.VerificationTier.expert
-        }
-    }
-    
-    var icon: String {
-        switch self {
-        case .new: "person.crop.circle"
-        case .contributor: "person.crop.circle.fill"
-        case .trusted: "checkmark.seal.fill"
-        case .expert: "star.fill"
-        }
-    }
-    
-    var color: Color {
-        switch self {
-        case .new: DesignSystem.Colors.textSecondary
-        case .contributor: DesignSystem.Colors.primary
-        case .trusted: DesignSystem.Colors.success
-        case .expert: DesignSystem.Colors.warning
-        }
-    }
-}
-
 // MARK: - Main View
 
+@MainActor
 struct ProfileView: View {
     @Environment(\.appDependencies) private var dependencies
     @State private var viewModel: ProfileViewModel
 
     // Use the AuthStateObserver for reactive authentication state
-    private var authObserver: AuthStateObserverProtocol {
-        dependencies.authStateObserver
-    }
+    @State private var authObserver: AuthStateObserverProtocol?
 
     @MainActor
-    init(viewModel: ProfileViewModel? = nil) {
+    init(viewModel: ProfileViewModel? = nil, authObserver: AuthStateObserverProtocol? = nil) {
         // Initialize with provided viewModel or create a placeholder
         let initialViewModel = viewModel ?? ProfileViewModel(authService: AuthService())
         _viewModel = State(initialValue: initialViewModel)
+        _authObserver = State(initialValue: authObserver)
     }
     
     var body: some View {
@@ -166,17 +190,20 @@ struct ProfileView: View {
                 DesignSystem.Colors.background
                     .ignoresSafeArea()
 
-                if authObserver.isSignedIn {
-                    authenticatedContent(viewModel: viewModel)
+                if let authObserver = authObserver, authObserver.isSignedIn {
+                    authenticatedContent(viewModel: viewModel, authObserver: authObserver)
                 } else {
                     unauthenticatedContent(viewModel: viewModel)
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
             .task {
-                // Replace the placeholder viewModel with one using environment dependencies
-                viewModel = ProfileViewModel(authService: dependencies.authService)
-                if authObserver.isSignedIn {
+                // Initialize authObserver and viewModel with environment dependencies (if not provided)
+                if authObserver == nil {
+                    authObserver = dependencies.authStateObserver
+                }
+                // Note: viewModel is already initialized with the correct authService in init()
+                if let authObserver = authObserver, authObserver.isSignedIn {
                     // TODO: Load reputation metrics when Phase 2 backend is ready
                     // await loadReputationMetrics()
                 }
@@ -194,15 +221,94 @@ struct ProfileView: View {
     // MARK: - Authenticated Content
 
     @MainActor
-    private func authenticatedContent(viewModel: ProfileViewModel) -> some View {
+    private func authenticatedContent(viewModel: ProfileViewModel, authObserver: AuthStateObserverProtocol) -> some View {
         ScrollView {
             VStack(spacing: DesignSystem.Spacing.xl) {
                 if let user = authObserver.currentUser {
-                    profileHeader(for: user)
+                    DesignSystem.Profile.Hero(
+                        user: user,
+                        verificationTier: viewModel.contributionMetrics?.verificationTier,
+                        completionPercentage: viewModel.calculateProfileCompletion(for: user),
+                        onEditTap: { viewModel.startEditingProfile(user: user) },
+                        onPhotoSelect: { item in
+                            viewModel.selectedPhotoItem = item
+                            Task { await viewModel.handlePhotoSelection() }
+                        },
+                        isUploadingImage: viewModel.isUploadingImage
+                    )
+                    .sectionContainer()
+
+                    // Profile editing/display section
+                    if viewModel.isEditingProfile {
+                        // Editing mode
+                        DesignSystem.Profile.EditForm(
+                            username: $viewModel.editedUsername,
+                            bio: $viewModel.editedBio,
+                            location: $viewModel.editedLocation,
+                            nationality: $viewModel.editedNationality,
+                            onSave: {
+                                Task { await viewModel.saveProfile() }
+                            },
+                            onCancel: {
+                                viewModel.cancelEditingProfile()
+                            },
+                            isSaving: viewModel.isSavingProfile
+                        )
+                        .sectionContainer()
+                    } else {
+                        // Display mode
+                        displayProfileInfo(user: user)
+                    }
                     
                     if let metrics = viewModel.contributionMetrics {
-                        reputationSection(metrics: metrics)
-                        contentOwnershipSection(metrics: metrics)
+                        DesignSystem.Profile.MetricsCard(
+                            title: L10n.Profile.reputationTitle,
+                            subtitle: L10n.Profile.reputationSubtitle,
+                            metrics: [
+                                .init(
+                                    icon: "doc.text.fill",
+                                    label: L10n.Profile.contributions,
+                                    value: "\(metrics.totalContributions)",
+                                    color: DesignSystem.Colors.primary
+                                ),
+                                .init(
+                                    icon: "star.fill",
+                                    label: L10n.Profile.communityRating,
+                                    value: String(format: "%.1f/5.0", metrics.averageRating),
+                                    color: DesignSystem.Colors.warning
+                                ),
+                                .init(
+                                    icon: "arrow.triangle.branch",
+                                    label: L10n.Profile.totalForks,
+                                    value: "\(metrics.totalForks)",
+                                    color: DesignSystem.Colors.info
+                                )
+                            ]
+                        )
+                        DesignSystem.Profile.MetricsCard(
+                            title: L10n.Profile.contentOwnershipTitle,
+                            subtitle: L10n.Profile.contentOwnershipSubtitle,
+                            metrics: [
+                                .init(
+                                    icon: "pencil.circle.fill",
+                                    label: L10n.Profile.created,
+                                    value: "\(metrics.createdCount)",
+                                    color: DesignSystem.Colors.primary
+                                ),
+                                .init(
+                                    icon: "arrow.triangle.branch",
+                                    label: L10n.Profile.forked,
+                                    value: "\(metrics.forkedCount)",
+                                    color: DesignSystem.Colors.warning
+                                ),
+                                .init(
+                                    icon: "arrow.down.circle.fill",
+                                    label: L10n.Profile.imported,
+                                    value: "\(metrics.importedCount)",
+                                    color: DesignSystem.Colors.info
+                                )
+                            ]
+                        )
                     }
                     
                     accountManagementSection(user: user)
@@ -221,262 +327,72 @@ struct ProfileView: View {
         }
     }
     
-    // MARK: - Profile Header
-    
     @MainActor
-    private func profileHeader(for user: UserInfo) -> some View {
+    private func displayProfileInfo(user: UserInfo) -> some View {
         VStack(spacing: DesignSystem.Spacing.lg) {
-            // Avatar with verification badge
-            ZStack(alignment: .bottomTrailing) {
-                Circle()
-                    .fill(DesignSystem.Gradients.primary)
-                    .frame(width: 120, height: 120)
-                    .shadow(color: DesignSystem.Colors.shadowStrong, radius: 8, x: 0, y: 4)
-
-                Circle()
-                    .fill(DesignSystem.Colors.onPrimary.opacity(0.2))
-                    .frame(width: 100, height: 100)
-
-                Image(systemName: "person.fill")
-                    .font(.system(size: 40, weight: .medium))
-                    .foregroundStyle(DesignSystem.Gradients.primary)
-
-                // Verification badge overlay
-                if let metrics = viewModel.contributionMetrics {
-                    verificationBadge(tier: metrics.verificationTier)
-                        .frame(width: 36, height: 36)
-                        .offset(x: -8, y: -8)
-                }
-            }
-            .padding(.top, DesignSystem.Spacing.md)
-
-            // User info
-            VStack(spacing: DesignSystem.Spacing.xs) {
-                if viewModel.isEditingProfile {
-                    // Editing mode
-                    VStack(spacing: DesignSystem.Spacing.sm) {
-                        Text(L10n.Profile.displayNameTitle)
-                            .font(DesignSystem.Typography.body)
-                            .foregroundColor(DesignSystem.Colors.textSecondary)
-
-                        TextField(L10n.Profile.displayNamePlaceholder, text: $viewModel.editedUsername)
-                            .font(DesignSystem.Typography.largeTitle)
-                            .foregroundColor(DesignSystem.Colors.textPrimary)
-                            .multilineTextAlignment(.center)
-                            .padding(DesignSystem.Spacing.sm)
-                            .background(DesignSystem.Colors.surface.opacity(0.5))
-                            .cornerRadius(DesignSystem.Spacing.sm)
-                            .autocorrectionDisabled(true)
-                            .textInputAutocapitalization(.words)
-
-                        HStack(spacing: DesignSystem.Spacing.md) {
-                            Button(action: {
-                                viewModel.cancelEditingProfile()
-                            }) {
-                                Text(L10n.Common.cancel)
-                                    .font(DesignSystem.Typography.body)
-                                    .foregroundColor(DesignSystem.Colors.textSecondary)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, DesignSystem.Spacing.sm)
-                                    .background(DesignSystem.Colors.surface)
-                                    .cornerRadius(DesignSystem.Spacing.sm)
-                            }
-                            .disabled(viewModel.isSavingProfile)
-
-                            Button(action: {
-                                Task {
-                                    await viewModel.saveProfile()
-                                }
-                            }) {
-                                if viewModel.isSavingProfile {
-                                    ProgressView()
-                                        .tint(DesignSystem.Colors.onPrimary)
-                                } else {
-                                    Text(L10n.Common.save)
-                                        .font(DesignSystem.Typography.body)
-                                        .foregroundColor(DesignSystem.Colors.onPrimary)
-                                }
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, DesignSystem.Spacing.sm)
-                            .background(DesignSystem.Gradients.primary)
-                            .cornerRadius(DesignSystem.Spacing.sm)
-                            .disabled(viewModel.isSavingProfile)
-                        }
-                    }
-                } else {
-                    // Display mode
-                    HStack(spacing: DesignSystem.Spacing.sm) {
-                        VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
-                            Text(user.username ?? user.email)
-                                .font(DesignSystem.Typography.largeTitle)
-                                .foregroundColor(DesignSystem.Colors.textPrimary)
-                                .lineSpacing(1.0)
-
-                            Text(user.email)
-                                .font(DesignSystem.Typography.body)
-                                .foregroundColor(DesignSystem.Colors.textSecondary)
-                        }
-
-                        Spacer()
-
-                        Button(action: {
-                            viewModel.startEditingProfile(currentUsername: user.username)
-                        }) {
-                            Image(systemName: "pencil")
-                                .font(.system(size: 16, weight: .medium))
-                                .foregroundColor(DesignSystem.Colors.primary)
-                                .frame(width: 32, height: 32)
-                                .background(DesignSystem.Colors.surface)
-                                .clipShape(Circle())
-                                .overlay(
-                                    Circle()
-                                        .stroke(DesignSystem.Colors.border, lineWidth: 1)
-                                )
-                        }
-                    }
-                    .padding(.vertical, DesignSystem.Spacing.sm)
-                    .padding(.horizontal, DesignSystem.Spacing.sm)
-                }
-
-                if let createdAt = formatDate(user.createdAt) {
+            
+            // Bio Card
+            if let bio = user.bio, !bio.isEmpty {
+                VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
                     HStack(spacing: DesignSystem.Spacing.xs) {
-                        Image(systemName: "calendar")
-                            .font(.system(size: 12, weight: .medium))
-                        Text(L10n.Profile.memberSincePrefix + " " + createdAt)
+                        Image(systemName: "text.bubble.fill")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(DesignSystem.Colors.primary)
+                        Text(L10n.Profile.Bio.title)
                             .font(DesignSystem.Typography.caption)
-                    }
-                    .foregroundColor(DesignSystem.Colors.textSecondary)
-                    .padding(.vertical, DesignSystem.Spacing.xs)
-                    .padding(.horizontal, DesignSystem.Spacing.sm)
-                    .background(DesignSystem.Colors.border.opacity(0.3))
-                    .cornerRadius(DesignSystem.Spacing.sm)
-                }
-            }
-        }
-        .heroCardStyle()
-        .padding(.top, DesignSystem.Spacing.lg)
-    }
-    
-    // MARK: - Verification Badge
-    
-    @MainActor
-    private func verificationBadge(tier: VerificationTier) -> some View {
-        ZStack {
-            Circle()
-                .fill(DesignSystem.Colors.surface)
-                .shadow(color: DesignSystem.Colors.shadowStrong, radius: 4, x: 0, y: 2)
-            
-            Image(systemName: tier.icon)
-                .font(.system(size: 18, weight: .semibold))
-                .foregroundColor(tier.color)
-        }
-    }
-    
-    // MARK: - Reputation Section (NEW)
-    
-    @MainActor
-    private func reputationSection(metrics: ContributionMetrics) -> some View {
-        VStack(spacing: DesignSystem.Spacing.md) {
-            DesignSystem.SectionHeader(
-                L10n.Profile.reputationTitle,
-                subtitle: L10n.Profile.reputationSubtitle
-            )
-            
-            VStack(spacing: DesignSystem.Spacing.sm) {
-                // Tier display
-                HStack(spacing: DesignSystem.Spacing.md) {
-                    Image(systemName: metrics.verificationTier.icon)
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(metrics.verificationTier.color)
-                        .frame(width: 24)
-                    
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(L10n.Profile.VerificationTier.verificationTierLabel)
-                            .font(DesignSystem.Typography.caption)
-                            .foregroundColor(DesignSystem.Colors.textSecondary)
-
-                        Text(metrics.verificationTier.displayName)
-                            .font(DesignSystem.Typography.body)
+                            .fontWeight(.semibold)
                             .foregroundColor(DesignSystem.Colors.textPrimary)
                     }
-                    
-                    Spacer()
-                    
-                    Text(metrics.verificationTier.rawValue)
-                        .font(DesignSystem.Typography.caption)
-                        .foregroundColor(metrics.verificationTier.color)
-                        .padding(.horizontal, DesignSystem.Spacing.sm)
-                        .padding(.vertical, DesignSystem.Spacing.xs)
-                        .background(metrics.verificationTier.color.opacity(0.1))
-                        .cornerRadius(DesignSystem.Spacing.sm)
+
+                    Text(bio)
+                        .font(DesignSystem.Typography.body)
+                        .foregroundColor(DesignSystem.Colors.textPrimary)
+                        .lineSpacing(4)
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(DesignSystem.Spacing.md)
+                .background(DesignSystem.Colors.surfaceAlt)
+                .cornerRadius(12)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(DesignSystem.Colors.border.opacity(0.5), lineWidth: 1)
+                )
+            }
+
+            // Member since badge
+            if let createdAt = formatDate(user.createdAt) {
+                HStack(spacing: DesignSystem.Spacing.xs) {
+                    Image(systemName: "calendar.badge.clock")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(DesignSystem.Colors.info)
+                    Text(L10n.Profile.memberSincePrefix + " " + createdAt)
+                        .font(DesignSystem.Typography.caption)
+                        .fontWeight(.medium)
+                }
+                .foregroundColor(DesignSystem.Colors.textSecondary)
                 .padding(.vertical, DesignSystem.Spacing.sm)
                 .padding(.horizontal, DesignSystem.Spacing.md)
-                .background(DesignSystem.Colors.surface)
-                .cornerRadius(DesignSystem.Spacing.md)
-                .overlay(
+                .background(
                     RoundedRectangle(cornerRadius: DesignSystem.Spacing.md)
-                        .stroke(DesignSystem.Colors.border, lineWidth: 1)
+                        .fill(DesignSystem.Colors.info.opacity(0.1))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: DesignSystem.Spacing.md)
+                                .stroke(DesignSystem.Colors.info.opacity(0.3), lineWidth: 1)
+                        )
                 )
-                
-                // Metrics grid
-                VStack(spacing: DesignSystem.Spacing.sm) {
-                    metricRow(
-                        icon: "doc.text.fill",
-                        label: L10n.Profile.contributions,
-                        value: "\(metrics.totalContributions)"
-                    )
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
 
-                    metricRow(
-                        icon: "star.fill",
-                        label: L10n.Profile.communityRating,
-                        value: String(format: "%.1f/5.0", metrics.averageRating)
-                    )
-
-                    metricRow(
-                        icon: "arrow.triangle.branch",
-                        label: L10n.Profile.totalForks,
-                        value: "\(metrics.totalForks)"
-                    )
+            // Maritime-themed decorative element
+            HStack(spacing: DesignSystem.Spacing.xs) {
+                ForEach(0..<3) { _ in
+                    Image(systemName: "waveform.path")
+                        .font(.system(size: 12))
+                        .foregroundColor(DesignSystem.Colors.primary.opacity(0.3))
                 }
             }
-        }
-        .sectionContainer()
-    }
-    
-    // MARK: - Content Ownership Section (NEW)
-    
-    @MainActor
-    private func contentOwnershipSection(metrics: ContributionMetrics) -> some View {
-        VStack(spacing: DesignSystem.Spacing.md) {
-            DesignSystem.SectionHeader(
-                L10n.Profile.contentOwnershipTitle,
-                subtitle: L10n.Profile.contentOwnershipSubtitle
-            )
-            
-            VStack(spacing: DesignSystem.Spacing.sm) {
-                contentTypeRow(
-                    icon: "pencil.circle.fill",
-                    label: L10n.Profile.created,
-                    count: metrics.createdCount,
-                    color: DesignSystem.Colors.primary
-                )
-
-                contentTypeRow(
-                    icon: "arrow.triangle.branch",
-                    label: L10n.Profile.forked,
-                    count: metrics.forkedCount,
-                    color: DesignSystem.Colors.warning
-                )
-
-                contentTypeRow(
-                    icon: "arrow.down.circle.fill",
-                    label: L10n.Profile.imported,
-                    count: metrics.importedCount,
-                    color: DesignSystem.Colors.info
-                )
-            }
+            .frame(maxWidth: .infinity, alignment: .center)
+            .padding(.top, DesignSystem.Spacing.sm)
         }
         .sectionContainer()
     }
@@ -561,57 +477,6 @@ struct ProfileView: View {
     
     // MARK: - Helper Components
     
-    @MainActor
-    private func metricRow(icon: String, label: String, value: String) -> some View {
-        HStack(spacing: DesignSystem.Spacing.md) {
-            Image(systemName: icon)
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(DesignSystem.Colors.primary)
-                .frame(width: 20)
-            
-            Text(label)
-                .font(DesignSystem.Typography.body)
-                .foregroundColor(DesignSystem.Colors.textSecondary)
-            
-            Spacer()
-            
-            Text(value)
-                .font(DesignSystem.Typography.body)
-                .fontWeight(.semibold)
-                .foregroundColor(DesignSystem.Colors.textPrimary)
-        }
-        .padding(.vertical, DesignSystem.Spacing.xs)
-        .padding(.horizontal, DesignSystem.Spacing.sm)
-    }
-    
-    @MainActor
-    private func contentTypeRow(
-        icon: String,
-        label: String,
-        count: Int,
-        color: Color
-    ) -> some View {
-        HStack(spacing: DesignSystem.Spacing.md) {
-            Image(systemName: icon)
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(color)
-                .frame(width: 20)
-            
-            Text(label)
-                .font(DesignSystem.Typography.body)
-                .foregroundColor(DesignSystem.Colors.textSecondary)
-            
-            Spacer()
-            
-            Text("\(count)")
-                .font(DesignSystem.Typography.headline)
-                .fontWeight(.semibold)
-                .foregroundColor(color)
-                .frame(width: 40, alignment: .trailing)
-        }
-        .padding(.vertical, DesignSystem.Spacing.xs)
-        .padding(.horizontal, DesignSystem.Spacing.sm)
-    }
     
     @MainActor
     private func accountActionButton(
@@ -752,8 +617,9 @@ struct ProfileView: View {
 // MARK: - Preview
 
 #Preview("Unauthenticated") { @MainActor in
-    ProfileView()
-        .environment(AuthService())
+    let authService = AuthService()
+    let authObserver = AuthStateObserver(authService: authService)
+    return ProfileView(authObserver: authObserver)
 }
 
 #Preview("Authenticated") { @MainActor in
@@ -763,19 +629,26 @@ struct ProfileView: View {
         id: "user-123",
         email: "john.doe@example.com",
         username: "John Doe",
-        createdAt: "2024-01-15T10:30:00Z"
+        createdAt: "2024-01-15T10:30:00Z",
+        profileImageUrl: nil,
+        profileImageThumbnailUrl: nil,
+        bio: "Experienced sailor with 15 years on the water. Passionate about teaching newcomers the art of sailing and exploring the Mediterranean coast.",
+        location: "Cork, Ireland",
+        nationality: "Irish",
+        profileVisibility: "public"
     )
 
+    let authObserver = AuthStateObserver(authService: authService)
     let viewModel = ProfileViewModel(authService: authService)
     viewModel.contributionMetrics = ContributionMetrics(
         totalContributions: 42,
         totalForks: 15,
         averageRating: 4.7,
-        verificationTier: .expert,
+        verificationTier: DesignSystem.Profile.VerificationTier.expert,
         createdCount: 28,
         forkedCount: 12,
         importedCount: 2
     )
 
-    return ProfileView(viewModel: viewModel)
+    return ProfileView(viewModel: viewModel, authObserver: authObserver)
 }

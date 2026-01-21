@@ -55,15 +55,26 @@ struct AuthorModalIntegrationTests {
         #expect(modalShown == true, "Modal should be triggered to show")
     }
 
-    @Test("AuthorProfileModal initialization with username")
+    @Test("AuthorProfileModal initialization with author profile")
     func testAuthorProfileModalInitialization() {
         let testUsername = "ModalTestUser"
+        let testAuthor = AuthorProfile(
+            username: testUsername,
+            email: "test@example.com",
+            profileImageUrl: nil,
+            profileImageThumbnailUrl: nil,
+            bio: nil,
+            location: nil,
+            nationality: nil,
+            isVerified: false,
+            stats: nil
+        )
 
-        // Create modal with username
-        let modal = AuthorProfileModal(username: testUsername) {}
+        // Create modal with author profile
+        let modal = AuthorProfileModal(author: testAuthor) {}
 
         // Test that modal can be created (this would fail if modal had issues)
-        #expect(modal.username == testUsername, "Modal should store username correctly")
+        #expect(modal.author.username == testUsername, "Modal should store author username correctly")
     }
 
     @Test("Multiple author taps maintain correct state")
@@ -131,10 +142,21 @@ struct AuthorModalIntegrationTests {
         ]
 
         for username in edgeCaseUsernames {
-            let modal = AuthorProfileModal(username: username) {}
+            let author = AuthorProfile(
+                username: username,
+                email: "test@example.com",
+                profileImageUrl: nil,
+                profileImageThumbnailUrl: nil,
+                bio: nil,
+                location: nil,
+                nationality: nil,
+                isVerified: false,
+                stats: nil
+            )
+            let modal = AuthorProfileModal(author: author) {}
 
             // Modal should handle all these cases without crashing
-            #expect(modal.username == username, "Modal should accept username: \(username)")
+            #expect(modal.author.username == username, "Modal should accept username: \(username)")
         }
     }
 
@@ -142,11 +164,22 @@ struct AuthorModalIntegrationTests {
     func testAuthorProfileModalViewCreation() {
         // Test that the modal view can be created and rendered
         let username = "ViewTestUser"
+        let author = AuthorProfile(
+            username: username,
+            email: "test@example.com",
+            profileImageUrl: nil,
+            profileImageThumbnailUrl: nil,
+            bio: nil,
+            location: nil,
+            nationality: nil,
+            isVerified: false,
+            stats: nil
+        )
 
         // This tests that the view hierarchy can be constructed
-        let modal = AuthorProfileModal(username: username) {}
+        let modal = AuthorProfileModal(author: author) {}
 
         // If this doesn't crash, the view is properly constructed
-        #expect(modal.username == username, "Modal view should be created successfully")
+        #expect(modal.author.username == username, "Modal view should be created successfully")
     }
 }

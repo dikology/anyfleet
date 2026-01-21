@@ -216,3 +216,30 @@
 "authorProfile.title" = "Профиль автора";
 "authorProfile.comingSoonTitle" = "Скоро появится";
 "authorProfile.comingSoonMessage" = "Профили авторов с подробной информацией, списком контента и другими функциями появятся в будущем обновлении.";
+"authorProfile.verified" = "Подтверждён";
+"authorProfile.getInTouch" = "Связаться";
+
+// Profile Image
+"profile.image.upload" = "Загрузить фото профиля";
+"profile.image.change" = "Изменить фото";
+"profile.image.remove" = "Удалить фото";
+"profile.image.error" = "Не удалось загрузить изображение. Попробуйте ещё раз.";
+
+// Bio
+"profile.bio.title" = "О себе";
+"profile.bio.placeholder" = "Расскажите о себе, своем парусном опыте и том, что вам интересно...";
+"profile.bio.characterLimit" = "%d / 2000 символов";
+
+// Location
+"profile.location.title" = "Местоположение";
+"profile.location.placeholder" = "например, Ирландия, Средиземное море";
+
+// Nationality
+"profile.nationality.title" = "Гражданство";
+"profile.nationality.placeholder" = "например, Ирландское, Американское";
+
+// Completion
+"profile.completion.title" = "Профиль заполнен на %d%%";
+"profile.completion.addPhoto" = "Добавьте фото профиля";
+"profile.completion.addBio" = "Напишите о себе";
+"profile.completion.addLocation" = "Добавьте местоположение";

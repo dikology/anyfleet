@@ -35,7 +35,13 @@ struct AuthServiceTests {
                 id: UUID().uuidString,
                 email: "test@example.com",
                 username: "testuser",
-                createdAt: ISO8601DateFormatter().string(from: Date())
+                createdAt: ISO8601DateFormatter().string(from: Date()),
+                profileImageUrl: nil,
+                profileImageThumbnailUrl: nil,
+                bio: nil,
+                location: nil,
+                nationality: nil,
+                profileVisibility: "public"
             )
         )
     }

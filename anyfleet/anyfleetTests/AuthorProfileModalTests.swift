@@ -13,14 +13,30 @@ import SwiftUI
 @Suite("AuthorProfileModal Tests")
 struct AuthorProfileModalTests {
 
+    // Helper function to create test AuthorProfile instances
+    private func createTestAuthor(username: String, email: String = "test@example.com", isVerified: Bool = false) -> AuthorProfile {
+        AuthorProfile(
+            username: username,
+            email: email,
+            profileImageUrl: nil,
+            profileImageThumbnailUrl: nil,
+            bio: nil,
+            location: nil,
+            nationality: nil,
+            isVerified: isVerified,
+            stats: nil
+        )
+    }
+
     @Test("AuthorProfileModal displays username immediately on creation")
     func testAuthorProfileModalDisplaysUsernameOnCreation() {
         let testUsername = "ImmediateDisplayUser"
+        let testAuthor = createTestAuthor(username: testUsername)
 
-        let modal = AuthorProfileModal(username: testUsername) {}
+        let modal = AuthorProfileModal(author: testAuthor) {}
 
         // Verify username is stored correctly
-        #expect(modal.username == testUsername, "Modal should store username correctly")
+        #expect(modal.author.username == testUsername, "Modal should store username correctly")
 
         // Test that the modal can be created without any async operations
         // that might cause delayed display
@@ -30,11 +46,12 @@ struct AuthorProfileModalTests {
     @Test("AuthorProfileModal handles empty username gracefully")
     func testAuthorProfileModalHandlesEmptyUsername() {
         let emptyUsername = ""
+        let testAuthor = createTestAuthor(username: emptyUsername)
 
-        let modal = AuthorProfileModal(username: emptyUsername) {}
+        let modal = AuthorProfileModal(author: testAuthor) {}
 
         // Should not crash even with empty username
-        #expect(modal.username == emptyUsername, "Modal should handle empty username")
+        #expect(modal.author.username == emptyUsername, "Modal should handle empty username")
     }
 
     @Test("AuthorProfileModal handles various username formats")
@@ -51,24 +68,26 @@ struct AuthorProfileModalTests {
         ]
 
         for username in testUsernames {
-            let modal = AuthorProfileModal(username: username) {}
+            let testAuthor = createTestAuthor(username: username)
+            let modal = AuthorProfileModal(author: testAuthor) {}
 
             // Modal should accept and store any username format
-            #expect(modal.username == username, "Modal should handle username: \(username)")
+            #expect(modal.author.username == username, "Modal should handle username: \(username)")
         }
     }
 
     @Test("AuthorProfileModal dismiss callback works")
     func testAuthorProfileModalDismissCallback() {
         var dismissCalled = false
+        let testAuthor = createTestAuthor(username: "TestUser")
 
-        let modal = AuthorProfileModal(username: "TestUser") {
+        let modal = AuthorProfileModal(author: testAuthor) {
             dismissCalled = true
         }
 
         // Simulate calling dismiss (this would normally be done by the UI)
         // We can't directly test the button tap, but we can verify the callback exists
-        #expect(modal.username == "TestUser", "Modal should be created with callback")
+        #expect(modal.author.username == "TestUser", "Modal should be created with callback")
 
         // In a real scenario, the dismiss callback would be called when user taps close
         // This test documents that the callback mechanism exists
@@ -77,15 +96,16 @@ struct AuthorProfileModalTests {
     @Test("AuthorProfileModal content is deterministic")
     func testAuthorProfileModalContentIsDeterministic() {
         let username = "DeterministicUser"
+        let testAuthor = createTestAuthor(username: username)
 
-        // Create multiple instances with same username
-        let modal1 = AuthorProfileModal(username: username) {}
-        let modal2 = AuthorProfileModal(username: username) {}
+        // Create multiple instances with same author
+        let modal1 = AuthorProfileModal(author: testAuthor) {}
+        let modal2 = AuthorProfileModal(author: testAuthor) {}
 
         // Both should have identical usernames
-        #expect(modal1.username == modal2.username, "Multiple modal instances should have same username")
-        #expect(modal1.username == username, "Modal username should match input")
-        #expect(modal2.username == username, "Modal username should match input")
+        #expect(modal1.author.username == modal2.author.username, "Multiple modal instances should have same username")
+        #expect(modal1.author.username == username, "Modal username should match input")
+        #expect(modal2.author.username == username, "Modal username should match input")
     }
 
     @Test("AuthorProfileModal handles concurrent creation")
@@ -96,8 +116,9 @@ struct AuthorProfileModalTests {
         await withTaskGroup(of: Void.self) { group in
             for username in usernames {
                 group.addTask {
-                    let modal = AuthorProfileModal(username: username) {}
-                    #expect(modal.username == username, "Concurrent modal creation should work for \(username)")
+                    let testAuthor = createTestAuthor(username: username)
+                    let modal = AuthorProfileModal(author: testAuthor) {}
+                    #expect(modal.author.username == username, "Concurrent modal creation should work for \(username)")
                 }
             }
         }
@@ -106,12 +127,14 @@ struct AuthorProfileModalTests {
     @Test("AuthorProfileModal state isolation")
     func testAuthorProfileModalStateIsolation() {
         // Test that different modal instances maintain separate state
-        let modal1 = AuthorProfileModal(username: "User1") {}
-        let modal2 = AuthorProfileModal(username: "User2") {}
+        let author1 = createTestAuthor(username: "User1")
+        let author2 = createTestAuthor(username: "User2")
+        let modal1 = AuthorProfileModal(author: author1) {}
+        let modal2 = AuthorProfileModal(author: author2) {}
 
-        #expect(modal1.username != modal2.username, "Different modals should have different usernames")
-        #expect(modal1.username == "User1", "First modal should maintain its username")
-        #expect(modal2.username == "User2", "Second modal should maintain its username")
+        #expect(modal1.author.username != modal2.author.username, "Different modals should have different usernames")
+        #expect(modal1.author.username == "User1", "First modal should maintain its username")
+        #expect(modal2.author.username == "User2", "Second modal should maintain its username")
     }
 
     @Test("AuthorProfileModal with anonymous author")
@@ -126,8 +149,9 @@ struct AuthorProfileModalTests {
         ]
 
         for username in anonymousUsernames {
-            let modal = AuthorProfileModal(username: username) {}
-            #expect(modal.username == username, "Modal should handle anonymous username: \(username)")
+            let testAuthor = createTestAuthor(username: username)
+            let modal = AuthorProfileModal(author: testAuthor) {}
+            #expect(modal.author.username == username, "Modal should handle anonymous username: \(username)")
         }
     }
 }
