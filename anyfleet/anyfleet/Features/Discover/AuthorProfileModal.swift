@@ -303,17 +303,30 @@ struct AuthorProfileModal: View {
 
     // Helper function to create proper URLs from backend responses
     private func createProfileImageURL(_ urlString: String?) -> URL? {
-        guard let urlString = urlString else { return nil }
+        guard let urlString = urlString else {
+            AppLogger.view.debug("AuthorProfileModal createProfileImageURL: nil input")
+            return nil
+        }
 
         // If URL already has protocol, use as-is
         if urlString.hasPrefix("http://") || urlString.hasPrefix("https://") {
+            AppLogger.view.debug("AuthorProfileModal createProfileImageURL: URL already has protocol: \(urlString)")
             return URL(string: urlString)
         }
 
-        // Otherwise, assume it's a relative path and add the base URL
-        let baseURL = "https://elegant-empathy-production-583b.up.railway.app"
-        let fullURLString = baseURL + (urlString.hasPrefix("/") ? "" : "/") + urlString
-        return URL(string: fullURLString)
+        // Check if URL contains a domain (contains dots and starts with a domain-like pattern)
+        if urlString.contains(".") && !urlString.hasPrefix("/") {
+            // URL contains domain but no protocol - add https://
+            let fullURLString = "https://" + urlString
+            AppLogger.view.debug("AuthorProfileModal createProfileImageURL: added https to domain URL: \(fullURLString)")
+            return URL(string: fullURLString)
+        } else {
+            // Relative path - prepend base URL
+            let baseURL = "https://elegant-empathy-production-583b.up.railway.app"
+            let fullURLString = baseURL + (urlString.hasPrefix("/") ? "" : "/") + urlString
+            AppLogger.view.debug("AuthorProfileModal createProfileImageURL: constructed relative URL: \(fullURLString)")
+            return URL(string: fullURLString)
+        }
     }
 }
 

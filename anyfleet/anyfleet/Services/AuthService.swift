@@ -494,6 +494,7 @@ final class AuthService: AuthServiceProtocol {
 
         // Update current user with new image URLs
         if let currentUser = currentUser {
+            let oldImageUrl = currentUser.profileImageUrl
             let updatedUser = UserInfo(
                 id: currentUser.id,
                 email: currentUser.email,
@@ -507,6 +508,9 @@ final class AuthService: AuthServiceProtocol {
                 profileVisibility: currentUser.profileVisibility
             )
             self.currentUser = updatedUser
+            AppLogger.auth.info("Updated currentUser image URLs: \(oldImageUrl ?? "nil") -> \(updatedUser.profileImageUrl ?? "nil")")
+        } else {
+            AppLogger.auth.warning("No currentUser to update with image URLs")
         }
 
         AppLogger.auth.info("Profile image uploaded successfully")

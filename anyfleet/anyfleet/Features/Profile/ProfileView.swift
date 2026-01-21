@@ -229,9 +229,7 @@ struct ProfileView: View {
     @State private var viewModel: ProfileViewModel
 
     // Use the AuthStateObserver for reactive authentication state
-    private var authObserver: AuthStateObserverProtocol {
-        dependencies.authStateObserver
-    }
+    @State private var authObserver: AuthStateObserverProtocol?
 
     @MainActor
     init(viewModel: ProfileViewModel? = nil) {
@@ -246,17 +244,18 @@ struct ProfileView: View {
                 DesignSystem.Colors.background
                     .ignoresSafeArea()
 
-                if authObserver.isSignedIn {
-                    authenticatedContent(viewModel: viewModel)
+                if let authObserver = authObserver, authObserver.isSignedIn {
+                    authenticatedContent(viewModel: viewModel, authObserver: authObserver)
                 } else {
                     unauthenticatedContent(viewModel: viewModel)
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
             .task {
-                // Replace the placeholder viewModel with one using environment dependencies
+                // Initialize authObserver and viewModel with environment dependencies
+                authObserver = dependencies.authStateObserver
                 viewModel = ProfileViewModel(authService: dependencies.authService)
-                if authObserver.isSignedIn {
+                if let authObserver = authObserver, authObserver.isSignedIn {
                     // TODO: Load reputation metrics when Phase 2 backend is ready
                     // await loadReputationMetrics()
                 }
@@ -274,7 +273,7 @@ struct ProfileView: View {
     // MARK: - Authenticated Content
 
     @MainActor
-    private func authenticatedContent(viewModel: ProfileViewModel) -> some View {
+    private func authenticatedContent(viewModel: ProfileViewModel, authObserver: AuthStateObserverProtocol) -> some View {
         ScrollView {
             VStack(spacing: DesignSystem.Spacing.xl) {
                 if let user = authObserver.currentUser {
@@ -305,7 +304,13 @@ struct ProfileView: View {
     
     @MainActor
     private func profileHeader(for user: UserInfo) -> some View {
-        VStack(spacing: DesignSystem.Spacing.xl) {
+        // Debug: Log when profile header is rendered with user data
+        AppLogger.view.debug("ProfileHeader rendering for user: \(user.username ?? "nil") with image: \(user.profileImageUrl ?? "nil")")
+        if let imageUrl = user.profileImageUrl, let constructedUrl = createProfileImageURL(imageUrl) {
+            AppLogger.view.debug("ProfileHeader using constructed URL: \(constructedUrl.absoluteString)")
+        }
+
+        return VStack(spacing: DesignSystem.Spacing.xl) {
             // Hero image section - Cinematic composition
             ZStack(alignment: .bottomLeading) {
                 // Background image or gradient
@@ -484,17 +489,30 @@ struct ProfileView: View {
 
     // Helper function to create proper URLs from backend responses
     private func createProfileImageURL(_ urlString: String?) -> URL? {
-        guard let urlString = urlString else { return nil }
+        guard let urlString = urlString else {
+            AppLogger.view.debug("createProfileImageURL: nil input")
+            return nil
+        }
 
         // If URL already has protocol, use as-is
         if urlString.hasPrefix("http://") || urlString.hasPrefix("https://") {
+            AppLogger.view.debug("createProfileImageURL: URL already has protocol: \(urlString)")
             return URL(string: urlString)
         }
 
-        // Otherwise, assume it's a relative path and add the base URL
-        let baseURL = "https://elegant-empathy-production-583b.up.railway.app"
-        let fullURLString = baseURL + (urlString.hasPrefix("/") ? "" : "/") + urlString
-        return URL(string: fullURLString)
+        // Check if URL contains a domain (contains dots and starts with a domain-like pattern)
+        if urlString.contains(".") && !urlString.hasPrefix("/") {
+            // URL contains domain but no protocol - add https://
+            let fullURLString = "https://" + urlString
+            AppLogger.view.debug("createProfileImageURL: added https to domain URL: \(fullURLString)")
+            return URL(string: fullURLString)
+        } else {
+            // Relative path - prepend base URL
+            let baseURL = "https://elegant-empathy-production-583b.up.railway.app"
+            let fullURLString = baseURL + (urlString.hasPrefix("/") ? "" : "/") + urlString
+            AppLogger.view.debug("createProfileImageURL: constructed relative URL: \(fullURLString)")
+            return URL(string: fullURLString)
+        }
     }
     
     @MainActor
