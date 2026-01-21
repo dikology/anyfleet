@@ -25,10 +25,12 @@ extension DesignSystem {
             // Content overlay
             VStack(alignment: .leading, spacing: Spacing.lg) {
               Spacer()
+                
+              // Profile image + camera button
+              profileImageStackView
               
               HStack(spacing: Spacing.lg) {
-                // Profile image + camera button
-                profileImageStackView
+                
                 
                 // Name, email, verification
                 VStack(alignment: .leading, spacing: Spacing.xs) {
@@ -42,11 +44,11 @@ extension DesignSystem {
                     .font(Typography.caption)
                     .foregroundColor(.white.opacity(0.8))
                     .shadow(color: Color.black.opacity(0.3), radius: 2, x: 0, y: 1)
-                  
-                  if let tier = verificationTier {
+                }
+                
+                if let tier = verificationTier {
                     verificationBadgeView(tier)
-                      .frame(width: 28, height: 28)
-                  }
+                    .frame(width: 28, height: 28)
                 }
                 
                 Spacer()
@@ -60,6 +62,7 @@ extension DesignSystem {
                     .background(Colors.primary)
                     .clipShape(Circle())
                 }
+                .padding(5)
               }
               .padding(.leading, Spacing.lg)
               .padding(.bottom, Spacing.lg)
@@ -69,13 +72,6 @@ extension DesignSystem {
           .frame(height: 240)
           .clipShape(RoundedRectangle(cornerRadius: 20))
           .shadow(color: Colors.shadowStrong.opacity(0.3), radius: 16, x: 0, y: 8)
-          
-          // Completion banner (optional)
-          if let completion = completionPercentage, completion < 100 {
-            completionBannerView(completion)
-              .padding(.horizontal, Spacing.lg)
-              .padding(.top, Spacing.lg)
-          }
         }
       }
       
@@ -395,26 +391,6 @@ extension DesignSystem {
                   RoundedRectangle(cornerRadius: Spacing.sm)
                     .stroke(Colors.border, lineWidth: 1)
                 )
-            }
-          )
-          
-          // Location field
-          fieldGroup(
-            label: "Location",
-            helper: nil,
-            content: {
-              TextField("Your location", text: $location)
-                .formFieldStyle()
-            }
-          )
-          
-          // Nationality field
-          fieldGroup(
-            label: "Nationality",
-            helper: nil,
-            content: {
-              TextField("Your nationality", text: $nationality)
-                .formFieldStyle()
             }
           )
           

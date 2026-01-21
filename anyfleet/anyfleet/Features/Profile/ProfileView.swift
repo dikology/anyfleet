@@ -33,19 +33,6 @@ final class ProfileViewModel: ErrorHandling {
         self.imageUploadService = ImageUploadService(authService: authService)
     }
     
-    // @MainActor
-    // func loadReputationMetrics() async {
-    //     isLoading = true
-    //     defer { isLoading = false }
-
-    //     // TODO: Call API when Phase 2 backend is ready
-    //     // do {
-    //     //     self.contributionMetrics = try await dependencies.authService.fetchMetrics()
-    //     // } catch {
-    //     //     appError = error.toAppError()
-    //     // }
-    // }
-    
     @MainActor
     func logout() async {
         isLoading = true
@@ -136,7 +123,7 @@ final class ProfileViewModel: ErrorHandling {
     
     func calculateProfileCompletion(for user: UserInfo) -> Int {
         var completedFields = 0
-        let totalFields = 5
+        let totalFields = 3
         
         // Username is always filled (required)
         completedFields += 1
@@ -145,12 +132,6 @@ final class ProfileViewModel: ErrorHandling {
             completedFields += 1
         }
         if let bio = user.bio, !bio.isEmpty {
-            completedFields += 1
-        }
-        if let location = user.location, !location.isEmpty {
-            completedFields += 1
-        }
-        if let nationality = user.nationality, !nationality.isEmpty {
             completedFields += 1
         }
         
@@ -167,8 +148,6 @@ final class ProfileViewModel: ErrorHandling {
 
         do {
             try await authService.handleAppleSignIn(result: result)
-            // Load metrics after successful sign-in
-            //await loadReputationMetrics()
         } catch {
             handleError(error)
         }
@@ -257,7 +236,7 @@ struct ProfileView: View {
                         },
                         isUploadingImage: viewModel.isUploadingImage
                     )
-                    .padding(.horizontal, DesignSystem.Spacing.lg)
+                    .sectionContainer()
 
                     // Profile editing/display section
                     if viewModel.isEditingProfile {
@@ -275,7 +254,7 @@ struct ProfileView: View {
                             },
                             isSaving: viewModel.isSavingProfile
                         )
-                        .padding(.horizontal, DesignSystem.Spacing.lg)
+                        .sectionContainer()
                     } else {
                         // Display mode
                         displayProfileInfo(user: user)
@@ -306,7 +285,6 @@ struct ProfileView: View {
                                 )
                             ]
                         )
-                        .padding(.horizontal, DesignSystem.Spacing.lg)
                         DesignSystem.Profile.MetricsCard(
                             title: L10n.Profile.contentOwnershipTitle,
                             subtitle: L10n.Profile.contentOwnershipSubtitle,
@@ -331,7 +309,6 @@ struct ProfileView: View {
                                 )
                             ]
                         )
-                        .padding(.horizontal, DesignSystem.Spacing.lg)
                     }
                     
                     accountManagementSection(user: user)
@@ -350,46 +327,10 @@ struct ProfileView: View {
         }
     }
     
-    
-
-    
-    
     @MainActor
     private func displayProfileInfo(user: UserInfo) -> some View {
         VStack(spacing: DesignSystem.Spacing.lg) {
-            // Header with edit button
-            HStack {
-                VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
-                    Text(user.username ?? user.email)
-                        .font(DesignSystem.Typography.title)
-                        .fontWeight(.bold)
-                        .foregroundColor(DesignSystem.Colors.textPrimary)
-
-                    Text(user.email)
-                        .font(DesignSystem.Typography.body)
-                        .foregroundColor(DesignSystem.Colors.textSecondary)
-                }
-
-                Spacer()
-
-                Button(action: {
-                    viewModel.startEditingProfile(user: user)
-                }) {
-                    HStack(spacing: DesignSystem.Spacing.xs) {
-                        Text("Edit")
-                            .font(DesignSystem.Typography.caption)
-                            .fontWeight(.medium)
-                        Image(systemName: "pencil")
-                            .font(.system(size: 14, weight: .medium))
-                    }
-                    .foregroundColor(DesignSystem.Colors.primary)
-                    .padding(.horizontal, DesignSystem.Spacing.sm)
-                    .padding(.vertical, DesignSystem.Spacing.xs)
-                    .background(DesignSystem.Colors.primary.opacity(0.1))
-                    .cornerRadius(DesignSystem.Spacing.sm)
-                }
-            }
-
+            
             // Bio Card
             if let bio = user.bio, !bio.isEmpty {
                 VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
@@ -415,25 +356,6 @@ struct ProfileView: View {
                 .overlay(
                     RoundedRectangle(cornerRadius: 12)
                         .stroke(DesignSystem.Colors.border.opacity(0.5), lineWidth: 1)
-                )
-            }
-
-            // Location & Nationality
-            if let location = user.location, !location.isEmpty {
-                DesignSystem.Profile.InfoRow(
-                    icon: "mappin.circle.fill",
-                    label: L10n.Profile.Location.title,
-                    value: location,
-                    color: DesignSystem.Colors.primary
-                )
-            }
-
-            if let nationality = user.nationality, !nationality.isEmpty {
-                DesignSystem.Profile.InfoRow(
-                    icon: "flag.fill",
-                    label: L10n.Profile.Nationality.title,
-                    value: nationality,
-                    color: DesignSystem.Colors.warning
                 )
             }
 
@@ -472,16 +394,8 @@ struct ProfileView: View {
             .frame(maxWidth: .infinity, alignment: .center)
             .padding(.top, DesignSystem.Spacing.sm)
         }
-        .padding(.horizontal, DesignSystem.Spacing.md)
-        .padding(.vertical, DesignSystem.Spacing.lg)
+        .sectionContainer()
     }
-
-    
-    // MARK: - Reputation Section (NEW)
-    
-    
-    // MARK: - Content Ownership Section (NEW)
-    
     
     // MARK: - Account Management Section
     
