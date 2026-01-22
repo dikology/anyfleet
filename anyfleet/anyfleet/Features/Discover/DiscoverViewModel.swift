@@ -88,8 +88,31 @@ final class DiscoverViewModel: ErrorHandling {
     /// Handle tapping on an author name
     func onAuthorTapped(_ username: String) {
         AppLogger.view.info("Author tapped: \(username)")
-        // TODO: Implement author profile navigation/modal
-        // For now, this is a placeholder for future implementation
+        // Profile fetching is handled in the view via fetchAndShowAuthorProfile
+    }
+    
+    /// Fetch author profile from backend and display in modal
+    func fetchAndShowAuthorProfile(
+        username: String,
+        onProfileFetched: @escaping (AuthorProfile) -> Void
+    ) async {
+        AppLogger.view.startOperation("Fetch Author Profile")
+        AppLogger.view.info("Fetching profile for: \(username)")
+        
+        do {
+            let response = try await apiClient.fetchPublicProfile(username: username)
+            let authorProfile = response.toAuthorProfile()
+            
+            AppLogger.view.completeOperation("Fetch Author Profile")
+            AppLogger.view.info("Fetched profile for: \(username)")
+            
+            // Call the callback on main actor to update UI
+            onProfileFetched(authorProfile)
+            
+        } catch {
+            AppLogger.view.error("Failed to fetch profile for \(username)", error: error)
+            handleError(error)
+        }
     }
 
     /// Handle tapping on a fork button

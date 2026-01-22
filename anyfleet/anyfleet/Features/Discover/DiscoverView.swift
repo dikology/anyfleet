@@ -111,21 +111,15 @@ struct DiscoverView: View {
                         viewModel.onContentTapped(content)
                     },
                     onAuthorTapped: { username in
-                        // Create a minimal author profile for the modal
-                        // TODO: Fetch full profile data from backend when Phase 2 author API is ready
-                        let authorProfile = AuthorProfile(
-                            username: username,
-                            email: "", // Not available in discover content
-                            profileImageUrl: nil,
-                            profileImageThumbnailUrl: nil,
-                            bio: nil,
-                            location: nil,
-                            nationality: nil,
-                            isVerified: false,
-                            stats: nil
-                        )
-                        selectedAuthor = AuthorProfileWrapper(profile: authorProfile)
-                        viewModel.onAuthorTapped(username)
+                        // Fetch full profile data from backend
+                        Task {
+                            await viewModel.fetchAndShowAuthorProfile(
+                                username: username,
+                                onProfileFetched: { profile in
+                                    selectedAuthor = AuthorProfileWrapper(profile: profile)
+                                }
+                            )
+                        }
                     },
                     onForkTapped: {
                         Task {

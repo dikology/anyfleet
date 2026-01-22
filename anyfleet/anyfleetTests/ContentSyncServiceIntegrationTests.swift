@@ -1215,6 +1215,27 @@ class MockAPIClient: APIClientProtocol {
             updatedAt: Date()
         )
     }
+
+    func fetchPublicProfile(username: String) async throws -> PublicProfileResponse {
+        // Mock implementation - return a mock profile
+        return PublicProfileResponse(
+            id: UUID(),
+            username: username,
+            profileImageUrl: nil,
+            profileImageThumbnailUrl: nil,
+            bio: "Mock bio",
+            location: "Mock location",
+            nationality: "Mock nationality",
+            isVerified: false,
+            verificationTier: nil,
+            createdAt: Date(),
+            stats: PublicProfileStatsResponse(
+                totalContributions: 5,
+                averageRating: nil,
+                totalForks: 2
+            )
+        )
+    }
 }
 
 // MARK: - Mock Auth Service

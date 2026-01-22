@@ -44,6 +44,8 @@ protocol APIClientProtocol {
         tags: [String],
         language: String
     ) async throws -> UpdateContentResponse
+    
+    func fetchPublicProfile(username: String) async throws -> PublicProfileResponse
 }
 
 /// API client for authenticated requests to backend
@@ -145,6 +147,18 @@ final class APIClient: APIClientProtocol {
         )
 
         return try await put("/content/\(publicID)", body: request)
+    }
+    
+    func fetchPublicProfile(username: String) async throws -> PublicProfileResponse {
+        AppLogger.api.debug("Fetching public profile for username: \(username)")
+        do {
+            let result: PublicProfileResponse = try await getUnauthenticated("/users/\(username)", body: EmptyBody())
+            AppLogger.api.debug("Successfully fetched public profile for: \(username)")
+            return result
+        } catch {
+            AppLogger.api.error("Failed to fetch public profile for \(username)", error: error)
+            throw error
+        }
     }
     
     // MARK: - HTTP Methods
@@ -549,3 +563,64 @@ enum APIError: LocalizedError {
 
 struct EmptyBody: Codable {}
 struct EmptyResponse: Codable {}
+
+// MARK: - Public Profile Response
+
+struct PublicProfileStatsResponse: Codable {
+    let totalContributions: Int
+    let averageRating: Double?
+    let totalForks: Int
+    
+    enum CodingKeys: String, CodingKey {
+        case totalContributions = "total_contributions"
+        case averageRating = "average_rating"
+        case totalForks = "total_forks"
+    }
+}
+
+struct PublicProfileResponse: Codable {
+    let id: UUID
+    let username: String
+    let profileImageUrl: String?
+    let profileImageThumbnailUrl: String?
+    let bio: String?
+    let location: String?
+    let nationality: String?
+    let isVerified: Bool
+    let verificationTier: String?
+    let createdAt: Date
+    let stats: PublicProfileStatsResponse
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case username
+        case profileImageUrl = "profile_image_url"
+        case profileImageThumbnailUrl = "profile_image_thumbnail_url"
+        case bio
+        case location
+        case nationality
+        case isVerified = "is_verified"
+        case verificationTier = "verification_tier"
+        case createdAt = "created_at"
+        case stats
+    }
+    
+    /// Convert to AuthorProfile for use in AuthorProfileModal
+    func toAuthorProfile(email: String = "") -> AuthorProfile {
+        return AuthorProfile(
+            username: username,
+            email: email,
+            profileImageUrl: profileImageUrl,
+            profileImageThumbnailUrl: profileImageThumbnailUrl,
+            bio: bio,
+            location: location,
+            nationality: nationality,
+            isVerified: isVerified,
+            stats: AuthorStats(
+                averageRating: stats.averageRating,
+                totalContributions: stats.totalContributions,
+                totalForks: stats.totalForks
+            )
+        )
+    }
+}
