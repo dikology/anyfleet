@@ -22,11 +22,9 @@ platform :ios do
     scan(
       project: "anyfleet/anyfleet.xcodeproj",
       scheme: "anyfleet",
-      # Specify a reliable device name that's commonly available across CI environments
-      device: "iPhone 16 Pro",
-      # Let Fastlane auto-detect available simulators
-      # This is more reliable across different environments
-      ensure_devices_found: true,
+      # Use the generic iOS Simulator destination for maximum compatibility
+      # This works reliably across different Xcode versions and CI environments
+      destination: "platform=iOS Simulator,name=Any iOS Simulator Device",
       code_coverage: false,
       clean: true,
       # Use xcbeautify for proper Swift Testing output display
