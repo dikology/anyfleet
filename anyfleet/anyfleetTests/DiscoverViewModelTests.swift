@@ -260,6 +260,10 @@ class DiscoverMockAPIClient: APIClientProtocol {
         throw NSError(domain: "MockError", code: 1, userInfo: nil)
     }
 
+    func fetchPublicProfile(username: String) async throws -> PublicProfileResponse {
+        throw NSError(domain: "MockError", code: 1, userInfo: nil)
+    }
+
 }
 
 class MockAppCoordinator: AppCoordinatorProtocol {

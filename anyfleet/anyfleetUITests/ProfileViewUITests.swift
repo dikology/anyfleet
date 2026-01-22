@@ -25,11 +25,11 @@ final class ProfileViewUITests: XCTestCase {
 
     func testProfileViewShowsUnauthenticatedContent() throws {
         // Given - app starts in unauthenticated state
-        let profileTab = app.tabBars.buttons["Profile"]
+        let profileTab = app.tabBars.buttons["Профиль"]
         profileTab.tap()
 
         // Should show sign in button initially
-        let signInButton = app.buttons["Sign in with Apple"]
+        let signInButton = app.buttons.matching(NSPredicate(format: "identifier == 'sign_in_apple_button'")).firstMatch
         XCTAssertTrue(signInButton.exists, "Sign in button should be visible when not authenticated")
 
         // Should not show authenticated content
@@ -43,11 +43,11 @@ final class ProfileViewUITests: XCTestCase {
 
     func testProfileViewAuthStateObservation() throws {
         // Given - ProfileView is loaded
-        let profileTab = app.tabBars.buttons["Profile"]
+        let profileTab = app.tabBars.buttons["Профиль"]
         profileTab.tap()
 
         // Initially should show unauthenticated state
-        let signInButton = app.buttons["Sign in with Apple"]
+        let signInButton = app.buttons.matching(NSPredicate(format: "identifier == 'sign_in_apple_button'")).firstMatch
         XCTAssertTrue(signInButton.exists)
 
         // When - auth state changes (would happen after successful sign in)
@@ -68,7 +68,7 @@ final class ProfileViewUITests: XCTestCase {
 
     func testProfileImageDisplaysAfterUpload() throws {
         // Given - user is authenticated and has uploaded a profile image
-        let profileTab = app.tabBars.buttons["Profile"]
+        let profileTab = app.tabBars.buttons["Профиль"]
         profileTab.tap()
 
         // When - profile image URL is properly formatted with https protocol

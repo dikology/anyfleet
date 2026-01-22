@@ -585,6 +585,7 @@ struct ProfileView: View {
                 .cornerRadius(DesignSystem.Spacing.md)
                 .disabled(viewModel.isLoading)
                 .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+                .accessibilityIdentifier("sign_in_apple_button")
                 
                 if viewModel.isLoading {
                     HStack {

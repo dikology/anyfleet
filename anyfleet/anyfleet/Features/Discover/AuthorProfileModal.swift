@@ -10,8 +10,8 @@ struct AuthorProfileModal: View {
 
     var body: some View {
         NavigationStack {
-            ZStack {
-                // Full-screen backdrop image or gradient (Profile Card style)
+            ZStack(alignment: .bottom) {
+                // Full-screen backdrop image with blur
                 if let url = createProfileImageURL(author.profileImageUrl) {
                     AsyncImage(url: url) { phase in
                         switch phase {
@@ -19,9 +19,16 @@ struct AuthorProfileModal: View {
                             image
                                 .resizable()
                                 .aspectRatio(contentMode: .fill)
+                                .blur(radius: 20) // Heavy blur for depth and focus on content
                                 .ignoresSafeArea()
-                        case .failure, .empty:
+                        case .failure:
                             placeholderBackground()
+                        case .empty:
+                            ZStack {
+                                placeholderBackground()
+                                ProgressView()
+                                    .tint(.white)
+                            }
                         @unknown default:
                             placeholderBackground()
                         }
@@ -30,205 +37,215 @@ struct AuthorProfileModal: View {
                     placeholderBackground()
                 }
 
-                // Dark gradient overlay for cinematic effect
-                ZStack {
-                    LinearGradient(
-                        colors: [
-                            Color.black.opacity(0.2),
-                            Color.black.opacity(0.4),
-                            Color.black.opacity(0.8)
-                        ],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-
-                    // Radial vignette for depth
-                    RadialGradient(
-                        gradient: Gradient(colors: [Color.clear, Color.black.opacity(0.4)]),
-                        center: .center,
-                        startRadius: 200,
-                        endRadius: 600
-                    )
-                }
+                // Enhanced gradient overlay for readability
+                LinearGradient(
+                    colors: [
+                        Color.black.opacity(0),
+                        Color.black.opacity(0.3),
+                        Color.black.opacity(0.7),
+                        Color.black.opacity(0.85)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
                 .ignoresSafeArea()
 
-                // Profile Card Content (as per Reference 2)
-                VStack {
-                    Spacer()
-
-                    // Main profile card
-                    VStack(spacing: DesignSystem.Spacing.lg) {
-                        // Profile image with verification overlay
-                        ZStack(alignment: .bottomTrailing) {
-                            if let url = createProfileImageURL(author.profileImageThumbnailUrl) {
-                                AsyncImage(url: url) { phase in
-                                    switch phase {
-                                    case .success(let image):
-                                        image
-                                            .resizable()
-                                            .aspectRatio(contentMode: .fill)
-                                            .frame(width: 80, height: 80)
-                                            .clipShape(Circle())
-                                            .overlay(
-                                                Circle()
-                                                    .stroke(Color.white, lineWidth: 3)
-                                                    .shadow(color: Color.black.opacity(0.3), radius: 4, x: 0, y: 2)
-                                            )
-                                    case .failure, .empty:
-                                        placeholderAvatar()
-                                    @unknown default:
-                                        placeholderAvatar()
-                                    }
+                // Bottom-aligned content
+                VStack(spacing: DesignSystem.Spacing.lg) {
+                    // Avatar with verification badge
+                    ZStack(alignment: .bottomTrailing) {
+                        if let url = createProfileImageURL(author.profileImageThumbnailUrl) {
+                            AsyncImage(url: url) { phase in
+                                switch phase {
+                                case .success(let image):
+                                    image
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fill)
+                                        .frame(width: 100, height: 100)
+                                        .clipShape(Circle())
+                                        .overlay(
+                                            Circle()
+                                                .strokeBorder(.white, lineWidth: 4)
+                                        )
+                                        .shadow(color: Color.black.opacity(0.4), radius: 12, x: 0, y: 6)
+                                case .failure, .empty:
+                                    placeholderAvatar()
+                                @unknown default:
+                                    placeholderAvatar()
                                 }
-                            } else {
-                                placeholderAvatar()
                             }
-
-                            // Verification badge overlay
-                            if author.isVerified {
-                                Image(systemName: "checkmark.seal.fill")
-                                    .font(.system(size: 20, weight: .semibold))
-                                    .foregroundColor(DesignSystem.Colors.primary)
-                                    .frame(width: 28, height: 28)
-                                    .background(Color.white)
-                                    .clipShape(Circle())
-                                    .overlay(
-                                        Circle()
-                                            .stroke(Color.white, lineWidth: 2)
-                                    )
-                                    .shadow(color: Color.black.opacity(0.2), radius: 2, x: 0, y: 1)
-                                    .offset(x: 4, y: 4)
-                            }
+                        } else {
+                            placeholderAvatar()
                         }
 
-                        // Username
+                        // Verification badge
+                        if author.isVerified {
+                            ZStack {
+                                Circle()
+                                    .fill(.ultraThinMaterial)
+                                    .frame(width: 32, height: 32)
+                                
+                                Image(systemName: "checkmark.seal.fill")
+                                    .font(.system(size: 18, weight: .bold))
+                                    .foregroundColor(DesignSystem.Colors.primary)
+                            }
+                            .overlay(
+                                Circle()
+                                    .strokeBorder(.white.opacity(0.3), lineWidth: 1.5)
+                            )
+                            .shadow(color: Color.black.opacity(0.3), radius: 4, x: 0, y: 2)
+                            .offset(x: 4, y: 4)
+                        }
+                    }
+
+                    // Username with inline verification
+                    HStack(spacing: DesignSystem.Spacing.xs) {
                         Text(author.username)
-                            .font(DesignSystem.Typography.title)
+                            .font(DesignSystem.Typography.largeTitle)
                             .fontWeight(.bold)
                             .foregroundColor(.white)
-                            .multilineTextAlignment(.center)
                             .shadow(color: Color.black.opacity(0.5), radius: 4, x: 0, y: 2)
                             .accessibilityIdentifier("author_username")
+                    }
 
-                        // Bio (One-line summary as per reference)
+                    // Bio with optional location
+                    VStack(spacing: DesignSystem.Spacing.sm) {
                         if let bio = author.bio, !bio.isEmpty {
                             Text(bio)
                                 .font(DesignSystem.Typography.body)
-                                .foregroundColor(.white.opacity(0.9))
+                                .foregroundColor(.white.opacity(0.95))
                                 .multilineTextAlignment(.center)
                                 .lineLimit(2)
-                                .lineSpacing(2)
-                                .shadow(color: Color.black.opacity(0.3), radius: 2, x: 0, y: 1)
+                                .lineSpacing(3)
+                                .shadow(color: Color.black.opacity(0.4), radius: 2, x: 0, y: 1)
                         }
-
-                        // Three Key Stats (horizontal layout as per reference)
-                        if let stats = author.stats {
-                            HStack(spacing: DesignSystem.Spacing.xl) {
-                                if let rating = stats.averageRating {
-                                    statBadge(
-                                        icon: "star.fill",
-                                        value: String(format: "%.1f", rating),
-                                        label: "Rating",
-                                        color: DesignSystem.Colors.warning
-                                    )
-                                }
-
-                                if let contributions = stats.totalContributions {
-                                    statBadge(
-                                        icon: "doc.text.fill",
-                                        value: "\(contributions)",
-                                        label: "Content",
-                                        color: DesignSystem.Colors.primary
-                                    )
-                                }
-
-                                if let forks = stats.totalForks {
-                                    statBadge(
-                                        icon: "arrow.triangle.branch",
-                                        value: "\(forks)",
-                                        label: "Forks",
-                                        color: DesignSystem.Colors.info
-                                    )
-                                }
-                            }
-                            .padding(.horizontal, DesignSystem.Spacing.md)
-                        }
-
-                        // Location badge (if available)
+                        
+                        // Location badge
                         if let location = author.location, !location.isEmpty {
                             HStack(spacing: DesignSystem.Spacing.xs) {
                                 Image(systemName: "mappin.circle.fill")
-                                    .font(.system(size: 12))
+                                    .font(.system(size: 12, weight: .medium))
                                 Text(location)
                                     .font(DesignSystem.Typography.caption)
                                     .fontWeight(.medium)
                             }
-                            .foregroundColor(.white.opacity(0.8))
-                            .padding(.horizontal, DesignSystem.Spacing.sm)
+                            .foregroundColor(.white.opacity(0.9))
+                            .padding(.horizontal, DesignSystem.Spacing.md)
                             .padding(.vertical, DesignSystem.Spacing.xs)
-                            .background(Color.white.opacity(0.15))
-                            .cornerRadius(DesignSystem.Spacing.md)
-                            .shadow(color: Color.black.opacity(0.2), radius: 2, x: 0, y: 1)
-                        }
-
-                        // Action buttons (Primary CTA + Bookmark)
-                        HStack(spacing: DesignSystem.Spacing.md) {
-                            // Primary CTA: Get In Touch
-                            Button(action: {
-                                if MFMailComposeViewController.canSendMail() {
-                                    showMailComposer = true
-                                }
-                            }) {
-                                HStack(spacing: DesignSystem.Spacing.sm) {
-                                    Image(systemName: "envelope.fill")
-                                    Text(L10n.AuthorProfile.getInTouch)
-                                        .fontWeight(.semibold)
-                                }
-                                .font(DesignSystem.Typography.body)
-                                .foregroundColor(DesignSystem.Colors.onPrimary)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, DesignSystem.Spacing.md)
-                                .background(DesignSystem.Gradients.primary)
-                                .cornerRadius(DesignSystem.Spacing.lg)
-                                .shadow(color: DesignSystem.Colors.primary.opacity(0.3), radius: 8, x: 0, y: 4)
-                            }
-                            .disabled(!MFMailComposeViewController.canSendMail())
-
-                            // Bookmark button
-                            Button(action: {
-                                // TODO: Implement bookmark/save functionality
-                            }) {
-                                Image(systemName: "bookmark")
-                                    .font(.system(size: 18, weight: .semibold))
-                                    .foregroundColor(.white)
-                                    .frame(width: 50, height: 50)
-                                    .background(Color.white.opacity(0.2))
-                                    .cornerRadius(DesignSystem.Spacing.lg)
+                            .background(
+                                Capsule()
+                                    .fill(.ultraThinMaterial)
                                     .overlay(
-                                        RoundedRectangle(cornerRadius: DesignSystem.Spacing.lg)
-                                            .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                                        Capsule()
+                                            .stroke(.white.opacity(0.2), lineWidth: 1)
                                     )
-                                    .shadow(color: Color.black.opacity(0.2), radius: 4, x: 0, y: 2)
+                            )
+                            .shadow(color: Color.black.opacity(0.2), radius: 4, x: 0, y: 2)
+                        }
+                    }
+                    .padding(.horizontal, DesignSystem.Spacing.lg)
+
+                    // Stats row with dividers
+                    if let stats = author.stats {
+                        HStack(spacing: 0) {
+                            if let rating = stats.averageRating {
+                                statBadge(
+                                    icon: "star.fill",
+                                    value: String(format: "%.1f", rating),
+                                    label: "Rating",
+                                    color: DesignSystem.Colors.warning
+                                )
+                                .frame(maxWidth: .infinity)
+                            }
+                            
+                            if let contributions = stats.totalContributions {
+                                Divider()
+                                    .frame(height: 40)
+                                    .background(.white.opacity(0.3))
+                                
+                                statBadge(
+                                    icon: "doc.text.fill",
+                                    value: contributions > 999 ? "\(contributions/1000)k+" : "\(contributions)",
+                                    label: "Content",
+                                    color: DesignSystem.Colors.primary
+                                )
+                                .frame(maxWidth: .infinity)
+                            }
+                            
+                            if let forks = stats.totalForks {
+                                Divider()
+                                    .frame(height: 40)
+                                    .background(.white.opacity(0.3))
+                                
+                                statBadge(
+                                    icon: "arrow.triangle.branch",
+                                    value: forks > 999 ? "\(forks/1000)k+" : "\(forks)",
+                                    label: "Forks",
+                                    color: DesignSystem.Colors.info
+                                )
+                                .frame(maxWidth: .infinity)
                             }
                         }
-                        .padding(.horizontal, DesignSystem.Spacing.md)
+                        .padding(.horizontal, DesignSystem.Spacing.xl)
+                        .padding(.vertical, DesignSystem.Spacing.md)
+                        .background(
+                            RoundedRectangle(cornerRadius: DesignSystem.Spacing.lg)
+                                .fill(.ultraThinMaterial)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: DesignSystem.Spacing.lg)
+                                        .stroke(.white.opacity(0.2), lineWidth: 1)
+                                )
+                        )
+                        .padding(.horizontal, DesignSystem.Spacing.lg)
                     }
-                    .padding(DesignSystem.Spacing.xl)
-                    .background(
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(Color.white.opacity(0.1))
-                            .blur(radius: 0.5)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 20)
-                                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
-                            )
-                            .shadow(color: Color.black.opacity(0.3), radius: 16, x: 0, y: 8)
-                    )
-                    .padding(.horizontal, DesignSystem.Spacing.lg)
-                    .padding(.bottom, DesignSystem.Spacing.xl)
 
-                    Spacer()
+                    // Action buttons
+                    HStack(spacing: DesignSystem.Spacing.md) {
+                        // Primary CTA: Get In Touch
+                        Button(action: {
+                            if MFMailComposeViewController.canSendMail() {
+                                showMailComposer = true
+                            }
+                        }) {
+                            HStack(spacing: DesignSystem.Spacing.sm) {
+                                Image(systemName: "envelope.fill")
+                                Text(L10n.AuthorProfile.getInTouch)
+                                    .fontWeight(.semibold)
+                            }
+                            .font(DesignSystem.Typography.body)
+                            .foregroundColor(DesignSystem.Colors.onPrimary)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, DesignSystem.Spacing.md)
+                            .background(
+                                RoundedRectangle(cornerRadius: DesignSystem.Spacing.xl)
+                                    .fill(DesignSystem.Gradients.primary)
+                            )
+                            .shadow(color: DesignSystem.Colors.primary.opacity(0.4), radius: 12, x: 0, y: 6)
+                        }
+                        .disabled(!MFMailComposeViewController.canSendMail())
+
+                        // Bookmark button
+                        Button(action: {
+                            // TODO: Implement bookmark/save functionality
+                        }) {
+                            Image(systemName: "bookmark")
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundColor(.white)
+                                .frame(width: 56, height: 56)
+                                .background(
+                                    RoundedRectangle(cornerRadius: DesignSystem.Spacing.xl)
+                                        .fill(.ultraThinMaterial)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: DesignSystem.Spacing.xl)
+                                                .stroke(.white.opacity(0.3), lineWidth: 1)
+                                        )
+                                )
+                                .shadow(color: Color.black.opacity(0.3), radius: 8, x: 0, y: 4)
+                        }
+                    }
+                    .padding(.horizontal, DesignSystem.Spacing.lg)
                 }
+                .padding(.bottom, DesignSystem.Spacing.xxl)
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -265,40 +282,48 @@ struct AuthorProfileModal: View {
     @MainActor
     private func statBadge(icon: String, value: String, label: String, color: Color) -> some View {
         VStack(spacing: DesignSystem.Spacing.xs) {
-            HStack(spacing: DesignSystem.Spacing.xs) {
+            HStack(spacing: 4) {
                 Image(systemName: icon)
-                    .font(.system(size: 14, weight: .medium))
+                    .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(color)
 
                 Text(value)
-                    .font(DesignSystem.Typography.body)
+                    .font(DesignSystem.Typography.title3)
                     .fontWeight(.bold)
                     .foregroundColor(.white)
             }
 
             Text(label)
                 .font(DesignSystem.Typography.caption)
-                .foregroundColor(.white.opacity(0.7))
+                .foregroundColor(.white.opacity(0.8))
         }
-        .frame(width: 70)
     }
 
     @MainActor
     private func placeholderAvatar() -> some View {
         ZStack {
             Circle()
-                .fill(Color.white.opacity(0.2))
-                .frame(width: 80, height: 80)
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            DesignSystem.Colors.primary.opacity(0.7),
+                            DesignSystem.Colors.primary
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .frame(width: 100, height: 100)
 
             Image(systemName: "person.fill")
-                .font(.system(size: 28, weight: .medium))
-                .foregroundColor(.white.opacity(0.8))
+                .font(.system(size: 40, weight: .medium))
+                .foregroundColor(.white)
         }
         .overlay(
             Circle()
-                .stroke(Color.white, lineWidth: 3)
-                .shadow(color: Color.black.opacity(0.3), radius: 4, x: 0, y: 2)
+                .strokeBorder(.white, lineWidth: 4)
         )
+        .shadow(color: Color.black.opacity(0.4), radius: 12, x: 0, y: 6)
     }
 
     // Helper function to create proper URLs from backend responses

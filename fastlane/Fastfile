@@ -22,17 +22,18 @@ platform :ios do
     scan(
       project: "anyfleet/anyfleet.xcodeproj",
       scheme: "anyfleet",
-      # Let Fastlane auto-detect available simulators
-      # This is more reliable across different environments
-      ensure_devices_found: true,
+      # Skip device detection to avoid race conditions in CI where detected simulators
+      # may not be available when xcodebuild actually runs
+      skip_detect_devices: true,
       code_coverage: false,
       clean: true,
       # Use xcbeautify for proper Swift Testing output display
       xcodebuild_formatter: "xcbeautify",
-      # Disable parallel testing for CI reliability
-      # This prevents random freezes and ensures Swift Testing output is properly displayed
-      # The scheme already has parallelizable="NO", but we add these args for extra safety
-      xcargs: "-parallel-testing-worker-count 1 -parallel-testing-enabled NO",
+      # Explicitly specify destination to avoid Mac Catalyst
+      # Don't specify OS version to let xcodebuild pick any available simulator
+      # Using generic "iPhone" to work across different CI environments
+      # Also disable parallel testing for CI reliability
+      xcargs: "-destination 'platform=iOS Simulator,name=iPhone 16 Pro' -parallel-testing-worker-count 1 -parallel-testing-enabled NO",
       output_directory: "./fastlane/test_output",
       # xcbeautify doesn't support HTML output, only junit
       output_types: "junit",
