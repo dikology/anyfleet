@@ -98,17 +98,26 @@ final class DiscoverViewModel: ErrorHandling {
     ) async {
         AppLogger.view.startOperation("Fetch Author Profile")
         AppLogger.view.info("Fetching profile for: \(username)")
-        
+
+        // Check if we're in UI testing mode and return mock data
+        if ProcessInfo.processInfo.environment["UITesting"] == "true" {
+            let mockProfile = mockAuthorProfile(username: username)
+            AppLogger.view.completeOperation("Fetch Author Profile")
+            AppLogger.view.info("Loaded mock profile for UI testing: \(username)")
+            onProfileFetched(mockProfile)
+            return
+        }
+
         do {
             let response = try await apiClient.fetchPublicProfile(username: username)
             let authorProfile = response.toAuthorProfile()
-            
+
             AppLogger.view.completeOperation("Fetch Author Profile")
             AppLogger.view.info("Fetched profile for: \(username)")
-            
+
             // Call the callback on main actor to update UI
             onProfileFetched(authorProfile)
-            
+
         } catch {
             AppLogger.view.error("Failed to fetch profile for \(username)", error: error)
             handleError(error)
@@ -184,5 +193,24 @@ final class DiscoverViewModel: ErrorHandling {
                 createdAt: Date().addingTimeInterval(-60 * 60 * 24 * 3)
             )
         ]
+    }
+
+    /// Returns mock author profile data for UI testing
+    private func mockAuthorProfile(username: String) -> AuthorProfile {
+        return AuthorProfile(
+            username: username,
+            email: "",
+            profileImageUrl: nil,
+            profileImageThumbnailUrl: nil,
+            bio: "Experienced sailor with 10+ years at sea. Specializing in Mediterranean navigation and safety protocols.",
+            location: "Mediterranean Sea",
+            nationality: "Italian",
+            isVerified: true,
+            stats: AuthorStats(
+                averageRating: 4.8,
+                totalContributions: 15,
+                totalForks: 23
+            )
+        )
     }
 }
