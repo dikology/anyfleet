@@ -22,9 +22,9 @@ platform :ios do
     scan(
       project: "anyfleet/anyfleet.xcodeproj",
       scheme: "anyfleet",
-      # Use the generic iOS Simulator destination for maximum compatibility
-      # This works reliably across different Xcode versions and CI environments
-      destination: "platform=iOS Simulator,name=Any iOS Simulator Device",
+      # Specify an iOS Simulator device to avoid defaulting to Mac Catalyst
+      # Using iPhone 16 Pro for broad compatibility across CI environments
+      device: "iPhone 16 Pro",
       code_coverage: false,
       clean: true,
       # Use xcbeautify for proper Swift Testing output display
