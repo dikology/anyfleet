@@ -29,10 +29,11 @@ platform :ios do
       clean: true,
       # Use xcbeautify for proper Swift Testing output display
       xcodebuild_formatter: "xcbeautify",
-      # Explicitly specify destination with OS=latest to avoid Mac Catalyst
-      # Using iPhone 17 Pro as it's available in most recent Xcode versions
+      # Explicitly specify destination to avoid Mac Catalyst
+      # Don't specify OS version to let xcodebuild pick any available simulator
+      # Using generic "iPhone" to work across different CI environments
       # Also disable parallel testing for CI reliability
-      xcargs: "-destination 'platform=iOS Simulator,OS=latest,name=iPhone 17 Pro' -parallel-testing-worker-count 1 -parallel-testing-enabled NO",
+      xcargs: "-destination 'platform=iOS Simulator,name=iPhone 16 Pro' -parallel-testing-worker-count 1 -parallel-testing-enabled NO",
       output_directory: "./fastlane/test_output",
       # xcbeautify doesn't support HTML output, only junit
       output_types: "junit",
