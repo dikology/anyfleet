@@ -33,7 +33,6 @@ jobs:
 
       - name: Verify Xcode setup
         run: |
-          sudo xcode-select -s /Applications/Xcode.app
           xcodebuild -version
           xcrun simctl list devices available
 
@@ -79,7 +78,6 @@ jobs:
 
       - name: Verify Xcode setup
         run: |
-          sudo xcode-select -s /Applications/Xcode.app
           echo "=== Selected Xcode version ==="
           xcodebuild -version
           echo ""
