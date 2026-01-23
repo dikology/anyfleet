@@ -25,7 +25,7 @@ final class ProfileViewUITests: XCTestCase {
 
     func testProfileViewShowsUnauthenticatedContent() throws {
         // Given - app starts in unauthenticated state
-        let profileTab = app.tabBars.buttons["Профиль"]
+        let profileTab = app.tabBars.buttons["Profile"]
         profileTab.tap()
 
         // Should show sign in button initially
@@ -43,7 +43,7 @@ final class ProfileViewUITests: XCTestCase {
 
     func testProfileViewAuthStateObservation() throws {
         // Given - ProfileView is loaded
-        let profileTab = app.tabBars.buttons["Профиль"]
+        let profileTab = app.tabBars.buttons["Profile"]
         profileTab.tap()
 
         // Initially should show unauthenticated state
@@ -68,7 +68,7 @@ final class ProfileViewUITests: XCTestCase {
 
     func testProfileImageDisplaysAfterUpload() throws {
         // Given - user is authenticated and has uploaded a profile image
-        let profileTab = app.tabBars.buttons["Профиль"]
+        let profileTab = app.tabBars.buttons["Profile"]
         profileTab.tap()
 
         // When - profile image URL is properly formatted with https protocol
