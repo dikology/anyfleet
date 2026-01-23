@@ -55,22 +55,6 @@ Build and archive the app (local development - uses development export)
 
 Upload to TestFlight
 
-### ios screenshots
-
-```sh
-[bundle exec] fastlane ios screenshots
-```
-
-Capture screenshots for App Store
-
-### ios upload_screenshots
-
-```sh
-[bundle exec] fastlane ios upload_screenshots
-```
-
-Upload screenshots and metadata to App Store
-
 ### ios ci
 
 ```sh
