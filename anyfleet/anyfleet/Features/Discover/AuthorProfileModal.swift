@@ -19,7 +19,7 @@ struct AuthorProfileModal: View {
                             image
                                 .resizable()
                                 .aspectRatio(contentMode: .fill)
-                                .blur(radius: 20) // Heavy blur for depth and focus on content
+                                //.blur(radius: 20) // Heavy blur for depth and focus on content
                                 .ignoresSafeArea()
                         case .failure:
                             placeholderBackground()
