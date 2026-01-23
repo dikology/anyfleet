@@ -108,7 +108,7 @@ extension DesignSystem {
                     .resizable()
                     .aspectRatio(contentMode: .fill)
                     .frame(width: geometry.size.width, height: heroHeight)
-                    .blur(radius: 12) // UX: Blur for text legibility and depth
+                    //.blur(radius: 1) // UX: Blur for text legibility and depth
                     .clipped() // CRITICAL: Prevents overflow
                 case .failure:
                   gradientBackground
