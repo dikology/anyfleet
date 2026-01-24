@@ -200,50 +200,50 @@ struct AuthorProfileModal: View {
                     }
 
                     // Action buttons
-                    HStack(spacing: DesignSystem.Spacing.md) {
-                        // Primary CTA: Get In Touch
-                        Button(action: {
-                            if MFMailComposeViewController.canSendMail() {
-                                showMailComposer = true
-                            }
-                        }) {
-                            HStack(spacing: DesignSystem.Spacing.sm) {
-                                Image(systemName: "envelope.fill")
-                                Text(L10n.AuthorProfile.getInTouch)
-                                    .fontWeight(.semibold)
-                            }
-                            .font(DesignSystem.Typography.body)
-                            .foregroundColor(DesignSystem.Colors.onPrimary)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, DesignSystem.Spacing.md)
-                            .background(
-                                RoundedRectangle(cornerRadius: DesignSystem.Spacing.xl)
-                                    .fill(DesignSystem.Gradients.primary)
-                            )
-                            .shadow(color: DesignSystem.Colors.primary.opacity(0.4), radius: 12, x: 0, y: 6)
-                        }
-                        .disabled(!MFMailComposeViewController.canSendMail())
-
-                        // Bookmark button
-                        Button(action: {
-                            // TODO: Implement bookmark/save functionality
-                        }) {
-                            Image(systemName: "bookmark")
-                                .font(.system(size: 18, weight: .semibold))
-                                .foregroundColor(.white)
-                                .frame(width: 56, height: 56)
-                                .background(
-                                    RoundedRectangle(cornerRadius: DesignSystem.Spacing.xl)
-                                        .fill(.ultraThinMaterial)
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: DesignSystem.Spacing.xl)
-                                                .stroke(.white.opacity(0.3), lineWidth: 1)
-                                        )
-                                )
-                                .shadow(color: Color.black.opacity(0.3), radius: 8, x: 0, y: 4)
-                        }
-                    }
-                    .padding(.horizontal, DesignSystem.Spacing.lg)
+//                    HStack(spacing: DesignSystem.Spacing.md) {
+//                        // Primary CTA: Get In Touch
+//                        Button(action: {
+//                            if MFMailComposeViewController.canSendMail() {
+//                                showMailComposer = true
+//                            }
+//                        }) {
+//                            HStack(spacing: DesignSystem.Spacing.sm) {
+//                                Image(systemName: "envelope.fill")
+//                                Text(L10n.AuthorProfile.getInTouch)
+//                                    .fontWeight(.semibold)
+//                            }
+//                            .font(DesignSystem.Typography.body)
+//                            .foregroundColor(DesignSystem.Colors.onPrimary)
+//                            .frame(maxWidth: .infinity)
+//                            .padding(.vertical, DesignSystem.Spacing.md)
+//                            .background(
+//                                RoundedRectangle(cornerRadius: DesignSystem.Spacing.xl)
+//                                    .fill(DesignSystem.Gradients.primary)
+//                            )
+//                            .shadow(color: DesignSystem.Colors.primary.opacity(0.4), radius: 12, x: 0, y: 6)
+//                        }
+//                        .disabled(!MFMailComposeViewController.canSendMail())
+//
+//                        // Bookmark button
+//                        Button(action: {
+//                            // TODO: Implement bookmark/save functionality
+//                        }) {
+//                            Image(systemName: "bookmark")
+//                                .font(.system(size: 18, weight: .semibold))
+//                                .foregroundColor(.white)
+//                                .frame(width: 56, height: 56)
+//                                .background(
+//                                    RoundedRectangle(cornerRadius: DesignSystem.Spacing.xl)
+//                                        .fill(.ultraThinMaterial)
+//                                        .overlay(
+//                                            RoundedRectangle(cornerRadius: DesignSystem.Spacing.xl)
+//                                                .stroke(.white.opacity(0.3), lineWidth: 1)
+//                                        )
+//                                )
+//                                .shadow(color: Color.black.opacity(0.3), radius: 8, x: 0, y: 4)
+//                        }
+//                    }
+//                    .padding(.horizontal, DesignSystem.Spacing.lg)
                 }
                 .padding(.bottom, DesignSystem.Spacing.xxl)
             }
