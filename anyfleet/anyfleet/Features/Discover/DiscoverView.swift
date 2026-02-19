@@ -5,6 +5,13 @@ struct DiscoverView: View {
     @Environment(\.appDependencies) private var dependencies
     @Environment(\.appCoordinator) private var coordinator
 
+    // Content type tab selection
+    enum ContentTab: String, CaseIterable {
+        case content = "Content"
+        case charters = "Charters"
+    }
+    @State private var selectedTab: ContentTab = .content
+
     // Modal state
     @State private var selectedAuthor: AuthorProfileWrapper?
 
@@ -30,18 +37,19 @@ struct DiscoverView: View {
 
     var body: some View {
         ZStack {
-            Group {
-                if viewModel.isEmpty && !viewModel.isLoading {
-                    emptyState
-                } else {
-                    contentList
-                }
+            VStack(spacing: 0) {
+                contentTabPicker
+                    .padding(.horizontal, DesignSystem.Spacing.screenPadding)
+                    .padding(.vertical, DesignSystem.Spacing.sm)
+                    .background(DesignSystem.Colors.background)
+
+                tabContent
             }
             .navigationBarTitleDisplayMode(.inline)
             .background(DesignSystem.Colors.background.ignoresSafeArea())
 
-            // Error Banner
-            if viewModel.showErrorBanner, let error = viewModel.currentError {
+            // Error Banner (only for content tab)
+            if selectedTab == .content, viewModel.showErrorBanner, let error = viewModel.currentError {
                 VStack {
                     Spacer()
                     ErrorBanner(
@@ -75,6 +83,51 @@ struct DiscoverView: View {
         }
         .refreshable {
             await viewModel.refresh()
+        }
+    }
+
+    // MARK: - Tab Picker
+
+    private var contentTabPicker: some View {
+        Picker("Content Type", selection: $selectedTab) {
+            ForEach(ContentTab.allCases, id: \.self) { tab in
+                Text(tab.rawValue).tag(tab)
+            }
+        }
+        .pickerStyle(.segmented)
+        .accessibilityLabel("Content type selector")
+        .accessibilityHint("Switch between community content and charter discovery")
+    }
+
+    // MARK: - Tab Content
+
+    @ViewBuilder
+    private var tabContent: some View {
+        switch selectedTab {
+        case .content:
+            contentTabView
+        case .charters:
+            charterDiscoveryTabView
+        }
+    }
+
+    private var charterDiscoveryTabView: some View {
+        CharterDiscoveryView(
+            viewModel: CharterDiscoveryViewModel(apiClient: dependencies.apiClient)
+        )
+    }
+
+    // MARK: - Content Tab (Library Content Discovery)
+
+    private var contentTabView: some View {
+        ZStack {
+            Group {
+                if viewModel.isEmpty && !viewModel.isLoading {
+                    emptyState
+                } else {
+                    contentList
+                }
+            }
         }
     }
 

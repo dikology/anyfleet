@@ -39,7 +39,6 @@ final class AppDatabase: Sendable {
         self.dbWriter = dbWriter
         // AppLogger.database.debug("Running database migrations")
         try migrator.migrate(dbWriter)
-        AppLogger.database.info("AppDatabase initialized and migrations completed")
     }
     
     // MARK: - Database Migrator
@@ -70,7 +69,6 @@ final class AppDatabase: Sendable {
             }
             
             try db.create(index: "idx_charters_startDate", on: "charters", columns: ["startDate"])
-            AppLogger.database.info("Migration v1.0.0_createInitialSchema completed successfully")
         }
         
         migrator.registerMigration("v1.1.0_createLibrarySchema") { db in
@@ -116,7 +114,6 @@ final class AppDatabase: Sendable {
             try db.create(index: "idx_checklists_creator", on: "checklists", columns: ["creatorID"])
             try db.create(index: "idx_checklists_updated", on: "checklists", columns: ["updatedAt"])
             
-            AppLogger.database.info("Migration v1.1.0_createLibrarySchema completed successfully")
         }
         
         migrator.registerMigration("v1.2.0_createChecklistExecutionSchema") { db in
@@ -147,7 +144,6 @@ final class AppDatabase: Sendable {
             try db.create(index: "idx_executionStates_updated",
                           on: "checklistExecutionStates", columns: ["lastUpdated"])
             
-            AppLogger.database.info("Migration v1.2.0_createChecklistExecutionSchema completed successfully")
         }
         
         migrator.registerMigration("v1.3.0_addPinnedColumnsToLibrary") { db in
@@ -164,7 +160,6 @@ final class AppDatabase: Sendable {
                 columns: ["isPinned", "pinnedOrder", "updatedAt"]
             )
             
-            AppLogger.database.info("Migration v1.3.0_addPinnedColumnsToLibrary completed successfully")
         }
         
         migrator.registerMigration("v1.4.0_createPracticeGuidesTable") { db in
@@ -187,7 +182,6 @@ final class AppDatabase: Sendable {
             try db.create(index: "idx_practice_guides_creator", on: "practice_guides", columns: ["creatorID"])
             try db.create(index: "idx_practice_guides_updated", on: "practice_guides", columns: ["updatedAt"])
             
-            AppLogger.database.info("Migration v1.4.0_createPracticeGuidesTable completed successfully")
         }
         
         migrator.registerMigration("v1.5.0_addVisibilityFields") { db in
@@ -199,7 +193,6 @@ final class AppDatabase: Sendable {
                 t.add(column: "publicMetadata", .text) // JSON for PublicMetadata
             }
             
-            AppLogger.database.info("Migration v1.5.0_addVisibilityFields completed successfully")
         }
 
         migrator.registerMigration("v1.6.0_createSyncQueueTable") { db in
@@ -228,7 +221,6 @@ final class AppDatabase: Sendable {
 
             try db.create(index: "idx_sync_queue_content", on: "sync_queue", columns: ["contentID"])
             
-            AppLogger.database.info("Migration v1.6.0_createSyncQueueTable completed successfully")
         }
 
         migrator.registerMigration("v1.7.0_addForkAttributionColumns") { db in
@@ -239,9 +231,29 @@ final class AppDatabase: Sendable {
                 t.add(column: "originalContentPublicID", .text)
             }
 
-            AppLogger.database.info("Migration v1.7.0_addForkAttributionColumns completed successfully")
         }
 
+        migrator.registerMigration("v1.8.0_addCharterSyncAndGeoFields") { db in
+            try db.alter(table: "charters") { t in
+                // Sync fields
+                t.add(column: "serverID", .text)
+                t.add(column: "visibility", .text).notNull().defaults(to: "private")
+                t.add(column: "needsSync", .boolean).notNull().defaults(to: false)
+                t.add(column: "lastSyncedAt", .datetime)
+
+                // Geo fields
+                t.add(column: "latitude", .double)
+                t.add(column: "longitude", .double)
+                t.add(column: "locationPlaceID", .text)
+            }
+
+            try db.create(
+                index: "idx_charters_visibility",
+                on: "charters",
+                columns: ["visibility"]
+            )
+
+        }
 
         return migrator
     }
@@ -264,7 +276,6 @@ final class AppDatabase: Sendable {
             
             let databaseURL = directoryURL.appendingPathComponent("anyfleet.sqlite")
             
-            AppLogger.database.info("Database path: \(databaseURL.path)")
             
             // Configure the database
             let config = Configuration()
@@ -278,7 +289,6 @@ final class AppDatabase: Sendable {
             
             // AppLogger.database.debug("Creating DatabaseQueue")
             let dbQueue = try DatabaseQueue(path: databaseURL.path, configuration: config)
-            AppLogger.database.info("DatabaseQueue created successfully")
             return try AppDatabase(dbQueue)
             
         } catch {

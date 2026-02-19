@@ -2,7 +2,7 @@
 //  MockLocalRepository.swift
 //  anyfleetTests
 //
-//  Mock repository for unit testing CharterStore
+//  Mock repository for unit testing CharterStore and CharterSyncService
 //
 
 import Foundation
@@ -20,12 +20,29 @@ final class MockLocalRepository: CharterRepository, @unchecked Sendable {
     var updateCharterResult: Result<CharterModel, Error> = .success(CharterModel(id: UUID(), name: "", boatName: nil, location: nil, startDate: Date(), endDate: Date(), createdAt: Date(), checkInChecklistID: nil))
     var deleteCharterResult: Result<Void, Error> = .success(())
     var markChartersSyncedResult: Result<Void, Error> = .success(())
-    
+
+    // MARK: Sync Support Results
+    var fetchPendingSyncChartersResult: Result<[CharterModel], Error> = .success([])
+    var markCharterSyncedResult: Result<Void, Error> = .success(())
+    var updateCharterVisibilityResult: Result<Void, Error> = .success(())
+    var updateCharterServerIDResult: Result<Void, Error> = .success(())
+
+    // MARK: Call Counters
     var createCharterCallCount = 0
     var saveCharterCallCount = 0
     var deleteCharterCallCount = 0
     var fetchAllChartersCallCount = 0
+    var fetchPendingSyncChartersCallCount = 0
+    var markCharterSyncedCallCount = 0
+    var updateCharterVisibilityCallCount = 0
+    var updateCharterServerIDCallCount = 0
+
+    // MARK: Last Call Arguments
     var lastCreatedCharter: CharterModel?
+    var lastMarkedSyncedID: UUID?
+    var lastMarkedSyncedServerID: UUID?
+    var lastUpdatedVisibilityID: UUID?
+    var lastUpdatedVisibility: CharterVisibility?
     
     func fetchAllCharters() async throws -> [CharterModel] {
         fetchAllChartersCallCount += 1
@@ -70,5 +87,31 @@ final class MockLocalRepository: CharterRepository, @unchecked Sendable {
 
     func updateCharter(_ charterID: UUID, name: String, boatName: String?, location: String?, startDate: Date, endDate: Date, checkInChecklistID: UUID?) async throws -> CharterModel {
         return try updateCharterResult.get()
+    }
+
+    // MARK: Sync Support
+
+    func fetchPendingSyncCharters() async throws -> [CharterModel] {
+        fetchPendingSyncChartersCallCount += 1
+        return try fetchPendingSyncChartersResult.get()
+    }
+
+    func markCharterSynced(_ id: UUID, serverID: UUID) async throws {
+        markCharterSyncedCallCount += 1
+        lastMarkedSyncedID = id
+        lastMarkedSyncedServerID = serverID
+        try markCharterSyncedResult.get()
+    }
+
+    func updateCharterVisibility(_ id: UUID, visibility: CharterVisibility) async throws {
+        updateCharterVisibilityCallCount += 1
+        lastUpdatedVisibilityID = id
+        lastUpdatedVisibility = visibility
+        try updateCharterVisibilityResult.get()
+    }
+
+    func updateCharterServerID(_ id: UUID, serverID: UUID) async throws {
+        updateCharterServerIDCallCount += 1
+        try updateCharterServerIDResult.get()
     }
 }

@@ -13,6 +13,8 @@ struct CharterFormState {
     var deckhandIncluded: Bool = false
     var budget: Double = 0
     var notes: String = ""
+    /// Visibility for community discovery. Defaults to private.
+    var visibility: CharterVisibility = .private
     
     var nights: Int {
         Calendar.current.dateComponents([.day], from: startDate, to: endDate).day ?? 0
@@ -136,6 +138,7 @@ struct CharterFormState {
         state.chefIncluded = true
         state.budget = 24000
         state.notes = "Include snorkeling gear and child life vests."
+        state.visibility = .public
         return state
     }
 }

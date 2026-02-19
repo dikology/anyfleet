@@ -1217,7 +1217,6 @@ class MockAPIClient: APIClientProtocol {
     }
 
     func fetchPublicProfile(username: String) async throws -> PublicProfileResponse {
-        // Mock implementation - return a mock profile
         return PublicProfileResponse(
             id: UUID(),
             username: username,
@@ -1234,6 +1233,102 @@ class MockAPIClient: APIClientProtocol {
                 averageRating: nil,
                 totalForks: 2
             )
+        )
+    }
+
+    // MARK: Charter API
+
+    var mockCreateCharterResponse: CharterAPIResponse?
+    var mockFetchMyChartersResponse: CharterListAPIResponse?
+    var mockDiscoverChartersResponse: CharterDiscoveryAPIResponse?
+    var createCharterCallCount = 0
+    var updateCharterCallCount = 0
+    var discoverChartersCallCount = 0
+
+    func createCharter(_ request: CharterCreateRequest) async throws -> CharterAPIResponse {
+        createCharterCallCount += 1
+        if shouldFail { throw APIError.serverError }
+        return mockCreateCharterResponse ?? CharterAPIResponse(
+            id: UUID(),
+            userId: UUID(),
+            name: request.name,
+            boatName: request.boatName,
+            locationText: request.locationText,
+            startDate: request.startDate,
+            endDate: request.endDate,
+            latitude: request.latitude,
+            longitude: request.longitude,
+            locationPlaceId: request.locationPlaceId,
+            visibility: request.visibility,
+            createdAt: Date(),
+            updatedAt: Date()
+        )
+    }
+
+    func fetchMyCharters() async throws -> CharterListAPIResponse {
+        if shouldFail { throw APIError.serverError }
+        return mockFetchMyChartersResponse ?? CharterListAPIResponse(items: [], total: 0, limit: 20, offset: 0)
+    }
+
+    func fetchCharter(id: UUID) async throws -> CharterAPIResponse {
+        if shouldFail { throw APIError.serverError }
+        return CharterAPIResponse(
+            id: id,
+            userId: UUID(),
+            name: "Mock Charter",
+            boatName: nil,
+            locationText: nil,
+            startDate: Date(),
+            endDate: Date().addingTimeInterval(86400),
+            latitude: nil,
+            longitude: nil,
+            locationPlaceId: nil,
+            visibility: "private",
+            createdAt: Date(),
+            updatedAt: Date()
+        )
+    }
+
+    func updateCharter(id: UUID, request: CharterUpdateRequest) async throws -> CharterAPIResponse {
+        updateCharterCallCount += 1
+        if shouldFail { throw APIError.serverError }
+        return CharterAPIResponse(
+            id: id,
+            userId: UUID(),
+            name: request.name ?? "Updated Charter",
+            boatName: request.boatName,
+            locationText: request.locationText,
+            startDate: request.startDate ?? Date(),
+            endDate: request.endDate ?? Date().addingTimeInterval(86400),
+            latitude: request.latitude,
+            longitude: request.longitude,
+            locationPlaceId: request.locationPlaceId,
+            visibility: request.visibility ?? "private",
+            createdAt: Date(),
+            updatedAt: Date()
+        )
+    }
+
+    func deleteCharter(id: UUID) async throws {
+        if shouldFail { throw APIError.serverError }
+    }
+
+    func discoverCharters(
+        dateFrom: Date?,
+        dateTo: Date?,
+        nearLat: Double?,
+        nearLon: Double?,
+        radiusKm: Double,
+        limit: Int,
+        offset: Int
+    ) async throws -> CharterDiscoveryAPIResponse {
+        discoverChartersCallCount += 1
+        if shouldFail { throw APIError.serverError }
+        return mockDiscoverChartersResponse ?? CharterDiscoveryAPIResponse(
+            items: [],
+            total: 0,
+            limit: limit,
+            offset: offset
         )
     }
 }

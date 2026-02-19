@@ -1,5 +1,4 @@
 import SwiftUI
-import Combine
 import UIKit
 
 /// Protocol defining the interface for app navigation coordination.
@@ -21,7 +20,11 @@ enum AppRoute: Hashable {
     case charterDetail(UUID)
     case editCharter(UUID)
     case checklistExecution(charterID: UUID, checklistID: UUID)
-    
+
+    // Charter Discovery
+    case discoverCharters
+    case discoveredCharterDetail(DiscoverableCharter)
+
     // Library Content
     case checklistEditor(UUID?)
     case guideEditor(UUID?)
@@ -31,22 +34,13 @@ enum AppRoute: Hashable {
 
     // Discover Content
     case discoverContent(String) // publicID
-
-    // TODO: Add more routes as features are implemented
-    // case deckDetail(UUID)
-    // case profileUser(UUID)
-    // case profileSettings
-    // case search(String)
 }
 
 @MainActor
 @Observable
 final class AppCoordinator: AppCoordinatorProtocol {
     private let dependencies: AppDependencies
-    private let syncService: ContentSyncService
-    private var syncTimer: Timer?
-    private var cancellables = Set<AnyCancellable>()
-    
+
     // Individual navigation paths per tab
     var homePath: [AppRoute] = []
     var libraryPath: [AppRoute] = []
@@ -56,62 +50,14 @@ final class AppCoordinator: AppCoordinatorProtocol {
 
     // Tab selection state
     var selectedTab: AppView.Tab = .home
-    
+
     // MARK: - Initialization
-    
+
     init(dependencies: AppDependencies) {
         self.dependencies = dependencies
-        self.syncService = dependencies.contentSyncService
-        observeAppLifecycle()
-        startBackgroundSync()
-    }
-
-    private func startBackgroundSync() {
-        // Sync every 60 seconds when app is active
-        syncTimer = Timer.scheduledTimer(withTimeInterval: 60.0, repeats: true) { [weak self] _ in
-            Task { @MainActor in
-                await self?.syncService.syncPending()
-            }
-        }
-    }
-
-    private func observeAppLifecycle() {
-        NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)
-            .sink { [weak self] _ in
-                self?.pauseBackgroundSync()
-            }
-            .store(in: &cancellables)
-
-        NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)
-            .sink { [weak self] _ in
-                self?.resumeBackgroundSync()
-            }
-            .store(in: &cancellables)
-    }
-
-    private func pauseBackgroundSync() {
-        AppLogger.sync.info("Pausing background sync (app inactive)")
-        syncTimer?.invalidate()
-        syncTimer = nil
-    }
-
-    private func resumeBackgroundSync() {
-        AppLogger.sync.info("Resuming background sync (app active)")
-
-        // Immediate sync on resume
-        Task { @MainActor in
-            await syncService.syncPending()
-        }
-
-        // Restart timer
-        startBackgroundSync()
-    }
-    
-    func applicationDidBecomeActive() {
-        // Trigger immediate sync when app becomes active
-        Task { @MainActor in
-            await syncService.syncPending()
-        }
+        // Background sync is now handled by SyncCoordinator in AppDependencies.
+        // Trigger immediate sync on launch.
+        dependencies.syncCoordinator.triggerImmediateSync()
     }
 
     // MARK: - Tab-Specific Navigation
@@ -335,7 +281,26 @@ final class AppCoordinator: AppCoordinatorProtocol {
                     publicID: publicID
                 )
             )
+
+        case .discoverCharters:
+            CharterDiscoveryView(
+                viewModel: CharterDiscoveryViewModel(
+                    apiClient: dependencies.apiClient
+                )
+            )
+
+        case .discoveredCharterDetail(let charter):
+            DiscoveredCharterDetailView(charter: charter) {
+                self.pop(from: .discover)
+            }
         }
+    }
+
+    // MARK: - Charter Discovery Navigation
+
+    func navigateToCharterDiscovery() {
+        selectedTab = .discover
+        discoverPath = [.discoverCharters]
     }
 }
 

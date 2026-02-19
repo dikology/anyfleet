@@ -326,4 +326,105 @@ struct CharterStoreTests {
         #expect(store.charters.count == 1)
         #expect(store.charters.first?.id == charter.id)
     }
+
+    // MARK: - updateVisibility
+
+    @Test("Update visibility - success updates in-memory cache")
+    @MainActor
+    func testUpdateVisibility_Success() async throws {
+        // Arrange
+        let mockRepository = MockLocalRepository()
+        let store = CharterStore(repository: mockRepository)
+
+        let charter = try await store.createCharter(
+            name: "Visibility Test",
+            boatName: nil,
+            location: nil,
+            startDate: Date(),
+            endDate: Date()
+        )
+
+        #expect(store.charters.first?.visibility == .private)
+
+        // Act
+        try await store.updateVisibility(charter.id, visibility: .community)
+
+        // Assert
+        let updated = store.charters.first { $0.id == charter.id }
+        #expect(updated?.visibility == .community)
+        #expect(updated?.needsSync == true)
+        #expect(mockRepository.updateCharterVisibilityCallCount == 1)
+        #expect(mockRepository.lastUpdatedVisibilityID == charter.id)
+        #expect(mockRepository.lastUpdatedVisibility == .community)
+    }
+
+    @Test("Update visibility - to public sets needsSync flag")
+    @MainActor
+    func testUpdateVisibility_ToPublic_SetsNeedsSync() async throws {
+        // Arrange
+        let mockRepository = MockLocalRepository()
+        let store = CharterStore(repository: mockRepository)
+
+        let charter = try await store.createCharter(
+            name: "Public Charter",
+            boatName: nil,
+            location: nil,
+            startDate: Date(),
+            endDate: Date()
+        )
+
+        // Act
+        try await store.updateVisibility(charter.id, visibility: .public)
+
+        // Assert
+        let updated = store.charters.first { $0.id == charter.id }
+        #expect(updated?.visibility == .public)
+        #expect(updated?.needsSync == true)
+    }
+
+    @Test("Update visibility - failure propagates error and does not update cache")
+    @MainActor
+    func testUpdateVisibility_Failure() async throws {
+        // Arrange
+        let mockRepository = MockLocalRepository()
+        let store = CharterStore(repository: mockRepository)
+
+        let charter = try await store.createCharter(
+            name: "Test",
+            boatName: nil,
+            location: nil,
+            startDate: Date(),
+            endDate: Date()
+        )
+
+        let testError = NSError(domain: "TestError", code: 42)
+        mockRepository.updateCharterVisibilityResult = .failure(testError)
+
+        // Act & Assert
+        await #expect(throws: testError) {
+            try await store.updateVisibility(charter.id, visibility: .community)
+        }
+
+        // Cache should remain unchanged
+        let cached = store.charters.first { $0.id == charter.id }
+        #expect(cached?.visibility == .private)
+        #expect(cached?.needsSync == false)
+    }
+
+    @Test("Update visibility - non-existent charter does not crash")
+    @MainActor
+    func testUpdateVisibility_NonExistentCharter() async throws {
+        // Arrange
+        let mockRepository = MockLocalRepository()
+        let store = CharterStore(repository: mockRepository)
+        let nonExistentID = UUID()
+
+        // Act - Should not throw or crash even if ID not in cache
+        try await store.updateVisibility(nonExistentID, visibility: .community)
+
+        // Assert - Repository was still called
+        #expect(mockRepository.updateCharterVisibilityCallCount == 1)
+        // Cache is unaffected
+        #expect(store.charters.isEmpty)
+    }
 }

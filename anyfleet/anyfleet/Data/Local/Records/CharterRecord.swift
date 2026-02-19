@@ -11,7 +11,7 @@ import Foundation
 /// Database record for Charter
 nonisolated struct CharterRecord: Codable, FetchableRecord, PersistableRecord {
     static let databaseTableName = "charters"
-    
+
     var id: String
     var name: String
     var boatName: String?
@@ -22,17 +22,30 @@ nonisolated struct CharterRecord: Codable, FetchableRecord, PersistableRecord {
     var createdAt: Date
     var updatedAt: Date
     var syncStatus: String
-    
+
+    // MARK: Sync Fields
+    var serverID: String?
+    var visibility: String
+    var needsSync: Bool
+    var lastSyncedAt: Date?
+
+    // MARK: Geo Fields
+    var latitude: Double?
+    var longitude: Double?
+    var locationPlaceID: String?
+
     // MARK: - Column Definitions
-    
+
     enum Columns: String, ColumnExpression {
         case id, name, boatName, location, startDate, endDate
         case checkInChecklistID
         case createdAt, updatedAt, syncStatus
+        case serverID, visibility, needsSync, lastSyncedAt
+        case latitude, longitude, locationPlaceID
     }
-    
+
     // MARK: - Initialization
-    
+
     init(
         id: String = UUID().uuidString,
         name: String,
@@ -43,7 +56,14 @@ nonisolated struct CharterRecord: Codable, FetchableRecord, PersistableRecord {
         checkInChecklistID: String? = nil,
         createdAt: Date = Date(),
         updatedAt: Date = Date(),
-        syncStatus: String = "pending"
+        syncStatus: String = "pending",
+        serverID: String? = nil,
+        visibility: String = "private",
+        needsSync: Bool = false,
+        lastSyncedAt: Date? = nil,
+        latitude: Double? = nil,
+        longitude: Double? = nil,
+        locationPlaceID: String? = nil
     ) {
         self.id = id
         self.name = name
@@ -55,10 +75,17 @@ nonisolated struct CharterRecord: Codable, FetchableRecord, PersistableRecord {
         self.createdAt = createdAt
         self.updatedAt = updatedAt
         self.syncStatus = syncStatus
+        self.serverID = serverID
+        self.visibility = visibility
+        self.needsSync = needsSync
+        self.lastSyncedAt = lastSyncedAt
+        self.latitude = latitude
+        self.longitude = longitude
+        self.locationPlaceID = locationPlaceID
     }
-    
+
     // MARK: - Conversion from Domain Model
-    
+
     init(from charter: CharterModel) {
         self.id = charter.id.uuidString
         self.name = charter.name
@@ -70,27 +97,32 @@ nonisolated struct CharterRecord: Codable, FetchableRecord, PersistableRecord {
         self.createdAt = charter.createdAt
         self.updatedAt = Date()
         self.syncStatus = "pending"
+        self.serverID = charter.serverID?.uuidString
+        self.visibility = charter.visibility.rawValue
+        self.needsSync = charter.needsSync
+        self.lastSyncedAt = charter.lastSyncedAt
+        self.latitude = charter.latitude
+        self.longitude = charter.longitude
+        self.locationPlaceID = charter.locationPlaceID
     }
-    
+
     /// Create record from domain model, preserving existing metadata when updating
     nonisolated static func fromDomainModel(
         _ charter: CharterModel,
         existingRecord: CharterRecord? = nil
     ) -> CharterRecord {
         var record = CharterRecord(from: charter)
-        
-        // Preserve metadata if updating existing record
+
         if let existing = existingRecord {
             record.createdAt = existing.createdAt
-            // If already synced, mark as pending update; otherwise preserve status
             record.syncStatus = existing.syncStatus == "synced" ? "pending_update" : existing.syncStatus
         }
-        record.updatedAt = Date()  // Always update on save
+        record.updatedAt = Date()
         return record
     }
-    
+
     // MARK: - Conversion to Domain Model
-    
+
     nonisolated func toDomainModel() -> CharterModel {
         CharterModel(
             id: UUID(uuidString: id) ?? UUID(),
@@ -100,7 +132,14 @@ nonisolated struct CharterRecord: Codable, FetchableRecord, PersistableRecord {
             startDate: startDate,
             endDate: endDate,
             createdAt: createdAt,
-            checkInChecklistID: checkInChecklistID.flatMap { UUID(uuidString: $0) }
+            checkInChecklistID: checkInChecklistID.flatMap { UUID(uuidString: $0) },
+            serverID: serverID.flatMap { UUID(uuidString: $0) },
+            visibility: CharterVisibility(rawValue: visibility) ?? .private,
+            needsSync: needsSync,
+            lastSyncedAt: lastSyncedAt,
+            latitude: latitude,
+            longitude: longitude,
+            locationPlaceID: locationPlaceID
         )
     }
 }
@@ -114,7 +153,7 @@ extension CharterRecord {
             .order(Columns.startDate.desc)
             .fetchAll(db)
     }
-    
+
     /// Fetch active charters (current date between start and end)
     nonisolated static func fetchActive(db: Database) throws -> [CharterRecord] {
         let now = Date()
@@ -123,7 +162,7 @@ extension CharterRecord {
             .filter(Columns.endDate >= now)
             .fetchAll(db)
     }
-    
+
     /// Fetch upcoming charters
     nonisolated static func fetchUpcoming(db: Database) throws -> [CharterRecord] {
         let now = Date()
@@ -132,7 +171,7 @@ extension CharterRecord {
             .order(Columns.startDate.asc)
             .fetchAll(db)
     }
-    
+
     /// Fetch past charters
     nonisolated static func fetchPast(db: Database) throws -> [CharterRecord] {
         let now = Date()
@@ -141,44 +180,43 @@ extension CharterRecord {
             .order(Columns.endDate.desc)
             .fetchAll(db)
     }
-    
+
     /// Fetch pending sync charters
     nonisolated static func fetchPendingSync(db: Database) throws -> [CharterRecord] {
         try CharterRecord
-            .filter(Columns.syncStatus == "pending")
+            .filter(Columns.needsSync == true)
             .fetchAll(db)
     }
-    
+
     /// Save or update charter
-    /// Preserves existing metadata (createdAt, syncStatus) when updating
     @discardableResult
     nonisolated static func saveCharter(_ charter: CharterModel, db: Database) throws -> CharterRecord {
-        // Check if record exists
         let existing = try CharterRecord
             .filter(Columns.id == charter.id.uuidString)
             .fetchOne(db)
-        
-        // Smart conversion preserving metadata
+
         let record = fromDomainModel(charter, existingRecord: existing)
-        
-        // GRDB's save() is mutating, so we need var
-        // The compiler warning is a false positive - save() does mutate the record
         let mutableRecord = record
         try mutableRecord.save(db)
         return mutableRecord
     }
-    
+
     /// Delete charter
     nonisolated static func delete(_ charterID: UUID, db: Database) throws {
         try CharterRecord
             .filter(Columns.id == charterID.uuidString)
             .deleteAll(db)
     }
-    
+
     /// Mark as synced
-    nonisolated static func markSynced(_ charterID: UUID, db: Database) throws {
+    nonisolated static func markSynced(_ charterID: UUID, serverID: UUID, db: Database) throws {
         try CharterRecord
             .filter(Columns.id == charterID.uuidString)
-            .updateAll(db, Columns.syncStatus.set(to: "synced"))
+            .updateAll(db,
+                Columns.syncStatus.set(to: "synced"),
+                Columns.serverID.set(to: serverID.uuidString),
+                Columns.needsSync.set(to: false),
+                Columns.lastSyncedAt.set(to: Date())
+            )
     }
 }

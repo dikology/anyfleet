@@ -78,6 +78,12 @@ final class AppDependencies {
     /// Shared content sync service instance
     let contentSyncService: ContentSyncService
 
+    /// Charter sync service for pushing/pulling charters to/from the backend
+    let charterSyncService: CharterSyncService
+
+    /// Background sync coordinator (manages timer + app lifecycle)
+    let syncCoordinator: SyncCoordinator
+
     /// Shared API client instance
     let apiClient: APIClient
     
@@ -140,6 +146,20 @@ final class AppDependencies {
             repository: repository
         )
 
+        // Initialize charter sync service
+        let charterSync = CharterSyncService(
+            repository: repository,
+            apiClient: apiClient,
+            charterStore: charterStore
+        )
+        self.charterSyncService = charterSync
+
+        // Initialize sync coordinator (replaces direct timer in AppCoordinator)
+        self.syncCoordinator = SyncCoordinator(
+            contentSyncService: contentSyncService,
+            charterSyncService: charterSync
+        )
+
         // Initialize services
         self.localizationService = LocalizationService()
         self.authStateObserver = AuthStateObserver(authService: authService)
@@ -199,6 +219,17 @@ final class AppDependencies {
         self.contentSyncService = ContentSyncService(
             syncQueue: syncQueueService,
             repository: repository
+        )
+
+        let charterSync = CharterSyncService(
+            repository: repository,
+            apiClient: apiClient,
+            charterStore: charterStore
+        )
+        self.charterSyncService = charterSync
+        self.syncCoordinator = SyncCoordinator(
+            contentSyncService: contentSyncService,
+            charterSyncService: charterSync
         )
 
         // Initialize services

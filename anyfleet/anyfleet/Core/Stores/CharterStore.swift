@@ -160,6 +160,22 @@ final class CharterStore {
         }
     }
 
+    /// Update the visibility of a charter and flag it for sync.
+    func updateVisibility(_ charterID: UUID, visibility: CharterVisibility) async throws {
+        AppLogger.store.startOperation("Update Charter Visibility")
+        do {
+            try await repository.updateCharterVisibility(charterID, visibility: visibility)
+            if let index = charters.firstIndex(where: { $0.id == charterID }) {
+                charters[index].visibility = visibility
+                charters[index].needsSync = true
+            }
+            AppLogger.store.completeOperation("Update Charter Visibility")
+        } catch {
+            AppLogger.store.failOperation("Update Charter Visibility", error: error)
+            throw error
+        }
+    }
+
     func deleteCharter(_ charterID: UUID) async throws {
         AppLogger.store.startOperation("Delete Charter")
         AppLogger.store.info("Deleting charter with ID: \(charterID.uuidString)")
