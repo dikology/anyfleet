@@ -150,7 +150,8 @@ final class AppDependencies {
         let charterSync = CharterSyncService(
             repository: repository,
             apiClient: apiClient,
-            charterStore: charterStore
+            charterStore: charterStore,
+            authService: authService
         )
         self.charterSyncService = charterSync
 
@@ -224,7 +225,8 @@ final class AppDependencies {
         let charterSync = CharterSyncService(
             repository: repository,
             apiClient: apiClient,
-            charterStore: charterStore
+            charterStore: charterStore,
+            authService: authService
         )
         self.charterSyncService = charterSync
         self.syncCoordinator = SyncCoordinator(

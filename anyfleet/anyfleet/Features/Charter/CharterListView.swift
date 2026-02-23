@@ -31,6 +31,29 @@ struct CharterListView: View {
             .navigationBarTitleDisplayMode(.inline)
             .background(DesignSystem.Colors.background.ignoresSafeArea())
 
+            // Sync-pending banner: shown when charters are waiting for the user to sign in
+            if dependencies.charterSyncService.needsAuthForSync {
+                VStack {
+                    HStack(spacing: DesignSystem.Spacing.sm) {
+                        Image(systemName: "icloud.and.arrow.up")
+                            .font(.system(size: 14, weight: .semibold))
+                        Text("Sign in to sync your charters")
+                            .font(DesignSystem.Typography.caption)
+                            .fixedSize(horizontal: false, vertical: true)
+                        Spacer()
+                    }
+                    .padding(.horizontal, DesignSystem.Spacing.md)
+                    .padding(.vertical, DesignSystem.Spacing.sm)
+                    .background(DesignSystem.Colors.primary.opacity(0.12))
+                    .foregroundColor(DesignSystem.Colors.primary)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                    .padding(.horizontal, DesignSystem.Spacing.lg)
+                    .padding(.top, DesignSystem.Spacing.sm)
+                    Spacer()
+                }
+                .transition(.move(edge: .top).combined(with: .opacity))
+            }
+
             // Error Banner
             if viewModel.showErrorBanner, let error = viewModel.currentError {
                 VStack {

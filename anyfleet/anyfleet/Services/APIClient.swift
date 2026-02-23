@@ -284,7 +284,9 @@ final class APIClient: APIClientProtocol {
         path: String,
         body: B
     ) async throws {
-        let url = baseURL.appendingPathComponent(path)
+        guard let url = URL(string: baseURL.absoluteString + path) else {
+            throw APIError.invalidResponse
+        }
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = method
         urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -332,7 +334,9 @@ final class APIClient: APIClientProtocol {
         path: String,
         body: B
     ) async throws {
-        let url = baseURL.appendingPathComponent(path)
+        guard let url = URL(string: baseURL.absoluteString + path) else {
+            throw APIError.invalidResponse
+        }
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = method
         urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -388,7 +392,9 @@ final class APIClient: APIClientProtocol {
         path: String,
         body: B
     ) async throws -> T {
-        let url = baseURL.appendingPathComponent(path)
+        guard let url = URL(string: baseURL.absoluteString + path) else {
+            throw APIError.invalidResponse
+        }
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = method
         urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -447,7 +453,9 @@ final class APIClient: APIClientProtocol {
         path: String,
         body: B
     ) async throws -> T {
-        let url = baseURL.appendingPathComponent(path)
+        guard let url = URL(string: baseURL.absoluteString + path) else {
+            throw APIError.invalidResponse
+        }
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = method
         urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")

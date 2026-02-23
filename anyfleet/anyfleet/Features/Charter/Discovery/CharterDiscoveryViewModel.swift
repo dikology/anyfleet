@@ -92,7 +92,8 @@ final class CharterDiscoveryViewModel: ErrorHandling {
         do {
             let lat = filters.useNearMe ? userLocation?.latitude : nil
             let lon = filters.useNearMe ? userLocation?.longitude : nil
-            let radius = filters.useNearMe ? filters.radiusKm : 20_000.0 // global search
+            // Backend caps radius_km at 10 000; use max for global (no location) search.
+            let radius = filters.useNearMe ? filters.radiusKm : 10_000.0
 
             let response = try await apiClient.discoverCharters(
                 dateFrom: filters.effectiveDateFrom,

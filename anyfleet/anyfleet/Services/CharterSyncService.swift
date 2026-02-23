@@ -17,29 +17,54 @@ final class CharterSyncService {
     private(set) var isSyncing = false
     private(set) var lastSyncDate: Date?
     private(set) var lastSyncError: Error?
+    /// True when there are charters pending sync but the user is not authenticated.
+    /// Observe this in the UI to prompt the user to sign in.
+    private(set) var needsAuthForSync = false
 
     private let repository: any CharterRepository
     private let apiClient: APIClientProtocol
     private let charterStore: CharterStore
+    private let authService: AuthServiceProtocol
 
     // MARK: - Initialization
 
     init(
         repository: any CharterRepository,
         apiClient: APIClientProtocol,
-        charterStore: CharterStore
+        charterStore: CharterStore,
+        authService: AuthServiceProtocol
     ) {
         self.repository = repository
         self.apiClient = apiClient
         self.charterStore = charterStore
+        self.authService = authService
     }
 
     // MARK: - Public API
 
     /// Push all local charters with `needsSync == true` to the backend.
     /// Only charters with visibility != private are pushed.
+    /// Skips silently when the user is not authenticated and sets `needsAuthForSync`.
     func pushPendingCharters() async {
         guard !isSyncing else { return }
+
+        guard authService.isAuthenticated else {
+            do {
+                let pending = try await repository.fetchPendingSyncCharters()
+                let blocked = pending.filter { $0.visibility != .private }
+                if !blocked.isEmpty {
+                    needsAuthForSync = true
+                    AppLogger.sync.warning(
+                        "Charter sync blocked: \(blocked.count) charter(s) pending sync, user not authenticated"
+                    )
+                }
+            } catch {
+                AppLogger.sync.error("Failed to check pending charters for auth guard", error: error)
+            }
+            return
+        }
+
+        needsAuthForSync = false
 
         do {
             let pending = try await repository.fetchPendingSyncCharters()
