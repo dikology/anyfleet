@@ -19,6 +19,12 @@ protocol CharterRepository: Sendable {
     func updateCharter(_ charterID: UUID, name: String, boatName: String?, location: String?, startDate: Date, endDate: Date, checkInChecklistID: UUID?) async throws -> CharterModel
     func deleteCharter(_ charterID: UUID) async throws
     func markChartersSynced(_ ids: [UUID]) async throws
+
+    // MARK: Sync Support
+    func fetchPendingSyncCharters() async throws -> [CharterModel]
+    func markCharterSynced(_ id: UUID, serverID: UUID) async throws
+    func updateCharterVisibility(_ id: UUID, visibility: CharterVisibility) async throws
+    func updateCharterServerID(_ id: UUID, serverID: UUID) async throws
 }
 
 /// Make LocalRepository conform to the protocol

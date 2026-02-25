@@ -158,7 +158,9 @@ final class LibraryStore: LibraryStoreProtocol {
                 throw error
             }
         } else {
-            fatalError("Unsupported content type for caching")
+            let typeName = String(describing: T.self)
+            AppLogger.store.error("Attempted to fetch unsupported content type: \(typeName)")
+            throw LibraryError.unsupportedContentType(typeName)
         }
 
         return content

@@ -101,16 +101,15 @@ final class LocalRepository: Sendable {
     func updateCharter(_ charterID: UUID, name: String, boatName: String?, location: String?, startDate: Date, endDate: Date, checkInChecklistID: UUID?) async throws -> CharterModel {
         AppLogger.repository.startOperation("Update Charter")
         defer { AppLogger.repository.completeOperation("Update Charter") }
-        
+
         AppLogger.repository.debug("Updating charter with ID: \(charterID.uuidString)")
-        
+
         do {
-            // Fetch existing charter to preserve metadata
             guard let existingCharter = try await fetchCharter(id: charterID) else {
                 throw AppError.notFound(entity: "Charter", id: charterID)
             }
-            
-            // Create updated charter model preserving existing metadata
+
+            // Preserve all metadata fields when updating basic properties
             let updatedCharter = CharterModel(
                 id: charterID,
                 name: name,
@@ -119,14 +118,20 @@ final class LocalRepository: Sendable {
                 startDate: startDate,
                 endDate: endDate,
                 createdAt: existingCharter.createdAt,
-                checkInChecklistID: checkInChecklistID
+                checkInChecklistID: checkInChecklistID,
+                serverID: existingCharter.serverID,
+                visibility: existingCharter.visibility,
+                needsSync: existingCharter.serverID != nil,
+                lastSyncedAt: existingCharter.lastSyncedAt,
+                latitude: existingCharter.latitude,
+                longitude: existingCharter.longitude,
+                locationPlaceID: existingCharter.locationPlaceID
             )
-            
-            // Save the updated charter
+
             try await database.dbWriter.write { db in
                 _ = try CharterRecord.saveCharter(updatedCharter, db: db)
             }
-            
+
             AppLogger.repository.info("Charter updated successfully - ID: \(charterID.uuidString)")
             return updatedCharter
         } catch {
@@ -151,23 +156,68 @@ final class LocalRepository: Sendable {
         }
     }
     
-    /// Mark charters as synced
+    /// Mark charters as synced (legacy, without serverID update)
     func markChartersSynced(_ ids: [UUID]) async throws {
         AppLogger.repository.startOperation("Mark Charters Synced")
         defer { AppLogger.repository.completeOperation("Mark Charters Synced") }
-        
+
         AppLogger.repository.debug("Marking \(ids.count) charters as synced")
-        
+
         do {
             try await database.dbWriter.write { db in
                 for id in ids {
-                    try CharterRecord.markSynced(id, db: db)
+                    try CharterRecord
+                        .filter(CharterRecord.Columns.id == id.uuidString)
+                        .updateAll(db,
+                            CharterRecord.Columns.syncStatus.set(to: "synced"),
+                            CharterRecord.Columns.needsSync.set(to: false),
+                            CharterRecord.Columns.lastSyncedAt.set(to: Date())
+                        )
                 }
             }
             AppLogger.repository.info("Successfully marked \(ids.count) charters as synced")
         } catch {
             AppLogger.repository.failOperation("Mark Charters Synced", error: error)
             throw error
+        }
+    }
+
+    /// Fetch charters that have pending local changes not yet pushed to server
+    func fetchPendingSyncCharters() async throws -> [CharterModel] {
+        try await database.dbWriter.read { db in
+            try CharterRecord.fetchPendingSync(db: db)
+                .map { $0.toDomainModel() }
+        }
+    }
+
+    /// Mark a charter as successfully synced with the server
+    func markCharterSynced(_ id: UUID, serverID: UUID) async throws {
+        try await database.dbWriter.write { db in
+            try CharterRecord.markSynced(id, serverID: serverID, db: db)
+        }
+        AppLogger.repository.info("Charter \(id.uuidString) marked synced with serverID: \(serverID.uuidString)")
+    }
+
+    /// Update the visibility of a charter
+    func updateCharterVisibility(_ id: UUID, visibility: CharterVisibility) async throws {
+        try await database.dbWriter.write { db in
+            try CharterRecord
+                .filter(CharterRecord.Columns.id == id.uuidString)
+                .updateAll(db,
+                    CharterRecord.Columns.visibility.set(to: visibility.rawValue),
+                    CharterRecord.Columns.needsSync.set(to: true),
+                    CharterRecord.Columns.updatedAt.set(to: Date())
+                )
+        }
+        AppLogger.repository.info("Charter \(id.uuidString) visibility updated to \(visibility.rawValue)")
+    }
+
+    /// Update the server ID for a locally-created charter after first sync
+    func updateCharterServerID(_ id: UUID, serverID: UUID) async throws {
+        try await database.dbWriter.write { db in
+            try CharterRecord
+                .filter(CharterRecord.Columns.id == id.uuidString)
+                .updateAll(db, CharterRecord.Columns.serverID.set(to: serverID.uuidString))
         }
     }
     
@@ -304,7 +354,7 @@ final class LocalRepository: Sendable {
                 description: checklist.description,
                 type: .checklist,
                 visibility: .private,
-                creatorID: UUID(uuidString: "00000000-0000-0000-0000-000000000000") ?? UUID(), // Placeholder for single-user device
+                creatorID: .localUserPlaceholder, // Placeholder for single-user device
                 tags: checklist.tags,
                 createdAt: checklist.createdAt,
                 updatedAt: checklist.updatedAt,
@@ -340,7 +390,7 @@ final class LocalRepository: Sendable {
                 description: guide.description,
                 type: .practiceGuide,
                 visibility: .private,
-                creatorID: UUID(uuidString: "00000000-0000-0000-0000-000000000000") ?? UUID(), // Placeholder for single-user device
+                creatorID: .localUserPlaceholder, // Placeholder for single-user device
                 tags: guide.tags,
                 createdAt: guide.createdAt,
                 updatedAt: guide.updatedAt,
@@ -410,7 +460,7 @@ final class LocalRepository: Sendable {
                 description: checklist.description,
                 type: .checklist,
                 visibility: .private,
-                creatorID: existingMetadata?.creatorID ?? UUID(uuidString: "00000000-0000-0000-0000-000000000000") ?? UUID(), // Preserve existing or use placeholder
+                creatorID: existingMetadata?.creatorID ?? .localUserPlaceholder, // Preserve existing or use placeholder
                 forkedFromID: existingMetadata?.forkedFromID, // Preserve fork attribution
                 originalAuthorUsername: existingMetadata?.originalAuthorUsername, // Preserve fork attribution
                 originalContentPublicID: existingMetadata?.originalContentPublicID, // Preserve fork attribution
@@ -455,7 +505,7 @@ final class LocalRepository: Sendable {
                 description: guide.description,
                 type: .practiceGuide,
                 visibility: .private,
-                creatorID: existingMetadata?.creatorID ?? UUID(uuidString: "00000000-0000-0000-0000-000000000000") ?? UUID(), // Preserve existing or use placeholder
+                creatorID: existingMetadata?.creatorID ?? .localUserPlaceholder, // Preserve existing or use placeholder
                 forkedFromID: existingMetadata?.forkedFromID, // Preserve fork attribution
                 originalAuthorUsername: existingMetadata?.originalAuthorUsername, // Preserve fork attribution
                 originalContentPublicID: existingMetadata?.originalContentPublicID, // Preserve fork attribution

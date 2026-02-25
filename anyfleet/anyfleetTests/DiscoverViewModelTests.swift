@@ -264,6 +264,40 @@ class DiscoverMockAPIClient: APIClientProtocol {
         throw NSError(domain: "MockError", code: 1, userInfo: nil)
     }
 
+    // MARK: - Charter API (stub implementations)
+
+    func createCharter(_ request: CharterCreateRequest) async throws -> CharterAPIResponse {
+        throw NSError(domain: "MockError", code: 1, userInfo: nil)
+    }
+
+    func fetchMyCharters() async throws -> CharterListAPIResponse {
+        return CharterListAPIResponse(items: [], total: 0, limit: 20, offset: 0)
+    }
+
+    func fetchCharter(id: UUID) async throws -> CharterAPIResponse {
+        throw NSError(domain: "MockError", code: 1, userInfo: nil)
+    }
+
+    func updateCharter(id: UUID, request: CharterUpdateRequest) async throws -> CharterAPIResponse {
+        throw NSError(domain: "MockError", code: 1, userInfo: nil)
+    }
+
+    func deleteCharter(id: UUID) async throws {
+        // Mock implementation
+    }
+
+    func discoverCharters(
+        dateFrom: Date?,
+        dateTo: Date?,
+        nearLat: Double?,
+        nearLon: Double?,
+        radiusKm: Double,
+        limit: Int,
+        offset: Int
+    ) async throws -> CharterDiscoveryAPIResponse {
+        return CharterDiscoveryAPIResponse(items: [], total: 0, limit: limit, offset: offset)
+    }
+
 }
 
 class MockAppCoordinator: AppCoordinatorProtocol {

@@ -9,7 +9,7 @@ import SwiftUI
 
 @main
 struct anyfleetApp: App {
-    @State private var dependencies = AppDependencies()
+    @State private var dependencies: AppDependencies
     @State private var coordinator: AppCoordinator
 
     init() {

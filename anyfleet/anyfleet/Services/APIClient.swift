@@ -44,8 +44,25 @@ protocol APIClientProtocol {
         tags: [String],
         language: String
     ) async throws -> UpdateContentResponse
-    
+
     func fetchPublicProfile(username: String) async throws -> PublicProfileResponse
+
+    // MARK: Charter API
+
+    func createCharter(_ request: CharterCreateRequest) async throws -> CharterAPIResponse
+    func fetchMyCharters() async throws -> CharterListAPIResponse
+    func fetchCharter(id: UUID) async throws -> CharterAPIResponse
+    func updateCharter(id: UUID, request: CharterUpdateRequest) async throws -> CharterAPIResponse
+    func deleteCharter(id: UUID) async throws
+    func discoverCharters(
+        dateFrom: Date?,
+        dateTo: Date?,
+        nearLat: Double?,
+        nearLon: Double?,
+        radiusKm: Double,
+        limit: Int,
+        offset: Int
+    ) async throws -> CharterDiscoveryAPIResponse
 }
 
 /// API client for authenticated requests to backend
@@ -160,7 +177,67 @@ final class APIClient: APIClientProtocol {
             throw error
         }
     }
-    
+
+    // MARK: - Charter Endpoints
+
+    func createCharter(_ request: CharterCreateRequest) async throws -> CharterAPIResponse {
+        AppLogger.api.debug("Creating charter: \(request.name)")
+        return try await post("/charters", body: request)
+    }
+
+    func fetchMyCharters() async throws -> CharterListAPIResponse {
+        AppLogger.api.debug("Fetching user's charters")
+        return try await get("/charters", body: EmptyBody())
+    }
+
+    func fetchCharter(id: UUID) async throws -> CharterAPIResponse {
+        AppLogger.api.debug("Fetching charter: \(id.uuidString)")
+        return try await get("/charters/\(id.uuidString)", body: EmptyBody())
+    }
+
+    func updateCharter(id: UUID, request: CharterUpdateRequest) async throws -> CharterAPIResponse {
+        AppLogger.api.debug("Updating charter: \(id.uuidString)")
+        return try await put("/charters/\(id.uuidString)", body: request)
+    }
+
+    func deleteCharter(id: UUID) async throws {
+        AppLogger.api.debug("Deleting charter: \(id.uuidString)")
+        try await delete("/charters/\(id.uuidString)")
+    }
+
+    func discoverCharters(
+        dateFrom: Date? = nil,
+        dateTo: Date? = nil,
+        nearLat: Double? = nil,
+        nearLon: Double? = nil,
+        radiusKm: Double = 50.0,
+        limit: Int = 20,
+        offset: Int = 0
+    ) async throws -> CharterDiscoveryAPIResponse {
+        AppLogger.api.debug("Discovering charters (offset: \(offset))")
+        var components = URLComponents()
+        components.queryItems = [
+            URLQueryItem(name: "radius_km", value: String(radiusKm)),
+            URLQueryItem(name: "limit", value: String(limit)),
+            URLQueryItem(name: "offset", value: String(offset))
+        ]
+        let iso8601 = ISO8601DateFormatter()
+        if let dateFrom {
+            components.queryItems?.append(URLQueryItem(name: "date_from", value: iso8601.string(from: dateFrom)))
+        }
+        if let dateTo {
+            components.queryItems?.append(URLQueryItem(name: "date_to", value: iso8601.string(from: dateTo)))
+        }
+        if let nearLat {
+            components.queryItems?.append(URLQueryItem(name: "near_lat", value: String(nearLat)))
+        }
+        if let nearLon {
+            components.queryItems?.append(URLQueryItem(name: "near_lon", value: String(nearLon)))
+        }
+        let queryString = components.percentEncodedQuery.map { "?\($0)" } ?? ""
+        return try await get("/charters/discover\(queryString)", body: EmptyBody())
+    }
+
     // MARK: - HTTP Methods
 
     private func get<T: Decodable>(
@@ -207,7 +284,9 @@ final class APIClient: APIClientProtocol {
         path: String,
         body: B
     ) async throws {
-        let url = baseURL.appendingPathComponent(path)
+        guard let url = URL(string: baseURL.absoluteString + path) else {
+            throw APIError.invalidResponse
+        }
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = method
         urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -255,7 +334,9 @@ final class APIClient: APIClientProtocol {
         path: String,
         body: B
     ) async throws {
-        let url = baseURL.appendingPathComponent(path)
+        guard let url = URL(string: baseURL.absoluteString + path) else {
+            throw APIError.invalidResponse
+        }
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = method
         urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -311,7 +392,9 @@ final class APIClient: APIClientProtocol {
         path: String,
         body: B
     ) async throws -> T {
-        let url = baseURL.appendingPathComponent(path)
+        guard let url = URL(string: baseURL.absoluteString + path) else {
+            throw APIError.invalidResponse
+        }
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = method
         urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -370,7 +453,9 @@ final class APIClient: APIClientProtocol {
         path: String,
         body: B
     ) async throws -> T {
-        let url = baseURL.appendingPathComponent(path)
+        guard let url = URL(string: baseURL.absoluteString + path) else {
+            throw APIError.invalidResponse
+        }
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = method
         urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")

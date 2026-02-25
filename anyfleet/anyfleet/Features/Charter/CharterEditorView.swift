@@ -67,6 +67,10 @@ struct CharterEditorView: View {
 //                        BudgetSection(budget: $viewModel.form.budget, notes: $viewModel.form.notes)
 //                    }
                     
+                    DesignSystem.Form.Section(title: "Charter Visibility", subtitle: "Control who can discover your charter") {
+                        visibilityPicker
+                    }
+
                     CharterSummaryCard(form: viewModel.form, progress: viewModel.completionProgress) {
                         Task {
                             await viewModel.saveCharter()
@@ -93,6 +97,73 @@ private extension CharterEditorView {
             title: L10n.charterCreateSetSailOnYourNextAdventure,
             subtitle: L10n.charterCreateFromDreamToRealityInAFewGuidedSteps
         )
+    }
+
+    var visibilityPicker: some View {
+        VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
+            ForEach(CharterVisibility.allCases, id: \.self) { option in
+                Button {
+                    viewModel.form.visibility = option
+                } label: {
+                    HStack(spacing: DesignSystem.Spacing.md) {
+                        Image(systemName: option.systemImage)
+                            .font(.system(size: 18))
+                            .foregroundColor(viewModel.form.visibility == option
+                                ? DesignSystem.Colors.primary
+                                : DesignSystem.Colors.textSecondary)
+                            .frame(width: 28)
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(option.displayName)
+                                .font(DesignSystem.Typography.body)
+                                .fontWeight(viewModel.form.visibility == option ? .semibold : .regular)
+                                .foregroundColor(DesignSystem.Colors.textPrimary)
+                            Text(option.description)
+                                .font(DesignSystem.Typography.caption)
+                                .foregroundColor(DesignSystem.Colors.textSecondary)
+                        }
+
+                        Spacer()
+
+                        if viewModel.form.visibility == option {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(DesignSystem.Colors.primary)
+                        }
+                    }
+                    .padding(DesignSystem.Spacing.md)
+                    .background(
+                        viewModel.form.visibility == option
+                            ? DesignSystem.Colors.primary.opacity(0.08)
+                            : DesignSystem.Colors.surface
+                    )
+                    .cornerRadius(DesignSystem.Spacing.sm)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: DesignSystem.Spacing.sm)
+                            .stroke(
+                                viewModel.form.visibility == option
+                                    ? DesignSystem.Colors.primary.opacity(0.3)
+                                    : DesignSystem.Colors.border,
+                                lineWidth: 1
+                            )
+                    )
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Visibility: \(option.displayName)")
+                .accessibilityHint(option.description)
+                .accessibilityAddTraits(viewModel.form.visibility == option ? .isSelected : [])
+            }
+
+            if viewModel.form.visibility != .private {
+                HStack(spacing: DesignSystem.Spacing.xs) {
+                    Image(systemName: "info.circle")
+                        .font(.caption)
+                    Text("You can change visibility anytime in charter settings.")
+                        .font(DesignSystem.Typography.caption)
+                }
+                .foregroundColor(DesignSystem.Colors.textSecondary)
+                .padding(.top, DesignSystem.Spacing.xs)
+            }
+        }
     }
 }
 

@@ -28,8 +28,9 @@ import Observation
 @Observable
 final class CharterEditorViewModel: ErrorHandling {
     // MARK: - Dependencies
-    
+
     private let charterStore: CharterStore
+    private let charterSyncService: CharterSyncService?
     private let charterID: UUID?
     private let onDismiss: () -> Void
     
@@ -74,11 +75,13 @@ final class CharterEditorViewModel: ErrorHandling {
     ///   - initialForm: Initial form state (if nil, creates empty form)
     init(
         charterStore: CharterStore,
+        charterSyncService: CharterSyncService? = nil,
         charterID: UUID? = nil,
         onDismiss: @escaping () -> Void,
         initialForm: CharterFormState? = nil
     ) {
         self.charterStore = charterStore
+        self.charterSyncService = charterSyncService
         self.charterID = charterID
         self.onDismiss = onDismiss
         self.form = initialForm ?? CharterFormState()
@@ -94,12 +97,12 @@ final class CharterEditorViewModel: ErrorHandling {
 
         do {
             let charter = try await charterStore.fetchCharter(charterID)
-            // Map charter to form
             form.name = charter.name
             form.startDate = charter.startDate
             form.endDate = charter.endDate
             form.destination = charter.location ?? ""
             form.vessel = charter.boatName ?? ""
+            form.visibility = charter.visibility
         } catch {
             handleError(error)
         }
@@ -127,7 +130,7 @@ final class CharterEditorViewModel: ErrorHandling {
             AppLogger.view.info("Creating charter with name: '\(charterName)'")
             AppLogger.view.debug("Charter details - boatName: \(form.vessel.isEmpty ? "nil" : form.vessel), location: \(form.destination.isEmpty ? "nil" : form.destination), startDate: \(form.startDate), endDate: \(form.endDate)")
             
-            let charter = try await charterStore.createCharter(
+            var charter = try await charterStore.createCharter(
                 name: charterName,
                 boatName: form.vessel.isEmpty ? nil : form.vessel,
                 location: form.destination.isEmpty ? nil : form.destination,
@@ -135,10 +138,18 @@ final class CharterEditorViewModel: ErrorHandling {
                 endDate: form.endDate,
                 checkInChecklistID: nil
             )
-            
+
+            // Apply visibility and mark for sync if not private
+            if form.visibility != .private {
+                charter.visibility = form.visibility
+                charter.needsSync = true
+                try await charterStore.saveCharter(charter)
+                Task { await charterSyncService?.pushPendingCharters() }
+            }
+
             AppLogger.view.info("Charter created successfully with ID: \(charter.id.uuidString)")
             AppLogger.view.completeOperation("Save Charter")
-            
+
             onDismiss()
             } else {
                 guard let charterID = charterID else { return }
@@ -149,6 +160,12 @@ final class CharterEditorViewModel: ErrorHandling {
                 startDate: form.startDate,
                 endDate: form.endDate,
                 checkInChecklistID: nil)
+
+                // Update visibility if changed
+                if charter.visibility != form.visibility {
+                    try await charterStore.updateVisibility(charterID, visibility: form.visibility)
+                    Task { await charterSyncService?.pushPendingCharters() }
+                }
 
                 AppLogger.view.info("Charter updated successfully with ID: \(charter.id.uuidString)")
                 AppLogger.view.completeOperation("Save Charter")

@@ -130,6 +130,7 @@ enum LibraryError: LocalizedError, Equatable {
     case validationFailed(String)
     case syncFailed(String)
     case invalidContentData(String)
+    case unsupportedContentType(String)
 
     @MainActor
     var errorDescription: String? {
@@ -148,6 +149,8 @@ enum LibraryError: LocalizedError, Equatable {
             return String(format: L10n.Error.librarySyncFailed, reason)
         case .invalidContentData(let reason):
             return String(format: L10n.Error.libraryInvalidContent, reason)
+        case .unsupportedContentType(let typeName):
+            return "Content type '\(typeName)' is not supported"
         }
     }
 
@@ -164,6 +167,8 @@ enum LibraryError: LocalizedError, Equatable {
             return L10n.Error.librarySyncFailedRecovery
         case .invalidState, .validationFailed, .invalidContentData:
             return L10n.Error.genericRecovery
+        case .unsupportedContentType:
+            return "Please use a supported content type such as a checklist."
         }
     }
 }
