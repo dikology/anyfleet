@@ -78,7 +78,7 @@ platform :ios do
       match_options[:keychain_password] = ENV["MATCH_KEYCHAIN_PASSWORD"]
     end
 
-    match(match_options)
+    match(match_options.merge(verbose: ENV["CI"] == "true"))
   end
 
   desc "Build and archive the app"
