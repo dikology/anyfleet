@@ -112,12 +112,7 @@ platform :ios do
         },
         signingStyle: "manual"
       },
-      # In CI, disable whole-module optimization to work around swift-frontend
-      # crashes in pre-release Xcode versions (e.g. 26.3 RC2). WMO is still
-      # used locally. TestFlight builds are unaffected functionally.
-      xcargs: ENV["CI"] == "true" ?
-        "-allowProvisioningUpdates SWIFT_COMPILATION_MODE=singlefile" :
-        "-allowProvisioningUpdates"
+      xcargs: "-allowProvisioningUpdates"
     )
   end
 
