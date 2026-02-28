@@ -15,7 +15,10 @@ final class ProfileViewUITests: XCTestCase {
     override func setUpWithError() throws {
         continueAfterFailure = false
         app = XCUIApplication()
-        app.launchArguments = ["-ui-testing"]
+        // Force English so tab-bar button labels are stable regardless of
+        // the simulator's configured locale. UI tests verify functionality,
+        // not translations, so using a fixed locale is the correct approach.
+        app.launchArguments = ["-ui-testing", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
         app.launch()
     }
 

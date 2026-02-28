@@ -9,6 +9,15 @@ struct CharterDiscoveryFilters: Equatable {
         case thisMonth = "This Month"
         case custom = "Custom"
 
+        var localizedLabel: String {
+            switch self {
+            case .upcoming: return L10n.Charter.Discovery.Filter.DatePreset.upcoming
+            case .thisWeek: return L10n.Charter.Discovery.Filter.DatePreset.thisWeek
+            case .thisMonth: return L10n.Charter.Discovery.Filter.DatePreset.thisMonth
+            case .custom: return L10n.Charter.Discovery.Filter.DatePreset.custom
+            }
+        }
+
         var dateRange: (Date, Date)? {
             let now = Date()
             let cal = Calendar.current
@@ -29,6 +38,14 @@ struct CharterDiscoveryFilters: Equatable {
         case dateAscending = "Date (Earliest First)"
         case distanceAscending = "Distance (Closest First)"
         case recentlyPosted = "Recently Posted"
+
+        var localizedLabel: String {
+            switch self {
+            case .dateAscending: return L10n.Charter.Discovery.Filter.SortOrder.dateAscending
+            case .distanceAscending: return L10n.Charter.Discovery.Filter.SortOrder.distanceAscending
+            case .recentlyPosted: return L10n.Charter.Discovery.Filter.SortOrder.recentlyPosted
+            }
+        }
     }
 
     var datePreset: DatePreset = .upcoming
@@ -87,14 +104,14 @@ struct CharterFilterView: View {
                 .padding(.vertical, DesignSystem.Spacing.lg)
             }
             .background(DesignSystem.Colors.background.ignoresSafeArea())
-            .navigationTitle("Filters")
+            .navigationTitle(L10n.Charter.Discovery.Filter.title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button(L10n.Common.cancel) { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Apply") {
+                    Button(L10n.Charter.Discovery.Filter.apply) {
                         filters = localFilters
                         onApply()
                         dismiss()
@@ -103,7 +120,7 @@ struct CharterFilterView: View {
                 }
             }
             .safeAreaInset(edge: .bottom) {
-                Button("Reset Filters") {
+                Button(L10n.Charter.Discovery.Filter.reset) {
                     localFilters = .default
                     filters = .default
                     onReset()
@@ -121,7 +138,7 @@ struct CharterFilterView: View {
 
     private var dateSection: some View {
         VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
-            Text("Date Range")
+            Text(L10n.Charter.Discovery.Filter.sectionDateRange)
                 .font(DesignSystem.Typography.headline)
                 .foregroundColor(DesignSystem.Colors.textPrimary)
 
@@ -129,7 +146,7 @@ struct CharterFilterView: View {
                 HStack(spacing: DesignSystem.Spacing.sm) {
                     ForEach(CharterDiscoveryFilters.DatePreset.allCases, id: \.self) { preset in
                         FilterChip(
-                            label: preset.rawValue,
+                            label: preset.localizedLabel,
                             isSelected: localFilters.datePreset == preset
                         ) {
                             localFilters.datePreset = preset
@@ -140,9 +157,9 @@ struct CharterFilterView: View {
 
             if localFilters.datePreset == .custom {
                 VStack(spacing: DesignSystem.Spacing.sm) {
-                    DatePicker("From", selection: $localFilters.customDateFrom, displayedComponents: .date)
+                    DatePicker(L10n.charterCreateFrom, selection: $localFilters.customDateFrom, displayedComponents: .date)
                         .font(DesignSystem.Typography.body)
-                    DatePicker("To", selection: $localFilters.customDateTo,
+                    DatePicker(L10n.charterCreateTo, selection: $localFilters.customDateTo,
                                in: localFilters.customDateFrom...,
                                displayedComponents: .date)
                         .font(DesignSystem.Typography.body)
@@ -156,16 +173,16 @@ struct CharterFilterView: View {
 
     private var locationSection: some View {
         VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
-            Text("Location & Distance")
+            Text(L10n.Charter.Discovery.Filter.sectionLocation)
                 .font(DesignSystem.Typography.headline)
                 .foregroundColor(DesignSystem.Colors.textPrimary)
 
             Toggle(isOn: $localFilters.useNearMe) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Near Me")
+                    Text(L10n.Charter.Discovery.Filter.nearMe)
                         .font(DesignSystem.Typography.body)
                         .foregroundColor(DesignSystem.Colors.textPrimary)
-                    Text("Use your current location to find nearby charters")
+                    Text(L10n.Charter.Discovery.Filter.nearMeSubtitle)
                         .font(DesignSystem.Typography.caption)
                         .foregroundColor(DesignSystem.Colors.textSecondary)
                 }
@@ -175,7 +192,7 @@ struct CharterFilterView: View {
             if localFilters.useNearMe {
                 VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
                     HStack {
-                        Text("Search Radius")
+                        Text(L10n.Charter.Discovery.Filter.searchRadius)
                             .font(DesignSystem.Typography.body)
                         Spacer()
                         Text(radiusLabel(localFilters.radiusKm))
@@ -197,7 +214,7 @@ struct CharterFilterView: View {
 
     private var sortSection: some View {
         VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
-            Text("Sort By")
+            Text(L10n.Charter.Discovery.Filter.sectionSortBy)
                 .font(DesignSystem.Typography.headline)
                 .foregroundColor(DesignSystem.Colors.textPrimary)
 
@@ -206,7 +223,7 @@ struct CharterFilterView: View {
                     localFilters.sortOrder = sort
                 } label: {
                     HStack {
-                        Text(sort.rawValue)
+                        Text(sort.localizedLabel)
                             .font(DesignSystem.Typography.body)
                             .foregroundColor(DesignSystem.Colors.textPrimary)
                         Spacer()
@@ -230,7 +247,7 @@ struct CharterFilterView: View {
     }
 
     private func radiusLabel(_ km: Double) -> String {
-        km >= 500 ? "Any distance" : "\(Int(km)) km"
+        km >= 500 ? L10n.Charter.Discovery.Filter.anyDistance : "\(Int(km)) km"
     }
 }
 

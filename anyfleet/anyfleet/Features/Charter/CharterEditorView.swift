@@ -67,7 +67,7 @@ struct CharterEditorView: View {
 //                        BudgetSection(budget: $viewModel.form.budget, notes: $viewModel.form.notes)
 //                    }
                     
-                    DesignSystem.Form.Section(title: "Charter Visibility", subtitle: "Control who can discover your charter") {
+                    DesignSystem.Form.Section(title: L10n.Charter.Editor.visibilityTitle, subtitle: L10n.Charter.Editor.visibilitySubtitle) {
                         visibilityPicker
                     }
 
@@ -82,7 +82,7 @@ struct CharterEditorView: View {
             }
             .background(DesignSystem.Colors.background.ignoresSafeArea())
         }
-        .navigationTitle(viewModel.isNewCharter ? "New Charter" : "Edit Charter")
+        .navigationTitle(viewModel.isNewCharter ? L10n.Charter.Editor.newTitle : L10n.Charter.Editor.editTitle)
         .task {
             await viewModel.loadCharter()
         }
@@ -157,7 +157,7 @@ private extension CharterEditorView {
                 HStack(spacing: DesignSystem.Spacing.xs) {
                     Image(systemName: "info.circle")
                         .font(.caption)
-                    Text("You can change visibility anytime in charter settings.")
+                    Text(L10n.Charter.Editor.visibilityChangeNote)
                         .font(DesignSystem.Typography.caption)
                 }
                 .foregroundColor(DesignSystem.Colors.textSecondary)

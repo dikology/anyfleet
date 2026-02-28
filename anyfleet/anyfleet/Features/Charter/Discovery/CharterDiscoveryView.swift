@@ -16,7 +16,7 @@ struct CharterDiscoveryView: View {
             mainContent
             errorBanner
         }
-        .navigationTitle("Discover Charters")
+        .navigationTitle(L10n.Charter.Discovery.title)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar { toolbarContent }
         .sheet(isPresented: $viewModel.showFilters) {
@@ -107,7 +107,7 @@ struct CharterDiscoveryView: View {
                 ProgressView()
                     .padding()
             } else if viewModel.hasMore && !viewModel.charters.isEmpty {
-                Button("Load More") {
+                Button(L10n.Charter.Discovery.loadMore) {
                     Task { await viewModel.loadMore() }
                 }
                 .font(DesignSystem.Typography.caption)
@@ -125,7 +125,7 @@ struct CharterDiscoveryView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: DesignSystem.Spacing.sm) {
                     FilterChip(
-                        label: viewModel.filters.datePreset.rawValue,
+                        label: viewModel.filters.datePreset.localizedLabel,
                         isSelected: viewModel.filters.datePreset != .upcoming
                     ) {
                         viewModel.showFilters = true
@@ -133,7 +133,7 @@ struct CharterDiscoveryView: View {
 
                     if viewModel.filters.useNearMe {
                         FilterChip(
-                            label: "Within \(Int(viewModel.filters.radiusKm)) km",
+                            label: L10n.Charter.Discovery.Filter.withinKm(Int(viewModel.filters.radiusKm)),
                             isSelected: true
                         ) {
                             viewModel.showFilters = true
@@ -143,11 +143,11 @@ struct CharterDiscoveryView: View {
                     Button {
                         viewModel.resetFilters()
                     } label: {
-                        Label("Clear all", systemImage: "xmark.circle.fill")
+                        Label(L10n.Charter.Discovery.clearAll, systemImage: "xmark.circle.fill")
                             .font(DesignSystem.Typography.caption)
                             .foregroundColor(DesignSystem.Colors.textSecondary)
                     }
-                    .accessibilityLabel("Clear all filters")
+                    .accessibilityLabel(L10n.Charter.Discovery.clearAll)
                 }
             }
         }
@@ -163,7 +163,7 @@ struct CharterDiscoveryView: View {
                 .foregroundColor(DesignSystem.Colors.textSecondary.opacity(0.4))
 
             VStack(spacing: DesignSystem.Spacing.sm) {
-                Text("No Charters Found")
+                Text(L10n.Charter.Discovery.emptyTitle)
                     .font(DesignSystem.Typography.title)
                     .fontWeight(.semibold)
                     .foregroundColor(DesignSystem.Colors.textPrimary)
@@ -177,11 +177,10 @@ struct CharterDiscoveryView: View {
             .padding(.horizontal, DesignSystem.Spacing.screenPadding)
 
             if viewModel.filters.activeFilterCount > 0 {
-                Button("Clear Filters") {
+                Button(L10n.Charter.Discovery.clearFilters) {
                     viewModel.resetFilters()
                 }
                 .buttonStyle(DesignSystem.SecondaryButtonStyle())
-                .accessibilityHint("Remove all active filters to see more results")
             }
 
             Spacer()
@@ -194,7 +193,7 @@ struct CharterDiscoveryView: View {
         VStack(spacing: DesignSystem.Spacing.md) {
             ProgressView()
                 .scaleEffect(1.2)
-            Text("Discovering charters...")
+            Text(L10n.Charter.Discovery.loading)
                 .font(DesignSystem.Typography.caption)
                 .foregroundColor(DesignSystem.Colors.textSecondary)
         }
@@ -251,11 +250,7 @@ struct CharterDiscoveryView: View {
                 }
             }
         }
-        .accessibilityLabel("Filters")
-        .accessibilityValue(viewModel.filters.activeFilterCount > 0
-            ? "\(viewModel.filters.activeFilterCount) active"
-            : "none active")
-        .accessibilityHint("Double tap to open filter options")
+        .accessibilityLabel(L10n.Charter.Discovery.Filter.title)
     }
 
     private var viewToggleButton: some View {
@@ -268,19 +263,17 @@ struct CharterDiscoveryView: View {
                 .font(.system(size: 17))
                 .foregroundColor(DesignSystem.Colors.textPrimary)
         }
-        .accessibilityLabel(viewModel.showMapView ? "Switch to list view" : "Switch to map view")
-        .accessibilityHint("Toggle between list and map display")
     }
 
     // MARK: - Helpers
 
     private var emptyStateMessage: String {
         if viewModel.filters.activeFilterCount > 0 {
-            return "No charters match your current filters. Try adjusting your date range or location."
+            return L10n.Charter.Discovery.emptyFiltered
         }
         if viewModel.filters.useNearMe {
-            return "No public charters found nearby. Try expanding your search radius."
+            return L10n.Charter.Discovery.emptyNearby
         }
-        return "No public charters are available right now. Check back soon!"
+        return L10n.Charter.Discovery.emptyDefault
     }
 }

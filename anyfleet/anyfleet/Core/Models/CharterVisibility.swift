@@ -8,17 +8,17 @@ enum CharterVisibility: String, Codable, CaseIterable, Sendable {
 
     var displayName: String {
         switch self {
-        case .private: return "Private"
-        case .community: return "Community"
-        case .public: return "Public"
+        case .private: return L10n.Charter.Visibility.Private.name
+        case .community: return L10n.Charter.Visibility.Community.name
+        case .public: return L10n.Charter.Visibility.Public.name
         }
     }
 
     var description: String {
         switch self {
-        case .private: return "Only visible to you"
-        case .community: return "Visible to community members"
-        case .public: return "Visible to all sailors"
+        case .private: return L10n.Charter.Visibility.Private.description
+        case .community: return L10n.Charter.Visibility.Community.description
+        case .public: return L10n.Charter.Visibility.Public.description
         }
     }
 

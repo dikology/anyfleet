@@ -51,37 +51,56 @@ struct CharterVisibilityTests {
     }
 
     // MARK: - Display Name
+    //
+    // These tests compare against L10n constants rather than hardcoded English
+    // strings so they pass on any simulator locale (Russian, French, etc.).
+    // What is verified is the *mapping*: each case must use its own L10n key,
+    // not accidentally share another case's key.
 
-    @Test("displayName - private")
+    @Test("displayName - private uses correct L10n key")
     func testDisplayName_Private() {
-        #expect(CharterVisibility.private.displayName == "Private")
+        #expect(CharterVisibility.private.displayName == L10n.Charter.Visibility.Private.name)
     }
 
-    @Test("displayName - community")
+    @Test("displayName - community uses correct L10n key")
     func testDisplayName_Community() {
-        #expect(CharterVisibility.community.displayName == "Community")
+        #expect(CharterVisibility.community.displayName == L10n.Charter.Visibility.Community.name)
     }
 
-    @Test("displayName - public")
+    @Test("displayName - public uses correct L10n key")
     func testDisplayName_Public() {
-        #expect(CharterVisibility.public.displayName == "Public")
+        #expect(CharterVisibility.public.displayName == L10n.Charter.Visibility.Public.name)
+    }
+
+    @Test("displayName - all cases are non-empty and distinct")
+    func testDisplayName_NonEmptyAndDistinct() {
+        let names = CharterVisibility.allCases.map(\.displayName)
+        #expect(names.allSatisfy { !$0.isEmpty })
+        #expect(Set(names).count == CharterVisibility.allCases.count)
     }
 
     // MARK: - Description
 
-    @Test("description - private")
+    @Test("description - private uses correct L10n key")
     func testDescription_Private() {
-        #expect(CharterVisibility.private.description == "Only visible to you")
+        #expect(CharterVisibility.private.description == L10n.Charter.Visibility.Private.description)
     }
 
-    @Test("description - community")
+    @Test("description - community uses correct L10n key")
     func testDescription_Community() {
-        #expect(CharterVisibility.community.description == "Visible to community members")
+        #expect(CharterVisibility.community.description == L10n.Charter.Visibility.Community.description)
     }
 
-    @Test("description - public")
+    @Test("description - public uses correct L10n key")
     func testDescription_Public() {
-        #expect(CharterVisibility.public.description == "Visible to all sailors")
+        #expect(CharterVisibility.public.description == L10n.Charter.Visibility.Public.description)
+    }
+
+    @Test("description - all cases are non-empty and distinct")
+    func testDescription_NonEmptyAndDistinct() {
+        let descriptions = CharterVisibility.allCases.map(\.description)
+        #expect(descriptions.allSatisfy { !$0.isEmpty })
+        #expect(Set(descriptions).count == CharterVisibility.allCases.count)
     }
 
     // MARK: - System Image
