@@ -29,7 +29,7 @@ jobs:
       - name: Set up Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: latest
+          xcode-version: latest-stable
 
       - name: Verify Xcode setup
         run: |
@@ -74,7 +74,7 @@ jobs:
       - name: Set up Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: latest
+          xcode-version: latest-stable
 
       - name: Verify Xcode setup
         run: |
