@@ -13,7 +13,7 @@ struct anyfleetApp: App {
     @State private var coordinator: AppCoordinator
 
     init() {
-        let deps = AppDependencies()
+        let deps = AppDependencies.shared
         _dependencies = State(initialValue: deps)
         _coordinator = State(initialValue: AppCoordinator(dependencies: deps))
     }

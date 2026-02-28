@@ -5,6 +5,7 @@ import SwiftUI
 struct CharterDiscoveryView: View {
     @State private var viewModel: CharterDiscoveryViewModel
     @Environment(\.appCoordinator) private var coordinator
+    @Environment(\.appDependencies) private var dependencies
 
     init(viewModel: CharterDiscoveryViewModel) {
         _viewModel = State(initialValue: viewModel)
@@ -35,6 +36,9 @@ struct CharterDiscoveryView: View {
         .task { await viewModel.loadInitial() }
         .refreshable { await viewModel.refresh() }
         .onAppear { viewModel.requestLocationIfNeeded() }
+        .onChange(of: dependencies.charterSyncService.lastSyncDate) {
+            Task { await viewModel.refresh() }
+        }
     }
 
     // MARK: - Main Content

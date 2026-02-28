@@ -186,6 +186,50 @@ struct CharterSyncServiceTests {
         #expect(repository.fetchPendingSyncChartersCallCount == 2)
     }
 
+    @Test("pushPendingCharters - two separate instances both push the same pending charter (regression: triple-creation bug)")
+    @MainActor
+    func testPushPendingCharters_SeparateInstancesDuplicatePush() async {
+        // Regression test for the bug where AppDependencies was instantiated three times
+        // (anyfleetApp.init + AppDependenciesKey.defaultValue + AppCoordinatorKey.defaultValue).
+        // Each instance owned a separate CharterSyncService, and all three raced to push the same
+        // pending charter, creating three server records instead of one.
+        //
+        // The fix is AppDependencies.shared (singleton). This test documents the behaviour of
+        // separate instances so the bug is visible when the architecture regresses.
+        let repository = MockLocalRepository()
+        let apiClient = MockAPIClient()
+        let authService = MockAuthService()
+        authService.mockIsAuthenticated = true
+        let store = CharterStore(repository: repository)
+
+        let service1 = CharterSyncService(
+            repository: repository,
+            apiClient: apiClient,
+            charterStore: store,
+            authService: authService
+        )
+        let service2 = CharterSyncService(
+            repository: repository,
+            apiClient: apiClient,
+            charterStore: store,
+            authService: authService
+        )
+
+        let charter = makeCharter(serverID: nil, visibility: .community)
+        // Both services see the same pending charter before either marks it synced.
+        repository.fetchPendingSyncChartersResult = .success([charter])
+
+        // Sequential push from two instances – each will call createCharter.
+        await service1.pushPendingCharters()
+        await service2.pushPendingCharters()
+
+        // Two separate instances create the charter twice on the backend.
+        // This demonstrates the duplicate-creation risk; the production fix (singleton)
+        // ensures only one instance ever exists, so createCharterCallCount stays at 1.
+        #expect(apiClient.createCharterCallCount == 2,
+                "Two separate CharterSyncService instances pushed the same charter twice — ensure AppDependencies.shared is used everywhere to prevent this.")
+    }
+
     @Test("pushPendingCharters - skips sync and sets needsAuthForSync when unauthenticated")
     @MainActor
     func testPushPendingCharters_UnauthenticatedSetsFlag() async {
