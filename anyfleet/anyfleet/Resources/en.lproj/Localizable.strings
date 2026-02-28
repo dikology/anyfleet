@@ -228,6 +228,73 @@
 "charter.detail.checkInChecklist.empty.title" = "No check-in checklist yet";
 "charter.detail.checkInChecklist.empty.description" = "Create a checklist of type \"Check-In\" in your Library and it will automatically appear here for this charter.";
 
+// Charter Editor - new visibility/discovery strings
+"charter.editor.newTitle" = "New Charter";
+"charter.editor.editTitle" = "Edit Charter";
+"charter.editor.visibility.title" = "Charter Visibility";
+"charter.editor.visibility.subtitle" = "Control who can discover your charter";
+"charter.editor.visibility.changeNote" = "You can change visibility anytime in charter settings.";
+
+// Charter Visibility options
+"charter.visibility.private.name" = "Private";
+"charter.visibility.private.description" = "Only visible to you";
+"charter.visibility.community.name" = "Community";
+"charter.visibility.community.description" = "Visible to community members";
+"charter.visibility.public.name" = "Public";
+"charter.visibility.public.description" = "Visible to all sailors";
+
+// Charter Discovery feed
+"charter.discovery.title" = "Discover Charters";
+"charter.discovery.loadMore" = "Load More";
+"charter.discovery.loading" = "Discovering charters...";
+"charter.discovery.clearAll" = "Clear all";
+"charter.discovery.clearFilters" = "Clear Filters";
+"charter.discovery.captainFallback" = "Captain";
+"charter.discovery.anonymousCaptain" = "Anonymous Captain";
+"charter.discovery.charterHost" = "Charter Host";
+"charter.discovery.sectionCaptain" = "Captain";
+"charter.discovery.sectionCharterDetails" = "Charter Details";
+"charter.discovery.fieldName" = "Name";
+"charter.discovery.fieldDates" = "Dates";
+"charter.discovery.fieldDuration" = "Duration";
+"charter.discovery.fieldVessel" = "Vessel";
+"charter.discovery.fieldDestination" = "Destination";
+"charter.discovery.fieldDistance" = "Distance";
+"charter.discovery.sectionDestination" = "Destination";
+"charter.discovery.kmAway" = "%d km away";
+"charter.discovery.duration.day" = "%d day";
+"charter.discovery.duration.days" = "%d days";
+"charter.discovery.emptyTitle" = "No Charters Found";
+"charter.discovery.emptyFiltered" = "No charters match your current filters. Try adjusting your date range or location.";
+"charter.discovery.emptyNearby" = "No public charters found nearby. Try expanding your search radius.";
+"charter.discovery.emptyDefault" = "No public charters are available right now. Check back soon!";
+
+// Urgency badges
+"charter.discovery.badge.past" = "Past";
+"charter.discovery.badge.imminent" = "This week";
+"charter.discovery.badge.soon" = "This month";
+"charter.discovery.badge.upcoming" = "Upcoming";
+
+// Charter Discovery filter sheet
+"charter.discovery.filter.title" = "Filters";
+"charter.discovery.filter.apply" = "Apply";
+"charter.discovery.filter.reset" = "Reset Filters";
+"charter.discovery.filter.sectionDateRange" = "Date Range";
+"charter.discovery.filter.sectionLocation" = "Location & Distance";
+"charter.discovery.filter.nearMe" = "Near Me";
+"charter.discovery.filter.nearMeSubtitle" = "Use your current location to find nearby charters";
+"charter.discovery.filter.searchRadius" = "Search Radius";
+"charter.discovery.filter.sectionSortBy" = "Sort By";
+"charter.discovery.filter.anyDistance" = "Any distance";
+"charter.discovery.filter.withinKm" = "Within %d km";
+"charter.discovery.filter.preset.upcoming" = "Upcoming";
+"charter.discovery.filter.preset.thisWeek" = "This Week";
+"charter.discovery.filter.preset.thisMonth" = "This Month";
+"charter.discovery.filter.preset.custom" = "Custom";
+"charter.discovery.filter.sort.dateAscending" = "Date (Earliest First)";
+"charter.discovery.filter.sort.distanceAscending" = "Distance (Closest First)";
+"charter.discovery.filter.sort.recentlyPosted" = "Recently Posted";
+
 // Common
 "common.close" = "Close";
 "common.cancel" = "Cancel";

@@ -290,12 +290,25 @@ extension AppDependencies {
     }
 }
 
+// MARK: - Shared Instance
+
+extension AppDependencies {
+    /// Canonical singleton used as the SwiftUI environment default value.
+    ///
+    /// All three creation points (anyfleetApp.init, AppDependenciesKey.defaultValue,
+    /// AppCoordinatorKey.defaultValue) reference this property so only ONE
+    /// AppDependencies — and therefore ONE SyncCoordinator / CharterSyncService — ever
+    /// exists per process.  Creating additional instances causes every SyncCoordinator to
+    /// independently push pending charters, resulting in duplicate server records.
+    static let shared: AppDependencies = MainActor.assumeIsolated {
+        AppDependencies()
+    }
+}
+
 // MARK: - Environment Key
 
 private struct AppDependenciesKey: EnvironmentKey {
-    static let defaultValue: AppDependencies = MainActor.assumeIsolated {
-        AppDependencies()
-    }
+    static var defaultValue: AppDependencies { AppDependencies.shared }
 }
 
 extension EnvironmentValues {

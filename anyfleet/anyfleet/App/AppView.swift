@@ -31,6 +31,7 @@ struct AppView: View {
                 Label(L10n.Home, systemImage: "house.fill")
             }
             .tag(Tab.home)
+            .accessibilityIdentifier("tab.home")
             
                 // Charters Tab
                 NavigationStack(path: Binding(get: { coordinator.chartersPath }, set: { coordinator.chartersPath = $0 })) {
@@ -45,6 +46,7 @@ struct AppView: View {
                 Label(L10n.Charters, systemImage: "sailboat.fill")
             }
             .tag(Tab.charters)
+            .accessibilityIdentifier("tab.charters")
 
                 // Library Tab
                 NavigationStack(path: Binding(get: { coordinator.libraryPath }, set: { coordinator.libraryPath = $0 })) {
@@ -64,6 +66,7 @@ struct AppView: View {
                 Label(L10n.Library.myLibrary, systemImage: "book.fill")
             }
             .tag(Tab.library)
+            .accessibilityIdentifier("tab.library")
 
                 // Discover Tab
                 NavigationStack(path: Binding(get: { coordinator.discoverPath }, set: { coordinator.discoverPath = $0 })) {
@@ -82,6 +85,7 @@ struct AppView: View {
                 Label(L10n.Discover, systemImage: "globe")
             }
             .tag(Tab.discover)
+            .accessibilityIdentifier("tab.discover")
 
                 // Profile Tab
                 NavigationStack(path: Binding(get: { coordinator.profilePath }, set: { coordinator.profilePath = $0 })) {
@@ -94,6 +98,7 @@ struct AppView: View {
                 Label(L10n.ProfileTab, systemImage: "person.fill")
             }
             .tag(Tab.profile)
+            .accessibilityIdentifier("tab.profile")
         }
     }
 }

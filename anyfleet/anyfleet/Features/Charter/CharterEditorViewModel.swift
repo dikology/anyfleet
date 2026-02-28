@@ -139,12 +139,13 @@ final class CharterEditorViewModel: ErrorHandling {
                 checkInChecklistID: nil
             )
 
-            // Apply visibility and mark for sync if not private
+            // Apply visibility and push immediately so the charter is on the server
+            // before the user navigates away (e.g. to the discover tab).
             if form.visibility != .private {
                 charter.visibility = form.visibility
                 charter.needsSync = true
                 try await charterStore.saveCharter(charter)
-                Task { await charterSyncService?.pushPendingCharters() }
+                await charterSyncService?.pushPendingCharters()
             }
 
             AppLogger.view.info("Charter created successfully with ID: \(charter.id.uuidString)")
@@ -161,10 +162,10 @@ final class CharterEditorViewModel: ErrorHandling {
                 endDate: form.endDate,
                 checkInChecklistID: nil)
 
-                // Update visibility if changed
+                // Update visibility if changed and push immediately
                 if charter.visibility != form.visibility {
                     try await charterStore.updateVisibility(charterID, visibility: form.visibility)
-                    Task { await charterSyncService?.pushPendingCharters() }
+                    await charterSyncService?.pushPendingCharters()
                 }
 
                 AppLogger.view.info("Charter updated successfully with ID: \(charter.id.uuidString)")

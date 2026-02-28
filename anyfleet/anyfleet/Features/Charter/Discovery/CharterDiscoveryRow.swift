@@ -27,7 +27,6 @@ struct CharterDiscoveryRow: View {
         .buttonStyle(.plain)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(accessibilityLabel)
-        .accessibilityHint("Double tap to view charter details")
     }
 
     // MARK: - Subviews
@@ -37,7 +36,7 @@ struct CharterDiscoveryRow: View {
             CaptainAvatarView(captain: charter.captain)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(charter.captain.username ?? "Captain")
+                Text(charter.captain.username ?? L10n.Charter.Discovery.captainFallback)
                     .font(DesignSystem.Typography.body)
                     .fontWeight(.medium)
                     .foregroundColor(DesignSystem.Colors.textPrimary)
@@ -55,7 +54,7 @@ struct CharterDiscoveryRow: View {
             VStack(alignment: .trailing, spacing: 2) {
                 urgencyBadge
                 if let distanceKm = charter.distanceKm {
-                    Text("\(Int(distanceKm)) km away")
+                    Text(L10n.Charter.Discovery.kmAway(Int(distanceKm)))
                         .font(.caption2)
                         .foregroundColor(DesignSystem.Colors.textSecondary)
                 }
@@ -145,10 +144,10 @@ private struct CaptainAvatarView: View {
 private extension CharterUrgencyLevel {
     var badgeLabel: String {
         switch self {
-        case .past: return "Past"
-        case .imminent: return "This week"
-        case .soon: return "This month"
-        case .future: return "Upcoming"
+        case .past: return L10n.Charter.Discovery.Badge.past
+        case .imminent: return L10n.Charter.Discovery.Badge.imminent
+        case .soon: return L10n.Charter.Discovery.Badge.soon
+        case .future: return L10n.Charter.Discovery.Badge.upcoming
         }
     }
 

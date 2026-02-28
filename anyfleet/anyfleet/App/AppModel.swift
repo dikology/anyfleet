@@ -202,6 +202,7 @@ final class AppCoordinator: AppCoordinatorProtocol {
             CharterEditorView(
                 viewModel: CharterEditorViewModel(
                     charterStore: dependencies.charterStore,
+                    charterSyncService: dependencies.charterSyncService,
                     charterID: nil,
                     onDismiss: { self.pop(from: .charters) },
                     initialForm: CharterFormState()
@@ -219,6 +220,7 @@ final class AppCoordinator: AppCoordinatorProtocol {
             CharterEditorView(
                 viewModel: CharterEditorViewModel(
                     charterStore: dependencies.charterStore,
+                    charterSyncService: dependencies.charterSyncService,
                     charterID: id,
                     onDismiss: { self.pop(from: .charters) },
                     initialForm: CharterFormState()
@@ -308,7 +310,7 @@ final class AppCoordinator: AppCoordinatorProtocol {
 
 private struct AppCoordinatorKey: EnvironmentKey {
     static let defaultValue: AppCoordinator = MainActor.assumeIsolated {
-        AppCoordinator(dependencies: AppDependencies())
+        AppCoordinator(dependencies: AppDependencies.shared)
     }
 }
 

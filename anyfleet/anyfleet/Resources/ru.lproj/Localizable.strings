@@ -207,6 +207,73 @@
 "charter.detail.checkInChecklist.empty.title" = "Чек-лист приёмки еще не создан";
 "charter.detail.checkInChecklist.empty.description" = "Создайте чек-лист приёмки в вашей Библиотеке, и он автоматически появится здесь для этого чартера.";
 
+// Charter Editor - new visibility/discovery strings
+"charter.editor.newTitle" = "Новый чартер";
+"charter.editor.editTitle" = "Редактировать чартер";
+"charter.editor.visibility.title" = "Видимость чартера";
+"charter.editor.visibility.subtitle" = "Управляйте тем, кто может найти ваш чартер";
+"charter.editor.visibility.changeNote" = "Вы можете изменить видимость в настройках чартера.";
+
+// Charter Visibility options
+"charter.visibility.private.name" = "Приватный";
+"charter.visibility.private.description" = "Видно только вам";
+"charter.visibility.community.name" = "Сообщество";
+"charter.visibility.community.description" = "Видно участникам сообщества";
+"charter.visibility.public.name" = "Публичный";
+"charter.visibility.public.description" = "Видно всем морякам";
+
+// Charter Discovery feed
+"charter.discovery.title" = "Поиск чартеров";
+"charter.discovery.loadMore" = "Загрузить ещё";
+"charter.discovery.loading" = "Поиск чартеров...";
+"charter.discovery.clearAll" = "Очистить всё";
+"charter.discovery.clearFilters" = "Очистить фильтры";
+"charter.discovery.captainFallback" = "Капитан";
+"charter.discovery.anonymousCaptain" = "Анонимный капитан";
+"charter.discovery.charterHost" = "Хозяин чартера";
+"charter.discovery.sectionCaptain" = "Капитан";
+"charter.discovery.sectionCharterDetails" = "Детали чартера";
+"charter.discovery.fieldName" = "Название";
+"charter.discovery.fieldDates" = "Даты";
+"charter.discovery.fieldDuration" = "Продолжительность";
+"charter.discovery.fieldVessel" = "Судно";
+"charter.discovery.fieldDestination" = "Назначение";
+"charter.discovery.fieldDistance" = "Расстояние";
+"charter.discovery.sectionDestination" = "Назначение";
+"charter.discovery.kmAway" = "%d км";
+"charter.discovery.duration.day" = "%d день";
+"charter.discovery.duration.days" = "%d дн.";
+"charter.discovery.emptyTitle" = "Чартеры не найдены";
+"charter.discovery.emptyFiltered" = "Ни один чартер не соответствует вашим фильтрам. Попробуйте изменить даты или местоположение.";
+"charter.discovery.emptyNearby" = "Публичные чартеры поблизости не найдены. Попробуйте увеличить радиус поиска.";
+"charter.discovery.emptyDefault" = "Публичных чартеров пока нет. Загляните позже!";
+
+// Urgency badges
+"charter.discovery.badge.past" = "Прошедший";
+"charter.discovery.badge.imminent" = "На этой неделе";
+"charter.discovery.badge.soon" = "В этом месяце";
+"charter.discovery.badge.upcoming" = "Предстоящий";
+
+// Charter Discovery filter sheet
+"charter.discovery.filter.title" = "Фильтры";
+"charter.discovery.filter.apply" = "Применить";
+"charter.discovery.filter.reset" = "Сбросить фильтры";
+"charter.discovery.filter.sectionDateRange" = "Диапазон дат";
+"charter.discovery.filter.sectionLocation" = "Местоположение и расстояние";
+"charter.discovery.filter.nearMe" = "Рядом со мной";
+"charter.discovery.filter.nearMeSubtitle" = "Использовать ваше местоположение для поиска чартеров рядом";
+"charter.discovery.filter.searchRadius" = "Радиус поиска";
+"charter.discovery.filter.sectionSortBy" = "Сортировать по";
+"charter.discovery.filter.anyDistance" = "Любое расстояние";
+"charter.discovery.filter.withinKm" = "В радиусе %d км";
+"charter.discovery.filter.preset.upcoming" = "Предстоящие";
+"charter.discovery.filter.preset.thisWeek" = "На этой неделе";
+"charter.discovery.filter.preset.thisMonth" = "В этом месяце";
+"charter.discovery.filter.preset.custom" = "Произвольно";
+"charter.discovery.filter.sort.dateAscending" = "Дата (сначала ранние)";
+"charter.discovery.filter.sort.distanceAscending" = "Расстояние (сначала ближние)";
+"charter.discovery.filter.sort.recentlyPosted" = "Недавно опубликованные";
+
 // Common
 "common.close" = "Закрыть";
 "common.cancel" = "Отмена";

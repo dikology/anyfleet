@@ -188,7 +188,15 @@ struct UserBasicAPIResponse: Codable {
         CaptainBasicInfo(
             id: id,
             username: username,
-            profileImageThumbnailURL: profileImageThumbnailUrl.flatMap { URL(string: $0) }
+            profileImageThumbnailURL: profileImageThumbnailUrl.flatMap { urlString in
+                // URL(string:) percent-encodes invalid strings rather than returning nil,
+                // so validate that the result has a scheme and host before accepting it.
+                guard let url = URL(string: urlString),
+                      url.scheme != nil,
+                      url.host != nil
+                else { return nil }
+                return url
+            }
         )
     }
 }

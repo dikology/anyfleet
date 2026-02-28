@@ -163,6 +163,17 @@ struct AppDependenciesTests {
         #expect(dependencies2.charterStore.charters.contains { $0.id == charter.id })
     }
     
+    @Test("AppDependencies.shared - always returns the same instance (singleton)")
+    @MainActor
+    func testSharedIsSingleton() {
+        let first = AppDependencies.shared
+        let second = AppDependencies.shared
+        // Reference equality: both must be the exact same object.
+        // If they differ, two SyncCoordinators run concurrently and each pushes
+        // pending charters, causing duplicate server records.
+        #expect(first === second)
+    }
+
     @Test("AppDependencies - localization service is initialized")
     @MainActor
     func testLocalizationServiceInitialized() async throws {

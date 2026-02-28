@@ -1348,6 +1348,344 @@ enum L10n {
             comment: "Navigation title for charter detail view"
         )
 
+        // MARK: - Editor
+
+        enum Editor {
+            static let newTitle = NSLocalizedString(
+                "charter.editor.newTitle",
+                tableName: "Localizable",
+                comment: "Navigation title when creating a new charter"
+            )
+
+            static let editTitle = NSLocalizedString(
+                "charter.editor.editTitle",
+                tableName: "Localizable",
+                comment: "Navigation title when editing an existing charter"
+            )
+
+            static let visibilityTitle = NSLocalizedString(
+                "charter.editor.visibility.title",
+                tableName: "Localizable",
+                comment: "Section title for the charter visibility picker"
+            )
+
+            static let visibilitySubtitle = NSLocalizedString(
+                "charter.editor.visibility.subtitle",
+                tableName: "Localizable",
+                comment: "Section subtitle explaining the visibility picker"
+            )
+
+            static let visibilityChangeNote = NSLocalizedString(
+                "charter.editor.visibility.changeNote",
+                tableName: "Localizable",
+                comment: "Info note that visibility can be changed later"
+            )
+        }
+
+        // MARK: - Visibility options
+
+        enum Visibility {
+            enum Private {
+                static let name = NSLocalizedString(
+                    "charter.visibility.private.name",
+                    tableName: "Localizable",
+                    comment: "Display name for private visibility option"
+                )
+                static let description = NSLocalizedString(
+                    "charter.visibility.private.description",
+                    tableName: "Localizable",
+                    comment: "Description of private visibility"
+                )
+            }
+            enum Community {
+                static let name = NSLocalizedString(
+                    "charter.visibility.community.name",
+                    tableName: "Localizable",
+                    comment: "Display name for community visibility option"
+                )
+                static let description = NSLocalizedString(
+                    "charter.visibility.community.description",
+                    tableName: "Localizable",
+                    comment: "Description of community visibility"
+                )
+            }
+            enum Public {
+                static let name = NSLocalizedString(
+                    "charter.visibility.public.name",
+                    tableName: "Localizable",
+                    comment: "Display name for public visibility option"
+                )
+                static let description = NSLocalizedString(
+                    "charter.visibility.public.description",
+                    tableName: "Localizable",
+                    comment: "Description of public visibility"
+                )
+            }
+        }
+
+        // MARK: - Discovery feed
+
+        enum Discovery {
+            static let title = NSLocalizedString(
+                "charter.discovery.title",
+                tableName: "Localizable",
+                comment: "Navigation title for the charter discovery screen"
+            )
+            static let loadMore = NSLocalizedString(
+                "charter.discovery.loadMore",
+                tableName: "Localizable",
+                comment: "Load more charters button"
+            )
+            static let loading = NSLocalizedString(
+                "charter.discovery.loading",
+                tableName: "Localizable",
+                comment: "Loading indicator text while fetching charters"
+            )
+            static let clearAll = NSLocalizedString(
+                "charter.discovery.clearAll",
+                tableName: "Localizable",
+                comment: "Clear all active filters"
+            )
+            static let clearFilters = NSLocalizedString(
+                "charter.discovery.clearFilters",
+                tableName: "Localizable",
+                comment: "Clear filters button in empty state"
+            )
+            static let captainFallback = NSLocalizedString(
+                "charter.discovery.captainFallback",
+                tableName: "Localizable",
+                comment: "Fallback label when captain username is unknown"
+            )
+            static let anonymousCaptain = NSLocalizedString(
+                "charter.discovery.anonymousCaptain",
+                tableName: "Localizable",
+                comment: "Placeholder name when captain is anonymous"
+            )
+            static let charterHost = NSLocalizedString(
+                "charter.discovery.charterHost",
+                tableName: "Localizable",
+                comment: "Role label shown under captain's name in detail view"
+            )
+            static let sectionCaptain = NSLocalizedString(
+                "charter.discovery.sectionCaptain",
+                tableName: "Localizable",
+                comment: "Section header label for the captain block"
+            )
+            static let sectionCharterDetails = NSLocalizedString(
+                "charter.discovery.sectionCharterDetails",
+                tableName: "Localizable",
+                comment: "Section header for charter info rows"
+            )
+            static let fieldName = NSLocalizedString(
+                "charter.discovery.fieldName",
+                tableName: "Localizable",
+                comment: "Info row label for charter name"
+            )
+            static let fieldDates = NSLocalizedString(
+                "charter.discovery.fieldDates",
+                tableName: "Localizable",
+                comment: "Info row label for charter dates"
+            )
+            static let fieldDuration = NSLocalizedString(
+                "charter.discovery.fieldDuration",
+                tableName: "Localizable",
+                comment: "Info row label for charter duration"
+            )
+            static let fieldVessel = NSLocalizedString(
+                "charter.discovery.fieldVessel",
+                tableName: "Localizable",
+                comment: "Info row label for vessel name"
+            )
+            static let fieldDestination = NSLocalizedString(
+                "charter.discovery.fieldDestination",
+                tableName: "Localizable",
+                comment: "Info row label for destination"
+            )
+            static let fieldDistance = NSLocalizedString(
+                "charter.discovery.fieldDistance",
+                tableName: "Localizable",
+                comment: "Info row label for distance"
+            )
+            static let sectionDestination = NSLocalizedString(
+                "charter.discovery.sectionDestination",
+                tableName: "Localizable",
+                comment: "Map section header label"
+            )
+
+            static func kmAway(_ km: Int) -> String {
+                String(format: NSLocalizedString(
+                    "charter.discovery.kmAway",
+                    tableName: "Localizable",
+                    comment: "Distance label, %d = kilometres"
+                ), km)
+            }
+
+            static func durationDays(_ count: Int) -> String {
+                let key = count == 1
+                    ? "charter.discovery.duration.day"
+                    : "charter.discovery.duration.days"
+                return String(format: NSLocalizedString(
+                    key,
+                    tableName: "Localizable",
+                    comment: "Charter duration, %d = number of days"
+                ), count)
+            }
+
+            // MARK: Empty states
+
+            static let emptyTitle = NSLocalizedString(
+                "charter.discovery.emptyTitle",
+                tableName: "Localizable",
+                comment: "Title for the empty charter discovery list"
+            )
+            static let emptyFiltered = NSLocalizedString(
+                "charter.discovery.emptyFiltered",
+                tableName: "Localizable",
+                comment: "Empty state message when filters return no results"
+            )
+            static let emptyNearby = NSLocalizedString(
+                "charter.discovery.emptyNearby",
+                tableName: "Localizable",
+                comment: "Empty state message when no charters are nearby"
+            )
+            static let emptyDefault = NSLocalizedString(
+                "charter.discovery.emptyDefault",
+                tableName: "Localizable",
+                comment: "Default empty state message for charter discovery"
+            )
+
+            // MARK: Urgency badges
+
+            enum Badge {
+                static let past = NSLocalizedString(
+                    "charter.discovery.badge.past",
+                    tableName: "Localizable",
+                    comment: "Badge label for past charters"
+                )
+                static let imminent = NSLocalizedString(
+                    "charter.discovery.badge.imminent",
+                    tableName: "Localizable",
+                    comment: "Badge label for charters starting within 7 days"
+                )
+                static let soon = NSLocalizedString(
+                    "charter.discovery.badge.soon",
+                    tableName: "Localizable",
+                    comment: "Badge label for charters starting within 30 days"
+                )
+                static let upcoming = NSLocalizedString(
+                    "charter.discovery.badge.upcoming",
+                    tableName: "Localizable",
+                    comment: "Badge label for future charters"
+                )
+            }
+
+            // MARK: Filter sheet
+
+            enum Filter {
+                static let title = NSLocalizedString(
+                    "charter.discovery.filter.title",
+                    tableName: "Localizable",
+                    comment: "Navigation title for the filter sheet"
+                )
+                static let apply = NSLocalizedString(
+                    "charter.discovery.filter.apply",
+                    tableName: "Localizable",
+                    comment: "Apply filters button"
+                )
+                static let reset = NSLocalizedString(
+                    "charter.discovery.filter.reset",
+                    tableName: "Localizable",
+                    comment: "Reset filters button"
+                )
+                static let sectionDateRange = NSLocalizedString(
+                    "charter.discovery.filter.sectionDateRange",
+                    tableName: "Localizable",
+                    comment: "Date range section header in filter sheet"
+                )
+                static let sectionLocation = NSLocalizedString(
+                    "charter.discovery.filter.sectionLocation",
+                    tableName: "Localizable",
+                    comment: "Location & distance section header in filter sheet"
+                )
+                static let nearMe = NSLocalizedString(
+                    "charter.discovery.filter.nearMe",
+                    tableName: "Localizable",
+                    comment: "Near me toggle label"
+                )
+                static let nearMeSubtitle = NSLocalizedString(
+                    "charter.discovery.filter.nearMeSubtitle",
+                    tableName: "Localizable",
+                    comment: "Near me toggle subtitle explaining what it does"
+                )
+                static let searchRadius = NSLocalizedString(
+                    "charter.discovery.filter.searchRadius",
+                    tableName: "Localizable",
+                    comment: "Search radius label in filter sheet"
+                )
+                static let sectionSortBy = NSLocalizedString(
+                    "charter.discovery.filter.sectionSortBy",
+                    tableName: "Localizable",
+                    comment: "Sort by section header in filter sheet"
+                )
+                static let anyDistance = NSLocalizedString(
+                    "charter.discovery.filter.anyDistance",
+                    tableName: "Localizable",
+                    comment: "Radius label when maximum range is selected (any distance)"
+                )
+
+                static func withinKm(_ km: Int) -> String {
+                    String(format: NSLocalizedString(
+                        "charter.discovery.filter.withinKm",
+                        tableName: "Localizable",
+                        comment: "Active-filter chip label showing the current radius, %d = km"
+                    ), km)
+                }
+
+                // Date presets
+                enum DatePreset {
+                    static let upcoming = NSLocalizedString(
+                        "charter.discovery.filter.preset.upcoming",
+                        tableName: "Localizable",
+                        comment: "Date preset: all upcoming charters"
+                    )
+                    static let thisWeek = NSLocalizedString(
+                        "charter.discovery.filter.preset.thisWeek",
+                        tableName: "Localizable",
+                        comment: "Date preset: charters this week"
+                    )
+                    static let thisMonth = NSLocalizedString(
+                        "charter.discovery.filter.preset.thisMonth",
+                        tableName: "Localizable",
+                        comment: "Date preset: charters this month"
+                    )
+                    static let custom = NSLocalizedString(
+                        "charter.discovery.filter.preset.custom",
+                        tableName: "Localizable",
+                        comment: "Date preset: custom date range"
+                    )
+                }
+
+                // Sort orders
+                enum SortOrder {
+                    static let dateAscending = NSLocalizedString(
+                        "charter.discovery.filter.sort.dateAscending",
+                        tableName: "Localizable",
+                        comment: "Sort order: earliest start date first"
+                    )
+                    static let distanceAscending = NSLocalizedString(
+                        "charter.discovery.filter.sort.distanceAscending",
+                        tableName: "Localizable",
+                        comment: "Sort order: closest first"
+                    )
+                    static let recentlyPosted = NSLocalizedString(
+                        "charter.discovery.filter.sort.recentlyPosted",
+                        tableName: "Localizable",
+                        comment: "Sort order: most recently posted"
+                    )
+                }
+            }
+        }
+
         enum CheckInChecklist {
             static let title = NSLocalizedString(
                 "charter.detail.checkInChecklist.title",

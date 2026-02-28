@@ -35,7 +35,7 @@ struct DiscoveredCharterDetailView: View {
 
     private var captainSection: some View {
         VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
-            Text("Captain")
+            Text(L10n.Charter.Discovery.sectionCaptain)
                 .font(DesignSystem.Typography.caption)
                 .foregroundColor(DesignSystem.Colors.textSecondary)
                 .textCase(.uppercase)
@@ -43,11 +43,11 @@ struct DiscoveredCharterDetailView: View {
             HStack(spacing: DesignSystem.Spacing.md) {
                 captainAvatar
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(charter.captain.username ?? "Anonymous Captain")
+                    Text(charter.captain.username ?? L10n.Charter.Discovery.anonymousCaptain)
                         .font(DesignSystem.Typography.body)
                         .fontWeight(.semibold)
                         .foregroundColor(DesignSystem.Colors.textPrimary)
-                    Text("Charter Host")
+                    Text(L10n.Charter.Discovery.charterHost)
                         .font(DesignSystem.Typography.caption)
                         .foregroundColor(DesignSystem.Colors.textSecondary)
                 }
@@ -89,33 +89,33 @@ struct DiscoveredCharterDetailView: View {
 
     private var charterInfoSection: some View {
         VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
-            Text("Charter Details")
+            Text(L10n.Charter.Discovery.sectionCharterDetails)
                 .font(DesignSystem.Typography.caption)
                 .foregroundColor(DesignSystem.Colors.textSecondary)
                 .textCase(.uppercase)
 
             VStack(spacing: 0) {
-                infoRow(icon: "text.quote", label: "Name", value: charter.name)
+                infoRow(icon: "text.quote", label: L10n.Charter.Discovery.fieldName, value: charter.name)
                 Divider().padding(.leading, 44)
-                infoRow(icon: "calendar", label: "Dates", value: charter.dateRange)
+                infoRow(icon: "calendar", label: L10n.Charter.Discovery.fieldDates, value: charter.dateRange)
                 Divider().padding(.leading, 44)
-
-                let durationText = "\(charter.durationDays) day\(charter.durationDays == 1 ? "" : "s")"
-                infoRow(icon: "clock", label: "Duration", value: durationText)
+                infoRow(icon: "clock", label: L10n.Charter.Discovery.fieldDuration,
+                        value: L10n.Charter.Discovery.durationDays(charter.durationDays))
 
                 if let boat = charter.boatName, !boat.isEmpty {
                     Divider().padding(.leading, 44)
-                    infoRow(icon: "sailboat", label: "Vessel", value: boat)
+                    infoRow(icon: "sailboat", label: L10n.Charter.Discovery.fieldVessel, value: boat)
                 }
 
                 if let destination = charter.destination, !destination.isEmpty {
                     Divider().padding(.leading, 44)
-                    infoRow(icon: "mappin.and.ellipse", label: "Destination", value: destination)
+                    infoRow(icon: "mappin.and.ellipse", label: L10n.Charter.Discovery.fieldDestination, value: destination)
                 }
 
                 if let distanceKm = charter.distanceKm {
                     Divider().padding(.leading, 44)
-                    infoRow(icon: "location.circle", label: "Distance", value: "\(Int(distanceKm)) km away")
+                    infoRow(icon: "location.circle", label: L10n.Charter.Discovery.fieldDistance,
+                            value: L10n.Charter.Discovery.kmAway(Int(distanceKm)))
                 }
             }
             .background(DesignSystem.Colors.surface)
@@ -150,7 +150,7 @@ struct DiscoveredCharterDetailView: View {
 
     private func mapSection(coordinate: CLLocationCoordinate2D) -> some View {
         VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
-            Text("Destination")
+            Text(L10n.Charter.Discovery.sectionDestination)
                 .font(DesignSystem.Typography.caption)
                 .foregroundColor(DesignSystem.Colors.textSecondary)
                 .textCase(.uppercase)
