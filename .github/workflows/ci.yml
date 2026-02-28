@@ -69,7 +69,9 @@ jobs:
       - name: List available Xcode versions
         run: |
           echo "=== Available Xcode installations ==="
-          ls -la /Applications | grep -i xcode || echo "No Xcode installations found"
+          ls -d /Applications/Xcode*.app 2>/dev/null || echo "No Xcode installations found"
+          echo "=== Default Xcode ==="
+          xcode-select -p
 
       - name: Set up Xcode
         uses: maxim-lobanov/setup-xcode@v1
