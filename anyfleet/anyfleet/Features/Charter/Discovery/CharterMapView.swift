@@ -7,38 +7,38 @@ struct CharterMapView: View {
     let charters: [DiscoverableCharter]
     let onSelectCharter: (DiscoverableCharter) -> Void
 
-    @State private var region = MKCoordinateRegion(
-        center: CLLocationCoordinate2D(latitude: 40.0, longitude: 15.0),
-        span: MKCoordinateSpan(latitudeDelta: 30.0, longitudeDelta: 30.0)
-    )
+    @State private var position: MapCameraPosition = .automatic
     @State private var selectedCharterID: UUID?
 
-    private var charters_with_location: [DiscoverableCharter] {
+    private var chartersWithLocation: [DiscoverableCharter] {
         charters.filter { $0.hasLocation }
     }
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            Map(coordinateRegion: $region, annotationItems: charters_with_location) { charter in
-                MapAnnotation(coordinate: charter.coordinate!) {
-                    CharterMapAnnotation(
-                        charter: charter,
-                        isSelected: selectedCharterID == charter.id
-                    ) {
-                        if selectedCharterID == charter.id {
-                            onSelectCharter(charter)
-                        } else {
-                            withAnimation(.spring(response: 0.3)) {
-                                selectedCharterID = charter.id
+            Map(position: $position, selection: $selectedCharterID) {
+                ForEach(chartersWithLocation) { charter in
+                    if let coordinate = charter.coordinate {
+                        Annotation(charter.name, coordinate: coordinate, anchor: .bottom) {
+                            CharterMapAnnotation(
+                                charter: charter,
+                                isSelected: selectedCharterID == charter.id
+                            ) {
+                                withAnimation(.spring(response: 0.3)) {
+                                    selectedCharterID = charter.id
+                                }
                             }
                         }
+                        .tag(charter.id)
                     }
                 }
             }
             .ignoresSafeArea(edges: .top)
+            .onAppear { fitMapToCharters() }
+            .onChange(of: charters.count) { _, _ in fitMapToCharters() }
 
-            // Charter callout at bottom when selected
-            if let id = selectedCharterID, let charter = charters.first(where: { $0.id == id }) {
+            if let id = selectedCharterID,
+               let charter = charters.first(where: { $0.id == id }) {
                 CharterMapCallout(charter: charter) {
                     onSelectCharter(charter)
                 } onDismiss: {
@@ -48,29 +48,23 @@ struct CharterMapView: View {
                 .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
-        .onAppear { fitMapToCharters() }
-        .onChange(of: charters.count) { _ in fitMapToCharters() }
     }
 
     private func fitMapToCharters() {
-        guard !charters_with_location.isEmpty else { return }
-        let lats = charters_with_location.compactMap { $0.latitude }
-        let lons = charters_with_location.compactMap { $0.longitude }
+        guard !chartersWithLocation.isEmpty else { return }
+        let lats = chartersWithLocation.compactMap { $0.latitude }
+        let lons = chartersWithLocation.compactMap { $0.longitude }
         guard let minLat = lats.min(), let maxLat = lats.max(),
               let minLon = lons.min(), let maxLon = lons.max() else { return }
 
-        let center = CLLocationCoordinate2D(
-            latitude: (minLat + maxLat) / 2,
-            longitude: (minLon + maxLon) / 2
+        let region = MKCoordinateRegion(
+            center: CLLocationCoordinate2D(latitude: (minLat + maxLat) / 2, longitude: (minLon + maxLon) / 2),
+            span: MKCoordinateSpan(
+                latitudeDelta: max((maxLat - minLat) * 1.4, 1.0),
+                longitudeDelta: max((maxLon - minLon) * 1.4, 1.0)
+            )
         )
-        let span = MKCoordinateSpan(
-            latitudeDelta: max((maxLat - minLat) * 1.4, 1.0),
-            longitudeDelta: max((maxLon - minLon) * 1.4, 1.0)
-        )
-
-        withAnimation {
-            region = MKCoordinateRegion(center: center, span: span)
-        }
+        withAnimation { position = .region(region) }
     }
 }
 
@@ -152,7 +146,7 @@ private struct CharterMapCallout: View {
                     .foregroundColor(DesignSystem.Colors.textSecondary)
                     .font(.system(size: 20))
             }
-            .offset(x: 8, y: -8)
+            .padding(DesignSystem.Spacing.xs)
             .accessibilityLabel("Dismiss")
         }
     }

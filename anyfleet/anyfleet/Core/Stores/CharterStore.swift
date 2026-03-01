@@ -57,6 +57,9 @@ final class CharterStore {
         name: String,
         boatName: String?,
         location: String?,
+        latitude: Double? = nil,
+        longitude: Double? = nil,
+        locationPlaceID: String? = nil,
         startDate: Date,
         endDate: Date,
         checkInChecklistID: UUID? = nil
@@ -72,7 +75,10 @@ final class CharterStore {
             startDate: startDate,
             endDate: endDate,
             createdAt: Date(),
-            checkInChecklistID: checkInChecklistID
+            checkInChecklistID: checkInChecklistID,
+            latitude: latitude,
+            longitude: longitude,
+            locationPlaceID: locationPlaceID
         )
         
         AppLogger.store.debug("CharterModel created with ID: \(charter.id.uuidString)")
@@ -145,12 +151,12 @@ final class CharterStore {
         }
     }
 
-    func updateCharter(_ charterID: UUID, name: String, boatName: String?, location: String?, startDate: Date, endDate: Date, checkInChecklistID: UUID?) async throws -> CharterModel {
+    func updateCharter(_ charterID: UUID, name: String, boatName: String?, location: String?, latitude: Double? = nil, longitude: Double? = nil, locationPlaceID: String? = nil, startDate: Date, endDate: Date, checkInChecklistID: UUID?) async throws -> CharterModel {
         AppLogger.store.startOperation("Update Charter")
         AppLogger.store.info("Updating charter with ID: \(charterID.uuidString)")
         
         do {
-            let charter = try await repository.updateCharter(charterID, name: name, boatName: boatName, location: location, startDate: startDate, endDate: endDate, checkInChecklistID: checkInChecklistID)
+            let charter = try await repository.updateCharter(charterID, name: name, boatName: boatName, location: location, latitude: latitude, longitude: longitude, locationPlaceID: locationPlaceID, startDate: startDate, endDate: endDate, checkInChecklistID: checkInChecklistID)
             AppLogger.store.info("Charter updated successfully with ID: \(charter.id.uuidString)")
             AppLogger.store.completeOperation("Update Charter")
             return charter

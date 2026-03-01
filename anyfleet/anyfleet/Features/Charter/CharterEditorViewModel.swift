@@ -7,6 +7,7 @@
 
 import Foundation
 import Observation
+import CoreLocation
 
 /// ViewModel managing the charter editing flow.
 ///
@@ -31,6 +32,7 @@ final class CharterEditorViewModel: ErrorHandling {
 
     private let charterStore: CharterStore
     private let charterSyncService: CharterSyncService?
+    let locationSearchService: any LocationSearchService
     private let charterID: UUID?
     private let onDismiss: () -> Void
     
@@ -70,18 +72,22 @@ final class CharterEditorViewModel: ErrorHandling {
     ///
     /// - Parameters:
     ///   - charterStore: The charter store for editing charters
+    ///   - charterSyncService: Optional sync service for pushing charters
+    ///   - locationSearchService: Place search service for destination autocomplete
     ///   - charterID: The ID of the charter to edit
     ///   - onDismiss: Callback to dismiss the view after successful save
     ///   - initialForm: Initial form state (if nil, creates empty form)
     init(
         charterStore: CharterStore,
         charterSyncService: CharterSyncService? = nil,
+        locationSearchService: any LocationSearchService = MKLocationSearchService(),
         charterID: UUID? = nil,
         onDismiss: @escaping () -> Void,
         initialForm: CharterFormState? = nil
     ) {
         self.charterStore = charterStore
         self.charterSyncService = charterSyncService
+        self.locationSearchService = locationSearchService
         self.charterID = charterID
         self.onDismiss = onDismiss
         self.form = initialForm ?? CharterFormState()
@@ -100,9 +106,24 @@ final class CharterEditorViewModel: ErrorHandling {
             form.name = charter.name
             form.startDate = charter.startDate
             form.endDate = charter.endDate
-            form.destination = charter.location ?? ""
             form.vessel = charter.boatName ?? ""
             form.visibility = charter.visibility
+
+            // Restore geocoded place if coordinates were previously saved
+            if let lat = charter.latitude,
+               let lon = charter.longitude,
+               let locationText = charter.location {
+                form.selectedPlace = PlaceResult(
+                    id: charter.locationPlaceID ?? "\(lat),\(lon)",
+                    name: locationText,
+                    subtitle: "",
+                    coordinate: CLLocationCoordinate2D(latitude: lat, longitude: lon),
+                    countryCode: nil
+                )
+                form.destinationQuery = locationText
+            } else {
+                form.destinationQuery = charter.location ?? ""
+            }
         } catch {
             handleError(error)
         }
@@ -122,47 +143,51 @@ final class CharterEditorViewModel: ErrorHandling {
         
         do {
             if isNewCharter {
-            // Generate a name if not provided
-            let charterName = form.name.isEmpty 
-                ? "\(form.destination.isEmpty ? "Charter" : form.destination) - \(form.dateSummary)"
-                : form.name
-            
-            AppLogger.view.info("Creating charter with name: '\(charterName)'")
-            AppLogger.view.debug("Charter details - boatName: \(form.vessel.isEmpty ? "nil" : form.vessel), location: \(form.destination.isEmpty ? "nil" : form.destination), startDate: \(form.startDate), endDate: \(form.endDate)")
-            
-            var charter = try await charterStore.createCharter(
-                name: charterName,
-                boatName: form.vessel.isEmpty ? nil : form.vessel,
-                location: form.destination.isEmpty ? nil : form.destination,
-                startDate: form.startDate,
-                endDate: form.endDate,
-                checkInChecklistID: nil
-            )
+                let charterName = form.name.isEmpty
+                    ? "\(form.destinationText.isEmpty ? "Charter" : form.destinationText) - \(form.dateSummary)"
+                    : form.name
+                
+                AppLogger.view.info("Creating charter with name: '\(charterName)'")
+                AppLogger.view.debug("Charter details - boatName: \(form.vessel.isEmpty ? "nil" : form.vessel), location: \(form.destinationText.isEmpty ? "nil" : form.destinationText), startDate: \(form.startDate), endDate: \(form.endDate)")
+                
+                var charter = try await charterStore.createCharter(
+                    name: charterName,
+                    boatName: form.vessel.isEmpty ? nil : form.vessel,
+                    location: form.destinationText.isEmpty ? nil : form.destinationText,
+                    latitude: form.selectedPlace?.coordinate.latitude,
+                    longitude: form.selectedPlace?.coordinate.longitude,
+                    locationPlaceID: form.selectedPlace?.id,
+                    startDate: form.startDate,
+                    endDate: form.endDate,
+                    checkInChecklistID: nil
+                )
 
-            // Apply visibility and push immediately so the charter is on the server
-            // before the user navigates away (e.g. to the discover tab).
-            if form.visibility != .private {
-                charter.visibility = form.visibility
-                charter.needsSync = true
-                try await charterStore.saveCharter(charter)
-                await charterSyncService?.pushPendingCharters()
-            }
+                if form.visibility != .private {
+                    charter.visibility = form.visibility
+                    charter.needsSync = true
+                    try await charterStore.saveCharter(charter)
+                    await charterSyncService?.pushPendingCharters()
+                }
 
-            AppLogger.view.info("Charter created successfully with ID: \(charter.id.uuidString)")
-            AppLogger.view.completeOperation("Save Charter")
+                AppLogger.view.info("Charter created successfully with ID: \(charter.id.uuidString)")
+                AppLogger.view.completeOperation("Save Charter")
 
-            onDismiss()
+                onDismiss()
             } else {
                 guard let charterID = charterID else { return }
-                let charter = try await charterStore.updateCharter(charterID,
-                name: form.name,
-                boatName: form.vessel.isEmpty ? nil : form.vessel,
-                location: form.destination.isEmpty ? nil : form.destination,
-                startDate: form.startDate,
-                endDate: form.endDate,
-                checkInChecklistID: nil)
+                let charter = try await charterStore.updateCharter(
+                    charterID,
+                    name: form.name,
+                    boatName: form.vessel.isEmpty ? nil : form.vessel,
+                    location: form.destinationText.isEmpty ? nil : form.destinationText,
+                    latitude: form.selectedPlace?.coordinate.latitude,
+                    longitude: form.selectedPlace?.coordinate.longitude,
+                    locationPlaceID: form.selectedPlace?.id,
+                    startDate: form.startDate,
+                    endDate: form.endDate,
+                    checkInChecklistID: nil
+                )
 
-                // Update visibility if changed and push immediately
                 if charter.visibility != form.visibility {
                     try await charterStore.updateVisibility(charterID, visibility: form.visibility)
                     await charterSyncService?.pushPendingCharters()
@@ -181,15 +206,15 @@ final class CharterEditorViewModel: ErrorHandling {
     
     // MARK: - Private Helpers
     
+    private static let totalProgressFields = 5.0
+
     private func calculateProgress() -> Double {
-        let total = 5.0
         var count = 0.0
         if !form.name.isEmpty { count += 1 }
         if form.startDate != .now { count += 1 }
         if form.endDate != .now { count += 1 }
         if !form.vessel.isEmpty { count += 1 }
-        if form.guests > 0 { count += 1 }
-        return count / total
+        if form.selectedPlace != nil || !form.destinationQuery.isEmpty { count += 1 }
+        return count / CharterEditorViewModel.totalProgressFields
     }
 }
-

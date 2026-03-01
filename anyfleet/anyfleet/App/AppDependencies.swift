@@ -98,7 +98,10 @@ final class AppDependencies {
     }
     
     // MARK: - Services
-    
+
+    /// Place search service for destination autocomplete
+    let locationSearchService: any LocationSearchService
+
     /// Localization service for managing app language
     let localizationService: LocalizationService
     
@@ -162,6 +165,7 @@ final class AppDependencies {
         )
 
         // Initialize services
+        self.locationSearchService = MKLocationSearchService()
         self.localizationService = LocalizationService()
         self.authStateObserver = AuthStateObserver(authService: authService)
         self.visibilityService = VisibilityService(
@@ -235,6 +239,7 @@ final class AppDependencies {
         )
 
         // Initialize services
+        self.locationSearchService = MKLocationSearchService()
         self.localizationService = LocalizationService()
         self.authStateObserver = AuthStateObserver(authService: authService)
         self.visibilityService = VisibilityService(

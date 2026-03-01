@@ -29,12 +29,11 @@ struct CharterEditorView: View {
                     }
                     
                     DesignSystem.Form.Section(title: L10n.charterCreateDestination, subtitle: L10n.charterCreateChooseWhereYouWillSail) {
-                        VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
-                            DesignSystem.Form.FieldLabel(L10n.charterCreateDestination)
-                            TextField(L10n.charterCreateChooseWhereYouWillSail, text: $viewModel.form.destination)
-                                .formFieldStyle()
-                        }
-                        // TODO: RegionPickerSection(selectedRegion: $viewModel.form.region, regions: CharterFormState.regionOptions)
+                        DestinationSearchField(
+                            query: $viewModel.form.destinationQuery,
+                            selectedPlace: $viewModel.form.selectedPlace,
+                            searchService: viewModel.locationSearchService
+                        )
                     }
                     
                     DesignSystem.Form.Section(title: L10n.charterCreateYourVessel, subtitle: L10n.charterCreatePickTheCharacterOfYourJourney) {

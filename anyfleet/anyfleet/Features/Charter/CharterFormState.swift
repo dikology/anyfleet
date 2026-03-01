@@ -1,11 +1,14 @@
 import SwiftUI
+import CoreLocation
 
 struct CharterFormState {
     var name: String = ""
     var startDate: Date = Date()
     var endDate: Date = Calendar.current.date(byAdding: .day, value: 7, to: Date()) ?? Date()
-    var destination: String = ""
-    var region: String = ""
+    /// Free-text query driving live autocomplete.
+    var destinationQuery: String = ""
+    /// The user-confirmed geocoded place. Nil until a suggestion is accepted.
+    var selectedPlace: PlaceResult?
     var vessel: String = ""
     var guests: Int = 6
     var captainIncluded: Bool = true
@@ -16,6 +19,11 @@ struct CharterFormState {
     /// Visibility for community discovery. Defaults to private.
     var visibility: CharterVisibility = .private
     
+    /// Convenience accessor for display and sync — returns confirmed place name or raw query.
+    var destinationText: String {
+        selectedPlace?.name ?? destinationQuery
+    }
+
     var nights: Int {
         Calendar.current.dateComponents([.day], from: startDate, to: endDate).day ?? 0
     }
@@ -29,16 +37,17 @@ struct CharterFormState {
     }
     
     var dateSummary: String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        let start = formatter.string(from: startDate)
-        let end = formatter.string(from: endDate)
+        let start = CharterFormState.dateFormatter.string(from: startDate)
+        let end = CharterFormState.dateFormatter.string(from: endDate)
         return "\(start) – \(end)"
     }
-    
-    var regionDetails: String? {
-        CharterFormState.regionOptions.first(where: { $0.name == region })?.description
-    }
+
+    private static let dateFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateStyle = .medium
+        return f
+    }()
+
     
     struct Region: Identifiable {
         let id = UUID()
@@ -131,7 +140,14 @@ struct CharterFormState {
     static var mock: CharterFormState {
         var state = CharterFormState()
         state.name = "Summer Escape 2025"
-        state.region = "Mediterranean"
+        state.selectedPlace = PlaceResult(
+            id: "GR-santorini",
+            name: "Santorini",
+            subtitle: "South Aegean, Greece",
+            coordinate: CLLocationCoordinate2D(latitude: 36.3932, longitude: 25.4615),
+            countryCode: "GR"
+        )
+        state.destinationQuery = "Santorini"
         state.vessel = "44ft Catamaran"
         state.guests = 6
         state.captainIncluded = true

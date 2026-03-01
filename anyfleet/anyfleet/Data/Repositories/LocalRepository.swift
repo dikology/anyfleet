@@ -98,7 +98,7 @@ final class LocalRepository: Sendable {
     }
     
     /// Update charter with new values
-    func updateCharter(_ charterID: UUID, name: String, boatName: String?, location: String?, startDate: Date, endDate: Date, checkInChecklistID: UUID?) async throws -> CharterModel {
+    func updateCharter(_ charterID: UUID, name: String, boatName: String?, location: String?, latitude: Double?, longitude: Double?, locationPlaceID: String?, startDate: Date, endDate: Date, checkInChecklistID: UUID?) async throws -> CharterModel {
         AppLogger.repository.startOperation("Update Charter")
         defer { AppLogger.repository.completeOperation("Update Charter") }
 
@@ -109,7 +109,7 @@ final class LocalRepository: Sendable {
                 throw AppError.notFound(entity: "Charter", id: charterID)
             }
 
-            // Preserve all metadata fields when updating basic properties
+            // Preserve metadata; use incoming coordinates if provided, otherwise fall back to existing
             let updatedCharter = CharterModel(
                 id: charterID,
                 name: name,
@@ -123,9 +123,9 @@ final class LocalRepository: Sendable {
                 visibility: existingCharter.visibility,
                 needsSync: existingCharter.serverID != nil,
                 lastSyncedAt: existingCharter.lastSyncedAt,
-                latitude: existingCharter.latitude,
-                longitude: existingCharter.longitude,
-                locationPlaceID: existingCharter.locationPlaceID
+                latitude: latitude ?? existingCharter.latitude,
+                longitude: longitude ?? existingCharter.longitude,
+                locationPlaceID: locationPlaceID ?? existingCharter.locationPlaceID
             )
 
             try await database.dbWriter.write { db in

@@ -85,7 +85,7 @@ final class MockLocalRepository: CharterRepository, @unchecked Sendable {
         try markChartersSyncedResult.get()
     }
 
-    func updateCharter(_ charterID: UUID, name: String, boatName: String?, location: String?, startDate: Date, endDate: Date, checkInChecklistID: UUID?) async throws -> CharterModel {
+    func updateCharter(_ charterID: UUID, name: String, boatName: String?, location: String?, latitude: Double?, longitude: Double?, locationPlaceID: String?, startDate: Date, endDate: Date, checkInChecklistID: UUID?) async throws -> CharterModel {
         return try updateCharterResult.get()
     }
 
