@@ -4,13 +4,14 @@ struct CharterListView: View {
     @State private var viewModel: CharterListViewModel
     @Environment(\.appDependencies) private var dependencies
     @Environment(\.appCoordinator) private var coordinator
-    
+
+    @State private var showPast = false
+
     @MainActor
     init(viewModel: CharterListViewModel? = nil) {
         if let viewModel = viewModel {
             _viewModel = State(initialValue: viewModel)
         } else {
-            // Create a placeholder for previews and testing
             let deps = AppDependencies()
             _viewModel = State(initialValue: CharterListViewModel(
                 charterStore: CharterStore(repository: LocalRepository()),
@@ -18,11 +19,13 @@ struct CharterListView: View {
             ))
         }
     }
-    
+
     var body: some View {
         ZStack {
             Group {
-                if viewModel.isEmpty {
+                if viewModel.isLoading && viewModel.isEmpty {
+                    skeletonList
+                } else if viewModel.isEmpty {
                     emptyState
                 } else {
                     charterList
@@ -31,7 +34,7 @@ struct CharterListView: View {
             .navigationBarTitleDisplayMode(.inline)
             .background(DesignSystem.Colors.background.ignoresSafeArea())
 
-            // Sync-pending banner: shown when charters are waiting for the user to sign in
+            // Sync-pending banner
             if dependencies.charterSyncService.needsAuthForSync {
                 VStack {
                     HStack(spacing: DesignSystem.Spacing.sm) {
@@ -46,7 +49,7 @@ struct CharterListView: View {
                     .padding(.vertical, DesignSystem.Spacing.sm)
                     .background(DesignSystem.Colors.primary.opacity(0.12))
                     .foregroundColor(DesignSystem.Colors.primary)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                    .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusSmall))
                     .padding(.horizontal, DesignSystem.Spacing.lg)
                     .padding(.top, DesignSystem.Spacing.sm)
                     Spacer()
@@ -64,7 +67,7 @@ struct CharterListView: View {
                         onRetry: { Task { await viewModel.loadCharters() } }
                     )
                     .padding(.horizontal)
-                    .padding(.bottom, 20)
+                    .padding(.bottom, DesignSystem.Spacing.xl)
                 }
                 .transition(.move(edge: .bottom).combined(with: .opacity))
             }
@@ -75,9 +78,8 @@ struct CharterListView: View {
                     .font(DesignSystem.Typography.headline)
                     .foregroundColor(DesignSystem.Colors.textPrimary)
             }
-            
             ToolbarItem(placement: .primaryAction) {
-                createMenu
+                createButton
             }
         }
         .task {
@@ -87,7 +89,9 @@ struct CharterListView: View {
             await viewModel.refresh()
         }
     }
-    
+
+    // MARK: - States
+
     private var emptyState: some View {
         DesignSystem.EmptyStateView(
             icon: "sailboat",
@@ -99,64 +103,92 @@ struct CharterListView: View {
         .accessibilityElement(children: .combine)
         .accessibilityLabel("No charters. Create your first charter to start planning.")
     }
-    
+
+    private var skeletonList: some View {
+        ScrollView {
+            VStack(spacing: 0) {
+                ForEach(0..<4, id: \.self) { _ in
+                    DesignSystem.CharterSkeletonRow()
+                        .padding(.horizontal, DesignSystem.Spacing.lg)
+                }
+            }
+            .padding(.top, DesignSystem.Spacing.md)
+        }
+    }
+
     private var charterList: some View {
         List {
-            ForEach(viewModel.charters) { charter in
-                CharterRowView(
-                    charter: charter,
-                    onTap: {
-                        coordinator.viewCharter(charter.id)
-                        AppLogger.view.info("Navigating to charter: \(charter.id.uuidString)")
-                    }
-                )
-                .listRowInsets(EdgeInsets(
-                    top: DesignSystem.Spacing.sm,
-                    leading: DesignSystem.Spacing.lg,
-                    bottom: DesignSystem.Spacing.sm,
-                    trailing: DesignSystem.Spacing.lg
-                ))
-                .listRowSeparator(.hidden)
-                .listRowBackground(Color.clear)
-                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                        Button(role: .destructive) {
-                            Task {
-                                do {
-                                    try await viewModel.deleteCharter(charter.id)
-                                } catch {
-                                    AppLogger.view.error("Failed to delete charter: \(error.localizedDescription)")
-                                }
-                            }
-                        } label: {
-                            Label("Delete", systemImage: "trash")
+            // UPCOMING SECTION
+            if !viewModel.upcomingCharters.isEmpty {
+                Section {
+                    ForEach(viewModel.upcomingCharters.sorted { $0.startDate < $1.startDate }) { charter in
+                        CharterTimelineRow(charter: charter) {
+                            coordinator.viewCharter(charter.id)
                         }
+                        .listRowInsets(EdgeInsets(top: 4, leading: DesignSystem.Spacing.lg, bottom: 4, trailing: DesignSystem.Spacing.lg))
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color.clear)
+                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                            Button(role: .destructive) {
+                                Task { try? await viewModel.deleteCharter(charter.id) }
+                            } label: { Label("Delete", systemImage: "trash") }
 
-                        Button {
-                            coordinator.editCharter(charter.id)
-                            AppLogger.view.info("Navigating to edit charter: \(charter.id.uuidString)")
-                        } label: {
-                            Label("Edit", systemImage: "pencil")
+                            Button {
+                                coordinator.editCharter(charter.id)
+                            } label: {
+                                Label("Edit", systemImage: "pencil")
+                            }
+                            .tint(.gray)
                         }
-                        .tint(.gray)
                     }
+                } header: {
+                    sectionLabel("Upcoming")
+                }
+            }
+
+            // PAST SECTION — collapsed by default
+            if !viewModel.pastCharters.isEmpty {
+                Section {
+                    if showPast {
+                        ForEach(viewModel.pastCharters.sorted { $0.startDate > $1.startDate }) { charter in
+                            CharterTimelineRow(charter: charter) {
+                                coordinator.viewCharter(charter.id)
+                            }
+                            .listRowInsets(EdgeInsets(top: 4, leading: DesignSystem.Spacing.lg, bottom: 4, trailing: DesignSystem.Spacing.lg))
+                            .listRowSeparator(.hidden)
+                            .listRowBackground(Color.clear)
+                            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                Button(role: .destructive) {
+                                    Task { try? await viewModel.deleteCharter(charter.id) }
+                                } label: { Label("Delete", systemImage: "trash") }
+                            }
+                        }
+                    }
+                } header: {
+                    Button {
+                        withAnimation(.spring(response: 0.3)) { showPast.toggle() }
+                    } label: {
+                        HStack(spacing: DesignSystem.Spacing.xs) {
+                            sectionLabel("Past (\(viewModel.pastCharters.count))")
+                            Spacer()
+                            Image(systemName: showPast ? "chevron.up" : "chevron.down")
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundColor(DesignSystem.Colors.textSecondary)
+                        }
+                    }
+                    .buttonStyle(.plain)
+                }
             }
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
         .background(
-            LinearGradient(
-                colors: [
-                    DesignSystem.Colors.background,
-                    DesignSystem.Colors.oceanDeep.opacity(0.02)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
+            DesignSystem.Gradients.subtleBackground
+                .ignoresSafeArea()
         )
     }
 
-    private var createMenu: some View {
+    private var createButton: some View {
         Button {
             viewModel.onCreateCharterTapped()
         } label: {
@@ -165,179 +197,177 @@ struct CharterListView: View {
                 .foregroundColor(DesignSystem.Colors.primary)
         }
     }
+
+    // MARK: - Section label
+
+    private func sectionLabel(_ text: String) -> some View {
+        Text(text)
+            .font(DesignSystem.Typography.micro)
+            .fontWeight(.semibold)
+            .foregroundColor(DesignSystem.Colors.textSecondary)
+            .textCase(.uppercase)
+            .tracking(0.8)
+            .padding(.vertical, DesignSystem.Spacing.xs)
+    }
 }
 
+// MARK: - CharterTimelineRow
 
-struct CharterRowView: View {
+struct CharterTimelineRow: View {
     let charter: CharterModel
     let onTap: () -> Void
-    
-    private var dateFormatter: DateFormatter {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .none
-        return formatter
-    }
-    
-    private var isUpcoming: Bool {
-        charter.daysUntilStart > 0
-    }
-    
+
+    private static let dayFormatter: DateFormatter = {
+        let f = DateFormatter(); f.dateFormat = "d"; return f
+    }()
+    private static let monthFormatter: DateFormatter = {
+        let f = DateFormatter(); f.dateFormat = "MMM"; return f
+    }()
+    private static let returnFormatter: DateFormatter = {
+        let f = DateFormatter(); f.dateFormat = "MMM d"; return f
+    }()
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            // Hero Section - Focal Point
+        Button(action: onTap) {
+            HStack(alignment: .top, spacing: DesignSystem.Spacing.md) {
+                dateGutter
+                    .frame(width: 48)
+                compactCard
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(accessibilityDescription)
+        .accessibilityHint("Double tap to view details")
+    }
+
+    // MARK: - Date gutter
+
+    private var dateGutter: some View {
+        VStack(spacing: 2) {
+            Text(Self.dayFormatter.string(from: charter.startDate))
+                .font(.system(size: 28, weight: .bold, design: .rounded))
+                .foregroundColor(charter.isUpcoming
+                    ? DesignSystem.Colors.textPrimary
+                    : DesignSystem.Colors.textSecondary)
+                .monospacedDigit()
+            Text(Self.monthFormatter.string(from: charter.startDate).uppercased())
+                .font(DesignSystem.Typography.micro)
+                .foregroundColor(DesignSystem.Colors.textSecondary)
+        }
+        .padding(.top, DesignSystem.Spacing.md)
+        .accessibilityHidden(true)
+    }
+
+    // MARK: - Card
+
+    private var compactCard: some View {
+        ZStack(alignment: .topLeading) {
+            if charter.visibility != .private {
+                RadialGradient(
+                    colors: [charter.visibility.glowColor.opacity(0.22), .clear],
+                    center: .topLeading,
+                    startRadius: 0,
+                    endRadius: 130
+                )
+                .allowsHitTesting(false)
+                .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Spacing.cardCornerRadius))
+            }
+
             VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
-                // Charter Name - Primary Focal Element
-                Text(charter.name)
-                    .font(.system(size: 22, weight: .bold))
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [
-                                DesignSystem.Colors.textPrimary,
-                                DesignSystem.Colors.textPrimary.opacity(0.8)
-                            ],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
-                    .lineLimit(2)
-                    .fixedSize(horizontal: false, vertical: true)
-                
-                // Boat Name - Secondary Focal with Gold Accent
-                if let boatName = charter.boatName {
-                    HStack(spacing: DesignSystem.Spacing.xs) {
-                        Image(systemName: "sailboat.fill")
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundStyle(
-                                LinearGradient(
-                                    colors: [
-                                        DesignSystem.Colors.gold,
-                                        DesignSystem.Colors.gold.opacity(0.7)
-                                    ],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            )
-                        
-                        Text(boatName)
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(DesignSystem.Colors.textPrimary)
-                    }
-                    .padding(.horizontal, DesignSystem.Spacing.md)
-                    .padding(.vertical, DesignSystem.Spacing.xs + 2)
-                    .background(
-                        Capsule()
-                            .fill(
-                                LinearGradient(
-                                    colors: [
-                                        DesignSystem.Colors.gold.opacity(0.15),
-                                        DesignSystem.Colors.gold.opacity(0.08)
-                                    ],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            )
-                    )
-                    .overlay(
-                        Capsule()
-                            .stroke(
-                                DesignSystem.Colors.gold.opacity(0.3),
-                                lineWidth: 1
-                            )
-                    )
-                }
+                topRow
+                nameRow
+                metaRow
             }
-            .padding(.horizontal, DesignSystem.Spacing.lg)
-            .padding(.top, DesignSystem.Spacing.lg)
-            .padding(.bottom, DesignSystem.Spacing.md)
-            .focalHighlight()
-            
-            Divider()
-                .background(DesignSystem.Colors.border.opacity(0.5))
-                .padding(.horizontal, DesignSystem.Spacing.lg)
-            
-            // Timeline Narrative Section
-            VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
-                // Date Range with Visual Timeline
-                HStack(spacing: DesignSystem.Spacing.md) {
-                    VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
-                        HStack(spacing: DesignSystem.Spacing.xs) {
-                            DesignSystem.TimelineIndicator(isActive: isUpcoming)
-                            Text("Departure")
-                                .font(.system(size: 11, weight: .medium))
-                                .foregroundColor(DesignSystem.Colors.textSecondary)
-                                .textCase(.uppercase)
-                                .tracking(0.5)
-                        }
-                        Text(dateFormatter.string(from: charter.startDate))
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundColor(DesignSystem.Colors.textPrimary)
-                    }
-                    
-                    Spacer()
-                    
-                    // Duration Badge
-                    HStack(spacing: DesignSystem.Spacing.xs) {
-                        Image(systemName: "clock.fill")
-                            .font(.system(size: 11))
-                            .foregroundColor(DesignSystem.Colors.primary)
-                        Text("\(charter.durationDays) days")
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundColor(DesignSystem.Colors.primary)
-                    }
-                    .padding(.horizontal, DesignSystem.Spacing.sm)
-                    .padding(.vertical, DesignSystem.Spacing.xs)
-                    .background(
-                        Capsule()
-                            .fill(DesignSystem.Colors.primary.opacity(0.12))
-                    )
-                    
-                    VStack(alignment: .trailing, spacing: DesignSystem.Spacing.xs) {
-                        HStack(spacing: DesignSystem.Spacing.xs) {
-                            Text("Return")
-                                .font(.system(size: 11, weight: .medium))
-                                .foregroundColor(DesignSystem.Colors.textSecondary)
-                                .textCase(.uppercase)
-                                .tracking(0.5)
-                            DesignSystem.TimelineIndicator(isActive: false)
-                        }
-                        Text(dateFormatter.string(from: charter.endDate))
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundColor(DesignSystem.Colors.textPrimary)
-                    }
+            .padding(DesignSystem.Spacing.md)
+        }
+        .heroCardStyle(elevation: charter.isUpcoming ? .medium : .low)
+        .padding(.bottom, DesignSystem.Spacing.sm)
+    }
+
+    private var topRow: some View {
+        HStack(alignment: .center) {
+            DesignSystem.CharterVisibilityBadge(visibility: charter.visibility)
+            Spacer()
+            DesignSystem.SyncStatusBadge(status: charter.syncStatus)
+        }
+    }
+
+    private var nameRow: some View {
+        VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
+            Text(charter.name)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(DesignSystem.Colors.textPrimary)
+                .lineLimit(2)
+            if returnIsInDifferentMonth {
+                HStack(spacing: DesignSystem.Spacing.xs) {
+                    Image(systemName: "arrow.right")
+                        .font(.system(size: 10))
+                    Text(Self.returnFormatter.string(from: charter.endDate))
+                        .font(DesignSystem.Typography.micro)
                 }
-                
-                // Location Context
-                if let location = charter.location {
-                    HStack(spacing: DesignSystem.Spacing.sm) {
-                        Image(systemName: "mappin.circle.fill")
-                            .font(.system(size: 14))
-                            .foregroundStyle(
-                                LinearGradient(
-                                    colors: [
-                                        DesignSystem.Colors.primary,
-                                        DesignSystem.Colors.primary.opacity(0.7)
-                                    ],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                        Text(location)
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(DesignSystem.Colors.textSecondary)
-                    }
-                    .padding(.top, DesignSystem.Spacing.xs)
-                }
+                .foregroundColor(DesignSystem.Colors.textSecondary)
             }
-            .padding(.horizontal, DesignSystem.Spacing.lg)
-            .padding(.vertical, DesignSystem.Spacing.md)
         }
-        .heroCardStyle(elevation: isUpcoming ? .high : .medium)
-        .onTapGesture {
-            onTap()
+    }
+
+    private var metaRow: some View {
+        HStack(spacing: DesignSystem.Spacing.xs) {
+            HStack(spacing: 3) {
+                Image(systemName: "clock")
+                    .font(.system(size: 10))
+                Text("\(charter.durationDays)d")
+                    .fontWeight(.semibold)
+            }
+            .font(DesignSystem.Typography.micro)
+            .foregroundColor(DesignSystem.Colors.primary)
+
+            if charter.boatName != nil || charter.location != nil {
+                Text("·")
+                    .font(DesignSystem.Typography.micro)
+                    .foregroundColor(DesignSystem.Colors.textSecondary)
+            }
+
+            if let boat = charter.boatName {
+                Label(boat, systemImage: "sailboat.fill")
+                    .font(DesignSystem.Typography.micro)
+                    .foregroundColor(DesignSystem.Colors.vesselAccent)
+                    .lineLimit(1)
+            }
+
+            if let location = charter.location {
+                if charter.boatName != nil {
+                    Text("·")
+                        .font(DesignSystem.Typography.micro)
+                        .foregroundColor(DesignSystem.Colors.textSecondary)
+                }
+                Label(location, systemImage: "mappin")
+                    .font(DesignSystem.Typography.micro)
+                    .foregroundColor(DesignSystem.Colors.textSecondary)
+                    .lineLimit(1)
+            }
         }
+    }
+
+    // MARK: - Helpers
+
+    private var returnIsInDifferentMonth: Bool {
+        let cal = Calendar.current
+        return cal.component(.month, from: charter.startDate)
+            != cal.component(.month, from: charter.endDate)
+    }
+
+    private var accessibilityDescription: String {
+        let day = Self.dayFormatter.string(from: charter.startDate)
+        let month = Self.monthFormatter.string(from: charter.startDate)
+        let vis = charter.visibility.displayName
+        let sync = charter.syncStatus.label
+        let dur = "\(charter.durationDays) days"
+        return "\(charter.name). \(vis). \(sync). Starts \(day) \(month). \(dur)."
     }
 }
+
+// MARK: - Preview
 
 #Preview {
     MainActor.assumeIsolated {
