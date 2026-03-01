@@ -134,12 +134,14 @@ extension DesignSystem {
             let title: String
             let subtitle: String
             let icon: String?
+            let height: CGFloat
             let gradient: LinearGradient
-            
+
             init(
                 title: String,
                 subtitle: String,
                 icon: String? = "sailboat.fill",
+                height: CGFloat = 140,
                 gradient: LinearGradient = LinearGradient(
                     colors: [
                         Color(red: 0.0, green: 0.22, blue: 0.32),
@@ -152,13 +154,14 @@ extension DesignSystem {
                 self.title = title
                 self.subtitle = subtitle
                 self.icon = icon
+                self.height = height
                 self.gradient = gradient
             }
-            
+
             var body: some View {
                 gradient
                     .frame(maxWidth: .infinity)
-                    .frame(height: 220)
+                    .frame(height: height)
                     .overlay(
                         Group {
                             if let icon {

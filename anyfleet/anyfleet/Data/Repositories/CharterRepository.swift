@@ -16,7 +16,7 @@ protocol CharterRepository: Sendable {
     func fetchCharter(id: UUID) async throws -> CharterModel?
     func createCharter(_ charter: CharterModel) async throws
     func saveCharter(_ charter: CharterModel) async throws
-    func updateCharter(_ charterID: UUID, name: String, boatName: String?, location: String?, startDate: Date, endDate: Date, checkInChecklistID: UUID?) async throws -> CharterModel
+    func updateCharter(_ charterID: UUID, name: String, boatName: String?, location: String?, latitude: Double?, longitude: Double?, locationPlaceID: String?, startDate: Date, endDate: Date, checkInChecklistID: UUID?) async throws -> CharterModel
     func deleteCharter(_ charterID: UUID) async throws
     func markChartersSynced(_ ids: [UUID]) async throws
 

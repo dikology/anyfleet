@@ -16,7 +16,7 @@ struct CharterSummaryCard: View {
             
             VStack(spacing: DesignSystem.Spacing.md) {
                 DesignSystem.Form.SummaryRow(icon: "📅", title: L10n.charterSummaryDates, value: form.dateSummary, detail: "\(form.nights) \(L10n.charterSummaryNights)")
-                DesignSystem.Form.SummaryRow(icon: "🧭", title: L10n.charterCreateDestination, value: form.destination.isEmpty ? L10n.charterCreateChooseWhereYouWillSail : form.destination, detail: nil)
+                DesignSystem.Form.SummaryRow(icon: "🧭", title: L10n.charterCreateDestination, value: form.destinationText.isEmpty ? L10n.charterCreateChooseWhereYouWillSail : form.destinationText, detail: nil)
                 DesignSystem.Form.SummaryRow(icon: "⛵", title: L10n.charterSummaryVessel, value: form.vessel, detail: "\(L10n.charterSummaryUpto) \(form.guests) \(L10n.charterSummaryUpToGuests)")
                 
             }

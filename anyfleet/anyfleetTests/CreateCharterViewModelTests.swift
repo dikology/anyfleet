@@ -41,11 +41,10 @@ struct CharterEditorViewModelTests {
         // Arrange
         let mockRepository = MockLocalRepository()
         let store = CharterStore(repository: mockRepository)
-        let customForm = CharterFormState(
-            name: "Test Charter",
-            destination: "Test Location",
-            vessel: "Test Boat"
-        )
+        var customForm = CharterFormState()
+        customForm.name = "Test Charter"
+        customForm.destinationQuery = "Test Location"
+        customForm.vessel = "Test Boat"
         
         // Act
         let viewModel = CharterEditorViewModel(
@@ -58,7 +57,7 @@ struct CharterEditorViewModelTests {
         // Assert
         #expect(viewModel.form.name == "Test Charter")
         #expect(viewModel.form.vessel == "Test Boat")
-        #expect(viewModel.form.destination == "Test Location")
+        #expect(viewModel.form.destinationQuery == "Test Location")
         #expect(viewModel.isNewCharter == true)
     }
     
@@ -95,8 +94,8 @@ struct CharterEditorViewModelTests {
             onDismiss: {}
         )
 
-        // Act & Assert
-        let expected = 3.0 / 5.0
+        // Act & Assert — default: startDate + endDate count (2/5); name, vessel, destination empty
+        let expected = 2.0 / 5.0
         #expect(abs(viewModel.completionProgress - expected) < 0.001)
     }
     
@@ -112,16 +111,15 @@ struct CharterEditorViewModelTests {
             onDismiss: {}
         )
 
-        // Act - Clear optional string fields and set guests to 0
+        // Act - Clear all non-date fields
         viewModel.form.name = ""
-        viewModel.form.region = ""
         viewModel.form.vessel = ""
-        viewModel.form.guests = 0
+        viewModel.form.destinationQuery = ""
+        viewModel.form.selectedPlace = nil
         // Note: Dates always have values (can't be "empty")
         // So startDate and endDate still count as filled
 
-        // Assert
-        // Only dates are filled (2/5) = 0.4
+        // Assert — only dates filled (2/5) = 0.4
         let expected = 2.0 / 5.0
         #expect(abs(viewModel.completionProgress - expected) < 0.001)
     }
@@ -140,13 +138,11 @@ struct CharterEditorViewModelTests {
 
         // Act - Clear some fields to make it truly partial
         viewModel.form.name = ""        // Empty
-        viewModel.form.region = ""      // Empty
         viewModel.form.vessel = ""      // Empty
-        // startDate, endDate, and guests still have default values
+        // startDate and endDate still have default values
 
-        // Assert
-        // 3 fields filled (startDate, endDate, guests) out of 5 = 0.6
-        #expect(viewModel.completionProgress == 0.6)
+        // Assert — dates filled (2/5) = 0.4
+        #expect(abs(viewModel.completionProgress - 0.4) < 0.001)
     }
     
     @Test("Completion progress - fully filled form")
@@ -164,14 +160,11 @@ struct CharterEditorViewModelTests {
         // Act
         viewModel.form.name = "Test"
         viewModel.form.vessel = "Boat"
-        viewModel.form.destination = "Location"
-        viewModel.form.region = "Region"
-        viewModel.form.guests = 4
+        viewModel.form.destinationQuery = "Location"
         viewModel.form.startDate = Date().addingTimeInterval(86400) // Tomorrow
         viewModel.form.endDate = Date().addingTimeInterval(172800) // Day after
         
-        // Assert
-        // All 6 fields filled = 1.0
+        // Assert — all 5 fields filled = 1.0
         #expect(viewModel.completionProgress == 1.0)
     }
     
@@ -275,7 +268,7 @@ struct CharterEditorViewModelTests {
         
         viewModel.form.name = "Test Charter"
         viewModel.form.vessel = "Test Boat"
-        viewModel.form.destination = "Test Location"
+        viewModel.form.destinationQuery = "Test Location"
         viewModel.form.startDate = Date()
         viewModel.form.endDate = Date().addingTimeInterval(86400)
         
@@ -309,7 +302,7 @@ struct CharterEditorViewModelTests {
         )
         
         viewModel.form.name = "" // Empty name
-        viewModel.form.destination = "Greece"
+        viewModel.form.destinationQuery = "Greece"
         viewModel.form.startDate = Date()
         viewModel.form.endDate = Date().addingTimeInterval(86400)
         
@@ -394,7 +387,7 @@ struct CharterEditorViewModelTests {
         
         viewModel.form.name = "Test Charter"
         viewModel.form.vessel = "" // Empty should become nil
-        viewModel.form.destination = "" // Empty should become nil
+        viewModel.form.destinationQuery = "" // Empty should become nil
         
         mockRepository.createCharterResult = .success(())
         
@@ -440,7 +433,7 @@ struct CharterEditorViewModelTests {
         // Assert
         #expect(viewModel.form.name == "Test Charter")
         #expect(viewModel.form.vessel == "Test Boat")
-        #expect(viewModel.form.destination == "Test Location")
+        #expect(viewModel.form.destinationQuery == "Test Location")
         #expect(viewModel.isLoading == false)
         #expect(viewModel.currentError == nil)
     }
@@ -523,7 +516,7 @@ struct CharterEditorViewModelTests {
         
         viewModel.form.name = "Updated Charter"
         viewModel.form.vessel = "Updated Boat"
-        viewModel.form.destination = "Updated Location"
+        viewModel.form.destinationQuery = "Updated Location"
         viewModel.form.startDate = Date()
         viewModel.form.endDate = Date().addingTimeInterval(86400)
         

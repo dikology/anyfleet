@@ -288,7 +288,7 @@ struct AuthorProfileModal: View {
                     .foregroundColor(color)
 
                 Text(value)
-                    .font(DesignSystem.Typography.title3)
+                    .font(DesignSystem.Typography.subheader)
                     .fontWeight(.bold)
                     .foregroundColor(.white)
             }

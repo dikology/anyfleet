@@ -8,25 +8,38 @@ extension DesignSystem {
         static let warning = Color(red: 0.902, green: 0.506, blue: 0.380) // #E68161
         static let error = Color(red: 1.0, green: 0.329, blue: 0.349) // #FF5459
         static let info = Color(red: 0.192, green: 0.463, blue: 0.776) // #3176C6
-        static let gold = Color(red: 0.98, green: 0.82, blue: 0.45) // accent for highlights
+        static let gold = Color(red: 0.98, green: 0.82, blue: 0.45)
         static let oceanDeep = Color(red: 0.02, green: 0.28, blue: 0.36)
-        
-        // Dynamic surfaces for light/dark
+
+        // MARK: - Semantic gold aliases
+        /// Community badge, pending sync state
+        static let communityAccent  = gold
+        /// Duration pills, form progress fill
+        static let highlightAccent  = gold
+        /// Vessel label decoration
+        static let vesselAccent     = gold
+
+        // MARK: - Visibility semantic colors
+        static let visibilityPublic    = primary
+        static let visibilityCommunity = communityAccent
+        static let visibilityPrivate   = textSecondary
+
+        // MARK: - Dynamic surfaces for light/dark
         static let background = Color(.systemGroupedBackground)
         static let backgroundSecondary = Color(.secondarySystemGroupedBackground)
         static let surface = Color(.secondarySystemGroupedBackground)
         static let surfaceAlt = Color(.tertiarySystemGroupedBackground)
-        
-        // Text
+
+        // MARK: - Text
         static let textPrimary = Color(.label)
         static let textSecondary = Color(.secondaryLabel)
-        
+
         static let border = Color(.separator).opacity(0.4)
         static let onPrimary = Color.white
         static let onPrimaryMuted = Color.white.opacity(0.9)
         static let shadowStrong = Color.black.opacity(0.18)
     }
-    
+
     enum Gradients {
         /// Primary brand ocean gradient for hero/CTA cards.
         static let primary = LinearGradient(
@@ -37,10 +50,31 @@ extension DesignSystem {
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )
-        
+
         /// Convenience alias specifically for ocean-themed hero cards.
         static let ocean = primary
-        
+
+        /// Filled CTA button gradient.
+        static let primaryButton = LinearGradient(
+            colors: [Colors.primary, Color(red: 0.054, green: 0.32, blue: 0.45)],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+
+        /// Ambient gold highlight behind a focused row or card.
+        static let focalGold = LinearGradient(
+            colors: [Colors.gold.opacity(0.15), Colors.gold.opacity(0.05), .clear],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+
+        /// Subtle tinted background for list scroll areas.
+        static let subtleBackground = LinearGradient(
+            colors: [Colors.background, Colors.oceanDeep.opacity(0.02)],
+            startPoint: .top,
+            endPoint: .bottom
+        )
+
         static let subtleOverlay = LinearGradient(
             colors: [
                 Color.white.opacity(0.08),
@@ -51,5 +85,3 @@ extension DesignSystem {
         )
     }
 }
-
-
