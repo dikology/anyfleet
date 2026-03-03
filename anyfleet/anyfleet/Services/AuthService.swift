@@ -101,7 +101,7 @@ final class AuthService: AuthServiceProtocol {
             #if targetEnvironment(simulator)
             return "http://127.0.0.1:8000/api/v1"
             #else
-            return "https://elegant-empathy-production-583b.up.railway.app/api/v1"
+            return "https://anyfleet-api-staging.up.railway.app/api/v1"
             #endif
         }()
 

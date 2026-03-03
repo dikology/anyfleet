@@ -347,7 +347,7 @@ struct AuthorProfileModal: View {
             return URL(string: fullURLString)
         } else {
             // Relative path - prepend base URL
-            let baseURL = "https://elegant-empathy-production-583b.up.railway.app"
+            let baseURL = "https://anyfleet-api-staging.up.railway.app"
             let fullURLString = baseURL + (urlString.hasPrefix("/") ? "" : "/") + urlString
             AppLogger.view.debug("AuthorProfileModal createProfileImageURL: constructed relative URL: \(fullURLString)")
             return URL(string: fullURLString)
