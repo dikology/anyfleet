@@ -81,7 +81,7 @@ final class AppDatabase: Sendable {
                 t.column("description", .text)
                 t.column("type", .text).notNull() // checklist, practice_guide, flashcard_deck
                 t.column("visibility", .text).notNull().defaults(to: "private")
-                t.column("creatorID", .text).notNull()
+                t.column("creatorID", .text)
                 t.column("forkedFromID", .text)
                 t.column("forkCount", .integer).notNull().defaults(to: 0)
                 t.column("ratingAverage", .double)
@@ -101,7 +101,7 @@ final class AppDatabase: Sendable {
                 t.column("checklistType", .text).notNull().defaults(to: "general")
                 t.column("tags", .text).notNull().defaults(to: "[]") // JSON array
                 t.column("content", .text).notNull().defaults(to: "[]") // JSON of sections/items
-                t.column("creatorID", .text).notNull()
+                t.column("creatorID", .text)
                 t.column("createdAt", .datetime).notNull()
                 t.column("updatedAt", .datetime).notNull()
                 t.column("syncStatus", .text).notNull().defaults(to: "pending")
@@ -172,7 +172,7 @@ final class AppDatabase: Sendable {
                 t.column("description", .text)
                 t.column("markdown", .text).notNull().defaults(to: "")
                 t.column("tags", .text).notNull().defaults(to: "[]") // JSON array
-                t.column("creatorID", .text).notNull()
+                t.column("creatorID", .text)
                 t.column("createdAt", .datetime).notNull()
                 t.column("updatedAt", .datetime).notNull()
                 t.column("syncStatus", .text).notNull().defaults(to: "pending")
@@ -253,6 +253,114 @@ final class AppDatabase: Sendable {
                 columns: ["visibility"]
             )
 
+        }
+
+        migrator.registerMigration("v1.9.0_makeCreatorIDNullable") { db in
+            // SQLite doesn't support ALTER COLUMN, so we recreate each affected table.
+            // Disable foreign key enforcement for the duration of the recreation.
+            try db.execute(sql: "PRAGMA foreign_keys = OFF")
+
+            // --- library_content ---
+            try db.execute(sql: """
+                CREATE TABLE library_content_new (
+                    id TEXT NOT NULL PRIMARY KEY,
+                    title TEXT NOT NULL,
+                    description TEXT,
+                    type TEXT NOT NULL,
+                    visibility TEXT NOT NULL DEFAULT 'private',
+                    creatorID TEXT,
+                    forkedFromID TEXT,
+                    forkCount INTEGER NOT NULL DEFAULT 0,
+                    ratingAverage REAL,
+                    ratingCount INTEGER NOT NULL DEFAULT 0,
+                    tags TEXT NOT NULL DEFAULT '[]',
+                    language TEXT NOT NULL DEFAULT 'en',
+                    isPinned INTEGER NOT NULL DEFAULT 0,
+                    pinnedOrder INTEGER,
+                    createdAt DATETIME NOT NULL,
+                    updatedAt DATETIME NOT NULL,
+                    syncStatus TEXT NOT NULL DEFAULT 'pending',
+                    publishedAt DATETIME,
+                    publicID TEXT,
+                    publicMetadata TEXT,
+                    originalAuthorUsername TEXT,
+                    originalContentPublicID TEXT
+                )
+            """)
+            try db.execute(sql: """
+                INSERT INTO library_content_new
+                SELECT
+                    id, title, description, type, visibility,
+                    CASE WHEN creatorID = '00000000-0000-0000-0000-000000000000' THEN NULL ELSE creatorID END,
+                    forkedFromID, forkCount, ratingAverage, ratingCount, tags, language,
+                    isPinned, pinnedOrder, createdAt, updatedAt, syncStatus,
+                    publishedAt, publicID, publicMetadata,
+                    originalAuthorUsername, originalContentPublicID
+                FROM library_content
+            """)
+            try db.execute(sql: "DROP TABLE library_content")
+            try db.execute(sql: "ALTER TABLE library_content_new RENAME TO library_content")
+            try db.execute(sql: "CREATE INDEX idx_library_content_creator ON library_content (creatorID)")
+            try db.execute(sql: "CREATE INDEX idx_library_content_type ON library_content (type)")
+            try db.execute(sql: "CREATE INDEX idx_library_content_updated ON library_content (updatedAt)")
+            try db.execute(sql: "CREATE INDEX idx_library_content_pinned ON library_content (isPinned, pinnedOrder, updatedAt)")
+
+            // --- checklists ---
+            try db.execute(sql: """
+                CREATE TABLE checklists_new (
+                    id TEXT NOT NULL PRIMARY KEY,
+                    title TEXT NOT NULL,
+                    description TEXT,
+                    checklistType TEXT NOT NULL DEFAULT 'general',
+                    tags TEXT NOT NULL DEFAULT '[]',
+                    content TEXT NOT NULL DEFAULT '[]',
+                    creatorID TEXT,
+                    createdAt DATETIME NOT NULL,
+                    updatedAt DATETIME NOT NULL,
+                    syncStatus TEXT NOT NULL DEFAULT 'pending'
+                )
+            """)
+            try db.execute(sql: """
+                INSERT INTO checklists_new
+                SELECT
+                    id, title, description, checklistType, tags, content,
+                    CASE WHEN creatorID = '00000000-0000-0000-0000-000000000000' THEN NULL ELSE creatorID END,
+                    createdAt, updatedAt, syncStatus
+                FROM checklists
+            """)
+            try db.execute(sql: "DROP TABLE checklists")
+            try db.execute(sql: "ALTER TABLE checklists_new RENAME TO checklists")
+            try db.execute(sql: "CREATE INDEX idx_checklists_creator ON checklists (creatorID)")
+            try db.execute(sql: "CREATE INDEX idx_checklists_updated ON checklists (updatedAt)")
+
+            // --- practice_guides ---
+            try db.execute(sql: """
+                CREATE TABLE practice_guides_new (
+                    id TEXT NOT NULL PRIMARY KEY,
+                    title TEXT NOT NULL,
+                    description TEXT,
+                    markdown TEXT NOT NULL DEFAULT '',
+                    tags TEXT NOT NULL DEFAULT '[]',
+                    creatorID TEXT,
+                    createdAt DATETIME NOT NULL,
+                    updatedAt DATETIME NOT NULL,
+                    syncStatus TEXT NOT NULL DEFAULT 'pending'
+                )
+            """)
+            try db.execute(sql: """
+                INSERT INTO practice_guides_new
+                SELECT
+                    id, title, description, markdown, tags,
+                    CASE WHEN creatorID = '00000000-0000-0000-0000-000000000000' THEN NULL ELSE creatorID END,
+                    createdAt, updatedAt, syncStatus
+                FROM practice_guides
+            """)
+            try db.execute(sql: "DROP TABLE practice_guides")
+            try db.execute(sql: "ALTER TABLE practice_guides_new RENAME TO practice_guides")
+            try db.execute(sql: "CREATE INDEX idx_practice_guides_creator ON practice_guides (creatorID)")
+            try db.execute(sql: "CREATE INDEX idx_practice_guides_updated ON practice_guides (updatedAt)")
+
+            try db.execute(sql: "PRAGMA foreign_keys = ON")
         }
 
         return migrator

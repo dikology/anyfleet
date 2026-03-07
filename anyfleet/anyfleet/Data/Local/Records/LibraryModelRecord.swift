@@ -17,7 +17,7 @@ nonisolated struct LibraryModelRecord: Codable, FetchableRecord, PersistableReco
     var description: String?
     var type: String
     var visibility: String
-    var creatorID: String
+    var creatorID: String?
     var forkedFromID: String?
     var originalAuthorUsername: String?
     var originalContentPublicID: String?
@@ -54,7 +54,7 @@ nonisolated struct LibraryModelRecord: Codable, FetchableRecord, PersistableReco
         description: String? = nil,
         type: String,
         visibility: String,
-        creatorID: String,
+        creatorID: String? = nil,
         forkedFromID: String? = nil,
         originalAuthorUsername: String? = nil,
         originalContentPublicID: String? = nil,
@@ -104,7 +104,7 @@ nonisolated struct LibraryModelRecord: Codable, FetchableRecord, PersistableReco
         self.description = model.description
         self.type = model.type.rawValue
         self.visibility = model.visibility.rawValue
-        self.creatorID = model.creatorID.uuidString
+        self.creatorID = model.creatorID?.uuidString
         self.forkedFromID = model.forkedFromID?.uuidString
         self.originalAuthorUsername = model.originalAuthorUsername
         self.originalContentPublicID = model.originalContentPublicID
@@ -165,7 +165,7 @@ nonisolated struct LibraryModelRecord: Codable, FetchableRecord, PersistableReco
             description: description,
             type: contentType,
             visibility: visibility,
-            creatorID: UUID(uuidString: creatorID) ?? UUID(),
+            creatorID: creatorID.flatMap { UUID(uuidString: $0) },
             forkedFromID: forkedFromID.flatMap { UUID(uuidString: $0) },
             forkCount: forkCount,
             originalAuthorUsername: originalAuthorUsername,
