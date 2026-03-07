@@ -344,7 +344,6 @@ final class LocalRepository: Sendable {
         defer { AppLogger.repository.completeOperation("Create Checklist") }
         
         try await database.dbWriter.write { db in
-            // Save full checklist (using default creatorID for single-user device)
             _ = try ChecklistRecord.saveChecklist(checklist, db: db)
             
             // Create metadata entry
@@ -354,7 +353,6 @@ final class LocalRepository: Sendable {
                 description: checklist.description,
                 type: .checklist,
                 visibility: .private,
-                creatorID: .localUserPlaceholder, // Placeholder for single-user device
                 tags: checklist.tags,
                 createdAt: checklist.createdAt,
                 updatedAt: checklist.updatedAt,
@@ -390,7 +388,6 @@ final class LocalRepository: Sendable {
                 description: guide.description,
                 type: .practiceGuide,
                 visibility: .private,
-                creatorID: .localUserPlaceholder, // Placeholder for single-user device
                 tags: guide.tags,
                 createdAt: guide.createdAt,
                 updatedAt: guide.updatedAt,
@@ -460,10 +457,10 @@ final class LocalRepository: Sendable {
                 description: checklist.description,
                 type: .checklist,
                 visibility: .private,
-                creatorID: existingMetadata?.creatorID ?? .localUserPlaceholder, // Preserve existing or use placeholder
-                forkedFromID: existingMetadata?.forkedFromID, // Preserve fork attribution
-                originalAuthorUsername: existingMetadata?.originalAuthorUsername, // Preserve fork attribution
-                originalContentPublicID: existingMetadata?.originalContentPublicID, // Preserve fork attribution
+                creatorID: existingMetadata?.creatorID,
+                forkedFromID: existingMetadata?.forkedFromID,
+                originalAuthorUsername: existingMetadata?.originalAuthorUsername,
+                originalContentPublicID: existingMetadata?.originalContentPublicID,
                 tags: checklist.tags,
                 createdAt: existingMetadata?.createdAt ?? checklist.createdAt, // Preserve original creation date
                 updatedAt: checklist.updatedAt,
@@ -505,10 +502,10 @@ final class LocalRepository: Sendable {
                 description: guide.description,
                 type: .practiceGuide,
                 visibility: .private,
-                creatorID: existingMetadata?.creatorID ?? .localUserPlaceholder, // Preserve existing or use placeholder
-                forkedFromID: existingMetadata?.forkedFromID, // Preserve fork attribution
-                originalAuthorUsername: existingMetadata?.originalAuthorUsername, // Preserve fork attribution
-                originalContentPublicID: existingMetadata?.originalContentPublicID, // Preserve fork attribution
+                creatorID: existingMetadata?.creatorID,
+                forkedFromID: existingMetadata?.forkedFromID,
+                originalAuthorUsername: existingMetadata?.originalAuthorUsername,
+                originalContentPublicID: existingMetadata?.originalContentPublicID,
                 tags: guide.tags,
                 createdAt: existingMetadata?.createdAt ?? guide.createdAt, // Preserve original creation date
                 updatedAt: guide.updatedAt,

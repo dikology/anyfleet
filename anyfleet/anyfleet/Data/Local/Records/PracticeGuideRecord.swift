@@ -17,7 +17,7 @@ nonisolated struct PracticeGuideRecord: Codable, FetchableRecord, PersistableRec
     var description: String?
     var markdown: String
     var tags: String // JSON array of strings
-    var creatorID: String
+    var creatorID: String?
     var createdAt: Date
     var updatedAt: Date
     var syncStatus: String
@@ -37,7 +37,7 @@ nonisolated struct PracticeGuideRecord: Codable, FetchableRecord, PersistableRec
         description: String? = nil,
         markdown: String = "",
         tags: String = "[]",
-        creatorID: String,
+        creatorID: String? = nil,
         createdAt: Date = Date(),
         updatedAt: Date = Date(),
         syncStatus: String = "pending"
@@ -60,7 +60,7 @@ nonisolated struct PracticeGuideRecord: Codable, FetchableRecord, PersistableRec
         self.title = guide.title
         self.description = guide.description
         self.markdown = guide.markdown
-        self.creatorID = "00000000-0000-0000-0000-000000000000" // Placeholder for single-user device
+        self.creatorID = nil
         self.createdAt = guide.createdAt
         self.updatedAt = guide.updatedAt
         self.syncStatus = guide.syncStatus.rawValue

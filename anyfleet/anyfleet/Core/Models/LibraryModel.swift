@@ -13,7 +13,7 @@ nonisolated struct LibraryModel: Identifiable, Hashable, Sendable {
     var description: String?
     var type: ContentType
     var visibility: ContentVisibility
-    var creatorID: UUID
+    var creatorID: UUID?
     var forkedFromID: UUID?
     var forkCount: Int = 0
 
@@ -43,7 +43,7 @@ nonisolated struct LibraryModel: Identifiable, Hashable, Sendable {
         description: String? = nil,
         type: ContentType,
         visibility: ContentVisibility = .private,
-        creatorID: UUID,
+        creatorID: UUID? = nil,
         forkedFromID: UUID? = nil,
         forkCount: Int = 0,
         originalAuthorUsername: String? = nil,

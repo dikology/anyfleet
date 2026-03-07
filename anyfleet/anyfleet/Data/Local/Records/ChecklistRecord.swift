@@ -18,7 +18,7 @@ nonisolated struct ChecklistRecord: Codable, FetchableRecord, PersistableRecord 
     var checklistType: String
     var tags: String // JSON array of strings
     var content: String // JSON of sections and items
-    var creatorID: String
+    var creatorID: String?
     var createdAt: Date
     var updatedAt: Date
     var syncStatus: String
@@ -39,7 +39,7 @@ nonisolated struct ChecklistRecord: Codable, FetchableRecord, PersistableRecord 
         checklistType: String,
         tags: String = "[]",
         content: String = "[]",
-        creatorID: String,
+        creatorID: String? = nil,
         createdAt: Date = Date(),
         updatedAt: Date = Date(),
         syncStatus: String = "pending"
@@ -63,7 +63,7 @@ nonisolated struct ChecklistRecord: Codable, FetchableRecord, PersistableRecord 
         self.title = checklist.title
         self.description = checklist.description
         self.checklistType = checklist.checklistType.rawValue
-        self.creatorID = "00000000-0000-0000-0000-000000000000" // Placeholder for single-user device
+        self.creatorID = nil
         self.createdAt = checklist.createdAt
         self.updatedAt = checklist.updatedAt
         self.syncStatus = checklist.syncStatus.rawValue
