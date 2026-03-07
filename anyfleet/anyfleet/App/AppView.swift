@@ -55,7 +55,8 @@ struct AppView: View {
                         libraryStore: dependencies.libraryStore,
                         visibilityService: dependencies.visibilityService,
                         authObserver: dependencies.authStateObserver,
-                        coordinator: coordinator
+                        coordinator: coordinator,
+                        apiClient: dependencies.apiClient
                     )
                 )
                     .navigationDestination(for: AppRoute.self) { route in

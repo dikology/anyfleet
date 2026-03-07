@@ -8,7 +8,7 @@ protocol LibraryStoreProtocol: AnyObject {
     var library: [LibraryModel] { get }
     var myChecklists: [LibraryModel] { get }
     var myGuides: [LibraryModel] { get }
-    var myDecks: [LibraryModel] { get }
+    //var myDecks: [LibraryModel] { get }
 
     // MARK: - Library Management
     func loadLibrary() async
@@ -31,7 +31,7 @@ protocol LibraryStoreProtocol: AnyObject {
     // MARK: - Content Retrieval
     func fetchChecklist(_ checklistID: UUID) async throws -> Checklist
     func fetchGuide(_ guideID: UUID) async throws -> PracticeGuide
-    func fetchDeck(_ deckID: UUID) async throws -> FlashcardDeck
+    //func fetchDeck(_ deckID: UUID) async throws -> FlashcardDeck
 
     /// Fetch full content model on-demand with caching
     func fetchFullContent<T>(_ id: UUID) async throws -> T?
@@ -100,9 +100,9 @@ final class LibraryStore: LibraryStoreProtocol {
     }
     
     /// Filtered flashcard decks from library metadata
-    var myDecks: [LibraryModel] {
-        library.filter { $0.type == .flashcardDeck }
-    }
+//    var myDecks: [LibraryModel] {
+//        library.filter { $0.type == .flashcardDeck }
+//    }
     
     // MARK: - Initialization
 
@@ -232,8 +232,8 @@ final class LibraryStore: LibraryStoreProtocol {
             try await forkChecklist(from: sharedContent)
         case "practice_guide":
             try await forkPracticeGuide(from: sharedContent)
-        case "flashcard_deck":
-            try await forkFlashcardDeck(from: sharedContent)
+//        case "flashcard_deck":
+//            try await forkFlashcardDeck(from: sharedContent)
         default:
             throw NSError(domain: "LibraryStore", code: 1, userInfo: [NSLocalizedDescriptionKey: "Unknown content type: \(sharedContent.contentType)"])
         }
@@ -305,9 +305,9 @@ final class LibraryStore: LibraryStoreProtocol {
         await updateForkAttribution(for: sharedContent)
     }
 
-    private func forkFlashcardDeck(from sharedContent: SharedContentDetail) async throws {
-        throw NSError(domain: "LibraryStore", code: 1, userInfo: [NSLocalizedDescriptionKey: "Flashcard deck forking not yet implemented"])
-    }
+//    private func forkFlashcardDeck(from sharedContent: SharedContentDetail) async throws {
+//        throw NSError(domain: "LibraryStore", code: 1, userInfo: [NSLocalizedDescriptionKey: "Flashcard deck forking not yet implemented"])
+//    }
 
     private func updateForkAttribution(for sharedContent: SharedContentDetail) async {
         guard let lastCreated = library.last, lastCreated.title == sharedContent.title else {

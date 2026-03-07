@@ -101,13 +101,13 @@ nonisolated struct PublicMetadata: Codable, Equatable, Hashable, Sendable {
 /// Discriminator for different types of library content
 enum ContentType: String, Codable, CaseIterable, Sendable, Hashable {
     case checklist = "checklist"
-    case flashcardDeck = "flashcard_deck"
+    //case flashcardDeck = "flashcard_deck"
     case practiceGuide = "practice_guide"
     
     var displayName: String {
         switch self {
         case .checklist: return "Checklist"
-        case .flashcardDeck: return "Flashcard Deck"
+        //case .flashcardDeck: return "Flashcard Deck"
         case .practiceGuide: return "Practice Guide"
         }
     }
@@ -115,7 +115,7 @@ enum ContentType: String, Codable, CaseIterable, Sendable, Hashable {
     var icon: String {
         switch self {
         case .checklist: return "checklist"
-        case .flashcardDeck: return "rectangle.stack"
+        //case .flashcardDeck: return "rectangle.stack"
         case .practiceGuide: return "book"
         }
     }

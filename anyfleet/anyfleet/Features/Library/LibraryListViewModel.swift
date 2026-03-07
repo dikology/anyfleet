@@ -6,7 +6,7 @@ enum ContentFilter: String, CaseIterable, Identifiable {
     case all
     case checklists
     case guides
-    case decks
+    //case decks
 
     var id: Self { self }
 
@@ -15,7 +15,7 @@ enum ContentFilter: String, CaseIterable, Identifiable {
         case .all: return L10n.Library.filterAll
         case .checklists: return L10n.Library.filterChecklists
         case .guides: return L10n.Library.filterGuides
-        case .decks: return L10n.Library.filterDecks
+        //case .decks: return L10n.Library.filterDecks
         }
     }
 }
@@ -26,6 +26,7 @@ enum LibraryModal: Identifiable {
     case signIn
     case deletePrivate(LibraryModel)
     case deletePublished(LibraryModel)
+    case authorProfile(AuthorProfile)
 
     var id: String {
         switch self {
@@ -33,6 +34,7 @@ enum LibraryModal: Identifiable {
         case .signIn: return "signin"
         case .deletePrivate(let item): return "delete-private-\(item.id)"
         case .deletePublished(let item): return "delete-published-\(item.id)"
+        case .authorProfile(let author): return "author-\(author.username)"
         }
     }
 }
@@ -46,6 +48,7 @@ final class LibraryListViewModel: ErrorHandling {
     let visibilityService: VisibilityServiceProtocol
     let authObserver: AuthStateObserverProtocol
     let coordinator: AppCoordinatorProtocol
+    private let apiClient: APIClientProtocol
 
     // MARK: - State
 
@@ -77,9 +80,9 @@ final class LibraryListViewModel: ErrorHandling {
         libraryStore.myGuides
     }
     
-    var decks: [LibraryModel] {
-        libraryStore.myDecks
-    }
+//    var decks: [LibraryModel] {
+//        libraryStore.myDecks
+//    }
     
     var isEmpty: Bool {
         library.isEmpty
@@ -135,8 +138,8 @@ final class LibraryListViewModel: ErrorHandling {
             filteredItems = checklists
         case .guides:
             filteredItems = guides
-        case .decks:
-            filteredItems = decks
+//        case .decks:
+//            filteredItems = decks
         }
     }
     
@@ -146,12 +149,14 @@ final class LibraryListViewModel: ErrorHandling {
         libraryStore: LibraryStoreProtocol,
         visibilityService: VisibilityServiceProtocol,
         authObserver: AuthStateObserverProtocol,
-        coordinator: AppCoordinatorProtocol
+        coordinator: AppCoordinatorProtocol,
+        apiClient: APIClientProtocol
     ) {
         self.libraryStore = libraryStore
         self.visibilityService = visibilityService
         self.authObserver = authObserver
         self.coordinator = coordinator
+        self.apiClient = apiClient
     }
     
     // MARK: - Actions
@@ -361,5 +366,49 @@ final class LibraryListViewModel: ErrorHandling {
     /// Show the sign in modal
     func showSignInModal() {
         activeModal = .signIn
+    }
+
+    // MARK: - Author Profile
+
+    /// Fetch an author's public profile and present it in the author profile modal.
+    ///
+    /// Used for forked content where the original author's username is displayed.
+    func fetchAndShowAuthorProfile(username: String) async {
+        AppLogger.view.startOperation("Fetch Author Profile")
+        AppLogger.view.info("Fetching library author profile for: \(username)")
+
+        if ProcessInfo.processInfo.environment["UITesting"] == "true" {
+            activeModal = .authorProfile(mockAuthorProfile(username: username))
+            return
+        }
+
+        do {
+            let response = try await apiClient.fetchPublicProfile(username: username)
+            let authorProfile = response.toAuthorProfile()
+            AppLogger.view.completeOperation("Fetch Author Profile")
+            AppLogger.view.info("Fetched library author profile for: \(username)")
+            activeModal = .authorProfile(authorProfile)
+        } catch {
+            AppLogger.view.error("Failed to fetch author profile for \(username)", error: error)
+            handleError(error)
+        }
+    }
+
+    private func mockAuthorProfile(username: String) -> AuthorProfile {
+        AuthorProfile(
+            username: username,
+            email: "",
+            profileImageUrl: nil,
+            profileImageThumbnailUrl: nil,
+            bio: "Experienced sailor with 10+ years at sea. Specializing in Mediterranean navigation and safety protocols.",
+            location: "Mediterranean Sea",
+            nationality: "Italian",
+            isVerified: true,
+            stats: AuthorStats(
+                averageRating: 4.8,
+                totalContributions: 15,
+                totalForks: 23
+            )
+        )
     }
 }

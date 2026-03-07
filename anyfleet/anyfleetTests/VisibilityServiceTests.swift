@@ -25,7 +25,6 @@ final class MockLibraryStoreForVisibility: LibraryStoreProtocol {
         var library: [LibraryModel] { mockLibrary }
         var myChecklists: [LibraryModel] { mockLibrary.filter { $0.type == .checklist } }
         var myGuides: [LibraryModel] { mockLibrary.filter { $0.type == .practiceGuide } }
-        var myDecks: [LibraryModel] { mockLibrary.filter { $0.type == .flashcardDeck } }
 
         func loadLibrary() async {}
         func fetchLibraryItem(_ id: UUID) async throws -> LibraryModel? { nil }

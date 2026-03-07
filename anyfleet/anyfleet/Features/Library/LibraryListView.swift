@@ -16,7 +16,8 @@ struct LibraryListView: View {
                 libraryStore: deps.libraryStore,
                 visibilityService: deps.visibilityService,
                 authObserver: deps.authStateObserver,
-                coordinator: AppCoordinator(dependencies: deps)
+                coordinator: AppCoordinator(dependencies: deps),
+                apiClient: deps.apiClient
             ))
         }
     }
@@ -34,6 +35,7 @@ struct LibraryListView: View {
                 )
             }
         }
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .principal) {
                 Text(L10n.Library.myLibrary)
@@ -91,7 +93,7 @@ struct LibraryListView: View {
             LibraryModel(
                 title: "COLREGs Flashcards",
                 description: "Flashcards to memorize the most important right‑of‑way rules and light patterns.",
-                type: .flashcardDeck,
+                type: .practiceGuide,
                 visibility: .unlisted,
                 creatorID: UUID(),
                 tags: ["colregs", "rules", "night"],
@@ -108,7 +110,8 @@ struct LibraryListView: View {
             libraryStore: libraryStore,
             visibilityService: dependencies.visibilityService,
             authObserver: dependencies.authStateObserver,
-            coordinator: coordinator
+            coordinator: coordinator,
+            apiClient: dependencies.apiClient
         )
 
         return NavigationStack {
@@ -233,6 +236,13 @@ struct LibraryModalsModifier: ViewModifier {
                     viewModel.dismissModal()
                 }
             )
+        case .authorProfile(let author):
+            AuthorProfileModal(
+                author: author,
+                onDismiss: {
+                    viewModel.dismissModal()
+                }
+            )
         }
     }
 }
@@ -268,11 +278,7 @@ struct CreateContentMenu: View {
                 Label(L10n.Library.newChecklist, systemImage: "checklist")
             }
 
-            Button {
-                viewModel.onCreateDeckTapped()
-            } label: {
-                Label(L10n.Library.newFlashcardDeck, systemImage: "rectangle.stack")
-            }
+            // Flashcard deck item removed until feature ships
 
             Button {
                 viewModel.onCreateGuideTapped()
@@ -291,11 +297,11 @@ struct LibraryEmptyState: View {
     var body: some View {
         DesignSystem.EmptyStateView(
             icon: "book.fill",
-            title: "Your Library Awaits",
-            message: "Create checklists, guides, and flashcard decks to organize your sailing knowledge. Every great sailor builds their own library of resources."
+            title: L10n.Library.emptyStateTitle,
+            message: L10n.Library.emptyStateMessage
         )
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("Your library is empty. Create checklists, guides, and flashcard decks.")
+        .accessibilityLabel(L10n.Library.emptyStateAccessibilityLabel)
     }
 }
 
@@ -321,14 +327,14 @@ struct LibraryContentList: View {
                                 viewModel.onReadChecklistTapped(item.id)
                             case .practiceGuide:
                                 viewModel.onReadGuideTapped(item.id)
-                            case .flashcardDeck:
-                                // TODO: Implement deck reader when ready
-                                break
+                            // TODO: Implement deck reader when ready
+
                             }
                         },
                         onAuthorTapped: { username in
-                            // TODO: Implement author profile navigation for forked content
-                            print("Tapped original author: \(username)")
+                            Task {
+                                await viewModel.fetchAndShowAuthorProfile(username: username)
+                            }
                         },
                         onPublish: {
                             viewModel.initiatePublish(item)
@@ -368,8 +374,8 @@ struct LibraryContentList: View {
                                 viewModel.onEditChecklistTapped(item.id)
                             case .practiceGuide:
                                 viewModel.onEditGuideTapped(item.id)
-                            case .flashcardDeck:
-                                viewModel.onEditDeckTapped(item.id)
+//                            case .flashcardDeck:
+//                                viewModel.onEditDeckTapped(item.id)
                             }
                         } label: {
                             Label(L10n.Library.actionEdit, systemImage: "pencil")

@@ -114,9 +114,9 @@ final class HomeViewModel: ErrorHandling {
             coordinator.viewChecklist(item.id)
         case .practiceGuide:
             coordinator.viewGuide(item.id)
-        case .flashcardDeck:
-            // TODO: Implement deck reader when ready
-            coordinator.editDeck(item.id)
+//        case .flashcardDeck:
+//            // TODO: Implement deck reader when ready
+//            coordinator.editDeck(item.id)
         }
     }
 

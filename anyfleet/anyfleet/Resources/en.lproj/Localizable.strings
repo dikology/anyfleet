@@ -83,6 +83,9 @@
 
 "library.filter.accessibilityLabel" = "Library content filter";
 "library.updatedPrefix" = "Updated";
+"library.emptyState.title" = "Your Library Awaits";
+"library.emptyState.message" = "Create checklists, guides, and flashcard decks to organize your sailing knowledge. Every great sailor builds their own library of resources.";
+"library.emptyState.accessibilityLabel" = "Your library is empty. Create checklists, guides, and flashcard decks.";
 
 "greeting.morning" = "Good morning";
 "greeting.day" = "Good day";

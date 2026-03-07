@@ -70,8 +70,8 @@ final class DiscoverContentReaderViewModel: ErrorHandling {
             return .checklist(try parseChecklist(from: detail))
         case .practiceGuide:
             return .practiceGuide(try parsePracticeGuide(from: detail))
-        case .flashcardDeck:
-            return .flashcardDeck(try parseFlashcardDeck(from: detail))
+//        case .flashcardDeck:
+//            return .flashcardDeck(try parseFlashcardDeck(from: detail))
         }
     }
 

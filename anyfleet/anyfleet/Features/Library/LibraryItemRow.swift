@@ -368,11 +368,11 @@ struct LibraryItemRow: View {
             item: LibraryModel(
                 title: "COLREGs Flashcards",
                 description: "Flashcards to memorize the most important right‑of‑way rules and light patterns.",
-                type: .flashcardDeck,
+                type: .practiceGuide,
                 visibility: .private,
                 creatorID: UUID()
             ),
-            contentType: .flashcardDeck,
+            contentType: .practiceGuide,
             isSignedIn: false,
             onTap: {},
             onAuthorTapped: { username in
