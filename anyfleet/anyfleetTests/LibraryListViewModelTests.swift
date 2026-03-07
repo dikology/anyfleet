@@ -14,6 +14,38 @@ struct LibraryListViewModelTests {
 
     // MARK: - Mocks
 
+    class MockLibraryAPIClient: APIClientProtocol {
+        func publishContent(title: String, description: String?, contentType: String, contentData: [String: Any], tags: [String], language: String, publicID: String, canFork: Bool, forkedFromID: UUID?) async throws -> PublishContentResponse {
+            PublishContentResponse(id: UUID(), publicID: publicID, publishedAt: Date(), authorUsername: "mock", canFork: canFork)
+        }
+        func unpublishContent(publicID: String) async throws {}
+        func fetchPublicContent() async throws -> [SharedContentSummary] { [] }
+        func fetchPublicContent(publicID: String) async throws -> SharedContentDetail {
+            SharedContentDetail(id: UUID(), title: "Mock", description: nil, contentType: "checklist", contentData: [:], tags: [], publicID: publicID, canFork: true, authorUsername: "mock", viewCount: 0, forkCount: 0, createdAt: Date(), updatedAt: Date())
+        }
+        func incrementForkCount(publicID: String) async throws {}
+        func updatePublishedContent(publicID: String, title: String, description: String?, contentType: String, contentData: [String: Any], tags: [String], language: String) async throws -> UpdateContentResponse {
+            UpdateContentResponse(id: UUID(), publicID: publicID, updatedAt: Date())
+        }
+        func fetchPublicProfile(username: String) async throws -> PublicProfileResponse {
+            PublicProfileResponse(id: UUID(), username: username, profileImageUrl: nil, profileImageThumbnailUrl: nil, bio: nil, location: nil, nationality: nil, isVerified: false, verificationTier: nil, createdAt: Date(), stats: PublicProfileStatsResponse(totalContributions: 0, averageRating: nil, totalForks: 0))
+        }
+        func createCharter(_ request: CharterCreateRequest) async throws -> CharterAPIResponse {
+            CharterAPIResponse(id: UUID(), userId: UUID(), name: request.name, boatName: nil, locationText: nil, startDate: request.startDate, endDate: request.endDate, latitude: nil, longitude: nil, locationPlaceId: nil, visibility: "private", createdAt: Date(), updatedAt: Date())
+        }
+        func fetchMyCharters() async throws -> CharterListAPIResponse { CharterListAPIResponse(items: [], total: 0, limit: 20, offset: 0) }
+        func fetchCharter(id: UUID) async throws -> CharterAPIResponse {
+            CharterAPIResponse(id: id, userId: UUID(), name: "Mock", boatName: nil, locationText: nil, startDate: Date(), endDate: Date(), latitude: nil, longitude: nil, locationPlaceId: nil, visibility: "private", createdAt: Date(), updatedAt: Date())
+        }
+        func updateCharter(id: UUID, request: CharterUpdateRequest) async throws -> CharterAPIResponse {
+            CharterAPIResponse(id: id, userId: UUID(), name: request.name ?? "Mock", boatName: nil, locationText: nil, startDate: request.startDate ?? Date(), endDate: request.endDate ?? Date(), latitude: nil, longitude: nil, locationPlaceId: nil, visibility: "private", createdAt: Date(), updatedAt: Date())
+        }
+        func deleteCharter(id: UUID) async throws {}
+        func discoverCharters(dateFrom: Date?, dateTo: Date?, nearLat: Double?, nearLon: Double?, radiusKm: Double, limit: Int, offset: Int) async throws -> CharterDiscoveryAPIResponse {
+            CharterDiscoveryAPIResponse(items: [], total: 0, limit: limit, offset: offset)
+        }
+    }
+
 @MainActor
 class MockLibraryStore: LibraryStoreProtocol {
         // Track deletion calls
@@ -56,10 +88,6 @@ class MockLibraryStore: LibraryStoreProtocol {
 
         var myGuides: [LibraryModel] {
             mockLibrary.filter { $0.type == .practiceGuide }
-        }
-
-        var myDecks: [LibraryModel] {
-            mockLibrary.filter { $0.type == .flashcardDeck }
         }
 
         func fetchLibraryItem(_ id: UUID) async throws -> LibraryModel? {
@@ -116,7 +144,6 @@ class MockLibraryStore: LibraryStoreProtocol {
             switch sharedContent.contentType {
             case "checklist": contentType = .checklist
             case "practice_guide": contentType = .practiceGuide
-            case "flashcard_deck": contentType = .flashcardDeck
             default: contentType = .checklist // fallback
             }
 
@@ -282,7 +309,8 @@ class MockAppCoordinator: AppCoordinatorProtocol {
             libraryStore: libraryStore,
             visibilityService: visibilityService,
             authObserver: authObserver,
-            coordinator: coordinator
+            coordinator: coordinator,
+            apiClient: MockLibraryAPIClient()
         )
     }
 
@@ -294,13 +322,13 @@ class MockAppCoordinator: AppCoordinatorProtocol {
         // Arrange
         let privateContent = makeLibraryModel(title: "Private Checklist", visibility: .private)
         let viewModel = makeViewModel(library: [privateContent])
-        let mockStore = await viewModel.libraryStore as! MockLibraryStore
+        let mockStore = viewModel.libraryStore as! MockLibraryStore
 
         // Act
         try await viewModel.deleteContent(privateContent)
 
         // Assert
-        let deleteCalls = await mockStore.getDeleteContentCalls()
+        let deleteCalls = mockStore.getDeleteContentCalls()
         #expect(deleteCalls.count == 1)
         #expect(deleteCalls[0].item.id == privateContent.id)
         #expect(deleteCalls[0].shouldUnpublish == true) // Default behavior
@@ -316,13 +344,13 @@ class MockAppCoordinator: AppCoordinatorProtocol {
             publicID: "pub-123"
         )
         let viewModel = makeViewModel(library: [publishedContent])
-        let mockStore = await viewModel.libraryStore as! MockLibraryStore
+        let mockStore = viewModel.libraryStore as! MockLibraryStore
 
         // Act
         try await viewModel.deleteAndUnpublishContent(publishedContent)
 
         // Assert
-        let deleteCalls = await mockStore.getDeleteContentCalls()
+        let deleteCalls = mockStore.getDeleteContentCalls()
         #expect(deleteCalls.count == 1)
         #expect(deleteCalls[0].item.id == publishedContent.id)
         #expect(deleteCalls[0].shouldUnpublish == true)
@@ -338,13 +366,13 @@ class MockAppCoordinator: AppCoordinatorProtocol {
             publicID: "pub-456"
         )
         let viewModel = makeViewModel(library: [publishedContent])
-        let mockStore = await viewModel.libraryStore as! MockLibraryStore
+        let mockStore = viewModel.libraryStore as! MockLibraryStore
 
         // Act
         try await viewModel.deleteLocalCopyKeepPublished(publishedContent)
 
         // Assert
-        let deleteCalls = await mockStore.getDeleteContentCalls()
+        let deleteCalls = mockStore.getDeleteContentCalls()
         #expect(deleteCalls.count == 1)
         #expect(deleteCalls[0].item.id == publishedContent.id)
         #expect(deleteCalls[0].shouldUnpublish == false)
@@ -366,15 +394,15 @@ class MockAppCoordinator: AppCoordinatorProtocol {
     @MainActor
     func testComputedProperties() {
         let privateChecklist = makeLibraryModel(type: .checklist, visibility: .private)
+        let unlistedGuide = makeLibraryModel(type: .practiceGuide, visibility: .unlisted)
         let publicGuide = makeLibraryModel(type: .practiceGuide, visibility: .public, publicID: "pub-1")
-        let unlistedDeck = makeLibraryModel(type: .flashcardDeck, visibility: .unlisted)
 
-        let viewModel = makeViewModel(library: [privateChecklist, publicGuide, unlistedDeck])
+        let viewModel = makeViewModel(library: [privateChecklist, unlistedGuide, publicGuide])
 
         // Test local content (private + unlisted)
         #expect(viewModel.localContent.count == 2)
         #expect(viewModel.localContent.contains(where: { $0.id == privateChecklist.id }))
-        #expect(viewModel.localContent.contains(where: { $0.id == unlistedDeck.id }))
+        #expect(viewModel.localContent.contains(where: { $0.id == unlistedGuide.id }))
 
         // Test public content
         #expect(viewModel.publicContent.count == 1)
@@ -392,7 +420,7 @@ class MockAppCoordinator: AppCoordinatorProtocol {
         // the original creator attribution is preserved in the metadata
 
         // Arrange: Create a shared content detail representing deleted published content
-        let originalCreatorID = UUID()
+        _ = UUID()
         let sharedContent = SharedContentDetail(
             id: UUID(),
             title: "My Deleted Guide",
@@ -422,7 +450,7 @@ class MockAppCoordinator: AppCoordinatorProtocol {
         )
 
         let viewModel = makeViewModel()
-        let mockStore = await viewModel.libraryStore as! MockLibraryStore
+        let mockStore = viewModel.libraryStore as! MockLibraryStore
 
         // Act: Fork the content (simulating user recovering their deleted content)
         try await mockStore.forkContent(from: sharedContent)

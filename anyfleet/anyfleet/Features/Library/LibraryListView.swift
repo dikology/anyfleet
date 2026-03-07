@@ -16,7 +16,8 @@ struct LibraryListView: View {
                 libraryStore: deps.libraryStore,
                 visibilityService: deps.visibilityService,
                 authObserver: deps.authStateObserver,
-                coordinator: AppCoordinator(dependencies: deps)
+                coordinator: AppCoordinator(dependencies: deps),
+                apiClient: deps.apiClient
             ))
         }
     }
@@ -109,7 +110,8 @@ struct LibraryListView: View {
             libraryStore: libraryStore,
             visibilityService: dependencies.visibilityService,
             authObserver: dependencies.authStateObserver,
-            coordinator: coordinator
+            coordinator: coordinator,
+            apiClient: dependencies.apiClient
         )
 
         return NavigationStack {
@@ -234,6 +236,13 @@ struct LibraryModalsModifier: ViewModifier {
                     viewModel.dismissModal()
                 }
             )
+        case .authorProfile(let author):
+            AuthorProfileModal(
+                author: author,
+                onDismiss: {
+                    viewModel.dismissModal()
+                }
+            )
         }
     }
 }
@@ -323,8 +332,9 @@ struct LibraryContentList: View {
                             }
                         },
                         onAuthorTapped: { username in
-                            // TODO: Implement author profile navigation for forked content
-                            print("Tapped original author: \(username)")
+                            Task {
+                                await viewModel.fetchAndShowAuthorProfile(username: username)
+                            }
                         },
                         onPublish: {
                             viewModel.initiatePublish(item)
