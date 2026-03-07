@@ -123,6 +123,24 @@ enum L10n {
             tableName: "Localizable",
             comment: "Prefix text for updated date in library item metadata"
         )
+
+        static let emptyStateTitle = NSLocalizedString(
+            "library.emptyState.title",
+            tableName: "Localizable",
+            comment: "Title for the library empty state when user has no content"
+        )
+
+        static let emptyStateMessage = NSLocalizedString(
+            "library.emptyState.message",
+            tableName: "Localizable",
+            comment: "Message for the library empty state encouraging creation of content"
+        )
+
+        static let emptyStateAccessibilityLabel = NSLocalizedString(
+            "library.emptyState.accessibilityLabel",
+            tableName: "Localizable",
+            comment: "Accessibility label for the library empty state"
+        )
     }
     
     static let Discover = NSLocalizedString(

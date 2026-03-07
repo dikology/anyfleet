@@ -83,6 +83,9 @@
 
 "library.filter.accessibilityLabel" = "Фильтр содержимого библиотеки";
 "library.updatedPrefix" = "Обновлено";
+"library.emptyState.title" = "Ваша библиотека ждёт";
+"library.emptyState.message" = "Создавайте чек-листы, руководства и колоды карточек, чтобы систематизировать свои знания. Каждый опытный моряк собирает собственную библиотеку материалов.";
+"library.emptyState.accessibilityLabel" = "Библиотека пуста. Создайте чек-листы, руководства и колоды карточек.";
 
 "greeting.morning" = "Доброе утро";
 "greeting.day" = "Добрый день";

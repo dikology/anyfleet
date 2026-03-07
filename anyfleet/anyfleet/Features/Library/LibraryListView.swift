@@ -268,11 +268,7 @@ struct CreateContentMenu: View {
                 Label(L10n.Library.newChecklist, systemImage: "checklist")
             }
 
-            Button {
-                viewModel.onCreateDeckTapped()
-            } label: {
-                Label(L10n.Library.newFlashcardDeck, systemImage: "rectangle.stack")
-            }
+            // Flashcard deck item removed until feature ships
 
             Button {
                 viewModel.onCreateGuideTapped()
@@ -291,11 +287,11 @@ struct LibraryEmptyState: View {
     var body: some View {
         DesignSystem.EmptyStateView(
             icon: "book.fill",
-            title: "Your Library Awaits",
-            message: "Create checklists, guides, and flashcard decks to organize your sailing knowledge. Every great sailor builds their own library of resources."
+            title: L10n.Library.emptyStateTitle,
+            message: L10n.Library.emptyStateMessage
         )
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("Your library is empty. Create checklists, guides, and flashcard decks.")
+        .accessibilityLabel(L10n.Library.emptyStateAccessibilityLabel)
     }
 }
 
@@ -321,9 +317,8 @@ struct LibraryContentList: View {
                                 viewModel.onReadChecklistTapped(item.id)
                             case .practiceGuide:
                                 viewModel.onReadGuideTapped(item.id)
-                            case .flashcardDeck:
-                                // TODO: Implement deck reader when ready
-                                break
+                            // TODO: Implement deck reader when ready
+
                             }
                         },
                         onAuthorTapped: { username in
