@@ -6,7 +6,7 @@ enum ContentFilter: String, CaseIterable, Identifiable {
     case all
     case checklists
     case guides
-    case decks
+    //case decks
 
     var id: Self { self }
 
@@ -15,7 +15,7 @@ enum ContentFilter: String, CaseIterable, Identifiable {
         case .all: return L10n.Library.filterAll
         case .checklists: return L10n.Library.filterChecklists
         case .guides: return L10n.Library.filterGuides
-        case .decks: return L10n.Library.filterDecks
+        //case .decks: return L10n.Library.filterDecks
         }
     }
 }
@@ -77,9 +77,9 @@ final class LibraryListViewModel: ErrorHandling {
         libraryStore.myGuides
     }
     
-    var decks: [LibraryModel] {
-        libraryStore.myDecks
-    }
+//    var decks: [LibraryModel] {
+//        libraryStore.myDecks
+//    }
     
     var isEmpty: Bool {
         library.isEmpty
@@ -135,8 +135,8 @@ final class LibraryListViewModel: ErrorHandling {
             filteredItems = checklists
         case .guides:
             filteredItems = guides
-        case .decks:
-            filteredItems = decks
+//        case .decks:
+//            filteredItems = decks
         }
     }
     

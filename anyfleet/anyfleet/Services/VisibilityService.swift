@@ -324,8 +324,8 @@ final class VisibilityService: VisibilityServiceProtocol {
                 }
                 contentDict = try encodeGuide(guide)
                 
-            case .flashcardDeck:
-                throw PublishError.validationError("Flashcard decks not yet supported")
+//            case .flashcardDeck:
+//                throw PublishError.validationError("Flashcard decks not yet supported")
             }
             
             guard let publicID = item.publicID else {

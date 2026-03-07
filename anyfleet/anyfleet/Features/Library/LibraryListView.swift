@@ -34,6 +34,7 @@ struct LibraryListView: View {
                 )
             }
         }
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .principal) {
                 Text(L10n.Library.myLibrary)
@@ -91,7 +92,7 @@ struct LibraryListView: View {
             LibraryModel(
                 title: "COLREGs Flashcards",
                 description: "Flashcards to memorize the most important right‑of‑way rules and light patterns.",
-                type: .flashcardDeck,
+                type: .practiceGuide,
                 visibility: .unlisted,
                 creatorID: UUID(),
                 tags: ["colregs", "rules", "night"],
@@ -363,8 +364,8 @@ struct LibraryContentList: View {
                                 viewModel.onEditChecklistTapped(item.id)
                             case .practiceGuide:
                                 viewModel.onEditGuideTapped(item.id)
-                            case .flashcardDeck:
-                                viewModel.onEditDeckTapped(item.id)
+//                            case .flashcardDeck:
+//                                viewModel.onEditDeckTapped(item.id)
                             }
                         } label: {
                             Label(L10n.Library.actionEdit, systemImage: "pencil")

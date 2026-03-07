@@ -184,7 +184,7 @@ final class DiscoverViewModel: ErrorHandling {
                 id: UUID(),
                 title: "COLREGs Flashcards",
                 description: "Flashcards to memorize the most important right-of-way rules and light patterns.",
-                contentType: .flashcardDeck,
+                contentType: .practiceGuide,
                 tags: ["colregs", "rules", "night"],
                 publicID: "colregs-flashcards",
                 authorUsername: "NavExpert",
