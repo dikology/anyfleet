@@ -85,3 +85,5 @@ fastlane/profiles/
 *.app.dSYM
 DerivedData/
 *.xcarchive
+
+.DS_Store
