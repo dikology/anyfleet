@@ -140,6 +140,33 @@ final class DiscoverViewModel: ErrorHandling {
             try await libraryStore.forkContent(from: fullContent)
             AppLogger.view.info("Successfully forked content")
 
+            // Optimistically update the fork count in the discovery list
+            if let idx = self.content.firstIndex(where: { $0.publicID == content.publicID }) {
+                let item = self.content[idx]
+                self.content[idx] = DiscoverContent(
+                    id: item.id,
+                    title: item.title,
+                    description: item.description,
+                    contentType: item.contentType,
+                    tags: item.tags,
+                    publicID: item.publicID,
+                    authorUsername: item.authorUsername,
+                    viewCount: item.viewCount,
+                    forkCount: item.forkCount + 1,
+                    createdAt: item.createdAt,
+                    forkedFromID: item.forkedFromID,
+                    originalAuthorUsername: item.originalAuthorUsername,
+                    originalContentPublicID: item.originalContentPublicID
+                )
+            }
+
+            // Signal the server (best-effort: don't fail the fork if this call fails)
+            do {
+                try await apiClient.incrementForkCount(publicID: content.publicID)
+            } catch {
+                AppLogger.view.warning("Fork count increment failed for \(content.publicID) — will not retry: \(error)")
+            }
+
             AppLogger.view.completeOperation("Fork Content")
 
             // Navigate to library tab to show the newly forked content
