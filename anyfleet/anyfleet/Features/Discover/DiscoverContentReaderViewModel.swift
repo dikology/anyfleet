@@ -33,6 +33,31 @@ final class DiscoverContentReaderViewModel: ErrorHandling {
 
     // MARK: - Actions
 
+    /// Optimistically bump the fork count on the locally held detail.
+    /// Call this after a successful fork to keep the displayed stat accurate
+    /// without requiring a full network reload.
+    func recordForkSuccess() {
+        guard let detail = contentDetail else { return }
+        contentDetail = SharedContentDetail(
+            id: detail.id,
+            title: detail.title,
+            description: detail.description,
+            contentType: detail.contentType,
+            contentData: detail.contentData,
+            tags: detail.tags,
+            publicID: detail.publicID,
+            canFork: detail.canFork,
+            authorUsername: detail.authorUsername,
+            viewCount: detail.viewCount,
+            forkCount: detail.forkCount + 1,
+            createdAt: detail.createdAt,
+            updatedAt: detail.updatedAt,
+            forkedFromID: detail.forkedFromID,
+            originalAuthorUsername: detail.originalAuthorUsername,
+            originalContentPublicID: detail.originalContentPublicID
+        )
+    }
+
     func loadContent() async {
         guard contentDetail == nil else { return }
         guard !isLoading else { return }

@@ -382,18 +382,27 @@ struct DiscoverContentReaderView: View {
 
     private func forkContent(_ detail: SharedContentDetail) async {
         do {
-            // Fork the content using the library store
+            // Save a local copy of the content
             try await dependencies.libraryStore.forkContent(from: detail)
+
+            // Optimistically update the displayed fork count so the reader
+            // shows the correct value before the user navigates away
+            viewModel.recordForkSuccess()
+
+            // Signal the server (best-effort: don't fail the fork if this call fails)
+            do {
+                try await dependencies.apiClient.incrementForkCount(publicID: detail.publicID)
+            } catch {
+                AppLogger.view.warning("Fork count increment failed for \(detail.publicID) — will not retry: \(error)")
+            }
+
+            AppLogger.view.info("Successfully forked content: \(detail.publicID)")
 
             // Navigate to library tab to show the newly forked content
             coordinator.navigateToLibrary()
 
-            // Show success feedback (could be improved with a toast/banner)
-            AppLogger.view.info("Successfully forked content: \(detail.publicID)")
-
         } catch {
             AppLogger.view.error("Failed to fork content: \(detail.publicID)", error: error)
-            // Handle error - could show an error banner or alert
         }
     }
 }

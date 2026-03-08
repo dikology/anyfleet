@@ -238,9 +238,9 @@ final class LibraryStore: LibraryStoreProtocol {
             throw NSError(domain: "LibraryStore", code: 1, userInfo: [NSLocalizedDescriptionKey: "Unknown content type: \(sharedContent.contentType)"])
         }
 
-        // Increment fork count on original content (best effort, don't fail fork if this fails)
-        // TODO: Implement fork count increment when API client is available in dependencies
-        AppLogger.view.info("Would increment fork count for original content: \(sharedContent.publicID)")
+        // Fork count increment is handled by the calling view layer (DiscoverViewModel /
+        // DiscoverContentReaderView) which has access to APIClientProtocol. LibraryStore
+        // intentionally does not hold an API client so it stays testable without network stubs.
     }
 
     private func forkChecklist(from sharedContent: SharedContentDetail) async throws {
