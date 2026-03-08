@@ -83,5 +83,16 @@ extension DesignSystem {
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )
+
+        /// Dark overlay for hero cards with photo backgrounds to ensure text readability.
+        static let heroImageOverlay = LinearGradient(
+            colors: [
+                Color.black.opacity(0.15),
+                Color.black.opacity(0.5),
+                Color.black.opacity(0.75)
+            ],
+            startPoint: .top,
+            endPoint: .bottom
+        )
     }
 }

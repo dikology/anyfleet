@@ -96,6 +96,11 @@
 
 "home.pinnedContent.title" = "Закрепленный контент";
 "home.pinnedContent.subtitle" = "Закрепляйте элементы из библиотеки для быстрого доступа.";
+"home.nextCharter.title" = "Следующий";
+"home.upcomingTrips.title" = "Предстоящие поездки";
+"home.viewCharter" = "Открыть чартер";
+"home.inDays" = "Через %d дн.";
+"home.nextMonth" = "В следующем месяце";
 
 "checklistEditor.newChecklist" = "Новый чек-лист";
 "checklistEditor.editChecklist" = "Редактировать чек-лист";

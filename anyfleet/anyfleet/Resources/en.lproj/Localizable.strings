@@ -96,6 +96,11 @@
 
 "home.pinnedContent.title" = "Pinned content";
 "home.pinnedContent.subtitle" = "Pin items from your library for quick access here.";
+"home.nextCharter.title" = "Next";
+"home.upcomingTrips.title" = "Upcoming Trips";
+"home.viewCharter" = "View Charter";
+"home.inDays" = "In %d days";
+"home.nextMonth" = "Next month";
 
 "checklistEditor.newChecklist" = "New Checklist";
 "checklistEditor.editChecklist" = "Edit Checklist";

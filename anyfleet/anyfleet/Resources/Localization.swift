@@ -1010,6 +1010,34 @@ enum L10n {
         tableName: "Localizable",
         comment: "Section subtitle explaining pinned content on the home screen"
     )
+
+    static let homeNextCharterTitle = NSLocalizedString(
+        "home.nextCharter.title",
+        tableName: "Localizable",
+        comment: "Label for the next charter badge on the home screen hero card"
+    )
+
+    static let homeUpcomingTripsTitle = NSLocalizedString(
+        "home.upcomingTrips.title",
+        tableName: "Localizable",
+        comment: "Section title for upcoming charters strip on the home screen"
+    )
+
+    static let homeViewCharter = NSLocalizedString(
+        "home.viewCharter",
+        tableName: "Localizable",
+        comment: "Button label to view charter details"
+    )
+
+    static func homeInDays(_ count: Int) -> String {
+        String(format: NSLocalizedString("home.inDays", tableName: "Localizable", comment: "Charter starts in X days"), count)
+    }
+
+    static let homeNextMonth = NSLocalizedString(
+        "home.nextMonth",
+        tableName: "Localizable",
+        comment: "Charter starts next month"
+    )
     
     enum ChecklistEditor {
         static let newChecklist = NSLocalizedString(
