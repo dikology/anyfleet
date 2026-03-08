@@ -600,3 +600,124 @@ struct CharterEditorViewModelTests {
     }
 }
 
+// MARK: - Visibility / Sign-in Tests
+
+@Suite("CharterEditorViewModel Visibility Tests")
+struct CharterEditorViewModelVisibilityTests {
+
+    // MARK: - Helpers
+
+    @MainActor
+    private func makeViewModel(isAuthenticated: Bool) -> CharterEditorViewModel {
+        let store = CharterStore(repository: MockLocalRepository())
+        let mockAuth = MockAuthService()
+        mockAuth.mockIsAuthenticated = isAuthenticated
+        return CharterEditorViewModel(
+            charterStore: store,
+            authService: mockAuth,
+            onDismiss: {}
+        )
+    }
+
+    // MARK: - onVisibilityChanged
+
+    @Test("onVisibilityChanged - authenticated user can select community")
+    @MainActor
+    func testOnVisibilityChanged_Authenticated_AllowsNonPrivate() {
+        let viewModel = makeViewModel(isAuthenticated: true)
+        viewModel.onVisibilityChanged(.community)
+        #expect(viewModel.form.visibility == .community)
+        #expect(viewModel.showSignIn == false)
+    }
+
+    @Test("onVisibilityChanged - authenticated user can select public")
+    @MainActor
+    func testOnVisibilityChanged_Authenticated_AllowsPublic() {
+        let viewModel = makeViewModel(isAuthenticated: true)
+        viewModel.onVisibilityChanged(.public)
+        #expect(viewModel.form.visibility == .public)
+        #expect(viewModel.showSignIn == false)
+    }
+
+    @Test("onVisibilityChanged - unauthenticated selecting community shows sign-in")
+    @MainActor
+    func testOnVisibilityChanged_Unauthenticated_Community_ShowsSignIn() {
+        let viewModel = makeViewModel(isAuthenticated: false)
+        viewModel.onVisibilityChanged(.community)
+        #expect(viewModel.showSignIn == true)
+        // Visibility must not have changed yet
+        #expect(viewModel.form.visibility == .private)
+    }
+
+    @Test("onVisibilityChanged - unauthenticated selecting public shows sign-in")
+    @MainActor
+    func testOnVisibilityChanged_Unauthenticated_Public_ShowsSignIn() {
+        let viewModel = makeViewModel(isAuthenticated: false)
+        viewModel.onVisibilityChanged(.public)
+        #expect(viewModel.showSignIn == true)
+        #expect(viewModel.form.visibility == .private)
+    }
+
+    @Test("onVisibilityChanged - unauthenticated selecting private is always allowed")
+    @MainActor
+    func testOnVisibilityChanged_Unauthenticated_Private_NeverBlocksSignIn() {
+        let viewModel = makeViewModel(isAuthenticated: false)
+        viewModel.form.visibility = .community  // start at non-private
+        viewModel.onVisibilityChanged(.private)
+        #expect(viewModel.form.visibility == .private)
+        #expect(viewModel.showSignIn == false)
+    }
+
+    @Test("onVisibilityChanged - no authService skips sign-in gate")
+    @MainActor
+    func testOnVisibilityChanged_NoAuthService_UpdatesDirectly() {
+        let store = CharterStore(repository: MockLocalRepository())
+        let viewModel = CharterEditorViewModel(charterStore: store, onDismiss: {})
+        viewModel.onVisibilityChanged(.community)
+        #expect(viewModel.form.visibility == .community)
+        #expect(viewModel.showSignIn == false)
+    }
+
+    // MARK: - onSignInSuccess
+
+    @Test("onSignInSuccess - applies pending visibility and clears sheet flag")
+    @MainActor
+    func testOnSignInSuccess_AppliesPendingVisibility() {
+        let viewModel = makeViewModel(isAuthenticated: false)
+        // Trigger the gate so pendingVisibility is stored
+        viewModel.onVisibilityChanged(.community)
+        #expect(viewModel.showSignIn == true)
+
+        viewModel.onSignInSuccess()
+
+        #expect(viewModel.showSignIn == false)
+        #expect(viewModel.form.visibility == .community)
+    }
+
+    @Test("onSignInSuccess - called with no pending visibility is a no-op on form")
+    @MainActor
+    func testOnSignInSuccess_NoPendingVisibility_IsNoOp() {
+        let viewModel = makeViewModel(isAuthenticated: true)
+        // No pending visibility set
+        viewModel.onSignInSuccess()
+        #expect(viewModel.showSignIn == false)
+        #expect(viewModel.form.visibility == .private)
+    }
+
+    // MARK: - onSignInDismiss
+
+    @Test("onSignInDismiss - discards pending visibility and clears sheet flag")
+    @MainActor
+    func testOnSignInDismiss_DiscardsPendingVisibility() {
+        let viewModel = makeViewModel(isAuthenticated: false)
+        viewModel.onVisibilityChanged(.public)
+        #expect(viewModel.showSignIn == true)
+
+        viewModel.onSignInDismiss()
+
+        #expect(viewModel.showSignIn == false)
+        // Visibility stays private (pending selection was discarded)
+        #expect(viewModel.form.visibility == .private)
+    }
+}
+

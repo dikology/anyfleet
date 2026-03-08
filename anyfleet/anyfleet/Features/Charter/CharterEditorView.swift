@@ -91,6 +91,14 @@ struct CharterEditorView: View {
         .task {
             await viewModel.loadCharter()
         }
+        .sheet(isPresented: $viewModel.showSignIn) {
+            SignInModalView(
+                title: "Sign In to Share",
+                message: "Sign in to share your charter with the sailing community.",
+                onSuccess: { viewModel.onSignInSuccess() },
+                onDismiss: { viewModel.onSignInDismiss() }
+            )
+        }
     }
 }
 
@@ -109,7 +117,7 @@ private extension CharterEditorView {
         VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
             ForEach(CharterVisibility.allCases, id: \.self) { option in
                 Button {
-                    viewModel.form.visibility = option
+                    viewModel.onVisibilityChanged(option)
                 } label: {
                     HStack(spacing: DesignSystem.Spacing.md) {
                         Image(systemName: option.systemImage)

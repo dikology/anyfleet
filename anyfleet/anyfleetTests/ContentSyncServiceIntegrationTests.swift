@@ -13,19 +13,25 @@ import Testing
 struct ContentSyncServiceIntegrationTests {
 
     @MainActor
-    private func makeTestDependencies() throws -> (
+    private func makeTestDependencies(
+        isAuthenticated: Bool = true
+    ) throws -> (
         repository: LocalRepository,
         apiClient: MockAPIClient,
         syncQueue: SyncQueueService,
         libraryStore: LibraryStore,
-        syncService: ContentSyncService
+        syncService: ContentSyncService,
+        authService: MockAuthService
     ) {
         let database = try AppDatabase.makeEmpty()
         let repository = LocalRepository(database: database)
         let apiClient = MockAPIClient()
+        let authService = MockAuthService()
+        authService.mockIsAuthenticated = isAuthenticated
         let syncQueue = SyncQueueService(
             repository: repository,
-            apiClient: apiClient
+            apiClient: apiClient,
+            authService: authService
         )
         let libraryStore = LibraryStore(repository: repository, syncQueue: syncQueue)
         let syncService = ContentSyncService(
@@ -33,14 +39,14 @@ struct ContentSyncServiceIntegrationTests {
             repository: repository
         )
 
-        return (repository, apiClient, syncQueue, libraryStore, syncService)
+        return (repository, apiClient, syncQueue, libraryStore, syncService, authService)
     }
 
     @Test("Unpublish operation - end-to-end with real payload")
     @MainActor
     func testUnpublishOperationEndToEnd() async throws {
         // Arrange
-        let (repository, apiClient, _, libraryStore, syncService) = try makeTestDependencies()
+        let (repository, apiClient, _, libraryStore, syncService, _) = try makeTestDependencies()
 
         // Create and publish a checklist first
         let checklist = Checklist(
@@ -118,7 +124,7 @@ struct ContentSyncServiceIntegrationTests {
     @MainActor
     func testPublishOperationEndToEnd() async throws {
         // Arrange
-        let (repository, _, _, libraryStore, syncService) = try makeTestDependencies()
+        let (repository, _, _, libraryStore, syncService, _) = try makeTestDependencies()
 
         // Create a checklist in the library
         let checklist = Checklist(
@@ -208,7 +214,7 @@ struct ContentSyncServiceIntegrationTests {
     @MainActor
     func testPublishOperationPayloadStructure() async throws {
         // Arrange
-        let (repository, _, _, libraryStore, syncService) = try makeTestDependencies()
+        let (repository, _, _, libraryStore, syncService, _) = try makeTestDependencies()
 
         // Create a checklist
         let checklist = Checklist(
@@ -310,7 +316,7 @@ struct ContentSyncServiceIntegrationTests {
     @MainActor
     func testPublishSucceedsWhenCurrentUserLoadedByEnsureMethod() async throws {
         // Arrange
-        let (repository, _, _, libraryStore, syncService) = try makeTestDependencies()
+        let (repository, _, _, libraryStore, syncService, _) = try makeTestDependencies()
 
         // Create a mock auth service where isAuthenticated is true but currentUser starts as nil
         // The ensureCurrentUserLoaded method will set it
@@ -370,7 +376,7 @@ struct ContentSyncServiceIntegrationTests {
     @MainActor
     func testPublishSucceedsWhenAuthenticatedAndCurrentUserLoaded() async throws {
         // Arrange
-        let (repository, _, _, libraryStore, syncService) = try makeTestDependencies()
+        let (repository, _, _, libraryStore, syncService, _) = try makeTestDependencies()
 
         // Create a mock auth service with both authentication state set
         let mockAuthService = MockAuthService()
@@ -440,7 +446,7 @@ struct ContentSyncServiceIntegrationTests {
     @MainActor
     func testUnpublishOperationStoresPublicID() async throws {
         // Arrange
-        let (repository, _, _, libraryStore, syncService) = try makeTestDependencies()
+        let (repository, _, _, libraryStore, syncService, _) = try makeTestDependencies()
 
         // Create a checklist and mark it as published
         let checklistID = UUID()
@@ -500,7 +506,7 @@ struct ContentSyncServiceIntegrationTests {
     @MainActor
     func testSyncQueuePayloadPersistence() async throws {
         // Arrange
-        let (repository, _, _, _, _) = try makeTestDependencies()
+        let (repository, _, _, _, _, _) = try makeTestDependencies()
 
         let contentID = UUID()
         let originalPayload = ContentPublishPayload(
@@ -579,7 +585,7 @@ struct ContentSyncServiceIntegrationTests {
     @MainActor
     func testSyncOperationRetryLogic() async throws {
         // Arrange
-        let (repository, apiClient, _, libraryStore, syncService) = try makeTestDependencies()
+        let (repository, apiClient, _, libraryStore, syncService, _) = try makeTestDependencies()
 
         // Configure mock to always fail
         apiClient.shouldFail = true
@@ -626,7 +632,10 @@ struct ContentSyncServiceIntegrationTests {
         #expect(summary.failed == 1)
         #expect(summary.succeeded == 0)
 
-        // Verify retry count was incremented
+        // Wait for backoff window to elapse (retryDelay(0) = 1s)
+        try await Task.sleep(for: .seconds(2))
+
+        // Verify retry count was incremented and operation is eligible again
         let pendingOperations = try await repository.getPendingSyncOperations(maxRetries: 5)
         #expect(pendingOperations.count == 1)
         #expect(pendingOperations[0].retryCount == 1)
@@ -637,7 +646,7 @@ struct ContentSyncServiceIntegrationTests {
     @MainActor
     func testSyncOperationFailureAfterMaxRetries() async throws {
         // Arrange
-        let (repository, apiClient, _, libraryStore, syncService) = try makeTestDependencies()
+        let (repository, apiClient, _, libraryStore, syncService, _) = try makeTestDependencies()
 
         // Configure mock to always fail
         apiClient.shouldFail = true
@@ -677,16 +686,18 @@ struct ContentSyncServiceIntegrationTests {
             payload: payloadData
         )
 
-        // Act - Attempt sync multiple times to exceed max retries
+        // Act - Attempt sync multiple times to exceed max retries.
+        // Backoff delays each retry; wait for the window to elapse between cycles.
         for _ in 0..<4 { // maxRetries = 3, so this will exceed it
             let _ = await syncService.syncPending()
+            try await Task.sleep(for: .seconds(2)) // retryDelay(0)=1s, retryDelay(1)=2s
         }
 
         // Assert - Operation should be marked as failed
         let failedCounts = try await repository.getSyncQueueCounts()
         #expect(failedCounts.failed >= 1)
 
-        // Verify operation has reached max retries and is still pending (but won't be retried)
+        // Verify operation has reached max retries (fetched with high limit to see failed ops)
         let pendingOperations = try await repository.getPendingSyncOperations(maxRetries: 10)
         #expect(pendingOperations.count == 1)
         #expect(pendingOperations[0].retryCount >= 3) // Should have reached max retries
@@ -698,7 +709,7 @@ struct ContentSyncServiceIntegrationTests {
         // This test reproduces the bug described in edit-published.md
         // where published content becomes private after editing and saving
 
-        let (repository, _, _, libraryStore, syncService) = try makeTestDependencies()
+        let (repository, _, _, libraryStore, syncService, _) = try makeTestDependencies()
 
         // 1. Create and save a checklist
         let checklistID = UUID()
@@ -812,7 +823,7 @@ struct ContentSyncServiceIntegrationTests {
     @Test("Publish-edit-publish cycle preserves visibility through multiple edits")
     @MainActor
     func testPublishMultipleEditsMaintainsVisibility() async throws {
-        let (repository, _, _, libraryStore, syncService) = try makeTestDependencies()
+        let (repository, _, _, libraryStore, syncService, _) = try makeTestDependencies()
 
         // Create and publish content
         let checklistID = UUID()
@@ -877,7 +888,7 @@ struct ContentSyncServiceIntegrationTests {
     @Test("Publish operation correctly sets visibility in database")
     @MainActor
     func testPublishOperationDatabaseVisibility() async throws {
-        let (repository, _, _, libraryStore, syncService) = try makeTestDependencies()
+        let (repository, _, _, libraryStore, syncService, _) = try makeTestDependencies()
 
         // Create private content
         let checklistID = UUID()
@@ -909,7 +920,7 @@ struct ContentSyncServiceIntegrationTests {
     @Test("Publish update operation preserves visibility in database")
     @MainActor
     func testPublishUpdatePreservesVisibility() async throws {
-        let (repository, _, _, libraryStore, syncService) = try makeTestDependencies()
+        let (repository, _, _, libraryStore, syncService, _) = try makeTestDependencies()
 
         // Create and publish content using VisibilityService
         let checklistID = UUID()
@@ -975,7 +986,7 @@ struct ContentSyncServiceIntegrationTests {
         // This test ensures JSON structures are consistent between initial publish and publish updates
         // and that discover parsing works correctly with the published data
 
-        let (repository, apiClient, _, libraryStore, syncService) = try makeTestDependencies()
+        let (repository, apiClient, _, libraryStore, syncService, _) = try makeTestDependencies()
 
         // Create a checklist with all required fields including section properties
         let checklistID = UUID()
@@ -1136,6 +1147,7 @@ struct ContentSyncServiceIntegrationTests {
 class MockAPIClient: APIClientProtocol {
     var shouldFail = false
     var mockPublicContentResponse: SharedContentDetail?
+    var publishCallCount = 0
 
     func publishContent(
         title: String,
@@ -1148,6 +1160,7 @@ class MockAPIClient: APIClientProtocol {
         canFork: Bool,
         forkedFromID: UUID?
     ) async throws -> PublishContentResponse {
+        publishCallCount += 1
         if shouldFail {
             throw APIError.serverError
         }
@@ -1335,3 +1348,179 @@ class MockAPIClient: APIClientProtocol {
 
 // MARK: - Mock Auth Service
 // MockAuthService is defined in MockAuthService.swift
+
+// MARK: - Auth-Aware Sync Tests
+
+@Suite("SyncQueueService Auth and Backoff Tests")
+struct SyncQueueServiceAuthTests {
+
+    // MARK: - Helpers
+
+    @MainActor
+    private func makeStack(isAuthenticated: Bool) throws -> (
+        repository: LocalRepository,
+        apiClient: MockAPIClient,
+        syncQueue: SyncQueueService,
+        authService: MockAuthService
+    ) {
+        let database = try AppDatabase.makeEmpty()
+        let repository = LocalRepository(database: database)
+        let apiClient = MockAPIClient()
+        let authService = MockAuthService()
+        authService.mockIsAuthenticated = isAuthenticated
+        let syncQueue = SyncQueueService(
+            repository: repository,
+            apiClient: apiClient,
+            authService: authService
+        )
+        return (repository, apiClient, syncQueue, authService)
+    }
+
+    private func enqueuePublishOp(
+        repository: LocalRepository,
+        syncQueue: SyncQueueService
+    ) async throws -> UUID {
+        let contentID = UUID()
+        let libraryModel = LibraryModel(
+            id: contentID,
+            title: "Auth Test Content",
+            type: .checklist,
+            visibility: .private,
+            creatorID: nil,
+            createdAt: Date(),
+            updatedAt: Date()
+        )
+        try await repository.updateLibraryMetadata(libraryModel)
+        let payload = ContentPublishPayload(
+            title: "Auth Test",
+            description: nil,
+            contentType: "checklist",
+            contentData: ["id": contentID.uuidString],
+            tags: [],
+            language: "en",
+            publicID: "auth-test-\(contentID.uuidString)"
+        )
+        let payloadData = try JSONEncoder().encode(payload)
+        try await repository.enqueueSyncOperation(
+            contentID: contentID,
+            operation: .publish,
+            visibility: .public,
+            payload: payloadData
+        )
+        return contentID
+    }
+
+    // MARK: - Auth Gate
+
+    @Test("processQueue - skips all operations when unauthenticated and sets needsAuthForSync")
+    @MainActor
+    func testProcessQueue_Unauthenticated_SetsFlag() async throws {
+        let (repository, apiClient, syncQueue, _) = try makeStack(isAuthenticated: false)
+        let _ = try await enqueuePublishOp(repository: repository, syncQueue: syncQueue)
+
+        let summary = await syncQueue.processQueue()
+
+        #expect(summary.attempted == 0)
+        #expect(summary.succeeded == 0)
+        #expect(apiClient.publishCallCount == 0)
+        #expect(syncQueue.needsAuthForSync == true)
+
+        // Operation must still be in the pending queue (not marked failed or synced)
+        let pending = try await repository.getPendingSyncOperations(maxRetries: 10)
+        #expect(pending.count == 1, "Queued item must survive an unauthenticated processQueue call")
+    }
+
+    @Test("processQueue - clears needsAuthForSync when authenticated")
+    @MainActor
+    func testProcessQueue_Authenticated_ClearsFlag() async throws {
+        let (repository, apiClient, syncQueue, authService) = try makeStack(isAuthenticated: false)
+        let _ = try await enqueuePublishOp(repository: repository, syncQueue: syncQueue)
+
+        // First cycle: unauthenticated → flag is raised
+        let _ = await syncQueue.processQueue()
+        #expect(syncQueue.needsAuthForSync == true)
+
+        // User signs in
+        authService.mockIsAuthenticated = true
+
+        // Second cycle: authenticated → flag clears and operation runs
+        let summary = await syncQueue.processQueue()
+        #expect(syncQueue.needsAuthForSync == false)
+        #expect(summary.succeeded == 1)
+        #expect(apiClient.publishCallCount == 1)
+    }
+
+    @Test("processQueue - pending items survive multiple unauthenticated cycles")
+    @MainActor
+    func testProcessQueue_PendingItemSurvivesMultipleUnauthCycles() async throws {
+        let (repository, _, syncQueue, _) = try makeStack(isAuthenticated: false)
+        let _ = try await enqueuePublishOp(repository: repository, syncQueue: syncQueue)
+
+        for _ in 0..<5 {
+            let _ = await syncQueue.processQueue()
+        }
+
+        let pending = try await repository.getPendingSyncOperations(maxRetries: 10)
+        #expect(pending.count == 1, "Item must stay pending after 5 unauthenticated cycles")
+        #expect(pending[0].retryCount == 0, "retryCount must not increment for auth-skipped cycles")
+    }
+
+    // MARK: - Retry Backoff
+
+    @Test("retryDelay - doubles each attempt, caps at 300s")
+    func testRetryDelay_ExponentialCap() {
+        #expect(SyncQueueRecord.retryDelay(for: 0) == 1.0)
+        #expect(SyncQueueRecord.retryDelay(for: 1) == 2.0)
+        #expect(SyncQueueRecord.retryDelay(for: 2) == 4.0)
+        #expect(SyncQueueRecord.retryDelay(for: 3) == 8.0)
+        #expect(SyncQueueRecord.retryDelay(for: 8) == 256.0)
+        #expect(SyncQueueRecord.retryDelay(for: 9) == 300.0)  // capped
+        #expect(SyncQueueRecord.retryDelay(for: 100) == 300.0) // still capped
+    }
+
+    @Test("processQueue - after failure, nextRetryAt is set in the future")
+    @MainActor
+    func testProcessQueue_FailedOp_SetsNextRetryAt() async throws {
+        let (repository, apiClient, syncQueue, _) = try makeStack(isAuthenticated: true)
+        apiClient.shouldFail = true
+        let _ = try await enqueuePublishOp(repository: repository, syncQueue: syncQueue)
+
+        let before = Date()
+        let _ = await syncQueue.processQueue()
+        let after = Date()
+
+        // Wait for backoff window to elapse (retryDelay(0) = 1s)
+        try await Task.sleep(for: .seconds(2))
+
+        // Fetch with a high maxRetries so we see the record regardless of retryCount
+        let all = try await repository.getPendingSyncOperations(maxRetries: 10)
+        #expect(all.count == 1)
+        let record = all[0]
+        #expect(record.retryCount == 1)
+        #expect(record.nextRetryAt != nil)
+        if let nextRetry = record.nextRetryAt {
+            // nextRetryAt = failTime + 1s; it must be strictly after 'before'
+            #expect(nextRetry > before)
+            // And it must be close to after + 1s (allow 2s buffer for test timing)
+            #expect(nextRetry <= after.addingTimeInterval(3.0))
+        }
+    }
+
+    @Test("processQueue - operation not retried before nextRetryAt window elapses")
+    @MainActor
+    func testProcessQueue_BackoffWindowPreventsImmediateRetry() async throws {
+        let (repository, apiClient, syncQueue, _) = try makeStack(isAuthenticated: true)
+        apiClient.shouldFail = true
+        let _ = try await enqueuePublishOp(repository: repository, syncQueue: syncQueue)
+
+        // First attempt: fails, sets nextRetryAt = now + 1s
+        let _ = await syncQueue.processQueue()
+        let afterFirst = apiClient.publishCallCount
+        #expect(afterFirst == 1)
+
+        // Immediate second attempt: nextRetryAt is in the future → operation skipped
+        let _ = await syncQueue.processQueue()
+        #expect(apiClient.publishCallCount == 1, "Should not retry while inside backoff window")
+    }
+}
+

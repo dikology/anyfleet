@@ -363,6 +363,12 @@ final class AppDatabase: Sendable {
             try db.execute(sql: "PRAGMA foreign_keys = ON")
         }
 
+        migrator.registerMigration("v2.0.0_addNextRetryAtToSyncQueue") { db in
+            try db.alter(table: "sync_queue") { t in
+                t.add(column: "nextRetryAt", .datetime)
+            }
+        }
+
         return migrator
     }
     

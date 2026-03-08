@@ -766,7 +766,8 @@ extension LocalRepository {
                     payload: record.payload?.data(using: .utf8),
                     retryCount: record.retryCount,
                     lastError: record.lastError,
-                    createdAt: record.createdAt
+                    createdAt: record.createdAt,
+                    nextRetryAt: record.nextRetryAt
                 )
             }
         }
@@ -779,10 +780,13 @@ extension LocalRepository {
         }
     }
     
-    /// Increment retry count
-    func incrementSyncRetryCount(_ operationID: Int64, error: String) async throws {
+    /// Increment retry count and schedule the next retry window.
+    /// `nextRetryAt` defaults to the current time so callers that don't need
+    /// a backoff window (e.g. tests) can omit it; the operation will be eligible
+    /// for re-processing on the very next queue cycle.
+    func incrementSyncRetryCount(_ operationID: Int64, error: String, nextRetryAt: Date = Date()) async throws {
         try await database.dbWriter.write { db in
-            try SyncQueueRecord.incrementRetry(id: operationID, error: error, db: db)
+            try SyncQueueRecord.incrementRetry(id: operationID, error: error, nextRetryAt: nextRetryAt, db: db)
         }
     }
     

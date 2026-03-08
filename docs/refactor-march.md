@@ -331,7 +331,7 @@ This means `fork_count` is an increment counter, not an authoritative record cou
 
 #### iOS — `CharterEditorViewModel`: No Sign-In Prompt for Non-Private Visibility
 
-When a user selects `community` or `public` visibility while unauthenticated, the charter is saved locally and sync will silently fail (queued but never sent). `LibraryListView` handles this case correctly with `SignInModalView`. The charter editor should do the same.
+When a user selects `community` or `public` visibility while unauthenticated, the charter is saved locally with `needsSync = true`. Unlike `ContentSyncService` (which marks `.unauthorized` as a terminal, non-retryable failure), `CharterSyncService.pushPendingCharters()` simply returns early and sets `needsAuthForSync = true` — the record is never marked failed, so it will sync successfully the next time the coordinator fires after authentication. The problem is therefore purely UX: the editor dismisses silently with no indication that the selected visibility is pending sync. `LibraryListView` handles this analogous case with `SignInModalView`. The charter editor should do the same.
 
 **Pattern to follow (from `LibraryListViewModel`):**
 
@@ -351,7 +351,7 @@ Bind `onVisibilityChanged` to the visibility picker's `onChange` in the editor v
 
 ---
 
-#### iOS — `LibraryListView` Fallback `init` Creates Duplicate Dependencies
+#### iOS — `LibraryListView` Fallback `init` Creates Duplicate Dependencies -- 08 march --
 
 ```swift
 // LibraryListView.swift lines 9-22
@@ -383,31 +383,19 @@ The `#Preview` block already constructs the full view model explicitly — the f
 
 ---
 
-#### iOS — `CharterSyncService.needsAuthForSync` Duplicates Auth Check
+#### iOS — `CharterSyncService.needsAuthForSync` — Pattern Clarification ✅ Resolved
 
-`SyncCoordinator` already gates sync behind an authentication check. `CharterSyncService` sets its own `needsAuthForSync` flag. This is a second, independent auth-check pathway for the same concern.
+~~`SyncCoordinator` already gates sync behind an authentication check.~~ (`SyncCoordinator` has no auth check — it delegates entirely to each service.) The previous recommendation to remove `needsAuthForSync` and centralise auth in the coordinator was incorrect.
 
-**Fix:** Remove `needsAuthForSync` from `CharterSyncService`. If `SyncCoordinator` decides sync should not run, it simply won't call the service. Trust the coordinator as the single gatekeeper.
+**Chosen pattern:** Each sync service is self-contained about its auth requirement. `CharterSyncService.pushPendingCharters()` returns early (leaving items in `needsSync == true`) when unauthenticated and sets `needsAuthForSync` as an observable signal for UI. `SyncQueueService` now follows the identical pattern — auth check lives in `canSync()`, queued items are never touched on an unauthenticated cycle, and `needsAuthForSync` is exposed for UI observation. `SyncCoordinator` remains auth-ignorant; each service handles its own gate.
 
 ---
 
-#### iOS — `SyncQueueService` Has No Retry Backoff
+#### iOS — `SyncQueueService` Has No Retry Backoff ✅ Resolved
 
-Failed sync operations are retried without any delay. If the backend is down, the queue will hammer the API as fast as the device allows.
+~~Failed sync operations are retried without any delay.~~ Fixed in `v2.0.0_addNextRetryAtToSyncQueue` migration.
 
-**Fix:** Add exponential backoff before re-enqueue:
-
-```swift
-private func retryDelay(for attempt: Int) -> Duration {
-    let base: Double = 1.0
-    let maxDelay: Double = 300.0  // 5 minutes
-    let delay = min(base * pow(2.0, Double(attempt)), maxDelay)
-    return .seconds(delay)
-}
-
-// In the retry path:
-try await Task.sleep(for: retryDelay(for: record.retryCount))
-```
+**Implementation:** A `nextRetryAt: Date?` column was added to `sync_queue`. `SyncQueueRecord.retryDelay(for:)` computes `min(1 × 2^attempt, 300)` seconds. On each retryable failure `incrementRetry` stores `now + retryDelay`. `fetchPending` filters `nextRetryAt IS NULL OR nextRetryAt <= now`, so an operation whose backoff window has not elapsed is simply skipped until the next coordinator cycle. Delays: 1s → 2s → 4s → permanent failure at `maxRetries`. Because the window is stored in the DB, the backoff survives app restarts, and no `Task.sleep` blocks the queue for other items.
 
 ---
 

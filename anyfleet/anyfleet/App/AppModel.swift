@@ -203,6 +203,7 @@ final class AppCoordinator: AppCoordinatorProtocol {
                 viewModel: CharterEditorViewModel(
                     charterStore: dependencies.charterStore,
                     charterSyncService: dependencies.charterSyncService,
+                    authService: dependencies.authService,
                     charterID: nil,
                     onDismiss: { self.pop(from: .charters) },
                     initialForm: CharterFormState()
@@ -221,6 +222,7 @@ final class AppCoordinator: AppCoordinatorProtocol {
                 viewModel: CharterEditorViewModel(
                     charterStore: dependencies.charterStore,
                     charterSyncService: dependencies.charterSyncService,
+                    authService: dependencies.authService,
                     charterID: id,
                     onDismiss: { self.pop(from: .charters) },
                     initialForm: CharterFormState()

@@ -16,6 +16,7 @@ import OSLog
 final class SyncQueueService {
     private let repository: LocalRepository
     private let apiClient: APIClientProtocol
+    private let authService: (any AuthServiceProtocol)?
 
     // Configuration
     private let maxRetries = 3
@@ -23,10 +24,18 @@ final class SyncQueueService {
     // State for UI observation
     var pendingCount: Int = 0
     var failedCount: Int = 0
+    /// `true` when there are queued operations but the user is not authenticated.
+    /// Observe in the UI to prompt sign-in; clears automatically once auth passes.
+    private(set) var needsAuthForSync = false
 
-    init(repository: LocalRepository, apiClient: APIClientProtocol) {
+    init(
+        repository: LocalRepository,
+        apiClient: APIClientProtocol,
+        authService: (any AuthServiceProtocol)? = nil
+    ) {
         self.repository = repository
         self.apiClient = apiClient
+        self.authService = authService
         AppLogger.services.info("SyncQueueService initialized")
     }
 
@@ -173,6 +182,14 @@ final class SyncQueueService {
             return false
         }
 
+        if let authService, !authService.isAuthenticated {
+            AppLogger.services.warning("User not authenticated — deferring library sync; items remain queued")
+            needsAuthForSync = true
+            await updatePendingCounts()
+            return false
+        }
+        needsAuthForSync = false
+
         isProcessing = true
         return true
     }
@@ -238,10 +255,13 @@ final class SyncQueueService {
             let shouldRetry = operation.retryCount < maxRetries && isRetryableError(error, operation: operation.operation)
 
             if shouldRetry {
-                // Increment retry count
+                let nextRetryAt = Date().addingTimeInterval(
+                    SyncQueueRecord.retryDelay(for: operation.retryCount)
+                )
                 try? await repository.incrementSyncRetryCount(
                     operation.id,
-                    error: error.localizedDescription
+                    error: error.localizedDescription,
+                    nextRetryAt: nextRetryAt
                 )
                 await updateSyncState(contentID: operation.contentID, status: .pending)
             } else {

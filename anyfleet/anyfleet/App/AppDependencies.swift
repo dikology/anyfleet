@@ -136,7 +136,8 @@ final class AppDependencies {
         // Initialize sync queue service (lowest level sync dependency)
         self.syncQueueService = SyncQueueService(
             repository: repository,
-            apiClient: apiClient
+            apiClient: apiClient,
+            authService: authService
         )
 
         // Initialize stores
@@ -216,7 +217,8 @@ final class AppDependencies {
         // Initialize sync queue service (lowest level sync dependency)
         self.syncQueueService = SyncQueueService(
             repository: repository,
-            apiClient: apiClient
+            apiClient: apiClient,
+            authService: authService
         )
 
         self.charterStore = CharterStore(repository: repository)

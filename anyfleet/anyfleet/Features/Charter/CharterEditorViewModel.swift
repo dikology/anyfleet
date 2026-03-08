@@ -14,6 +14,12 @@ import CoreLocation
 /// Handles form state, validation, progress tracking, and save operations
 /// for editing charters.
 ///
+/// When the user selects a non-private visibility while unauthenticated,
+/// `showSignIn` becomes `true` and `form.visibility` is held at its previous
+/// value. After a successful sign-in (`onSignInSuccess()`) the originally
+/// intended visibility is applied. Dismissing the sheet (`onSignInDismiss()`)
+/// discards the pending selection.
+///
 /// ## Usage
 ///
 /// ```swift
@@ -32,6 +38,7 @@ final class CharterEditorViewModel: ErrorHandling {
 
     private let charterStore: CharterStore
     private let charterSyncService: CharterSyncService?
+    private let authService: (any AuthServiceProtocol)?
     let locationSearchService: any LocationSearchService
     private let charterID: UUID?
     private let onDismiss: () -> Void
@@ -49,6 +56,13 @@ final class CharterEditorViewModel: ErrorHandling {
 
     var currentError: AppError?
     var showErrorBanner: Bool = false
+
+    /// `true` while the sign-in sheet should be presented.
+    var showSignIn = false
+
+    /// Visibility the user intended before auth was required.
+    /// Applied to `form.visibility` on successful sign-in.
+    private var pendingVisibility: CharterVisibility?
     
     /// Progress through the form (0.0 to 1.0)
     var completionProgress: Double {
@@ -73,6 +87,7 @@ final class CharterEditorViewModel: ErrorHandling {
     /// - Parameters:
     ///   - charterStore: The charter store for editing charters
     ///   - charterSyncService: Optional sync service for pushing charters
+    ///   - authService: Optional auth service used to gate non-private visibility selection
     ///   - locationSearchService: Place search service for destination autocomplete
     ///   - charterID: The ID of the charter to edit
     ///   - onDismiss: Callback to dismiss the view after successful save
@@ -80,6 +95,7 @@ final class CharterEditorViewModel: ErrorHandling {
     init(
         charterStore: CharterStore,
         charterSyncService: CharterSyncService? = nil,
+        authService: (any AuthServiceProtocol)? = nil,
         locationSearchService: any LocationSearchService = MKLocationSearchService(),
         charterID: UUID? = nil,
         onDismiss: @escaping () -> Void,
@@ -87,6 +103,7 @@ final class CharterEditorViewModel: ErrorHandling {
     ) {
         self.charterStore = charterStore
         self.charterSyncService = charterSyncService
+        self.authService = authService
         self.locationSearchService = locationSearchService
         self.charterID = charterID
         self.onDismiss = onDismiss
@@ -204,6 +221,40 @@ final class CharterEditorViewModel: ErrorHandling {
         }
     }
     
+    // MARK: - Visibility / Sign-in
+
+    /// Called whenever the user picks a visibility option.
+    ///
+    /// If `newVisibility` is non-private and the user is not authenticated,
+    /// the selection is held in `pendingVisibility`, `form.visibility` is
+    /// unchanged, and `showSignIn` is set to `true` so the view can present
+    /// the sign-in sheet.
+    func onVisibilityChanged(_ newVisibility: CharterVisibility) {
+        if newVisibility != .private, let authService, !authService.isAuthenticated {
+            pendingVisibility = newVisibility
+            showSignIn = true
+            return
+        }
+        form.visibility = newVisibility
+    }
+
+    /// Called by the view when the sign-in sheet reports success.
+    /// Applies the pending visibility the user originally intended.
+    func onSignInSuccess() {
+        showSignIn = false
+        if let pending = pendingVisibility {
+            form.visibility = pending
+            pendingVisibility = nil
+        }
+    }
+
+    /// Called by the view when the sign-in sheet is dismissed without signing in.
+    /// Discards the pending visibility selection.
+    func onSignInDismiss() {
+        showSignIn = false
+        pendingVisibility = nil
+    }
+
     // MARK: - Private Helpers
     
     private static let totalProgressFields = 5.0

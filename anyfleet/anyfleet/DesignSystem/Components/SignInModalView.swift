@@ -8,12 +8,17 @@
 import SwiftUI
 import AuthenticationServices
 
-/// Modal view for signing in with Apple to enable publishing
+/// Modal view for signing in with Apple to enable publishing or sharing.
+///
+/// Customise `title` and `message` for the context where the modal appears.
+/// Both parameters have defaults that match the original library-publishing copy.
 struct SignInModalView: View {
     @Environment(AuthService.self) private var authService
     @State private var appError: AppError?
     @State private var isLoading = false
-    
+
+    var title: String = "Sign In to Publish"
+    var message: String = "Share your content with the sailing community. Sign in to get started."
     let onSuccess: () -> Void
     let onDismiss: () -> Void
     
@@ -22,18 +27,15 @@ struct SignInModalView: View {
             VStack(spacing: DesignSystem.Spacing.xl) {
                 Spacer()
                 
-                // Icon
                 Image(systemName: "person.crop.circle.badge.checkmark")
                     .font(.system(size: 64, weight: .light))
                     .foregroundColor(DesignSystem.Colors.primary)
                 
-                // Title
-                Text("Sign In to Publish")
+                Text(title)
                     .font(DesignSystem.Typography.title)
                     .foregroundColor(DesignSystem.Colors.textPrimary)
                 
-                // Message
-                Text("Share your content with the sailing community. Sign in to get started.")
+                Text(message)
                     .font(DesignSystem.Typography.body)
                     .foregroundColor(DesignSystem.Colors.textSecondary)
                     .multilineTextAlignment(.center)
