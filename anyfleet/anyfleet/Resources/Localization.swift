@@ -1388,6 +1388,31 @@ enum L10n {
             comment: "Label for creating a new charter"
         )
 
+        enum List {
+            enum EmptyState {
+                static let title = NSLocalizedString(
+                    "charter.list.emptyState.title",
+                    tableName: "Localizable",
+                    comment: "Title for empty charter list"
+                )
+                static let message = NSLocalizedString(
+                    "charter.list.emptyState.message",
+                    tableName: "Localizable",
+                    comment: "Message explaining how to create first charter"
+                )
+                static let action = NSLocalizedString(
+                    "charter.list.emptyState.action",
+                    tableName: "Localizable",
+                    comment: "Button label to create first charter"
+                )
+                static let accessibilityLabel = NSLocalizedString(
+                    "charter.list.emptyState.accessibilityLabel",
+                    tableName: "Localizable",
+                    comment: "Accessibility label for empty charter list"
+                )
+            }
+        }
+
         static let detailTitle = NSLocalizedString(
             "charter.detail.title",
             tableName: "Localizable",

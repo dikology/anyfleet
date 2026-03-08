@@ -93,6 +93,10 @@
 "greeting.night" = "Доброй ночи";
 
 "charter.activeCharter" = "Активный";
+"charter.list.emptyState.title" = "Пока нет чартеров";
+"charter.list.emptyState.message" = "Создайте первый чартер, чтобы начать планировать путешествие. Отслеживайте даты, суда и локации в одном месте.";
+"charter.list.emptyState.action" = "Создать чартер";
+"charter.list.emptyState.accessibilityLabel" = "Нет чартеров. Создайте первый чартер для планирования.";
 
 "home.pinnedContent.title" = "Закрепленный контент";
 "home.pinnedContent.subtitle" = "Закрепляйте элементы из библиотеки для быстрого доступа.";
