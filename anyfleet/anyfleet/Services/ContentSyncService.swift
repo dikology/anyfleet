@@ -106,38 +106,5 @@ final class ContentSyncService: ContentSyncServiceProtocol {
 
 // MARK: - Supporting Types
 
-// SyncSummary is now defined in SyncQueueService
-
-public enum SyncOperation: String, Codable {
-    case publish
-    case unpublish
-    case publish_update
-}
-
-public struct SyncQueueOperation {
-    let id: Int64
-    let contentID: UUID
-    let operation: SyncOperation
-    let visibility: ContentVisibility
-    let payload: Data?
-    let retryCount: Int
-    let lastError: String?
-    let createdAt: Date
-}
-
-enum SyncError: LocalizedError {
-    case invalidPayload
-    case missingPublicID
-    case networkUnreachable
-    
-    var errorDescription: String? {
-        switch self {
-        case .invalidPayload:
-            return "Invalid sync payload"
-        case .missingPublicID:
-            return "Content missing public ID"
-        case .networkUnreachable:
-            return "Network unreachable"
-        }
-    }
-}
+// SyncSummary is defined in SyncQueueService.swift
+// SyncOperation, SyncQueueOperation, and SyncError are defined in SyncTypes.swift

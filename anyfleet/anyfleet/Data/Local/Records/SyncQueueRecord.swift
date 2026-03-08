@@ -14,10 +14,23 @@ nonisolated struct SyncQueueRecord: Codable, FetchableRecord, PersistableRecord 
     var retryCount: Int
     var lastError: String?
     var syncedAt: Date?
+    /// Earliest timestamp at which this operation may be retried.
+    /// `nil` on the first attempt. Set to `now + retryDelay` on each failure.
+    var nextRetryAt: Date?
 
     enum Columns: String, ColumnExpression {
         case id, contentID, operation, visibilityState
-        case payload, createdAt, retryCount, lastError, syncedAt
+        case payload, createdAt, retryCount, lastError, syncedAt, nextRetryAt
+    }
+
+    // MARK: - Retry Backoff
+
+    /// Exponential delay (seconds) before the nth retry attempt.
+    /// Caps at 5 minutes to avoid stale items sitting forever.
+    nonisolated static func retryDelay(for retryCount: Int) -> TimeInterval {
+        let base = 1.0
+        let maxDelay = 300.0
+        return min(base * pow(2.0, Double(retryCount)), maxDelay)
     }
 }
 
@@ -51,11 +64,13 @@ extension SyncQueueRecord {
         return record
     }
     
-    /// Fetch pending operations (not synced, under max retries)
+    /// Fetch pending operations (not synced, under max retries, past their backoff window).
     nonisolated static func fetchPending(maxRetries: Int, db: Database) throws -> [SyncQueueRecord] {
-        try SyncQueueRecord
+        let now = Date()
+        return try SyncQueueRecord
             .filter(Columns.syncedAt == nil)
             .filter(Columns.retryCount < maxRetries)
+            .filter(Columns.nextRetryAt == nil || Columns.nextRetryAt <= now)
             .order(Columns.createdAt.asc)
             .fetchAll(db)
     }
@@ -68,11 +83,11 @@ extension SyncQueueRecord {
         )
     }
 
-    /// Increment retry count and store error
-    nonisolated static func incrementRetry(id: Int64, error: String, db: Database) throws {
+    /// Increment retry count, store the error message, and set the backoff window.
+    nonisolated static func incrementRetry(id: Int64, error: String, nextRetryAt: Date, db: Database) throws {
         try db.execute(
-            sql: "UPDATE sync_queue SET retryCount = retryCount + 1, lastError = ? WHERE id = ?",
-            arguments: [error, id]
+            sql: "UPDATE sync_queue SET retryCount = retryCount + 1, lastError = ?, nextRetryAt = ? WHERE id = ?",
+            arguments: [error, nextRetryAt, id]
         )
     }
     
