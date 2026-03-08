@@ -1,7 +1,8 @@
 import SwiftUI
 import Observation
 
-/// Localization service supporting system language detection and manual override.
+/// Manages runtime language switching only.
+/// For all static string access, use the generated `L10n` enum.
 @Observable
 final class LocalizationService {
     /// Current language override (nil = follow system)
@@ -26,15 +27,6 @@ final class LocalizationService {
     }
     
     // MARK: - Public API
-    func localized(_ key: String) -> String {
-        let bundle = effectiveLanguage.bundle
-        return NSLocalizedString(key, bundle: bundle, comment: "")
-    }
-    
-    func localized(_ key: String, _ arguments: CVarArg...) -> String {
-        String(format: localized(key), arguments: arguments)
-    }
-    
     func setLanguage(_ language: AppLanguage?) {
         currentLanguage = language
     }
@@ -76,14 +68,6 @@ enum AppLanguage: String, CaseIterable, Identifiable {
         case .english: return "English"
         }
     }
-    
-    var bundle: Bundle {
-        guard let path = Bundle.main.path(forResource: code, ofType: "lproj"),
-              let bundle = Bundle(path: path) else {
-            return .main
-        }
-        return bundle
-    }
 }
 
 // MARK: - SwiftUI Environment
@@ -98,17 +82,3 @@ extension EnvironmentValues {
         set { self[LocalizationServiceKey.self] = newValue }
     }
 }
-
-// MARK: - String helpers
-
-extension String {
-    func localized(using service: LocalizationService) -> String {
-        service.localized(self)
-    }
-    
-    func localized(using service: LocalizationService, _ arguments: CVarArg...) -> String {
-        let format = service.localized(self)
-        return String(format: format, arguments: arguments)
-    }
-}
-
