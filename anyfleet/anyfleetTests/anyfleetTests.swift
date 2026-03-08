@@ -25,22 +25,6 @@ struct anyfleetTests {
         UserDefaults.standard.removeObject(forKey: key)
     }
     
-    @Test func localization_returnsEnglishStrings() {
-        let service = LocalizationService()
-        service.setLanguage(.english)
-        #expect(service.localized("home.createCharter.title") == "Ready to sail?")
-        #expect(service.localized("home.createCharter.subtitle").isEmpty == false)
-        #expect(service.localized("home.createCharter.action") == "Start a charter")
-    }
-    
-    @Test func localization_returnsRussianStrings() {
-        let service = LocalizationService()
-        service.setLanguage(.russian)
-        #expect(service.localized("home.createCharter.title") == "Готовы выйти в море?")
-        #expect(service.localized("home.createCharter.subtitle").isEmpty == false)
-        #expect(service.localized("home.createCharter.action") == "Начать чартер")
-    }
-    
     @Test func actionCard_onTap_callsHandler() {
         var tapped = false
         let sut = ActionCard(

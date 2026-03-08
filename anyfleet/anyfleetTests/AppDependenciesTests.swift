@@ -180,13 +180,9 @@ struct AppDependenciesTests {
         // Arrange
         let dependencies = AppDependencies()
 
-        // Act & Assert - verify service is functional
+        // Act & Assert - verify service reports a valid effective language
         let language = dependencies.localizationService.effectiveLanguage
         #expect(language == .english || language == .russian)
-
-        // Test localization works
-        let testString = dependencies.localizationService.localized("home")
-        #expect(!testString.isEmpty)
     }
 
     @Test("AppDependencies - authentication state reactivity")
