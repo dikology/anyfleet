@@ -33,10 +33,8 @@ struct HomeView: View {
                     
                     Spacer()
                     
-                    // Reference content: pinned library items
-                    if !viewModel.pinnedLibraryItems.isEmpty {
-                        referenceContentSection
-                    }
+                    // Reference content: pinned library items (always show header so users know how to pin)
+                    referenceContentSection
                 }
                 .padding(.vertical, DesignSystem.Spacing.md)
             }
@@ -255,21 +253,22 @@ struct HomeView: View {
                 subtitle: L10n.homePinnedContentSubtitle
             )
             
-            let items = viewModel.pinnedLibraryItems
-            let columns = [
-                GridItem(.flexible(), spacing: DesignSystem.Spacing.md),
-                GridItem(.flexible(), spacing: DesignSystem.Spacing.md)
-            ]
-            
-            LazyVGrid(columns: columns, spacing: DesignSystem.Spacing.md) {
-                ForEach(items.prefix(6)) { item in
-                    Button {
-                        // For now, open in the Library tab using edit flows
-                        onPinnedItemTapped(item)
-                    } label: {
-                        pinnedItemCard(item)
+            if !viewModel.pinnedLibraryItems.isEmpty {
+                let items = viewModel.pinnedLibraryItems
+                let columns = [
+                    GridItem(.flexible(), spacing: DesignSystem.Spacing.md),
+                    GridItem(.flexible(), spacing: DesignSystem.Spacing.md)
+                ]
+                
+                LazyVGrid(columns: columns, spacing: DesignSystem.Spacing.md) {
+                    ForEach(items.prefix(6)) { item in
+                        Button {
+                            onPinnedItemTapped(item)
+                        } label: {
+                            pinnedItemCard(item)
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
                 }
             }
         }
