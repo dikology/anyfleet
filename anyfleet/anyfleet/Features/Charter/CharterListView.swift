@@ -95,13 +95,13 @@ struct CharterListView: View {
     private var emptyState: some View {
         DesignSystem.EmptyStateView(
             icon: "sailboat",
-            title: "No Charters Yet",
-            message: "Create your first charter to start planning your sailing adventure. Track dates, vessels, and locations all in one place.",
-            actionTitle: "Create Charter",
+            title: L10n.Charter.List.EmptyState.title,
+            message: L10n.Charter.List.EmptyState.message,
+            actionTitle: L10n.Charter.List.EmptyState.action,
             action: { viewModel.onCreateCharterTapped() }
         )
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("No charters. Create your first charter to start planning.")
+        .accessibilityLabel(L10n.Charter.List.EmptyState.accessibilityLabel)
     }
 
     private var skeletonList: some View {

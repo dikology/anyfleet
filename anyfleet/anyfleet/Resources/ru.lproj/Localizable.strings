@@ -93,9 +93,18 @@
 "greeting.night" = "Доброй ночи";
 
 "charter.activeCharter" = "Активный";
+"charter.list.emptyState.title" = "Пока нет чартеров";
+"charter.list.emptyState.message" = "Создайте первый чартер, чтобы начать планировать путешествие. Отслеживайте даты, суда и локации в одном месте.";
+"charter.list.emptyState.action" = "Создать чартер";
+"charter.list.emptyState.accessibilityLabel" = "Нет чартеров. Создайте первый чартер для планирования.";
 
 "home.pinnedContent.title" = "Закрепленный контент";
 "home.pinnedContent.subtitle" = "Закрепляйте элементы из библиотеки для быстрого доступа.";
+"home.nextCharter.title" = "Следующий";
+"home.upcomingTrips.title" = "Предстоящие поездки";
+"home.viewCharter" = "Открыть чартер";
+"home.inDays" = "Через %d дн.";
+"home.nextMonth" = "В следующем месяце";
 
 "checklistEditor.newChecklist" = "Новый чек-лист";
 "checklistEditor.editChecklist" = "Редактировать чек-лист";
@@ -216,6 +225,9 @@
 "charter.editor.visibility.title" = "Видимость чартера";
 "charter.editor.visibility.subtitle" = "Управляйте тем, кто может найти ваш чартер";
 "charter.editor.visibility.changeNote" = "Вы можете изменить видимость в настройках чартера.";
+"charter.editor.draftsSavedNote" = "Черновики сохраняются автоматически";
+"charter.editor.back" = "Назад";
+"charter.editor.saveTitle" = "Сохранить чартер";
 
 // Charter Visibility options
 "charter.visibility.private.name" = "Приватный";

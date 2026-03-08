@@ -17,19 +17,24 @@ struct HomeView: View {
                     // Greeting header
                     headerSection
                     
-                    // Primary card: adaptive based on charter state
+                    // Primary hero card: active → next → create
                     if let charter = viewModel.activeCharter {
-                        activeCharterCard(charter: charter)
+                        heroCharterCard(charter: charter, badge: L10n.homeActiveCharterTitle)
+                    } else if let next = viewModel.nextCharter {
+                        heroCharterCard(charter: next, badge: L10n.homeNextCharterTitle)
                     } else {
                         createCharterCard
                     }
                     
+                    // Upcoming strip: shown when no active charter and 2+ upcoming (first is in hero)
+                    if viewModel.activeCharter == nil, viewModel.upcomingCharters.count > 1 {
+                        upcomingStripSection
+                    }
+                    
                     Spacer()
                     
-                    // Reference content: pinned library items
-                    if !viewModel.pinnedLibraryItems.isEmpty {
-                        referenceContentSection
-                    }
+                    // Reference content: pinned library items (always show header so users know how to pin)
+                    referenceContentSection
                 }
                 .padding(.vertical, DesignSystem.Spacing.md)
             }
@@ -73,14 +78,22 @@ struct HomeView: View {
         return formatter.string(from: Date())
     }
 
-    // MARK: - Primary Card: Active Charter State
+    // MARK: - Hero Charter Card (Active or Next)
     
-    private func activeCharterCard(charter: CharterModel) -> some View {
+    private func heroCharterCard(charter: CharterModel, badge: String) -> some View {
         VStack(alignment: .leading, spacing: DesignSystem.Spacing.lg) {
-            // Badge label
-            Text(L10n.homeActiveCharterTitle)
-                .font(DesignSystem.Typography.caption)
-                .foregroundColor(.white.opacity(0.85))
+            // Badge pill
+            Text(badge.uppercased())
+                .font(DesignSystem.Typography.micro)
+                .fontWeight(.semibold)
+                .tracking(0.6)
+                .foregroundColor(.white.opacity(0.9))
+                .padding(.horizontal, DesignSystem.Spacing.sm)
+                .padding(.vertical, DesignSystem.Spacing.xs)
+                .background(DesignSystem.Colors.primary.opacity(0.9))
+                .cornerRadius(DesignSystem.Spacing.cornerRadiusSmall)
+            
+            Spacer(minLength: 0)
             
             // Charter name (title)
             Text(charter.name)
@@ -96,20 +109,125 @@ struct HomeView: View {
                 .font(DesignSystem.Typography.caption)
                 .foregroundColor(.white.opacity(0.9))
             }
+            
+            // Time until start (for next charter)
+            if charter.isUpcoming, !charter.timeUntilStartDisplay.isEmpty {
+                Text(charter.timeUntilStartDisplay)
+                    .font(DesignSystem.Typography.caption)
+                    .foregroundColor(.white.opacity(0.8))
+            }
+            
+            // View Charter button
+            HStack {
+                Spacer()
+                HStack(spacing: DesignSystem.Spacing.sm) {
+                    Text(L10n.homeViewCharter)
+                        .font(.system(size: 15, weight: .semibold))
+                    Image(systemName: "arrow.right")
+                        .font(.system(size: 14, weight: .semibold))
+                }
+                .foregroundColor(DesignSystem.Colors.oceanDeep)
+                .padding(.vertical, DesignSystem.Spacing.sm)
+                .padding(.horizontal, DesignSystem.Spacing.md)
+                .background(Color.white)
+                .cornerRadius(DesignSystem.Spacing.cornerRadiusSmall)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(minHeight: DesignSystem.Spacing.featuredCardHeight)
         .padding(DesignSystem.Spacing.cardPadding)
-        .background(DesignSystem.Gradients.ocean)
+        .background(
+            ZStack {
+                Image("HeroCardBackground")
+                    .resizable()
+                    .scaledToFill()
+                    .clipped()
+                DesignSystem.Gradients.heroImageOverlay
+            }
+        )
         .cornerRadius(DesignSystem.Spacing.cardCornerRadiusLarge)
         .shadow(color: DesignSystem.Colors.shadowStrong, radius: 12, y: 6)
         .padding(.horizontal, DesignSystem.Spacing.screenPadding)
         .onTapGesture {
-            viewModel.onActiveCharterTapped(charter)
+            if charter.isUpcoming {
+                viewModel.onUpcomingCharterTapped(charter)
+            } else {
+                viewModel.onActiveCharterTapped(charter)
+            }
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("Active charter")
+        .accessibilityLabel(badge == L10n.homeActiveCharterTitle ? "Active charter" : "Next charter")
         .accessibilityValue(charter.name)
-        .accessibilityHint("Double tap to view details and checkins")
+        .accessibilityHint("Double tap to view details")
+    }
+    
+    // MARK: - Upcoming Strip
+    
+    private var upcomingStripSection: some View {
+        VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
+            DesignSystem.SectionHeader(L10n.homeUpcomingTripsTitle, subtitle: nil)
+            
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: DesignSystem.Spacing.md) {
+                    ForEach(chartersForStrip) { charter in
+                        upcomingStripCard(charter: charter)
+                    }
+                }
+                .padding(.horizontal, DesignSystem.Spacing.screenPadding)
+                .padding(.vertical, DesignSystem.Spacing.xs)
+            }
+            .padding(.horizontal, -DesignSystem.Spacing.screenPadding)
+        }
+    }
+    
+    /// Charters to show in strip: all upcoming except the first (which is in hero when no active).
+    private var chartersForStrip: [CharterModel] {
+        guard viewModel.activeCharter == nil else { return [] }
+        let upcoming = viewModel.upcomingCharters
+        return Array(upcoming.dropFirst())
+    }
+    
+    private func upcomingStripCard(charter: CharterModel) -> some View {
+        Button {
+            viewModel.onUpcomingCharterTapped(charter)
+        } label: {
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
+                Text(charter.timeUntilStartDisplay)
+                    .font(DesignSystem.Typography.micro)
+                    .foregroundColor(DesignSystem.Colors.textSecondary)
+                
+                HStack(spacing: DesignSystem.Spacing.xs) {
+                    Image(systemName: "sailboat.fill")
+                        .font(.system(size: 12))
+                        .foregroundColor(DesignSystem.Colors.primary)
+                    Text(charter.name)
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundColor(DesignSystem.Colors.textPrimary)
+                        .lineLimit(1)
+                }
+                
+                if let location = charter.location, !location.isEmpty {
+                    Text(location)
+                        .font(DesignSystem.Typography.body)
+                        .foregroundColor(DesignSystem.Colors.textSecondary)
+                        .lineLimit(1)
+                }
+            }
+            .frame(width: 160, alignment: .leading)
+            .padding(DesignSystem.Spacing.md)
+            .background(
+                RoundedRectangle(cornerRadius: DesignSystem.Spacing.cardCornerRadius)
+                    .fill(DesignSystem.Colors.surface)
+                    .shadow(color: DesignSystem.Colors.shadowStrong.opacity(0.08), radius: 8, y: 4)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: DesignSystem.Spacing.cardCornerRadius)
+                    .stroke(DesignSystem.Colors.border.opacity(0.5), lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Upcoming charter")
+        .accessibilityValue(charter.name)
     }
     
     // MARK: - Primary Card: Create Charter State
@@ -135,21 +253,22 @@ struct HomeView: View {
                 subtitle: L10n.homePinnedContentSubtitle
             )
             
-            let items = viewModel.pinnedLibraryItems
-            let columns = [
-                GridItem(.flexible(), spacing: DesignSystem.Spacing.md),
-                GridItem(.flexible(), spacing: DesignSystem.Spacing.md)
-            ]
-            
-            LazyVGrid(columns: columns, spacing: DesignSystem.Spacing.md) {
-                ForEach(items.prefix(6)) { item in
-                    Button {
-                        // For now, open in the Library tab using edit flows
-                        onPinnedItemTapped(item)
-                    } label: {
-                        pinnedItemCard(item)
+            if !viewModel.pinnedLibraryItems.isEmpty {
+                let items = viewModel.pinnedLibraryItems
+                let columns = [
+                    GridItem(.flexible(), spacing: DesignSystem.Spacing.md),
+                    GridItem(.flexible(), spacing: DesignSystem.Spacing.md)
+                ]
+                
+                LazyVGrid(columns: columns, spacing: DesignSystem.Spacing.md) {
+                    ForEach(items.prefix(6)) { item in
+                        Button {
+                            onPinnedItemTapped(item)
+                        } label: {
+                            pinnedItemCard(item)
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
                 }
             }
         }

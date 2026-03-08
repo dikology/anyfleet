@@ -93,9 +93,18 @@
 "greeting.night" = "Good night";
 
 "charter.activeCharter" = "Active";
+"charter.list.emptyState.title" = "No Charters Yet";
+"charter.list.emptyState.message" = "Create your first charter to start planning your sailing adventure. Track dates, vessels, and locations all in one place.";
+"charter.list.emptyState.action" = "Create Charter";
+"charter.list.emptyState.accessibilityLabel" = "No charters. Create your first charter to start planning.";
 
 "home.pinnedContent.title" = "Pinned content";
 "home.pinnedContent.subtitle" = "Pin items from your library for quick access here.";
+"home.nextCharter.title" = "Next";
+"home.upcomingTrips.title" = "Upcoming Trips";
+"home.viewCharter" = "View Charter";
+"home.inDays" = "In %d days";
+"home.nextMonth" = "Next month";
 
 "checklistEditor.newChecklist" = "New Checklist";
 "checklistEditor.editChecklist" = "Edit Checklist";
@@ -237,6 +246,9 @@
 "charter.editor.visibility.title" = "Charter Visibility";
 "charter.editor.visibility.subtitle" = "Control who can discover your charter";
 "charter.editor.visibility.changeNote" = "You can change visibility anytime in charter settings.";
+"charter.editor.draftsSavedNote" = "Drafts are saved automatically";
+"charter.editor.back" = "Back";
+"charter.editor.saveTitle" = "Save Charter";
 
 // Charter Visibility options
 "charter.visibility.private.name" = "Private";

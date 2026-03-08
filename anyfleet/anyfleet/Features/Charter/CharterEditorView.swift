@@ -2,6 +2,8 @@ import SwiftUI
 
 struct CharterEditorView: View {
     @State private var viewModel: CharterEditorViewModel
+    @State private var showStartDatePicker = false
+    @State private var showEndDatePicker = false
     @Environment(\.dismiss) private var dismiss
     @Environment(\.appDependencies) private var dependencies
 
@@ -10,84 +12,44 @@ struct CharterEditorView: View {
     }
 
     var body: some View {
-        ZStack(alignment: .top) {
+        ZStack(alignment: .bottom) {
+            DesignSystem.Colors.background
+                .ignoresSafeArea()
+
             ScrollView {
-                VStack(spacing: DesignSystem.Spacing.xl) {
-                    hero
+                VStack(spacing: DesignSystem.Spacing.md) {
+                    heroHeader
 
-                    DesignSystem.Form.Progress(
-                        progress: viewModel.completionProgress,
-                        label: L10n.charterCreateProgress
-                    )
-
-                    DesignSystem.Form.Section(
-                        title: L10n.charterCreateName,
-                        subtitle: L10n.charterCreateNameHelper
-                    ) {
-                        DesignSystem.Form.FormTextField(
-                            placeholder: L10n.charterCreateNamePlaceholder,
-                            text: $viewModel.form.name
-                        )
+                    VStack(spacing: DesignSystem.Spacing.md) {
+                        nameAndVesselCard
+                        datesCard
+                        visibilityCard
+                        destinationCard
                     }
-
-                    DesignSystem.Form.Section(
-                        title: L10n.charterCreateWhenWillYouSail,
-                        subtitle: L10n.charterCreateChooseYourVoyageDates
-                    ) {
-                        DateRangeSection(
-                            startDate: $viewModel.form.startDate,
-                            endDate: $viewModel.form.endDate,
-                            nights: viewModel.form.nights
-                        )
-                    }
-
-                    DesignSystem.Form.Section(
-                        title: L10n.charterCreateDestination,
-                        subtitle: L10n.charterCreateChooseWhereYouWillSail
-                    ) {
-                        DestinationSearchField(
-                            query: $viewModel.form.destinationQuery,
-                            selectedPlace: $viewModel.form.selectedPlace,
-                            searchService: viewModel.locationSearchService
-                        )
-                    }
-
-                    DesignSystem.Form.Section(
-                        title: L10n.charterCreateYourVessel,
-                        subtitle: L10n.charterCreatePickTheCharacterOfYourJourney
-                    ) {
-                        DesignSystem.Form.FormTextField(
-                            placeholder: L10n.charterCreateVesselNamePlaceholder,
-                            text: $viewModel.form.vessel
-                        )
-
-                        VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
-                            DesignSystem.Form.FieldLabel(L10n.charterCreateGuests)
-                            Stepper(value: $viewModel.form.guests, in: 1...12) {
-                                Text("\(viewModel.form.guests) \(L10n.charterCreateGuests)")
-                                    .font(DesignSystem.Typography.body)
-                                    .foregroundColor(DesignSystem.Colors.textPrimary)
-                            }
-                        }
-                    }
-
-                    DesignSystem.Form.Section(
-                        title: L10n.Charter.Editor.visibilityTitle,
-                        subtitle: L10n.Charter.Editor.visibilitySubtitle
-                    ) {
-                        visibilityPicker
-                    }
-
-                    CharterSummaryCard(form: viewModel.form, progress: viewModel.completionProgress) {
-                        Task { await viewModel.saveCharter() }
-                    }
+                    .padding(.horizontal, DesignSystem.Spacing.screenPadding)
+                    .padding(.bottom, 140)
                 }
-                .padding(.horizontal, DesignSystem.Spacing.lg)
-                .padding(.vertical, DesignSystem.Spacing.xl)
             }
-            .background(DesignSystem.Colors.background.ignoresSafeArea())
+
+            footerCTA
         }
-        .navigationTitle(viewModel.isNewCharter ? L10n.Charter.Editor.newTitle : L10n.Charter.Editor.editTitle)
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button {
+                    dismiss()
+                } label: {
+                    HStack(spacing: DesignSystem.Spacing.xs) {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 15, weight: .semibold))
+                        Text(L10n.Charter.Editor.back)
+                            .font(.system(size: 17, weight: .regular))
+                    }
+                    .foregroundColor(DesignSystem.Colors.info)
+                }
+            }
+        }
         .task {
             await viewModel.loadCharter()
         }
@@ -102,82 +64,240 @@ struct CharterEditorView: View {
     }
 }
 
-// MARK: - Subviews
+// MARK: - Hero Header
 
 private extension CharterEditorView {
-    var hero: some View {
-        DesignSystem.Form.Hero(
-            title: L10n.charterCreateSetSailOnYourNextAdventure,
-            subtitle: L10n.charterCreateFromDreamToRealityInAFewGuidedSteps,
-            height: 140
-        )
-    }
+    var heroHeader: some View {
+        VStack(spacing: DesignSystem.Spacing.sm) {
+            ZStack {
+                DesignSystem.Gradients.focalGoldRadial
+                    .frame(height: 140)
+                    .frame(maxWidth: .infinity)
 
-    var visibilityPicker: some View {
-        VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
-            ForEach(CharterVisibility.allCases, id: \.self) { option in
-                Button {
-                    viewModel.onVisibilityChanged(option)
-                } label: {
-                    HStack(spacing: DesignSystem.Spacing.md) {
-                        Image(systemName: option.systemImage)
-                            .font(.system(size: 18))
-                            .foregroundColor(viewModel.form.visibility == option
-                                ? DesignSystem.Colors.primary
-                                : DesignSystem.Colors.textSecondary)
-                            .frame(width: 28)
+                VStack(spacing: DesignSystem.Spacing.sm) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: DesignSystem.Spacing.cardCornerRadius)
+                            .fill(Color.white.opacity(0.05))
+                            .frame(width: 48, height: 48)
 
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(option.displayName)
-                                .font(DesignSystem.Typography.body)
-                                .fontWeight(viewModel.form.visibility == option ? .semibold : .regular)
-                                .foregroundColor(DesignSystem.Colors.textPrimary)
-                            Text(option.description)
-                                .font(DesignSystem.Typography.caption)
-                                .foregroundColor(DesignSystem.Colors.textSecondary)
-                        }
-
-                        Spacer()
-
-                        if viewModel.form.visibility == option {
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundColor(DesignSystem.Colors.primary)
-                        }
+                        Image(systemName: "sailboat.fill")
+                            .font(.system(size: 24))
+                            .foregroundColor(DesignSystem.Colors.gold)
                     }
-                    .padding(DesignSystem.Spacing.md)
-                    .background(
-                        viewModel.form.visibility == option
-                            ? DesignSystem.Colors.primary.opacity(0.08)
-                            : DesignSystem.Colors.surface
-                    )
-                    .cornerRadius(DesignSystem.Spacing.cornerRadiusSmall)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusSmall)
-                            .stroke(
-                                viewModel.form.visibility == option
-                                    ? DesignSystem.Colors.primary.opacity(0.3)
-                                    : DesignSystem.Colors.border,
-                                lineWidth: 1
-                            )
-                    )
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Visibility: \(option.displayName)")
-                .accessibilityHint(option.description)
-                .accessibilityAddTraits(viewModel.form.visibility == option ? .isSelected : [])
-            }
+                    .padding(.top, DesignSystem.Spacing.xl)
 
-            if viewModel.form.visibility != .private {
-                HStack(spacing: DesignSystem.Spacing.xs) {
-                    Image(systemName: "info.circle")
-                        .font(.caption)
-                    Text(L10n.Charter.Editor.visibilityChangeNote)
-                        .font(DesignSystem.Typography.caption)
+                    Text(viewModel.isNewCharter ? L10n.Charter.Editor.newTitle : L10n.Charter.Editor.editTitle)
+                        .font(DesignSystem.Typography.title)
+                        .foregroundColor(DesignSystem.Colors.textPrimary)
                 }
-                .foregroundColor(DesignSystem.Colors.textSecondary)
-                .padding(.top, DesignSystem.Spacing.xs)
             }
         }
+        .padding(.bottom, DesignSystem.Spacing.lg)
+    }
+}
+
+// MARK: - Bubble Cards
+
+private extension CharterEditorView {
+    var nameAndVesselCard: some View {
+        DesignSystem.Form.BubbleCard {
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.lg) {
+                VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
+                    DesignSystem.Form.FieldLabelMicro(title: L10n.charterCreateName)
+                    DesignSystem.Form.FormTextField(
+                        placeholder: L10n.charterCreateNamePlaceholder,
+                        text: $viewModel.form.name
+                    )
+                }
+
+                VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
+                    DesignSystem.Form.FieldLabelMicro(title: L10n.charterCreateYourVessel)
+                    DesignSystem.Form.BubbleTextField(
+                        placeholder: L10n.charterCreateVesselNamePlaceholder,
+                        text: $viewModel.form.vessel,
+                        leadingIcon: "magnifyingglass"
+                    )
+                }
+            }
+        }
+    }
+
+    var datesCard: some View {
+        DesignSystem.Form.BubbleCard {
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.lg) {
+                HStack(spacing: DesignSystem.Spacing.lg) {
+                    dateBlock(
+                        label: L10n.charterCreateStartDate,
+                        date: viewModel.form.startDate
+                    ) {
+                        showStartDatePicker = true
+                    }
+
+                    dateBlock(
+                        label: L10n.charterCreateEndDate,
+                        date: viewModel.form.endDate
+                    ) {
+                        showEndDatePicker = true
+                    }
+                }
+
+                Rectangle()
+                    .fill(Color.white.opacity(0.05))
+                    .frame(height: 1)
+
+                HStack {
+                    Text(L10n.charterCreateChooseYourVoyageDates)
+                        .font(DesignSystem.Typography.caption)
+                        .foregroundColor(DesignSystem.Colors.textSecondary)
+                    Spacer()
+                    Text("\(viewModel.form.nights) \(L10n.charterCreateNights)")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(DesignSystem.Colors.gold)
+                        .padding(.horizontal, DesignSystem.Spacing.md)
+                        .padding(.vertical, DesignSystem.Spacing.xs)
+                        .background(DesignSystem.Colors.gold.opacity(0.1))
+                        .cornerRadius(20)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 20)
+                                .stroke(DesignSystem.Colors.gold.opacity(0.2), lineWidth: 1)
+                        )
+                }
+            }
+        }
+        .sheet(isPresented: $showStartDatePicker) {
+            DatePickerModal(
+                title: L10n.charterCreateStartDate,
+                selectedDate: $viewModel.form.startDate
+            )
+        }
+        .sheet(isPresented: $showEndDatePicker) {
+            DatePickerModal(
+                title: L10n.charterCreateEndDate,
+                selectedDate: $viewModel.form.endDate
+            )
+        }
+    }
+
+    private func dateBlock(label: String, date: Date, action: @escaping () -> Void) -> some View {
+        VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
+            DesignSystem.Form.FieldLabelMicro(title: label)
+            Button(action: action) {
+                HStack {
+                    Text(date, style: .date)
+                        .font(.system(size: 15))
+                        .foregroundColor(DesignSystem.Colors.textPrimary)
+                    Spacer()
+                    Image(systemName: "calendar")
+                        .font(.system(size: 14))
+                        .foregroundColor(DesignSystem.Colors.gold.opacity(0.6))
+                }
+                .padding(DesignSystem.Spacing.md)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(DesignSystem.Colors.surfaceAlt)
+                .cornerRadius(DesignSystem.Spacing.cornerRadiusSmall)
+            }
+            .buttonStyle(.plain)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    var visibilityCard: some View {
+        DesignSystem.Form.BubbleCard {
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
+                DesignSystem.Form.FieldLabelMicro(title: L10n.Charter.Editor.visibilityTitle)
+
+                HStack(spacing: DesignSystem.Spacing.xs) {
+                    ForEach(CharterVisibility.allCases, id: \.self) { option in
+                        visibilitySegment(option)
+                    }
+                }
+                .padding(DesignSystem.Spacing.xs)
+                .background(DesignSystem.Colors.background)
+                .cornerRadius(14)
+
+                Text(viewModel.form.visibility.description)
+                    .font(DesignSystem.Typography.micro)
+                    .foregroundColor(DesignSystem.Colors.textSecondary)
+                    .lineSpacing(4)
+            }
+        }
+    }
+
+    private func visibilitySegment(_ option: CharterVisibility) -> some View {
+        Button {
+            viewModel.onVisibilityChanged(option)
+        } label: {
+            VStack(spacing: DesignSystem.Spacing.xs) {
+                Image(systemName: option.systemImage)
+                    .font(.system(size: 14))
+                Text(option.displayName)
+                    .font(.system(size: 10, weight: .medium))
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, DesignSystem.Spacing.md)
+            .foregroundColor(viewModel.form.visibility == option
+                ? DesignSystem.Colors.textPrimary
+                : DesignSystem.Colors.textSecondary)
+            .background(
+                viewModel.form.visibility == option
+                    ? DesignSystem.Colors.surfaceAlt
+                    : Color.clear
+            )
+            .cornerRadius(DesignSystem.Spacing.cornerRadiusSmall)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Visibility: \(option.displayName)")
+        .accessibilityAddTraits(viewModel.form.visibility == option ? .isSelected : [])
+    }
+
+    var destinationCard: some View {
+        DesignSystem.Form.BubbleCard {
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
+                DesignSystem.Form.FieldLabelMicro(title: L10n.charterCreateDestination)
+                DestinationSearchField(
+                    query: $viewModel.form.destinationQuery,
+                    selectedPlace: $viewModel.form.selectedPlace,
+                    searchService: viewModel.locationSearchService
+                )
+            }
+        }
+    }
+}
+
+// MARK: - Footer CTA
+
+private extension CharterEditorView {
+    var footerCTA: some View {
+        VStack(spacing: DesignSystem.Spacing.md) {
+            Button {
+                Task { await viewModel.saveCharter() }
+            } label: {
+                Text(viewModel.isNewCharter ? L10n.charterSummaryCreateCharter : L10n.Charter.Editor.saveTitle)
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.black)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 56)
+                    .background(DesignSystem.Gradients.primaryButton)
+                    .cornerRadius(DesignSystem.Spacing.cardCornerRadius)
+                    .shadow(color: DesignSystem.Colors.gold.opacity(0.2), radius: 12, y: 4)
+            }
+            .buttonStyle(.plain)
+            .disabled(!viewModel.isValid)
+            .opacity(viewModel.isValid ? 1 : 0.6)
+        }
+        .padding(.horizontal, DesignSystem.Spacing.screenPadding)
+        .padding(.top, DesignSystem.Spacing.xl)
+        .padding(.bottom, DesignSystem.Spacing.xxl)
+        .background(
+            LinearGradient(
+                colors: [
+                    DesignSystem.Colors.background,
+                    DesignSystem.Colors.background.opacity(0.95)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        )
     }
 }
 

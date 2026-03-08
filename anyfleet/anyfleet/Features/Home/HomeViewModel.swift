@@ -56,6 +56,20 @@ final class HomeViewModel: ErrorHandling {
             .first
     }
 
+    /// Upcoming charters (start date in the future), sorted by start date ascending.
+    var upcomingCharters: [CharterModel] {
+        let now = Date()
+        return charterStore.charters
+            .filter { $0.startDate > now }
+            .sorted { $0.startDate < $1.startDate }
+    }
+
+    /// First upcoming charter when there is no active charter. Shown as "next" in hero card.
+    var nextCharter: CharterModel? {
+        guard activeCharter == nil else { return nil }
+        return upcomingCharters.first
+    }
+
     var activeCharterChecklistID: UUID?
     
     // MARK: - Initialization
@@ -161,6 +175,12 @@ final class HomeViewModel: ErrorHandling {
 
     func onActiveCharterTapped(_ charter: CharterModel) {
         AppLogger.view.info("Active charter tapped: \(charter.id)")
+        coordinator.navigateToCharter(charter.id)
+    }
+
+    /// Handles tapping an upcoming charter from the hero or strip.
+    func onUpcomingCharterTapped(_ charter: CharterModel) {
+        AppLogger.view.info("Upcoming charter tapped: \(charter.id)")
         coordinator.navigateToCharter(charter.id)
     }
 }

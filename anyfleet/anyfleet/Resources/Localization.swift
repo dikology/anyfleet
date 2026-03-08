@@ -1010,6 +1010,34 @@ enum L10n {
         tableName: "Localizable",
         comment: "Section subtitle explaining pinned content on the home screen"
     )
+
+    static let homeNextCharterTitle = NSLocalizedString(
+        "home.nextCharter.title",
+        tableName: "Localizable",
+        comment: "Label for the next charter badge on the home screen hero card"
+    )
+
+    static let homeUpcomingTripsTitle = NSLocalizedString(
+        "home.upcomingTrips.title",
+        tableName: "Localizable",
+        comment: "Section title for upcoming charters strip on the home screen"
+    )
+
+    static let homeViewCharter = NSLocalizedString(
+        "home.viewCharter",
+        tableName: "Localizable",
+        comment: "Button label to view charter details"
+    )
+
+    static func homeInDays(_ count: Int) -> String {
+        String(format: NSLocalizedString("home.inDays", tableName: "Localizable", comment: "Charter starts in X days"), count)
+    }
+
+    static let homeNextMonth = NSLocalizedString(
+        "home.nextMonth",
+        tableName: "Localizable",
+        comment: "Charter starts next month"
+    )
     
     enum ChecklistEditor {
         static let newChecklist = NSLocalizedString(
@@ -1360,6 +1388,31 @@ enum L10n {
             comment: "Label for creating a new charter"
         )
 
+        enum List {
+            enum EmptyState {
+                static let title = NSLocalizedString(
+                    "charter.list.emptyState.title",
+                    tableName: "Localizable",
+                    comment: "Title for empty charter list"
+                )
+                static let message = NSLocalizedString(
+                    "charter.list.emptyState.message",
+                    tableName: "Localizable",
+                    comment: "Message explaining how to create first charter"
+                )
+                static let action = NSLocalizedString(
+                    "charter.list.emptyState.action",
+                    tableName: "Localizable",
+                    comment: "Button label to create first charter"
+                )
+                static let accessibilityLabel = NSLocalizedString(
+                    "charter.list.emptyState.accessibilityLabel",
+                    tableName: "Localizable",
+                    comment: "Accessibility label for empty charter list"
+                )
+            }
+        }
+
         static let detailTitle = NSLocalizedString(
             "charter.detail.title",
             tableName: "Localizable",
@@ -1397,6 +1450,24 @@ enum L10n {
                 "charter.editor.visibility.changeNote",
                 tableName: "Localizable",
                 comment: "Info note that visibility can be changed later"
+            )
+
+            static let draftsSavedNote = NSLocalizedString(
+                "charter.editor.draftsSavedNote",
+                tableName: "Localizable",
+                comment: "Note below create button that drafts are saved automatically"
+            )
+
+            static let back = NSLocalizedString(
+                "charter.editor.back",
+                tableName: "Localizable",
+                comment: "Back button in charter editor"
+            )
+
+            static let saveTitle = NSLocalizedString(
+                "charter.editor.saveTitle",
+                tableName: "Localizable",
+                comment: "Save button when editing charter"
             )
         }
 

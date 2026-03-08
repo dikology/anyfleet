@@ -67,4 +67,20 @@ nonisolated struct CharterModel: Identifiable, Hashable, Sendable {
         default: return .future
         }
     }
+
+    /// Human-readable "time until start" for upcoming charters (e.g. "In 12 days", "Next month").
+    var timeUntilStartDisplay: String {
+        let days = daysUntilStart
+        guard days > 0 else { return "" }
+        let calendar = Calendar.current
+        let startMonth = calendar.component(.month, from: startDate)
+        let nowMonth = calendar.component(.month, from: Date())
+        let startYear = calendar.component(.year, from: startDate)
+        let nowYear = calendar.component(.year, from: Date())
+        let isNextMonth = (startYear == nowYear && startMonth == nowMonth + 1) || (startYear == nowYear + 1 && startMonth == 1 && nowMonth == 12)
+        if isNextMonth {
+            return L10n.homeNextMonth
+        }
+        return L10n.homeInDays(days)
+    }
 }
