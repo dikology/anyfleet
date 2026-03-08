@@ -4,6 +4,75 @@ import UIKit
 /// Common building blocks for forms, selection flows, and summaries.
 extension DesignSystem {
     enum Form {
+        /// Bubble-style card for form sections (dark surface, subtle border, rounded).
+        struct BubbleCard<Content: View>: View {
+            @ViewBuilder let content: Content
+
+            init(@ViewBuilder content: () -> Content) {
+                self.content = content()
+            }
+
+            var body: some View {
+                content
+                    .padding(DesignSystem.Spacing.lg)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(DesignSystem.Colors.surface)
+                    .cornerRadius(DesignSystem.Spacing.cardCornerRadius)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: DesignSystem.Spacing.cardCornerRadius)
+                            .stroke(Color.white.opacity(0.05), lineWidth: 1)
+                    )
+            }
+        }
+
+        /// Small uppercase label for form fields.
+        struct FieldLabelMicro: View {
+            let title: String
+
+            var body: some View {
+                Text(title.uppercased())
+                    .font(DesignSystem.Typography.micro)
+                    .fontWeight(.semibold)
+                    .tracking(0.8)
+                    .foregroundColor(DesignSystem.Colors.textSecondary)
+            }
+        }
+
+        /// Styled text field for bubble card forms.
+        struct BubbleTextField: View {
+            let placeholder: String
+            @Binding var text: String
+            var leadingIcon: String? = nil
+            var trailingIcon: String? = nil
+            var onTrailingTap: (() -> Void)? = nil
+
+            var body: some View {
+                HStack(spacing: DesignSystem.Spacing.sm) {
+                    if let icon = leadingIcon {
+                        Image(systemName: icon)
+                            .font(.system(size: 14))
+                            .foregroundColor(DesignSystem.Colors.textSecondary)
+                    }
+                    TextField(placeholder, text: $text)
+                        .textFieldStyle(.plain)
+                        .font(.system(size: 15))
+                        .foregroundColor(DesignSystem.Colors.textPrimary)
+                        .autocorrectionDisabled()
+                    if let icon = trailingIcon {
+                        Button(action: { onTrailingTap?() }) {
+                            Image(systemName: icon)
+                                .font(.system(size: 14))
+                                .foregroundColor(DesignSystem.Colors.info)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal, DesignSystem.Spacing.md)
+                .padding(.vertical, DesignSystem.Spacing.md)
+                .background(DesignSystem.Colors.surfaceAlt)
+                .cornerRadius(DesignSystem.Spacing.cornerRadiusSmall)
+            }
+        }
         
         /// A padded section with a title/subtitle and consistent surface styling.
         struct Section<Content: View>: View {

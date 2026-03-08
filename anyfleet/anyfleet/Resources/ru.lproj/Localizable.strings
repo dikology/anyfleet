@@ -225,6 +225,9 @@
 "charter.editor.visibility.title" = "Видимость чартера";
 "charter.editor.visibility.subtitle" = "Управляйте тем, кто может найти ваш чартер";
 "charter.editor.visibility.changeNote" = "Вы можете изменить видимость в настройках чартера.";
+"charter.editor.draftsSavedNote" = "Черновики сохраняются автоматически";
+"charter.editor.back" = "Назад";
+"charter.editor.saveTitle" = "Сохранить чартер";
 
 // Charter Visibility options
 "charter.visibility.private.name" = "Приватный";

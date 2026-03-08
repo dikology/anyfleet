@@ -94,5 +94,16 @@ extension DesignSystem {
             startPoint: .top,
             endPoint: .bottom
         )
+
+        /// Focal gold radial gradient for form hero headers.
+        static let focalGoldRadial = RadialGradient(
+            colors: [
+                Colors.gold.opacity(0.15),
+                Color.clear
+            ],
+            center: .init(x: 0.5, y: 1),
+            startRadius: 0,
+            endRadius: 200
+        )
     }
 }

@@ -246,6 +246,9 @@
 "charter.editor.visibility.title" = "Charter Visibility";
 "charter.editor.visibility.subtitle" = "Control who can discover your charter";
 "charter.editor.visibility.changeNote" = "You can change visibility anytime in charter settings.";
+"charter.editor.draftsSavedNote" = "Drafts are saved automatically";
+"charter.editor.back" = "Back";
+"charter.editor.saveTitle" = "Save Charter";
 
 // Charter Visibility options
 "charter.visibility.private.name" = "Private";

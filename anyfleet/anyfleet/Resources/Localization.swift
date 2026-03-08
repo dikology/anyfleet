@@ -1451,6 +1451,24 @@ enum L10n {
                 tableName: "Localizable",
                 comment: "Info note that visibility can be changed later"
             )
+
+            static let draftsSavedNote = NSLocalizedString(
+                "charter.editor.draftsSavedNote",
+                tableName: "Localizable",
+                comment: "Note below create button that drafts are saved automatically"
+            )
+
+            static let back = NSLocalizedString(
+                "charter.editor.back",
+                tableName: "Localizable",
+                comment: "Back button in charter editor"
+            )
+
+            static let saveTitle = NSLocalizedString(
+                "charter.editor.saveTitle",
+                tableName: "Localizable",
+                comment: "Save button when editing charter"
+            )
         }
 
         // MARK: - Visibility options
