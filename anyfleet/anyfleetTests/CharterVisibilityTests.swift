@@ -28,18 +28,23 @@ struct CharterVisibilityTests {
         #expect(CharterVisibility(rawValue: "public") == .public)
     }
 
+    @Test("Init from raw value - unknown returns unknown case")
+    func testInitFromRawValue_Unknown() {
+        #expect(CharterVisibility(rawValue: "unknown") == .unknown)
+    }
+
     @Test("Init from raw value - invalid string returns nil")
     func testInitFromRawValue_Invalid() {
-        #expect(CharterVisibility(rawValue: "unknown") == nil)
+        #expect(CharterVisibility(rawValue: "friends_only") == nil)
         #expect(CharterVisibility(rawValue: "") == nil)
         #expect(CharterVisibility(rawValue: "Public") == nil) // case-sensitive
     }
 
     // MARK: - CaseIterable
 
-    @Test("CaseIterable contains exactly three cases")
+    @Test("CaseIterable contains exactly four cases")
     func testCaseIterable_Count() {
-        #expect(CharterVisibility.allCases.count == 3)
+        #expect(CharterVisibility.allCases.count == 4)
     }
 
     @Test("CaseIterable contains all expected cases")
@@ -48,6 +53,14 @@ struct CharterVisibilityTests {
         #expect(all.contains(.private))
         #expect(all.contains(.community))
         #expect(all.contains(.public))
+        #expect(all.contains(.unknown))
+    }
+
+    @Test("Selectable cases exclude unknown")
+    func testSelectableCases_ExcludesUnknown() {
+        let selectable = CharterVisibility.selectableCases
+        #expect(selectable.count == 3)
+        #expect(!selectable.contains(.unknown))
     }
 
     // MARK: - Display Name
@@ -147,5 +160,13 @@ struct CharterVisibilityTests {
         let data = try encoder.encode(CharterVisibility.public)
         let decoded = try decoder.decode(CharterVisibility.self, from: data)
         #expect(decoded == .public)
+    }
+
+    @Test("Codable - unknown backend value decodes to unknown")
+    func testCodable_UnknownBackendValue() throws {
+        let decoder = JSONDecoder()
+        let data = "\"friends_only\"".data(using: .utf8)!
+        let decoded = try decoder.decode(CharterVisibility.self, from: data)
+        #expect(decoded == .unknown)
     }
 }

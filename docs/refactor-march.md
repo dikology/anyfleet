@@ -351,7 +351,7 @@ Bind `onVisibilityChanged` to the visibility picker's `onChange` in the editor v
 
 ---
 
-#### iOS — `LibraryListView` Fallback `init` Creates Duplicate Dependencies -- 08 march --
+#### iOS — `LibraryListView` Fallback `init` Creates Duplicate Dependencies
 
 ```swift
 // LibraryListView.swift lines 9-22

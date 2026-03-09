@@ -6,20 +6,8 @@ struct LibraryListView: View {
     @Environment(\.appCoordinator) private var coordinator
     
     @MainActor
-    init(viewModel: LibraryListViewModel? = nil) {
-        if let viewModel = viewModel {
-            _viewModel = State(initialValue: viewModel)
-        } else {
-            // Create a placeholder for previews and testing
-            let deps = AppDependencies()
-            _viewModel = State(initialValue: LibraryListViewModel(
-                libraryStore: deps.libraryStore,
-                visibilityService: deps.visibilityService,
-                authObserver: deps.authStateObserver,
-                coordinator: AppCoordinator(dependencies: deps),
-                apiClient: deps.apiClient
-            ))
-        }
+    init(viewModel: LibraryListViewModel) {
+        _viewModel = State(initialValue: viewModel)
     }
 
     var body: some View {
