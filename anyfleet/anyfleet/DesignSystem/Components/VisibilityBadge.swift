@@ -50,6 +50,8 @@ struct VisibilityBadge: View {
             return DesignSystem.Colors.primary.opacity(0.1)
         case .public:
             return DesignSystem.Colors.success.opacity(0.15)
+        case .unknown:
+            return DesignSystem.Colors.border.opacity(0.3)
         }
     }
     
@@ -61,6 +63,8 @@ struct VisibilityBadge: View {
             return DesignSystem.Colors.primary
         case .public:
             return DesignSystem.Colors.success
+        case .unknown:
+            return DesignSystem.Colors.textSecondary
         }
     }
 }

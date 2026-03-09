@@ -128,28 +128,38 @@ enum ContentVisibility: String, Codable, CaseIterable, Hashable, Sendable {
     case `private` = "private"
     case unlisted = "unlisted"
     case `public` = "public"
-    
+    case unknown = "unknown"
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let raw = try container.decode(String.self)
+        self = ContentVisibility(rawValue: raw) ?? .unknown
+    }
+
     var displayName: String {
         switch self {
         case .private: return "Private"
         case .unlisted: return "Unlisted"
         case .public: return "Public"
+        case .unknown: return "Unknown"
         }
     }
-    
+
     var icon: String {
         switch self {
         case .private: return "lock.fill"
         case .unlisted: return "link"
         case .public: return "globe"
+        case .unknown: return "questionmark.circle"
         }
     }
-    
+
     var description: String {
         switch self {
         case .private: return "Only you can see this"
         case .unlisted: return "Anyone with the link can see this"
         case .public: return "Discoverable in community library"
+        case .unknown: return "Visibility level not recognized"
         }
     }
 }

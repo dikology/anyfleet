@@ -9,6 +9,7 @@ extension CharterVisibility {
         case .public:    return DesignSystem.Colors.primary
         case .community: return DesignSystem.Colors.communityAccent
         case .private:   return DesignSystem.Colors.textSecondary
+        case .unknown:   return DesignSystem.Colors.textSecondary
         }
     }
 
@@ -18,6 +19,7 @@ extension CharterVisibility {
         case .public:    return DesignSystem.Colors.primary
         case .community: return DesignSystem.Colors.communityAccent
         case .private:   return DesignSystem.Colors.error
+        case .unknown:   return DesignSystem.Colors.textSecondary
         }
     }
 }

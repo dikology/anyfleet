@@ -762,7 +762,7 @@ extension LocalRepository {
                     id: record.id!,
                     contentID: UUID(uuidString: record.contentID)!,
                     operation: SyncOperation(rawValue: record.operation)!,
-                    visibility: ContentVisibility(rawValue: record.visibilityState)!,
+                    visibility: ContentVisibility(rawValue: record.visibilityState) ?? .unknown,
                     payload: record.payload?.data(using: .utf8),
                     retryCount: record.retryCount,
                     lastError: record.lastError,

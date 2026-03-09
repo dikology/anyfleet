@@ -140,9 +140,10 @@ struct LibraryItemRow: View {
                 if item.forkedFromID != nil, let originalAuthor = item.originalAuthorUsername {
                     Button(action: { onAuthorTapped(originalAuthor) }) {
                         originalAuthorAvatarView(username: originalAuthor)
+                            .frame(minWidth: 44, minHeight: 44)
+                            .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
-                    .contentShape(Circle())
                 }
 
                 VisibilityBadge(
@@ -150,9 +151,9 @@ struct LibraryItemRow: View {
                     authorUsername: item.publicMetadata?.authorUsername
                 )
 
-                // Sync Status Indicator (only show for non-private items)
+                // Sync Status Badge (only show for non-private items)
                 if item.visibility != .private {
-                    SyncStatusIndicator(syncStatus: item.syncStatus, onRetry: onRetrySync)
+                    DesignSystem.SyncStatusBadge(contentStatus: item.syncStatus, onRetry: onRetrySync)
                 }
 
                 Spacer()

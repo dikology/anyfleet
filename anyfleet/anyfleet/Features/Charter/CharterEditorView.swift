@@ -207,7 +207,7 @@ private extension CharterEditorView {
                 DesignSystem.Form.FieldLabelMicro(title: L10n.Charter.Editor.visibilityTitle)
 
                 HStack(spacing: DesignSystem.Spacing.xs) {
-                    ForEach(CharterVisibility.allCases, id: \.self) { option in
+                    ForEach(CharterVisibility.selectableCases, id: \.self) { option in
                         visibilitySegment(option)
                     }
                 }

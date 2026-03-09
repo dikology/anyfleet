@@ -213,6 +213,8 @@ struct DiscoverContentRow: View {
                         Circle()
                             .stroke(DesignSystem.Colors.surface, lineWidth: 2)
                     )
+                    .frame(minWidth: 44, minHeight: 44)
+                    .contentShape(Rectangle())
                 }
                 .accessibilityLabel("Original author \(originalAuthor)")
                 .accessibilityHint("Tap to view attribution timeline")
@@ -246,6 +248,8 @@ struct DiscoverContentRow: View {
                         Circle()
                             .stroke(DesignSystem.Colors.surface, lineWidth: 2)
                     )
+                    .frame(minWidth: 44, minHeight: 44)
+                    .contentShape(Rectangle())
                 }
                 .accessibilityLabel("Author \(currentAuthor)")
                 .accessibilityHint("Tap to view author profile")
@@ -286,6 +290,8 @@ struct DiscoverContentRow: View {
                         Circle()
                             .stroke(DesignSystem.Colors.surface, lineWidth: 2)
                     )
+                    .frame(minWidth: 44, minHeight: 44)
+                    .contentShape(Rectangle())
                 }
                 .accessibilityLabel("Multiple contributors")
                 .accessibilityHint("Tap to view attribution timeline")

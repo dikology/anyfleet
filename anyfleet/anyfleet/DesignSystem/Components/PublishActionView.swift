@@ -29,6 +29,7 @@ struct PublishActionView: View {
                     }
                     .padding(.horizontal, DesignSystem.Spacing.md)
                     .padding(.vertical, DesignSystem.Spacing.xs)
+                    .frame(minWidth: 44, minHeight: 44)
                     .background(DesignSystem.Colors.surface)
                     .foregroundColor(DesignSystem.Colors.textPrimary)
                     .overlay(
@@ -50,6 +51,7 @@ struct PublishActionView: View {
                     }
                     .padding(.horizontal, DesignSystem.Spacing.md)
                     .padding(.vertical, DesignSystem.Spacing.xs)
+                    .frame(minWidth: 44, minHeight: 44)
                     .background(DesignSystem.Colors.border.opacity(0.3))
                     .foregroundColor(DesignSystem.Colors.textSecondary)
                     .cornerRadius(8)
@@ -74,6 +76,7 @@ struct PublishActionView: View {
                 }
                 .padding(.horizontal, DesignSystem.Spacing.md)
                 .padding(.vertical, DesignSystem.Spacing.xs)
+                .frame(minWidth: 44, minHeight: 44)
                 .background(isSignedIn ? DesignSystem.Colors.primary : DesignSystem.Colors.border.opacity(0.3))
                 .foregroundColor(isSignedIn ? .white : DesignSystem.Colors.textSecondary)
                 .cornerRadius(8)
