@@ -95,6 +95,8 @@ extension DesignSystem {
                                 .fontWeight(.semibold)
                         }
                         .foregroundColor(DesignSystem.Colors.error)
+                        .frame(minWidth: 44, minHeight: 44)
+                        .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("Sync failed - tap to retry")

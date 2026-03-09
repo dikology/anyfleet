@@ -255,6 +255,8 @@ struct AuthorProfileModal: View {
                             .font(.system(size: 28))
                             .foregroundColor(.white.opacity(0.8))
                             .shadow(color: Color.black.opacity(0.3), radius: 4, x: 0, y: 2)
+                            .frame(minWidth: 44, minHeight: 44)
+                            .contentShape(Rectangle())
                     }
                     .accessibilityIdentifier("modal_xmark_button")
                 }

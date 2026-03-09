@@ -289,7 +289,6 @@ struct LibraryEmptyState: View {
             message: L10n.Library.emptyStateMessage
         )
         .accessibilityElement(children: .combine)
-        .accessibilityLabel(L10n.Library.emptyStateAccessibilityLabel)
     }
 }
 

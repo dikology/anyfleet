@@ -140,9 +140,10 @@ struct LibraryItemRow: View {
                 if item.forkedFromID != nil, let originalAuthor = item.originalAuthorUsername {
                     Button(action: { onAuthorTapped(originalAuthor) }) {
                         originalAuthorAvatarView(username: originalAuthor)
+                            .frame(minWidth: 44, minHeight: 44)
+                            .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
-                    .contentShape(Circle())
                 }
 
                 VisibilityBadge(
