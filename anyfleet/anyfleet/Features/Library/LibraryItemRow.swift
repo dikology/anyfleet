@@ -150,9 +150,9 @@ struct LibraryItemRow: View {
                     authorUsername: item.publicMetadata?.authorUsername
                 )
 
-                // Sync Status Indicator (only show for non-private items)
+                // Sync Status Badge (only show for non-private items)
                 if item.visibility != .private {
-                    SyncStatusIndicator(syncStatus: item.syncStatus, onRetry: onRetrySync)
+                    DesignSystem.SyncStatusBadge(contentStatus: item.syncStatus, onRetry: onRetrySync)
                 }
 
                 Spacer()
