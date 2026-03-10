@@ -1146,8 +1146,16 @@ struct ContentSyncServiceIntegrationTests {
 
 class MockAPIClient: APIClientProtocol {
     var shouldFail = false
+    /// When set, overrides `shouldFail` and throws this specific error from content
+    /// API calls (publish, unpublish, updatePublishedContent). Useful for testing
+    /// terminal-error handling with specific `APIError` cases.
+    var errorToThrow: Error?
     var mockPublicContentResponse: SharedContentDetail?
     var publishCallCount = 0
+
+    private func contentError() -> Error {
+        errorToThrow ?? APIError.serverError
+    }
 
     func publishContent(
         title: String,
@@ -1161,8 +1169,8 @@ class MockAPIClient: APIClientProtocol {
         forkedFromID: UUID?
     ) async throws -> PublishContentResponse {
         publishCallCount += 1
-        if shouldFail {
-            throw APIError.serverError
+        if shouldFail || errorToThrow != nil {
+            throw contentError()
         }
 
         // Return mock successful response
@@ -1176,7 +1184,7 @@ class MockAPIClient: APIClientProtocol {
     }
 
     func unpublishContent(publicID: String) async throws {
-        // Mock implementation - do nothing for tests
+        if shouldFail || errorToThrow != nil { throw contentError() }
     }
 
     func fetchPublicContent() async throws -> [SharedContentSummary] {
@@ -1221,7 +1229,7 @@ class MockAPIClient: APIClientProtocol {
         tags: [String],
         language: String
     ) async throws -> UpdateContentResponse {
-        // Mock implementation - return a mock response
+        if shouldFail || errorToThrow != nil { throw contentError() }
         return UpdateContentResponse(
             id: UUID(),
             publicID: publicID,

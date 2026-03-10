@@ -286,7 +286,8 @@ struct CharterSyncServiceTests {
             limit: 20,
             offset: 0
         )
-        // Let loadCharters succeed
+        // Charter not in local DB → new charter, always save.
+        repository.fetchCharterResult = .success(nil)
         repository.fetchAllChartersResult = .success([remoteCharter.toCharterModel()])
 
         await service.pullMyCharters()
@@ -319,6 +320,176 @@ struct CharterSyncServiceTests {
 
         #expect(repository.saveCharterCallCount == 0)
         #expect(service.lastSyncDate != nil)
+    }
+
+    // MARK: - pullMyCharters conflict resolution (7.4)
+
+    @Test("pullMyCharters - remote newer than local AND no local pending changes → saves remote")
+    @MainActor
+    func testPullMyCharters_RemoteNewer_SavesRemote() async {
+        let (repository, apiClient, _, _, service) = makeDependencies()
+
+        let charterID = UUID()
+        let olderDate = Date().addingTimeInterval(-7200)  // 2 h ago
+        let newerDate = Date().addingTimeInterval(-3600)  // 1 h ago
+
+        // Local charter is older and has no pending changes.
+        var localCharter = makeCharter(serverID: charterID, visibility: .community, needsSync: false)
+        localCharter.updatedAt = olderDate
+        repository.fetchCharterResult = .success(localCharter)
+
+        // Remote charter is newer.
+        let remoteCharter = CharterAPIResponse(
+            id: charterID,
+            userId: UUID(),
+            name: "Newer Name From Server",
+            boatName: nil,
+            locationText: nil,
+            startDate: Date(),
+            endDate: Date().addingTimeInterval(86400 * 7),
+            latitude: nil,
+            longitude: nil,
+            locationPlaceId: nil,
+            visibility: "community",
+            createdAt: Date().addingTimeInterval(-86400),
+            updatedAt: newerDate
+        )
+        apiClient.mockFetchMyChartersResponse = CharterListAPIResponse(
+            items: [remoteCharter],
+            total: 1,
+            limit: 20,
+            offset: 0
+        )
+        repository.fetchAllChartersResult = .success([remoteCharter.toCharterModel()])
+
+        await service.pullMyCharters()
+
+        #expect(repository.saveCharterCallCount == 1,
+                "Remote is newer and local has no pending changes — should save")
+        #expect(repository.lastSavedCharter?.name == "Newer Name From Server")
+    }
+
+    @Test("pullMyCharters - local newer than remote → preserves local record")
+    @MainActor
+    func testPullMyCharters_LocalNewer_SkipsRemote() async {
+        let (repository, apiClient, _, _, service) = makeDependencies()
+
+        let charterID = UUID()
+        let olderDate = Date().addingTimeInterval(-7200)  // remote: 2 h ago
+        let newerDate = Date().addingTimeInterval(-60)    // local: 1 min ago (offline edit)
+
+        // Local charter edited recently offline.
+        var localCharter = makeCharter(serverID: charterID, visibility: .community, needsSync: false)
+        localCharter.updatedAt = newerDate
+        repository.fetchCharterResult = .success(localCharter)
+
+        // Remote is older.
+        let remoteCharter = CharterAPIResponse(
+            id: charterID,
+            userId: UUID(),
+            name: "Stale Server Name",
+            boatName: nil,
+            locationText: nil,
+            startDate: Date(),
+            endDate: Date().addingTimeInterval(86400 * 7),
+            latitude: nil,
+            longitude: nil,
+            locationPlaceId: nil,
+            visibility: "community",
+            createdAt: Date().addingTimeInterval(-86400),
+            updatedAt: olderDate
+        )
+        apiClient.mockFetchMyChartersResponse = CharterListAPIResponse(
+            items: [remoteCharter],
+            total: 1,
+            limit: 20,
+            offset: 0
+        )
+
+        await service.pullMyCharters()
+
+        #expect(repository.saveCharterCallCount == 0,
+                "Local is newer — remote must not overwrite the local record")
+    }
+
+    @Test("pullMyCharters - local has needsSync=true → protects local changes even if remote is newer")
+    @MainActor
+    func testPullMyCharters_LocalNeedsSync_SkipsRemote() async {
+        let (repository, apiClient, _, _, service) = makeDependencies()
+
+        let charterID = UUID()
+        let olderDate = Date().addingTimeInterval(-3600)  // local: 1 h ago
+        let newerDate = Date().addingTimeInterval(-60)    // remote: 1 min ago
+
+        // Local charter has unsent changes (needsSync = true).
+        var localCharter = makeCharter(serverID: charterID, visibility: .community, needsSync: true)
+        localCharter.updatedAt = olderDate
+        repository.fetchCharterResult = .success(localCharter)
+
+        // Remote is technically newer but local has unsent edits.
+        let remoteCharter = CharterAPIResponse(
+            id: charterID,
+            userId: UUID(),
+            name: "Server Version That Would Overwrite",
+            boatName: nil,
+            locationText: nil,
+            startDate: Date(),
+            endDate: Date().addingTimeInterval(86400 * 7),
+            latitude: nil,
+            longitude: nil,
+            locationPlaceId: nil,
+            visibility: "community",
+            createdAt: Date().addingTimeInterval(-86400),
+            updatedAt: newerDate
+        )
+        apiClient.mockFetchMyChartersResponse = CharterListAPIResponse(
+            items: [remoteCharter],
+            total: 1,
+            limit: 20,
+            offset: 0
+        )
+
+        await service.pullMyCharters()
+
+        #expect(repository.saveCharterCallCount == 0,
+                "Local has pending changes — must not be overwritten by a pull")
+    }
+
+    @Test("pullMyCharters - charter not in local DB → always saves new server charter")
+    @MainActor
+    func testPullMyCharters_NewCharter_AlwaysSaves() async {
+        let (repository, apiClient, _, _, service) = makeDependencies()
+
+        // fetchCharter returns nil → charter doesn't exist locally.
+        repository.fetchCharterResult = .success(nil)
+
+        let remoteCharter = CharterAPIResponse(
+            id: UUID(),
+            userId: UUID(),
+            name: "Brand New Charter From Server",
+            boatName: nil,
+            locationText: nil,
+            startDate: Date(),
+            endDate: Date().addingTimeInterval(86400 * 7),
+            latitude: nil,
+            longitude: nil,
+            locationPlaceId: nil,
+            visibility: "community",
+            createdAt: Date(),
+            updatedAt: Date()
+        )
+        apiClient.mockFetchMyChartersResponse = CharterListAPIResponse(
+            items: [remoteCharter],
+            total: 1,
+            limit: 20,
+            offset: 0
+        )
+        repository.fetchAllChartersResult = .success([remoteCharter.toCharterModel()])
+
+        await service.pullMyCharters()
+
+        #expect(repository.saveCharterCallCount == 1,
+                "Charter not in local DB — always save regardless of timestamps")
     }
 
     // MARK: - syncAll

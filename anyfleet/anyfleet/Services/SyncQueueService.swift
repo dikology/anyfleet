@@ -156,11 +156,21 @@ final class SyncQueueService {
 
     // MARK: - Queue Processing
 
+    /// Reset all permanently-failed operations back to pending so they are re-processed.
+    /// Exposed as a user-accessible "retry all failed" escape hatch (e.g. long-press sync badge).
+    func resetFailedOperations() async throws {
+        try await repository.resetFailedSyncOperations(maxRetries: maxRetries)
+        await updatePendingCounts()
+    }
+
     /// Process all pending sync operations
     func processQueue() async -> SyncSummary {
         guard await canSync() else {
             return SyncSummary()
         }
+        // defer guarantees the lock is released even if the enclosing Task is cancelled
+        // mid-flight (e.g. app backgrounds during a sync cycle).
+        defer { isProcessing = false }
 
         let operations = await fetchPendingOperations()
         return await processOperations(operations)
@@ -201,7 +211,6 @@ final class SyncQueueService {
             AppLogger.services.debug("Fetched \(operations.count) pending sync operations")
             guard !operations.isEmpty else {
                 await updatePendingCounts()
-                isProcessing = false
                 return []
             }
 
@@ -210,7 +219,6 @@ final class SyncQueueService {
         } catch {
             AppLogger.services.error("Failed to fetch pending sync operations: \(error.localizedDescription)")
             await updatePendingCounts()
-            isProcessing = false
             return []
         }
     }
@@ -224,8 +232,6 @@ final class SyncQueueService {
 
         await updatePendingCounts()
         AppLogger.services.info("Sync complete: \(summary.succeeded) succeeded, \(summary.failed) failed")
-
-        isProcessing = false
         return summary
     }
 
@@ -265,11 +271,21 @@ final class SyncQueueService {
                 )
                 await updateSyncState(contentID: operation.contentID, status: .pending)
             } else {
-                // Max retries exceeded or terminal error
-                await updateSyncState(contentID: operation.contentID, status: .failed)
+                // Terminal error or max retries exhausted.
+                // Jump retryCount to maxRetries so fetchPending never picks this up again,
+                // preventing the infinite-loop bug where a non-retryable error keeps cycling.
+                try? await repository.exhaustSyncRetries(
+                    operation.id,
+                    maxRetries: maxRetries,
+                    error: error.localizedDescription
+                )
 
-                // If this was a publish operation that failed permanently,
-                // cancel any pending unpublish operations for the same content
+                // Persist .failed syncStatus so the UI can surface it to the user.
+                if var item = try? await repository.fetchLibraryItem(operation.contentID) {
+                    item.syncStatus = .failed
+                    try? await repository.updateLibraryMetadata(item)
+                }
+
                 if operation.operation == .publish {
                     await cancelPendingUnpublishOperations(for: operation.contentID)
                 }
@@ -443,8 +459,10 @@ final class SyncQueueService {
             case .unauthorized, .forbidden:
                 return false
             case .notFound:
-                // For unpublish operations, 404 means the content was never published or already deleted
-                return operation != .unpublish
+                // 404 is terminal for unpublish (already gone) and publish_update (server record
+                // deleted while iOS had a queued update). Only plain publish may retry on 404
+                // because the content might not exist yet on the server at the time of the call.
+                return operation == .publish
             case .conflict:
                 // For publish operations, 409 means duplicate public_id
                 return operation != .publish

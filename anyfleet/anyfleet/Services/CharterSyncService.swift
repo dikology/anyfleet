@@ -86,20 +86,44 @@ final class CharterSyncService {
     }
 
     /// Pull the current user's charters from the backend and merge into local store.
+    ///
+    /// Uses last-write-wins conflict resolution: a remote record only overwrites the local
+    /// copy when `remote.updatedAt > local.updatedAt` AND the local record has no pending
+    /// changes (`!local.needsSync`). This preserves offline edits that are waiting to be
+    /// pushed, preventing a stale pull from silently discarding the user's unsaved work.
     func pullMyCharters() async {
         AppLogger.sync.info("Pulling user charters from server")
         do {
             let response = try await apiClient.fetchMyCharters()
+            var saved = 0
+            var skipped = 0
+
             for remoteCharter in response.items {
-                let localModel = remoteCharter.toCharterModel()
-                // Upsert into local DB
-                try await repository.saveCharter(localModel)
+                let remote = remoteCharter.toCharterModel()
+
+                if let local = try? await repository.fetchCharter(id: remote.id) {
+                    // Only overwrite if the remote version is genuinely newer AND the local
+                    // record has no unsent changes. A local record with needsSync = true is
+                    // the source of truth until its push has been acknowledged.
+                    if remote.updatedAt > local.updatedAt && !local.needsSync {
+                        try await repository.saveCharter(remote)
+                        saved += 1
+                    } else {
+                        skipped += 1
+                    }
+                } else {
+                    // New charter from the server — always save.
+                    try await repository.saveCharter(remote)
+                    saved += 1
+                }
             }
 
             // Reload the charter store so UI reflects the latest state
             try await charterStore.loadCharters()
             lastSyncDate = Date()
-            AppLogger.sync.info("Pulled \(response.items.count) charter(s) from server")
+            AppLogger.sync.info(
+                "Pulled \(response.items.count) charter(s): \(saved) saved, \(skipped) skipped (local newer or pending sync)"
+            )
         } catch {
             AppLogger.sync.error("Failed to pull charters from server", error: error)
             lastSyncError = error
