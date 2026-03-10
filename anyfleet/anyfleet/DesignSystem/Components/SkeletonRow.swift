@@ -4,11 +4,18 @@ import SwiftUI
 
 extension DesignSystem {
     /// Animated shimmer placeholder block — use to build skeleton loading states.
+    ///
+    /// Pass `animating` from a parent view to keep multiple blocks in sync.
+    /// When `animating` is `nil` (default) the block manages its own animation timer.
     struct SkeletonBlock: View {
         var width: CGFloat? = nil
         var height: CGFloat
+        /// External animation phase supplied by a parent for synchronized shimmer.
+        var animating: Bool? = nil
 
-        @State private var animating = false
+        @State private var selfAnimating = false
+
+        private var isAnimating: Bool { animating ?? selfAnimating }
 
         var body: some View {
             RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusSmall)
@@ -19,14 +26,15 @@ extension DesignSystem {
                             DesignSystem.Colors.surfaceAlt,
                             DesignSystem.Colors.surface
                         ],
-                        startPoint: animating ? .leading : .trailing,
-                        endPoint: animating ? .trailing : .leading
+                        startPoint: isAnimating ? .leading : .trailing,
+                        endPoint: isAnimating ? .trailing : .leading
                     )
                 )
                 .frame(width: width, height: height)
                 .onAppear {
+                    guard animating == nil else { return }
                     withAnimation(.linear(duration: 1.2).repeatForever(autoreverses: false)) {
-                        animating = true
+                        selfAnimating = true
                     }
                 }
         }
@@ -62,6 +70,29 @@ extension DesignSystem {
                 .frame(maxWidth: .infinity)
             }
             .padding(.bottom, DesignSystem.Spacing.sm)
+        }
+    }
+
+    // MARK: - Skeleton row matching LibraryItemRow shape
+
+    /// Full-width skeleton placeholder that mirrors the shape of `LibraryItemRow`.
+    struct LibrarySkeletonRow: View {
+        var animating: Bool? = nil
+
+        var body: some View {
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
+                HStack {
+                    SkeletonBlock(width: 24, height: 24, animating: animating)
+                    SkeletonBlock(width: 180, height: 18, animating: animating)
+                    Spacer()
+                    SkeletonBlock(width: 56, height: 16, animating: animating)
+                }
+                SkeletonBlock(height: 14, animating: animating)
+                SkeletonBlock(width: 120, height: 12, animating: animating)
+            }
+            .padding(DesignSystem.Spacing.md)
+            .background(DesignSystem.Colors.surface)
+            .cornerRadius(DesignSystem.Spacing.cardCornerRadius)
         }
     }
 }

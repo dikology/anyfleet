@@ -124,16 +124,16 @@ struct CharterDiscoveryViewModelTests {
     func testLoadInitial_ResetsPreviousData() async {
         let (vm, apiClient) = makeViewModel()
 
-        // First load with 2 items
+        // First load with 1 item
         apiClient.mockDiscoverChartersResponse = makeDiscoveryResponse(items: [makeDiscoverableCharter()])
         await vm.loadInitial()
         #expect(vm.charters.count == 1)
 
-        // Second load with different data (simulates refresh with new results)
+        // refresh() clears the cache and forces a network fetch with new results
         apiClient.mockDiscoverChartersResponse = makeDiscoveryResponse(
             items: [makeDiscoverableCharter(), makeDiscoverableCharter()]
         )
-        await vm.loadInitial()
+        await vm.refresh()
         #expect(vm.charters.count == 2) // replaced, not appended
     }
 
@@ -268,16 +268,17 @@ struct CharterDiscoveryViewModelTests {
         let distant = Calendar.current.date(byAdding: .day, value: 30, to: now)!
         let near = Calendar.current.date(byAdding: .day, value: 5, to: now)!
 
+        // Mock returns items already sorted by the backend (date_asc): near before distant
         let items = [
-            makeDiscoverableCharter(startDate: distant),
-            makeDiscoverableCharter(startDate: near)
+            makeDiscoverableCharter(startDate: near),
+            makeDiscoverableCharter(startDate: distant)
         ]
         apiClient.mockDiscoverChartersResponse = makeDiscoveryResponse(items: items)
 
         await vm.loadInitial()
 
         #expect(vm.charters.count == 2)
-        // nearest start date should appear first
+        // view model preserves backend order — nearest start date first
         #expect(vm.charters[0].startDate <= vm.charters[1].startDate)
     }
 
@@ -287,17 +288,19 @@ struct CharterDiscoveryViewModelTests {
         let (vm, apiClient) = makeViewModel()
         vm.filters.sortOrder = .distanceAscending
 
+        // Mock returns items already sorted by the backend (distance_asc): closest first
         let items = [
-            makeDiscoverableCharter(distanceKm: 500.0),
             makeDiscoverableCharter(distanceKm: 10.0),
-            makeDiscoverableCharter(distanceKm: nil) // nil treated as infinity
+            makeDiscoverableCharter(distanceKm: 500.0),
+            makeDiscoverableCharter(distanceKm: nil) // nil treated as infinity — comes last
         ]
         apiClient.mockDiscoverChartersResponse = makeDiscoveryResponse(items: items)
 
         await vm.loadInitial()
 
         #expect(vm.charters.count == 3)
-        let distances = vm.charters.map { $0.distanceKm ?? .infinity }
+        // view model preserves backend order — closest first
+        let distances = vm.charters.map { $0.distanceKm ?? Double.infinity }
         #expect(distances[0] <= distances[1])
         #expect(distances[1] <= distances[2])
     }

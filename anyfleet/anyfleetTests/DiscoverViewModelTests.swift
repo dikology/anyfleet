@@ -292,6 +292,7 @@ class DiscoverMockAPIClient: APIClientProtocol {
         nearLat: Double?,
         nearLon: Double?,
         radiusKm: Double,
+        sortBy: String,
         limit: Int,
         offset: Int
     ) async throws -> CharterDiscoveryAPIResponse {

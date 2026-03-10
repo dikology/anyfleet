@@ -32,9 +32,14 @@ struct DiscoverableCharter: Identifiable, Hashable, Sendable {
     }
 
     var urgencyLevel: CharterUrgencyLevel {
+        let now = Date()
+        // Past = charter has already finished
+        if endDate < now { return .past }
+        // Ongoing = started but not finished
+        if startDate <= now { return .ongoing }
+        // Future = not yet started
         switch daysUntilStart {
-        case ..<0: return .past
-        case 0...7: return .imminent
+        case 0...7: return .imminent   // Starts this week
         case 8...30: return .soon
         default: return .future
         }
@@ -64,8 +69,9 @@ struct CaptainBasicInfo: Hashable, Sendable {
 
 enum CharterUrgencyLevel {
     case past
-    case imminent   // Within 7 days
-    case soon       // Within 30 days
+    case ongoing    // Started but not finished
+    case imminent   // Starts within 7 days
+    case soon       // Starts within 30 days
     case future     // More than 30 days away
 }
 

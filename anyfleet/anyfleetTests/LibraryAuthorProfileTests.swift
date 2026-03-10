@@ -68,7 +68,7 @@ struct LibraryAuthorProfileTests {
             CharterAPIResponse(id: id, userId: UUID(), name: request.name ?? "Mock", boatName: nil, locationText: nil, startDate: request.startDate ?? Date(), endDate: request.endDate ?? Date(), latitude: nil, longitude: nil, locationPlaceId: nil, visibility: "private", createdAt: Date(), updatedAt: Date())
         }
         func deleteCharter(id: UUID) async throws {}
-        func discoverCharters(dateFrom: Date?, dateTo: Date?, nearLat: Double?, nearLon: Double?, radiusKm: Double, limit: Int, offset: Int) async throws -> CharterDiscoveryAPIResponse {
+        func discoverCharters(dateFrom: Date?, dateTo: Date?, nearLat: Double?, nearLon: Double?, radiusKm: Double, sortBy: String, limit: Int, offset: Int) async throws -> CharterDiscoveryAPIResponse {
             CharterDiscoveryAPIResponse(items: [], total: 0, limit: limit, offset: offset)
         }
     }

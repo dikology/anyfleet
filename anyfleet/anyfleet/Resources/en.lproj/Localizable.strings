@@ -59,6 +59,8 @@
 "library" = "Library";
 "discover" = "Discover";
 
+"discover.tab.content" = "Content";
+"discover.tab.charters" = "Charters";
 "discover.emptyState.title" = "Discover Sailing Knowledge";
 "discover.emptyState.message" = "Browse checklists, guides, and flashcards shared by fellow sailors from around the world.";
 
@@ -286,7 +288,8 @@
 
 // Urgency badges
 "charter.discovery.badge.past" = "Past";
-"charter.discovery.badge.imminent" = "This week";
+"charter.discovery.badge.ongoing" = "Ongoing";
+"charter.discovery.badge.imminent" = "Starts this week";
 "charter.discovery.badge.soon" = "This month";
 "charter.discovery.badge.upcoming" = "Upcoming";
 

@@ -26,6 +26,10 @@ final class CharterDiscoveryViewModel: ErrorHandling {
     private let pageSize = 20
     private var currentOffset = 0
 
+    // MARK: - Cache
+
+    private var cache: [String: DiscoveryCacheEntry] = [:]
+
     // MARK: - Location
 
     private var userLocation: CLLocationCoordinate2D?
@@ -60,6 +64,7 @@ final class CharterDiscoveryViewModel: ErrorHandling {
     }
 
     func refresh() async {
+        cache.removeValue(forKey: cacheKey)
         await loadInitial()
     }
 
@@ -83,8 +88,23 @@ final class CharterDiscoveryViewModel: ErrorHandling {
 
     // MARK: - Private
 
+    private var cacheKey: String {
+        "\(filters.datePreset.rawValue)|\(filters.useNearMe)|\(Int(filters.radiusKm))|\(filters.sortOrder.rawValue)"
+    }
+
     private func load(appending: Bool = false) async {
-        if !appending {
+        if !appending, let cached = cache[cacheKey], !cached.isStale {
+            charters = cached.charters
+            currentOffset = cached.charters.count
+            hasMore = cached.charters.count == pageSize
+            Task { await fetchAndCache(appending: false, silent: true) }
+            return
+        }
+        await fetchAndCache(appending: appending, silent: false)
+    }
+
+    private func fetchAndCache(appending: Bool, silent: Bool) async {
+        if !silent && !appending {
             isLoading = true
             defer { isLoading = false }
         }
@@ -101,17 +121,18 @@ final class CharterDiscoveryViewModel: ErrorHandling {
                 nearLat: lat,
                 nearLon: lon,
                 radiusKm: radius,
+                sortBy: filters.sortOrder.backendValue,
                 limit: pageSize,
                 offset: currentOffset
             )
 
             let newItems = response.items.map { $0.toDiscoverableCharter() }
-            let sorted = sort(newItems)
 
             if appending {
-                charters.append(contentsOf: sorted)
+                charters.append(contentsOf: newItems)
             } else {
-                charters = sorted
+                charters = newItems
+                cache[cacheKey] = DiscoveryCacheEntry(charters: newItems, fetchedAt: Date(), cacheKey: cacheKey)
             }
 
             currentOffset += newItems.count
@@ -119,18 +140,31 @@ final class CharterDiscoveryViewModel: ErrorHandling {
 
             AppLogger.view.info("Loaded \(newItems.count) discoverable charters (total: \(charters.count))")
         } catch {
-            handleError(error)
+            if !silent { handleError(error) }
         }
     }
+}
 
-    private func sort(_ items: [DiscoverableCharter]) -> [DiscoverableCharter] {
-        switch filters.sortOrder {
-        case .dateAscending:
-            return items.sorted { $0.startDate < $1.startDate }
-        case .distanceAscending:
-            return items.sorted { ($0.distanceKm ?? .infinity) < ($1.distanceKm ?? .infinity) }
-        case .recentlyPosted:
-            return items
+// MARK: - Discovery Cache
+
+struct DiscoveryCacheEntry {
+    let charters: [DiscoverableCharter]
+    let fetchedAt: Date
+    let cacheKey: String
+
+    var isStale: Bool {
+        Date().timeIntervalSince(fetchedAt) > 120
+    }
+}
+
+// MARK: - SortOrder backend mapping
+
+private extension CharterDiscoveryFilters.SortOrder {
+    var backendValue: String {
+        switch self {
+        case .dateAscending: return "date_asc"
+        case .distanceAscending: return "distance_asc"
+        case .recentlyPosted: return "date_desc"
         }
     }
 }

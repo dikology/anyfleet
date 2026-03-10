@@ -59,6 +59,8 @@
 "library" = "Библиотека";
 "discover" = "Открытия";
 
+"discover.tab.content" = "Контент";
+"discover.tab.charters" = "Чартеры";
 "discover.emptyState.title" = "Откройте Знания о Судоходстве";
 "discover.emptyState.message" = "Просматривайте чек-листы, руководства и карточки, которыми делятся другие моряки со всего мира.";
 
@@ -265,6 +267,7 @@
 
 // Urgency badges
 "charter.discovery.badge.past" = "Прошедший";
+"charter.discovery.badge.ongoing" = "Идёт";
 "charter.discovery.badge.imminent" = "На этой неделе";
 "charter.discovery.badge.soon" = "В этом месяце";
 "charter.discovery.badge.upcoming" = "Предстоящий";

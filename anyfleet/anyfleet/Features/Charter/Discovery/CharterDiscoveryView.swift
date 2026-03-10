@@ -71,7 +71,7 @@ struct CharterDiscoveryView: View {
         }
         .overlay {
             if viewModel.isLoading && viewModel.charters.isEmpty {
-                loadingState
+                DiscoverySkeletonList()
             }
         }
     }
@@ -189,18 +189,6 @@ struct CharterDiscoveryView: View {
         .background(DesignSystem.Colors.background.ignoresSafeArea())
     }
 
-    private var loadingState: some View {
-        VStack(spacing: DesignSystem.Spacing.md) {
-            ProgressView()
-                .scaleEffect(1.2)
-            Text(L10n.Charter.Discovery.loading)
-                .font(DesignSystem.Typography.caption)
-                .foregroundColor(DesignSystem.Colors.textSecondary)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(DesignSystem.Colors.background)
-    }
-
     // MARK: - Error Banner
 
     private var errorBanner: some View {
@@ -275,5 +263,60 @@ struct CharterDiscoveryView: View {
             return L10n.Charter.Discovery.emptyNearby
         }
         return L10n.Charter.Discovery.emptyDefault
+    }
+}
+
+// MARK: - Skeleton list
+
+private struct DiscoverySkeletonList: View {
+    @State private var animating = false
+
+    var body: some View {
+        ScrollView {
+            LazyVStack(spacing: DesignSystem.Spacing.md) {
+                ForEach(0..<6, id: \.self) { _ in
+                    SyncedCharterSkeletonRow(animating: animating)
+                }
+            }
+            .padding(.horizontal, DesignSystem.Spacing.screenPadding)
+            .padding(.vertical, DesignSystem.Spacing.md)
+        }
+        .background(DesignSystem.Colors.background.ignoresSafeArea())
+        .allowsHitTesting(false)
+        .onAppear {
+            withAnimation(.linear(duration: 1.2).repeatForever(autoreverses: false)) {
+                animating = true
+            }
+        }
+    }
+}
+
+private struct SyncedCharterSkeletonRow: View {
+    let animating: Bool
+
+    var body: some View {
+        HStack(alignment: .top, spacing: DesignSystem.Spacing.md) {
+            VStack(spacing: DesignSystem.Spacing.xs) {
+                DesignSystem.SkeletonBlock(width: 32, height: 32, animating: animating)
+                DesignSystem.SkeletonBlock(width: 24, height: 11, animating: animating)
+            }
+            .frame(width: 48)
+            .padding(.top, DesignSystem.Spacing.md)
+
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
+                HStack {
+                    DesignSystem.SkeletonBlock(width: 72, height: 20, animating: animating)
+                    Spacer()
+                    DesignSystem.SkeletonBlock(width: 56, height: 16, animating: animating)
+                }
+                DesignSystem.SkeletonBlock(height: 18, animating: animating)
+                DesignSystem.SkeletonBlock(width: 160, height: 14, animating: animating)
+            }
+            .padding(DesignSystem.Spacing.md)
+            .background(DesignSystem.Colors.surface)
+            .cornerRadius(DesignSystem.Spacing.cardCornerRadius)
+            .frame(maxWidth: .infinity)
+        }
+        .padding(.bottom, DesignSystem.Spacing.sm)
     }
 }

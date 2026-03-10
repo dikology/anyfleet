@@ -145,6 +145,7 @@ private extension CharterUrgencyLevel {
     var badgeLabel: String {
         switch self {
         case .past: return L10n.Charter.Discovery.Badge.past
+        case .ongoing: return L10n.Charter.Discovery.Badge.ongoing
         case .imminent: return L10n.Charter.Discovery.Badge.imminent
         case .soon: return L10n.Charter.Discovery.Badge.soon
         case .future: return L10n.Charter.Discovery.Badge.upcoming
@@ -154,6 +155,7 @@ private extension CharterUrgencyLevel {
     var color: Color {
         switch self {
         case .past: return .gray
+        case .ongoing: return .green
         case .imminent: return .red
         case .soon: return .orange
         case .future: return DesignSystem.Colors.primary

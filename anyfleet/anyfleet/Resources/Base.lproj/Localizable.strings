@@ -55,6 +55,8 @@
 "library" = "Library";
 "discover" = "Discover";
 
+"discover.tab.content" = "Content";
+"discover.tab.charters" = "Charters";
 "discover.emptyState.title" = "Discover Sailing Knowledge";
 "discover.emptyState.message" = "Browse checklists, guides, and flashcards shared by fellow sailors from around the world.";
 
