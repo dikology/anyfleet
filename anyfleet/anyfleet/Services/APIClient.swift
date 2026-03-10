@@ -60,6 +60,7 @@ protocol APIClientProtocol {
         nearLat: Double?,
         nearLon: Double?,
         radiusKm: Double,
+        sortBy: String,
         limit: Int,
         offset: Int
     ) async throws -> CharterDiscoveryAPIResponse
@@ -211,13 +212,15 @@ final class APIClient: APIClientProtocol {
         nearLat: Double? = nil,
         nearLon: Double? = nil,
         radiusKm: Double = 50.0,
+        sortBy: String = "date_asc",
         limit: Int = 20,
         offset: Int = 0
     ) async throws -> CharterDiscoveryAPIResponse {
-        AppLogger.api.debug("Discovering charters (offset: \(offset))")
+        AppLogger.api.debug("Discovering charters (offset: \(offset), sort: \(sortBy))")
         var components = URLComponents()
         components.queryItems = [
             URLQueryItem(name: "radius_km", value: String(radiusKm)),
+            URLQueryItem(name: "sort_by", value: sortBy),
             URLQueryItem(name: "limit", value: String(limit)),
             URLQueryItem(name: "offset", value: String(offset))
         ]
@@ -235,7 +238,7 @@ final class APIClient: APIClientProtocol {
             components.queryItems?.append(URLQueryItem(name: "near_lon", value: String(nearLon)))
         }
         let queryString = components.percentEncodedQuery.map { "?\($0)" } ?? ""
-        return try await get("/charters/discover\(queryString)", body: EmptyBody())
+        return try await getUnauthenticated("/charters/discover\(queryString)", body: EmptyBody())
     }
 
     // MARK: - HTTP Methods

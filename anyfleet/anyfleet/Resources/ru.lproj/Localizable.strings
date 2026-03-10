@@ -59,6 +59,8 @@
 "library" = "Библиотека";
 "discover" = "Открытия";
 
+"discover.tab.content" = "Контент";
+"discover.tab.charters" = "Чартеры";
 "discover.emptyState.title" = "Откройте Знания о Судоходстве";
 "discover.emptyState.message" = "Просматривайте чек-листы, руководства и карточки, которыми делятся другие моряки со всего мира.";
 

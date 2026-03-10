@@ -150,6 +150,18 @@ enum L10n {
     )
 
     enum DiscoverView {
+        static let tabContent = NSLocalizedString(
+            "discover.tab.content",
+            tableName: "Localizable",
+            comment: "Discover tab label for community content"
+        )
+
+        static let tabCharters = NSLocalizedString(
+            "discover.tab.charters",
+            tableName: "Localizable",
+            comment: "Discover tab label for charter discovery"
+        )
+
         static let emptyStateTitle = NSLocalizedString(
             "discover.emptyState.title",
             tableName: "Localizable",

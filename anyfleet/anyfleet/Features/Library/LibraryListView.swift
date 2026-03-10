@@ -45,7 +45,9 @@ struct LibraryListView: View {
 
     @ViewBuilder
     private var contentView: some View {
-        if viewModel.isEmpty && !viewModel.isLoading {
+        if viewModel.isLoading && viewModel.isEmpty {
+            LibrarySkeletonListView()
+        } else if viewModel.isEmpty {
             LibraryEmptyState()
         } else {
             LibraryContentList(viewModel: viewModel)
@@ -277,6 +279,29 @@ struct CreateContentMenu: View {
             Image(systemName: "plus.circle.fill")
                 .font(.system(size: 22))
                 .foregroundColor(DesignSystem.Colors.primary)
+        }
+    }
+}
+
+struct LibrarySkeletonListView: View {
+    @State private var animating = false
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: DesignSystem.Spacing.sm) {
+                ForEach(0..<5, id: \.self) { _ in
+                    DesignSystem.LibrarySkeletonRow(animating: animating)
+                }
+            }
+            .padding(.horizontal, DesignSystem.Spacing.lg)
+            .padding(.top, DesignSystem.Spacing.sm)
+        }
+        .background(DesignSystem.Colors.background.ignoresSafeArea())
+        .allowsHitTesting(false)
+        .onAppear {
+            withAnimation(.linear(duration: 1.2).repeatForever(autoreverses: false)) {
+                animating = true
+            }
         }
     }
 }

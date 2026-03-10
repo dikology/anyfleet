@@ -7,8 +7,15 @@ struct DiscoverView: View {
 
     // Content type tab selection
     enum ContentTab: String, CaseIterable {
-        case content = "Content"
-        case charters = "Charters"
+        case content
+        case charters
+
+        var localizedTitle: String {
+            switch self {
+            case .content: return L10n.DiscoverView.tabContent
+            case .charters: return L10n.DiscoverView.tabCharters
+            }
+        }
     }
     @State private var selectedTab: ContentTab = .content
 
@@ -91,7 +98,7 @@ struct DiscoverView: View {
     private var contentTabPicker: some View {
         Picker("Content Type", selection: $selectedTab) {
             ForEach(ContentTab.allCases, id: \.self) { tab in
-                Text(tab.rawValue).tag(tab)
+                Text(tab.localizedTitle).tag(tab)
             }
         }
         .pickerStyle(.segmented)
