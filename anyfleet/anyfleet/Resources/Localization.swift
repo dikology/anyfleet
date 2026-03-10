@@ -1651,6 +1651,11 @@ enum L10n {
                     tableName: "Localizable",
                     comment: "Badge label for past charters"
                 )
+                static let ongoing = NSLocalizedString(
+                    "charter.discovery.badge.ongoing",
+                    tableName: "Localizable",
+                    comment: "Badge label for ongoing charters"
+                )
                 static let imminent = NSLocalizedString(
                     "charter.discovery.badge.imminent",
                     tableName: "Localizable",

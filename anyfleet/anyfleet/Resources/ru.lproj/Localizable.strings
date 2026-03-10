@@ -265,6 +265,7 @@
 
 // Urgency badges
 "charter.discovery.badge.past" = "Прошедший";
+"charter.discovery.badge.ongoing" = "Идёт";
 "charter.discovery.badge.imminent" = "На этой неделе";
 "charter.discovery.badge.soon" = "В этом месяце";
 "charter.discovery.badge.upcoming" = "Предстоящий";

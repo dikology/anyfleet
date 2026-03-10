@@ -286,7 +286,8 @@
 
 // Urgency badges
 "charter.discovery.badge.past" = "Past";
-"charter.discovery.badge.imminent" = "This week";
+"charter.discovery.badge.ongoing" = "Ongoing";
+"charter.discovery.badge.imminent" = "Starts this week";
 "charter.discovery.badge.soon" = "This month";
 "charter.discovery.badge.upcoming" = "Upcoming";
 

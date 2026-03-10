@@ -158,6 +158,7 @@ private extension CharterUrgencyLevel {
     var mapPinColor: Color {
         switch self {
         case .past: return .gray
+        case .ongoing: return .green
         case .imminent: return .red
         case .soon: return .orange
         case .future: return DesignSystem.Colors.primary
