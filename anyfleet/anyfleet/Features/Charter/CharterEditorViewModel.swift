@@ -205,9 +205,16 @@ final class CharterEditorViewModel: ErrorHandling {
                     checkInChecklistID: nil
                 )
 
-                if charter.visibility != form.visibility {
+                // For any non-private charter, updateVisibility sets needsSync = true (idempotent
+                // when visibility hasn't changed) and triggers an immediate push. This ensures
+                // field edits (name, vessel, dates) on shared charters sync right away instead of
+                // waiting up to 5 minutes for the SyncCoordinator timer.
+                if form.visibility != .private {
                     try await charterStore.updateVisibility(charterID, visibility: form.visibility)
                     await charterSyncService?.pushPendingCharters()
+                } else if charter.visibility != .private {
+                    // Transitioning from non-private to private: update visibility only, no push.
+                    try await charterStore.updateVisibility(charterID, visibility: .private)
                 }
 
                 AppLogger.view.info("Charter updated successfully with ID: \(charter.id.uuidString)")

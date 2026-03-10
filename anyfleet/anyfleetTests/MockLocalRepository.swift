@@ -32,6 +32,7 @@ final class MockLocalRepository: CharterRepository, @unchecked Sendable {
     var saveCharterCallCount = 0
     var deleteCharterCallCount = 0
     var fetchAllChartersCallCount = 0
+    var fetchCharterCallCount = 0
     var fetchPendingSyncChartersCallCount = 0
     var markCharterSyncedCallCount = 0
     var updateCharterVisibilityCallCount = 0
@@ -39,6 +40,7 @@ final class MockLocalRepository: CharterRepository, @unchecked Sendable {
 
     // MARK: Last Call Arguments
     var lastCreatedCharter: CharterModel?
+    var lastSavedCharter: CharterModel?
     var lastMarkedSyncedID: UUID?
     var lastMarkedSyncedServerID: UUID?
     var lastUpdatedVisibilityID: UUID?
@@ -62,6 +64,7 @@ final class MockLocalRepository: CharterRepository, @unchecked Sendable {
     }
     
     func fetchCharter(id: UUID) async throws -> CharterModel? {
+        fetchCharterCallCount += 1
         return try fetchCharterResult.get()
     }
     
@@ -73,6 +76,7 @@ final class MockLocalRepository: CharterRepository, @unchecked Sendable {
     
     func saveCharter(_ charter: CharterModel) async throws {
         saveCharterCallCount += 1
+        lastSavedCharter = charter
         try saveCharterResult.get()
     }
     

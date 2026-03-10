@@ -790,6 +790,22 @@ extension LocalRepository {
         }
     }
     
+    /// Immediately exhaust the retry counter for a terminal-error operation so it is
+    /// never re-processed by `fetchPending`. Stores the error for diagnostics.
+    func exhaustSyncRetries(_ operationID: Int64, maxRetries: Int, error: String) async throws {
+        try await database.dbWriter.write { db in
+            try SyncQueueRecord.exhaustRetries(id: operationID, maxRetries: maxRetries, error: error, db: db)
+        }
+    }
+
+    /// Reset all permanently-failed sync operations back to retryCount = 0 so they
+    /// re-enter the processing queue. Called from "retry all failed" UI actions.
+    func resetFailedSyncOperations(maxRetries: Int) async throws {
+        try await database.dbWriter.write { db in
+            try SyncQueueRecord.resetFailed(maxRetries: maxRetries, db: db)
+        }
+    }
+
     /// Get sync queue counts
     func getSyncQueueCounts() async throws -> (pending: Int, failed: Int) {
         try await database.dbWriter.read { db in

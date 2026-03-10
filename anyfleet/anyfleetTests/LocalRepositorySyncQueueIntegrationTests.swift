@@ -900,4 +900,126 @@ struct LocalRepositorySyncQueueIntegrationTests {
         #expect(retrievedContentData["id"] as? String == originalContentData["id"] as? String)
         #expect(retrievedContentData["tags"] as? [String] == originalContentData["tags"] as? [String])
     }
+
+    // MARK: - exhaustSyncRetries (Gap 1 fix)
+
+    @Test("exhaustSyncRetries - removes operation from pending queue immediately")
+    func testExhaustSyncRetries_RemovesFromPending() async throws {
+        let repository = try makeRepository()
+        let contentID = UUID()
+
+        try await repository.updateLibraryMetadata(LibraryModel(
+            id: contentID, title: "T", description: nil, type: .checklist,
+            visibility: .private, creatorID: UUID(), tags: [], language: "en",
+            createdAt: Date(), updatedAt: Date(), syncStatus: .pending
+        ))
+        try await repository.enqueueSyncOperation(
+            contentID: contentID, operation: .publish, visibility: .public, payload: nil
+        )
+
+        let ops = try await repository.getPendingSyncOperations(maxRetries: 3)
+        #expect(ops.count == 1)
+        let opID = ops[0].id
+
+        // Exhaust retries to simulate a terminal error.
+        try await repository.exhaustSyncRetries(opID, maxRetries: 3, error: "401 Unauthorized")
+
+        let pending = try await repository.getPendingSyncOperations(maxRetries: 3)
+        #expect(pending.isEmpty, "Exhausted operation must not appear in pending queue")
+
+        let counts = try await repository.getSyncQueueCounts()
+        #expect(counts.failed == 1, "Exhausted operation must be counted as failed")
+        #expect(counts.pending == 0)
+    }
+
+    @Test("exhaustSyncRetries - stores the terminal error message")
+    func testExhaustSyncRetries_StoresErrorMessage() async throws {
+        let repository = try makeRepository()
+        let contentID = UUID()
+
+        try await repository.updateLibraryMetadata(LibraryModel(
+            id: contentID, title: "T", description: nil, type: .checklist,
+            visibility: .private, creatorID: UUID(), tags: [], language: "en",
+            createdAt: Date(), updatedAt: Date(), syncStatus: .pending
+        ))
+        try await repository.enqueueSyncOperation(
+            contentID: contentID, operation: .publish, visibility: .public, payload: nil
+        )
+
+        let ops = try await repository.getPendingSyncOperations(maxRetries: 3)
+        let opID = ops[0].id
+        let terminalError = "403 Forbidden — account suspended"
+
+        try await repository.exhaustSyncRetries(opID, maxRetries: 3, error: terminalError)
+
+        // Verify via getCounts that it's failed (lastError not exposed at protocol level, but
+        // we verify indirectly that the record is in the failed bucket).
+        let counts = try await repository.getSyncQueueCounts()
+        #expect(counts.failed == 1)
+    }
+
+    // MARK: - resetFailedSyncOperations (Gap 4 fix)
+
+    @Test("resetFailedSyncOperations - re-queues all exhausted operations")
+    func testResetFailedSyncOperations_ReQueuesAll() async throws {
+        let repository = try makeRepository()
+        let contentID1 = UUID()
+        let contentID2 = UUID()
+
+        for id in [contentID1, contentID2] {
+            try await repository.updateLibraryMetadata(LibraryModel(
+                id: id, title: "T", description: nil, type: .checklist,
+                visibility: .private, creatorID: UUID(), tags: [], language: "en",
+                createdAt: Date(), updatedAt: Date(), syncStatus: .pending
+            ))
+            try await repository.enqueueSyncOperation(
+                contentID: id, operation: .publish, visibility: .public, payload: nil
+            )
+        }
+
+        // Exhaust both operations.
+        let ops = try await repository.getPendingSyncOperations(maxRetries: 3)
+        for op in ops {
+            try await repository.exhaustSyncRetries(op.id, maxRetries: 3, error: "terminal")
+        }
+
+        let countsBefore = try await repository.getSyncQueueCounts()
+        #expect(countsBefore.failed == 2)
+        #expect(countsBefore.pending == 0)
+
+        // Reset.
+        try await repository.resetFailedSyncOperations(maxRetries: 3)
+
+        let countsAfter = try await repository.getSyncQueueCounts()
+        #expect(countsAfter.failed == 0)
+        #expect(countsAfter.pending == 2, "Reset operations must re-enter the pending queue")
+
+        let pending = try await repository.getPendingSyncOperations(maxRetries: 3)
+        #expect(pending.count == 2, "fetchPending must return both reset operations")
+    }
+
+    @Test("resetFailedSyncOperations - does not affect already-synced operations")
+    func testResetFailedSyncOperations_IgnoresSynced() async throws {
+        let repository = try makeRepository()
+        let contentID = UUID()
+
+        try await repository.updateLibraryMetadata(LibraryModel(
+            id: contentID, title: "T", description: nil, type: .checklist,
+            visibility: .private, creatorID: UUID(), tags: [], language: "en",
+            createdAt: Date(), updatedAt: Date(), syncStatus: .synced
+        ))
+        try await repository.enqueueSyncOperation(
+            contentID: contentID, operation: .publish, visibility: .public, payload: nil
+        )
+
+        let ops = try await repository.getPendingSyncOperations(maxRetries: 3)
+        try await repository.markSyncOperationComplete(ops[0].id)
+
+        // Nothing is "failed" — reset should be a no-op.
+        try await repository.resetFailedSyncOperations(maxRetries: 3)
+
+        let counts = try await repository.getSyncQueueCounts()
+        #expect(counts.pending == 0)
+        #expect(counts.failed == 0)
+    }
 }

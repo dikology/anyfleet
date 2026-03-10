@@ -132,6 +132,7 @@ nonisolated struct CharterRecord: Codable, FetchableRecord, PersistableRecord {
             startDate: startDate,
             endDate: endDate,
             createdAt: createdAt,
+            updatedAt: updatedAt,
             checkInChecklistID: checkInChecklistID.flatMap { UUID(uuidString: $0) },
             serverID: serverID.flatMap { UUID(uuidString: $0) },
             visibility: CharterVisibility(rawValue: visibility) ?? .private,

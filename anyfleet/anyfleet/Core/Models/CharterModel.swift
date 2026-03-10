@@ -16,6 +16,9 @@ nonisolated struct CharterModel: Identifiable, Hashable, Sendable {
     var startDate: Date
     var endDate: Date
     var createdAt: Date
+    /// Timestamp of the most recent local or server-side modification.
+    /// Used for last-write-wins conflict resolution during pull syncs.
+    var updatedAt: Date = Date()
     /// Check-in checklist ID
     var checkInChecklistID: UUID?
 

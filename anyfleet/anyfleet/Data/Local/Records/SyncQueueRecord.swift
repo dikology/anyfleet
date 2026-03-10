@@ -90,6 +90,26 @@ extension SyncQueueRecord {
             arguments: [error, nextRetryAt, id]
         )
     }
+
+    /// Jump retryCount straight to `maxRetries` so `fetchPending` never picks this
+    /// record up again. Used for terminal errors (401, 403, 409 on publish, etc.)
+    /// that can never succeed regardless of how many times they are retried.
+    nonisolated static func exhaustRetries(id: Int64, maxRetries: Int, error: String, db: Database) throws {
+        try db.execute(
+            sql: "UPDATE sync_queue SET retryCount = ?, lastError = ?, nextRetryAt = NULL WHERE id = ?",
+            arguments: [maxRetries, error, id]
+        )
+    }
+
+    /// Reset all failed operations (retryCount >= maxRetries, not yet synced) back to
+    /// retryCount = 0 so they re-enter the processing queue. Provides the user with
+    /// an explicit "retry all failed" escape hatch.
+    nonisolated static func resetFailed(maxRetries: Int, db: Database) throws {
+        try db.execute(
+            sql: "UPDATE sync_queue SET retryCount = 0, lastError = NULL, nextRetryAt = NULL WHERE syncedAt IS NULL AND retryCount >= ?",
+            arguments: [maxRetries]
+        )
+    }
     
     /// Get counts for UI display
     nonisolated static func getCounts(db: Database) throws -> (pending: Int, failed: Int) {

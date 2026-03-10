@@ -111,6 +111,7 @@ struct CharterAPIResponse: Codable {
             startDate: startDate,
             endDate: endDate,
             createdAt: createdAt,
+            updatedAt: updatedAt,
             checkInChecklistID: nil,
             serverID: id,
             visibility: CharterVisibility(rawValue: visibility) ?? .private,

@@ -273,8 +273,8 @@ private extension CharterEditorView {
                 Task { await viewModel.saveCharter() }
             } label: {
                 Text(viewModel.isNewCharter ? L10n.charterSummaryCreateCharter : L10n.Charter.Editor.saveTitle)
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundColor(.black)
+                    .font(DesignSystem.Typography.title)
+                    .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .frame(height: 56)
                     .background(DesignSystem.Gradients.primaryButton)
