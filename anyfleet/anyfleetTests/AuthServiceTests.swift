@@ -149,6 +149,58 @@ struct AuthServiceTests {
         #expect(response.user.email == "test@example.com")
     }
     
+    // MARK: - Profile Update Request Tests
+
+    @Test("Update profile request uses PUT method - backend requires PUT not PATCH")
+    func testUpdateProfileRequest_UsesPutMethod() throws {
+        let request = try AuthService.buildUpdateProfileRequest(
+            baseURL: "https://api.example.com/api/v1",
+            username: "TestUser",
+            bio: "Test bio",
+            location: nil,
+            nationality: nil,
+            profileVisibility: nil
+        )
+        #expect(request.httpMethod == "PUT")
+        #expect(request.url?.absoluteString == "https://api.example.com/api/v1/auth/me")
+    }
+
+    @Test("Update profile request body encodes fields correctly")
+    func testUpdateProfileRequest_BodyEncoding() throws {
+        let request = try AuthService.buildUpdateProfileRequest(
+            baseURL: "https://api.example.com/api/v1",
+            username: "NewName",
+            bio: "Pilot bio",
+            location: "NYC",
+            nationality: "US",
+            profileVisibility: "public"
+        )
+        #expect(request.httpMethod == "PUT")
+        let body = try #require(request.httpBody)
+        let json = try JSONSerialization.jsonObject(with: body) as? [String: Any]
+        #expect(json?["username"] as? String == "NewName")
+        #expect(json?["bio"] as? String == "Pilot bio")
+        #expect(json?["location"] as? String == "NYC")
+        #expect(json?["nationality"] as? String == "US")
+        #expect(json?["profile_visibility"] as? String == "public")
+    }
+
+    @Test("Update profile request omits nil fields")
+    func testUpdateProfileRequest_OmitsNilFields() throws {
+        let request = try AuthService.buildUpdateProfileRequest(
+            baseURL: "https://api.example.com/api/v1",
+            username: "OnlyUsername",
+            bio: nil,
+            location: nil,
+            nationality: nil,
+            profileVisibility: nil
+        )
+        let body = try #require(request.httpBody)
+        let json = try JSONSerialization.jsonObject(with: body) as? [String: Any]
+        #expect(json?["username"] as? String == "OnlyUsername")
+        #expect(json?.count == 1)
+    }
+
     // MARK: - UserInfo Tests
     
     @Test("UserInfo - username optional")
