@@ -369,6 +369,12 @@ final class AppDatabase: Sendable {
             }
         }
 
+        migrator.registerMigration("v2.1.0_addOriginalAuthorUserId") { db in
+            try db.alter(table: "library_content") { t in
+                t.add(column: "originalAuthorUserId", .text)
+            }
+        }
+
         return migrator
     }
     

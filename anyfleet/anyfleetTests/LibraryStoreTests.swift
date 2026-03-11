@@ -316,12 +316,14 @@ struct LibraryStoreTests {
             publicID: "test-checklist-123",
             canFork: true,
             authorUsername: "testuser",
+            authorUserId: nil,
             viewCount: 10,
             forkCount: 2,
             createdAt: Date(),
             updatedAt: Date(),
             forkedFromID: nil,
             originalAuthorUsername: nil,
+            originalAuthorUserId: nil,
             originalContentPublicID: nil
         )
         
@@ -377,12 +379,14 @@ struct LibraryStoreTests {
             publicID: "test-guide-123",
             canFork: true,
             authorUsername: "guideauthor",
+            authorUserId: nil,
             viewCount: 5,
             forkCount: 1,
             createdAt: Date(),
             updatedAt: Date(),
             forkedFromID: nil,
             originalAuthorUsername: nil,
+            originalAuthorUserId: nil,
             originalContentPublicID: nil
         )
         
@@ -489,12 +493,14 @@ struct LibraryStoreTests {
             publicID: "complex-checklist-456",
             canFork: true,
             authorUsername: "complexuser",
+            authorUserId: nil,
             viewCount: 20,
             forkCount: 5,
             createdAt: Date(),
             updatedAt: Date(),
             forkedFromID: nil,
             originalAuthorUsername: nil,
+            originalAuthorUserId: nil,
             originalContentPublicID: nil
         )
         
@@ -536,12 +542,14 @@ struct LibraryStoreTests {
             publicID: "unknown-123",
             canFork: true,
             authorUsername: "unknownuser",
+            authorUserId: nil,
             viewCount: 0,
             forkCount: 0,
             createdAt: Date(),
             updatedAt: Date(),
             forkedFromID: nil,
             originalAuthorUsername: nil,
+            originalAuthorUserId: nil,
             originalContentPublicID: nil
         )
         

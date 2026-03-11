@@ -316,7 +316,9 @@ final class LibraryStore: LibraryStoreProtocol {
 
         var updatedMetadata = lastCreated
         updatedMetadata.forkedFromID = sharedContent.id
-        updatedMetadata.originalAuthorUsername = sharedContent.authorUsername
+        // Use original author from attribution when content is a fork, else the content author
+        updatedMetadata.originalAuthorUsername = sharedContent.originalAuthorUsername ?? sharedContent.authorUsername
+        updatedMetadata.originalAuthorUserId = sharedContent.originalAuthorUserId ?? sharedContent.authorUserId
         updatedMetadata.originalContentPublicID = sharedContent.publicID
 
         do {

@@ -48,12 +48,14 @@ final class DiscoverContentReaderViewModel: ErrorHandling {
             publicID: detail.publicID,
             canFork: detail.canFork,
             authorUsername: detail.authorUsername,
+            authorUserId: detail.authorUserId,
             viewCount: detail.viewCount,
             forkCount: detail.forkCount + 1,
             createdAt: detail.createdAt,
             updatedAt: detail.updatedAt,
             forkedFromID: detail.forkedFromID,
             originalAuthorUsername: detail.originalAuthorUsername,
+            originalAuthorUserId: detail.originalAuthorUserId,
             originalContentPublicID: detail.originalContentPublicID
         )
     }

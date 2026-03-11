@@ -369,6 +369,21 @@ struct AuthorProfile {
     let nationality: String?
     let isVerified: Bool
     let stats: AuthorStats?
+
+    /// Create from UserInfo (e.g. when showing current user's profile from library)
+    static func fromUserInfo(_ user: UserInfo) -> AuthorProfile {
+        AuthorProfile(
+            username: user.username ?? "Unknown",
+            email: user.email,
+            profileImageUrl: user.profileImageUrl,
+            profileImageThumbnailUrl: user.profileImageThumbnailUrl,
+            bio: user.bio,
+            location: user.location,
+            nationality: user.nationality,
+            isVerified: false,
+            stats: nil
+        )
+    }
 }
 
 struct AuthorStats {

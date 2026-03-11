@@ -20,6 +20,7 @@ nonisolated struct LibraryModelRecord: Codable, FetchableRecord, PersistableReco
     var creatorID: String?
     var forkedFromID: String?
     var originalAuthorUsername: String?
+    var originalAuthorUserId: String?
     var originalContentPublicID: String?
     var forkCount: Int
     var ratingAverage: Double?
@@ -39,7 +40,7 @@ nonisolated struct LibraryModelRecord: Codable, FetchableRecord, PersistableReco
     
     enum Columns: String, ColumnExpression {
         case id, title, description, type, visibility
-        case creatorID, forkedFromID, originalAuthorUsername, originalContentPublicID, forkCount
+        case creatorID, forkedFromID, originalAuthorUsername, originalAuthorUserId, originalContentPublicID, forkCount
         case ratingAverage, ratingCount, tags, language
         case isPinned, pinnedOrder
         case createdAt, updatedAt, syncStatus
@@ -57,6 +58,7 @@ nonisolated struct LibraryModelRecord: Codable, FetchableRecord, PersistableReco
         creatorID: String? = nil,
         forkedFromID: String? = nil,
         originalAuthorUsername: String? = nil,
+        originalAuthorUserId: String? = nil,
         originalContentPublicID: String? = nil,
         forkCount: Int = 0,
         ratingAverage: Double? = nil,
@@ -80,6 +82,7 @@ nonisolated struct LibraryModelRecord: Codable, FetchableRecord, PersistableReco
         self.creatorID = creatorID
         self.forkedFromID = forkedFromID
         self.originalAuthorUsername = originalAuthorUsername
+        self.originalAuthorUserId = originalAuthorUserId
         self.originalContentPublicID = originalContentPublicID
         self.forkCount = forkCount
         self.ratingAverage = ratingAverage
@@ -107,6 +110,7 @@ nonisolated struct LibraryModelRecord: Codable, FetchableRecord, PersistableReco
         self.creatorID = model.creatorID?.uuidString
         self.forkedFromID = model.forkedFromID?.uuidString
         self.originalAuthorUsername = model.originalAuthorUsername
+        self.originalAuthorUserId = model.originalAuthorUserId?.uuidString
         self.originalContentPublicID = model.originalContentPublicID
         self.forkCount = model.forkCount
         self.ratingAverage = model.ratingAverage
@@ -169,6 +173,7 @@ nonisolated struct LibraryModelRecord: Codable, FetchableRecord, PersistableReco
             forkedFromID: forkedFromID.flatMap { UUID(uuidString: $0) },
             forkCount: forkCount,
             originalAuthorUsername: originalAuthorUsername,
+            originalAuthorUserId: originalAuthorUserId.flatMap { UUID(uuidString: $0) },
             originalContentPublicID: originalContentPublicID,
             ratingAverage: ratingAverage,
             ratingCount: ratingCount,

@@ -1108,6 +1108,7 @@ struct ContentSyncServiceIntegrationTests {
             publicID: publicID,
             canFork: true,
             authorUsername: "testuser",
+            authorUserId: nil,
             viewCount: 0,
             forkCount: 0,
             createdAt: editedChecklist.createdAt,
@@ -1179,6 +1180,7 @@ class MockAPIClient: APIClientProtocol {
             publicID: publicID,
             publishedAt: Date(),
             authorUsername: "mockuser",
+            authorUserId: nil,
             canFork: canFork
         )
     }
@@ -1209,6 +1211,7 @@ class MockAPIClient: APIClientProtocol {
             publicID: publicID,
             canFork: true,
             authorUsername: "mockauthor",
+            authorUserId: nil,
             viewCount: 0,
             forkCount: 0,
             createdAt: Date(),
@@ -1255,6 +1258,10 @@ class MockAPIClient: APIClientProtocol {
                 totalForks: 2
             )
         )
+    }
+
+    func fetchPublicProfileByUserId(_ userId: UUID) async throws -> PublicProfileResponse {
+        return try await fetchPublicProfile(username: "user-\(userId.uuidString.prefix(8))")
     }
 
     // MARK: Charter API

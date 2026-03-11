@@ -175,6 +175,7 @@ struct APIClientTests {
             publicID: originalPublicID,
             publishedAt: originalPublishedAt,
             authorUsername: originalAuthorUsername,
+            authorUserId: nil,
             canFork: originalCanFork
         )
 
@@ -208,6 +209,7 @@ struct APIClientTests {
             publicID: "encoded-test-999",
             publishedAt: Date(timeIntervalSince1970: 1735038000), // 2024-12-24T11:00:00Z (UTC)
             authorUsername: "encoder",
+            authorUserId: nil,
             canFork: true
         )
 

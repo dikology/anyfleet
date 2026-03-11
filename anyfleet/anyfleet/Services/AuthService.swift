@@ -474,12 +474,18 @@ final class AuthService: AuthServiceProtocol {
 
     // MARK: - Profile Update
 
-    func updateProfile(username: String? = nil, bio: String? = nil, location: String? = nil, nationality: String? = nil, profileVisibility: String? = nil) async throws -> UserInfo {
-        AppLogger.auth.info("Updating profile")
-
+    /// Builds the URLRequest for profile update. Exposed for testing to verify HTTP method and body.
+    static func buildUpdateProfileRequest(
+        baseURL: String,
+        username: String?,
+        bio: String?,
+        location: String?,
+        nationality: String?,
+        profileVisibility: String?
+    ) throws -> URLRequest {
         let url = URL(string: "\(baseURL)/auth/me")!
         var request = URLRequest(url: url)
-        request.httpMethod = "PATCH"
+        request.httpMethod = "PUT"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
         var body: [String: String?] = [:]
@@ -500,6 +506,20 @@ final class AuthService: AuthServiceProtocol {
         }
 
         request.httpBody = try JSONEncoder().encode(body)
+        return request
+    }
+
+    func updateProfile(username: String? = nil, bio: String? = nil, location: String? = nil, nationality: String? = nil, profileVisibility: String? = nil) async throws -> UserInfo {
+        AppLogger.auth.info("Updating profile")
+
+        let request = try Self.buildUpdateProfileRequest(
+            baseURL: baseURL,
+            username: username,
+            bio: bio,
+            location: location,
+            nationality: nationality,
+            profileVisibility: profileVisibility
+        )
 
         let data = try await makeAuthenticatedRequestWithRetry(request: request)
         let updatedUser = try JSONDecoder().decode(UserInfo.self, from: data)

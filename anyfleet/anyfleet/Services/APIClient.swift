@@ -46,6 +46,7 @@ protocol APIClientProtocol {
     ) async throws -> UpdateContentResponse
 
     func fetchPublicProfile(username: String) async throws -> PublicProfileResponse
+    func fetchPublicProfileByUserId(_ userId: UUID) async throws -> PublicProfileResponse
 
     // MARK: Charter API
 
@@ -170,11 +171,24 @@ final class APIClient: APIClientProtocol {
     func fetchPublicProfile(username: String) async throws -> PublicProfileResponse {
         AppLogger.api.debug("Fetching public profile for username: \(username)")
         do {
-            let result: PublicProfileResponse = try await getUnauthenticated("/users/\(username)", body: EmptyBody())
+            let encoded = username.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? username
+            let result: PublicProfileResponse = try await getUnauthenticated("/users/\(encoded)", body: EmptyBody())
             AppLogger.api.debug("Successfully fetched public profile for: \(username)")
             return result
         } catch {
             AppLogger.api.error("Failed to fetch public profile for \(username)", error: error)
+            throw error
+        }
+    }
+
+    func fetchPublicProfileByUserId(_ userId: UUID) async throws -> PublicProfileResponse {
+        AppLogger.api.debug("Fetching public profile for user ID: \(userId)")
+        do {
+            let result: PublicProfileResponse = try await getUnauthenticated("/users/by-id/\(userId.uuidString)", body: EmptyBody())
+            AppLogger.api.debug("Successfully fetched public profile for user ID: \(userId)")
+            return result
+        } catch {
+            AppLogger.api.error("Failed to fetch public profile for user ID \(userId)", error: error)
             throw error
         }
     }
@@ -559,6 +573,7 @@ struct PublishContentResponse: Codable {
     let publicID: String
     let publishedAt: Date
     let authorUsername: String?
+    let authorUserId: UUID?
     let canFork: Bool
 
     enum CodingKeys: String, CodingKey {
@@ -566,6 +581,7 @@ struct PublishContentResponse: Codable {
         case publicID = "public_id"
         case publishedAt = "published_at"
         case authorUsername = "author_username"
+        case authorUserId = "author_user_id"
         case canFork = "can_fork"
     }
 }
