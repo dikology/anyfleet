@@ -373,7 +373,9 @@ final class LibraryListViewModel: ErrorHandling {
     /// Fetch an author's public profile and present it in the author profile modal.
     ///
     /// Used for forked content where the original author's username is displayed.
-    func fetchAndShowAuthorProfile(username: String) async {
+    /// When authorUserId is provided and matches current user, uses current user data (handles username changes).
+    /// When authorUserId is provided, fetches by ID first (stable across username changes).
+    func fetchAndShowAuthorProfile(username: String, authorUserId: UUID? = nil) async {
         AppLogger.view.startOperation("Fetch Author Profile")
         AppLogger.view.info("Fetching library author profile for: \(username)")
 
@@ -383,7 +385,22 @@ final class LibraryListViewModel: ErrorHandling {
         }
 
         do {
-            let response = try await apiClient.fetchPublicProfile(username: username)
+            // Use current user when author is self (handles username change after profile update)
+            if let authorUserId, let currentUser = authObserver.currentUser, authorUserId.uuidString.lowercased() == currentUser.id.lowercased() {
+                let authorProfile = AuthorProfile.fromUserInfo(currentUser)
+                AppLogger.view.completeOperation("Fetch Author Profile")
+                AppLogger.view.info("Using current user profile for library author")
+                activeModal = .authorProfile(authorProfile)
+                return
+            }
+
+            // Prefer fetch by user ID when available (stable across username changes)
+            let response: PublicProfileResponse
+            if let authorUserId {
+                response = try await apiClient.fetchPublicProfileByUserId(authorUserId)
+            } else {
+                response = try await apiClient.fetchPublicProfile(username: username)
+            }
             let authorProfile = response.toAuthorProfile()
             AppLogger.view.completeOperation("Fetch Author Profile")
             AppLogger.view.info("Fetched library author profile for: \(username)")

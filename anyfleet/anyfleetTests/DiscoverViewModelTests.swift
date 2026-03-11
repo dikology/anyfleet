@@ -234,12 +234,14 @@ class DiscoverMockAPIClient: APIClientProtocol {
             publicID: publicID,
             canFork: true,
             authorUsername: "mockauthor",
+            authorUserId: nil,
             viewCount: 0,
             forkCount: 0,
             createdAt: Date(),
             updatedAt: Date(),
             forkedFromID: nil,
             originalAuthorUsername: nil,
+            originalAuthorUserId: nil,
             originalContentPublicID: nil
         )
     }
@@ -261,6 +263,10 @@ class DiscoverMockAPIClient: APIClientProtocol {
     }
 
     func fetchPublicProfile(username: String) async throws -> PublicProfileResponse {
+        throw NSError(domain: "MockError", code: 1, userInfo: nil)
+    }
+
+    func fetchPublicProfileByUserId(_ userId: UUID) async throws -> PublicProfileResponse {
         throw NSError(domain: "MockError", code: 1, userInfo: nil)
     }
 

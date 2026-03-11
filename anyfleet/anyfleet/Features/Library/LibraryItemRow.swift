@@ -13,7 +13,7 @@ struct LibraryItemRow: View {
     let contentType: ContentType
     let isSignedIn: Bool
     let onTap: () -> Void
-    let onAuthorTapped: (String) -> Void  // NEW: For viewing original author profile on forked content
+    let onAuthorTapped: (String, UUID?) -> Void  // (username, authorUserId) for viewing original author profile on forked content
     let onPublish: () -> Void
     let onUnpublish: () -> Void
     let onSignInRequired: () -> Void
@@ -138,7 +138,7 @@ struct LibraryItemRow: View {
             HStack(spacing: DesignSystem.Spacing.md) {
                 // Original author attribution for forked content
                 if item.forkedFromID != nil, let originalAuthor = item.originalAuthorUsername {
-                    Button(action: { onAuthorTapped(originalAuthor) }) {
+                    Button(action: { onAuthorTapped(originalAuthor, item.originalAuthorUserId) }) {
                         originalAuthorAvatarView(username: originalAuthor)
                             .frame(minWidth: 44, minHeight: 44)
                             .contentShape(Rectangle())
@@ -247,7 +247,7 @@ struct LibraryItemRow: View {
             contentType: .checklist,
             isSignedIn: true,
             onTap: {},
-            onAuthorTapped: { username in
+            onAuthorTapped: { username, _ in
                 print("Tapped author: \(username)")
             },
             onPublish: {},
@@ -275,7 +275,7 @@ struct LibraryItemRow: View {
             contentType: .practiceGuide,
             isSignedIn: true,
             onTap: {},
-            onAuthorTapped: { username in
+            onAuthorTapped: { username, _ in
                 print("Tapped author: \(username)")
             },
             onPublish: {},
@@ -303,7 +303,7 @@ struct LibraryItemRow: View {
             contentType: .practiceGuide,
             isSignedIn: true,
             onTap: {},
-            onAuthorTapped: { username in
+            onAuthorTapped: { username, _ in
                 print("Tapped author: \(username)")
             },
             onPublish: {},
@@ -331,7 +331,7 @@ struct LibraryItemRow: View {
             contentType: .checklist,
             isSignedIn: true,
             onTap: {},
-            onAuthorTapped: { username in
+            onAuthorTapped: { username, _ in
                 print("Tapped author: \(username)")
             },
             onPublish: {},
@@ -355,7 +355,7 @@ struct LibraryItemRow: View {
             contentType: .practiceGuide,
             isSignedIn: true,
             onTap: {},
-            onAuthorTapped: { username in
+            onAuthorTapped: { username, _ in
                 print("Tapped original author: \(username)")
             },
             onPublish: {},
@@ -376,7 +376,7 @@ struct LibraryItemRow: View {
             contentType: .practiceGuide,
             isSignedIn: false,
             onTap: {},
-            onAuthorTapped: { username in
+            onAuthorTapped: { username, _ in
                 print("Tapped author: \(username)")
             },
             onPublish: {},

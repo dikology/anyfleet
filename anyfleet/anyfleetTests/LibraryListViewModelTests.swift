@@ -16,12 +16,12 @@ struct LibraryListViewModelTests {
 
     class MockLibraryAPIClient: APIClientProtocol {
         func publishContent(title: String, description: String?, contentType: String, contentData: [String: Any], tags: [String], language: String, publicID: String, canFork: Bool, forkedFromID: UUID?) async throws -> PublishContentResponse {
-            PublishContentResponse(id: UUID(), publicID: publicID, publishedAt: Date(), authorUsername: "mock", canFork: canFork)
+            PublishContentResponse(id: UUID(), publicID: publicID, publishedAt: Date(), authorUsername: "mock", authorUserId: nil, canFork: canFork)
         }
         func unpublishContent(publicID: String) async throws {}
         func fetchPublicContent() async throws -> [SharedContentSummary] { [] }
         func fetchPublicContent(publicID: String) async throws -> SharedContentDetail {
-            SharedContentDetail(id: UUID(), title: "Mock", description: nil, contentType: "checklist", contentData: [:], tags: [], publicID: publicID, canFork: true, authorUsername: "mock", viewCount: 0, forkCount: 0, createdAt: Date(), updatedAt: Date())
+            SharedContentDetail(id: UUID(), title: "Mock", description: nil, contentType: "checklist", contentData: [:], tags: [], publicID: publicID, canFork: true, authorUsername: "mock", authorUserId: nil, viewCount: 0, forkCount: 0, createdAt: Date(), updatedAt: Date())
         }
         func incrementForkCount(publicID: String) async throws {}
         func updatePublishedContent(publicID: String, title: String, description: String?, contentType: String, contentData: [String: Any], tags: [String], language: String) async throws -> UpdateContentResponse {
@@ -29,6 +29,9 @@ struct LibraryListViewModelTests {
         }
         func fetchPublicProfile(username: String) async throws -> PublicProfileResponse {
             PublicProfileResponse(id: UUID(), username: username, profileImageUrl: nil, profileImageThumbnailUrl: nil, bio: nil, location: nil, nationality: nil, isVerified: false, verificationTier: nil, createdAt: Date(), stats: PublicProfileStatsResponse(totalContributions: 0, averageRating: nil, totalForks: 0))
+        }
+        func fetchPublicProfileByUserId(_ userId: UUID) async throws -> PublicProfileResponse {
+            try await fetchPublicProfile(username: "user-\(userId.uuidString.prefix(8))")
         }
         func createCharter(_ request: CharterCreateRequest) async throws -> CharterAPIResponse {
             CharterAPIResponse(id: UUID(), userId: UUID(), name: request.name, boatName: nil, locationText: nil, startDate: request.startDate, endDate: request.endDate, latitude: nil, longitude: nil, locationPlaceId: nil, visibility: "private", createdAt: Date(), updatedAt: Date())
@@ -440,12 +443,14 @@ class MockAppCoordinator: AppCoordinatorProtocol {
             publicID: "pub-deleted-123",
             canFork: true,
             authorUsername: "testuser",
+            authorUserId: nil,
             viewCount: 42,
             forkCount: 0,
             createdAt: Date().addingTimeInterval(-86400), // 1 day ago
             updatedAt: Date().addingTimeInterval(-3600), // 1 hour ago
             forkedFromID: nil,
             originalAuthorUsername: nil,
+            originalAuthorUserId: nil,
             originalContentPublicID: nil
         )
 

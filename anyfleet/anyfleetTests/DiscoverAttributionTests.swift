@@ -131,11 +131,13 @@ struct DiscoverAttributionTests {
             tags: ["api"],
             publicID: "api-content",
             authorUsername: "api_author",
+            authorUserId: UUID(),
             viewCount: 15,
             forkCount: 3,
             createdAt: Date(),
             forkedFromID: UUID(),
             originalAuthorUsername: "original_api_author",
+            originalAuthorUserId: UUID(),
             originalContentPublicID: "original-api-content"
         )
 

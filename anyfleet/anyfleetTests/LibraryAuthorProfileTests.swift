@@ -42,14 +42,18 @@ struct LibraryAuthorProfileTests {
             )
         }
 
+        func fetchPublicProfileByUserId(_ userId: UUID) async throws -> PublicProfileResponse {
+            return try await fetchPublicProfile(username: "user-\(userId.uuidString.prefix(8))")
+        }
+
         // Content API stubs (unused in these tests)
         func publishContent(title: String, description: String?, contentType: String, contentData: [String: Any], tags: [String], language: String, publicID: String, canFork: Bool, forkedFromID: UUID?) async throws -> PublishContentResponse {
-            PublishContentResponse(id: UUID(), publicID: publicID, publishedAt: Date(), authorUsername: "mock", canFork: canFork)
+            PublishContentResponse(id: UUID(), publicID: publicID, publishedAt: Date(), authorUsername: "mock", authorUserId: nil, canFork: canFork)
         }
         func unpublishContent(publicID: String) async throws {}
         func fetchPublicContent() async throws -> [SharedContentSummary] { [] }
         func fetchPublicContent(publicID: String) async throws -> SharedContentDetail {
-            SharedContentDetail(id: UUID(), title: "Mock", description: nil, contentType: "checklist", contentData: [:], tags: [], publicID: publicID, canFork: true, authorUsername: "mock", viewCount: 0, forkCount: 0, createdAt: Date(), updatedAt: Date())
+            SharedContentDetail(id: UUID(), title: "Mock", description: nil, contentType: "checklist", contentData: [:], tags: [], publicID: publicID, canFork: true, authorUsername: "mock", authorUserId: nil, viewCount: 0, forkCount: 0, createdAt: Date(), updatedAt: Date())
         }
         func incrementForkCount(publicID: String) async throws {}
         func updatePublishedContent(publicID: String, title: String, description: String?, contentType: String, contentData: [String: Any], tags: [String], language: String) async throws -> UpdateContentResponse {

@@ -343,9 +343,9 @@ struct LibraryContentList: View {
 
                             }
                         },
-                        onAuthorTapped: { username in
+                        onAuthorTapped: { username, authorUserId in
                             Task {
-                                await viewModel.fetchAndShowAuthorProfile(username: username)
+                                await viewModel.fetchAndShowAuthorProfile(username: username, authorUserId: authorUserId)
                             }
                         },
                         onPublish: {

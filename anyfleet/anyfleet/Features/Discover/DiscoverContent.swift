@@ -17,6 +17,7 @@ struct DiscoverContent: Identifiable, Hashable, Sendable {
     // Attribution fields
     let forkedFromID: UUID?
     let originalAuthorUsername: String?
+    let originalAuthorUserId: UUID?
     let originalContentPublicID: String?
 
     // MARK: - Initialization
@@ -34,6 +35,7 @@ struct DiscoverContent: Identifiable, Hashable, Sendable {
         createdAt: Date,
         forkedFromID: UUID? = nil,
         originalAuthorUsername: String? = nil,
+        originalAuthorUserId: UUID? = nil,
         originalContentPublicID: String? = nil
     ) {
         self.id = id
@@ -48,6 +50,7 @@ struct DiscoverContent: Identifiable, Hashable, Sendable {
         self.createdAt = createdAt
         self.forkedFromID = forkedFromID
         self.originalAuthorUsername = originalAuthorUsername
+        self.originalAuthorUserId = originalAuthorUserId
         self.originalContentPublicID = originalContentPublicID
     }
 
@@ -67,6 +70,7 @@ struct DiscoverContent: Identifiable, Hashable, Sendable {
         self.createdAt = response.createdAt
         self.forkedFromID = response.forkedFromID
         self.originalAuthorUsername = response.originalAuthorUsername
+        self.originalAuthorUserId = response.originalAuthorUserId
         self.originalContentPublicID = response.originalContentPublicID
     }
 }
@@ -82,6 +86,7 @@ struct SharedContentSummary: Codable {
     let tags: [String]
     let publicID: String
     let authorUsername: String?
+    let authorUserId: UUID?
     let viewCount: Int
     let forkCount: Int
     let createdAt: Date
@@ -89,6 +94,7 @@ struct SharedContentSummary: Codable {
     // Attribution fields
     let forkedFromID: UUID?
     let originalAuthorUsername: String?
+    let originalAuthorUserId: UUID?
     let originalContentPublicID: String?
 
     enum CodingKeys: String, CodingKey {
@@ -99,11 +105,13 @@ struct SharedContentSummary: Codable {
         case tags
         case publicID = "public_id"
         case authorUsername = "author_username"
+        case authorUserId = "author_user_id"
         case viewCount = "view_count"
         case forkCount = "fork_count"
         case createdAt = "created_at"
         case forkedFromID = "forked_from_id"
         case originalAuthorUsername = "original_author_username"
+        case originalAuthorUserId = "original_author_user_id"
         case originalContentPublicID = "original_content_public_id"
     }
 }
@@ -119,6 +127,7 @@ struct SharedContentDetail: Codable {
     let publicID: String
     let canFork: Bool
     let authorUsername: String?
+    let authorUserId: UUID?
     let viewCount: Int
     let forkCount: Int
     let createdAt: Date
@@ -127,6 +136,7 @@ struct SharedContentDetail: Codable {
     // Attribution fields
     let forkedFromID: UUID?
     let originalAuthorUsername: String?
+    let originalAuthorUserId: UUID?
     let originalContentPublicID: String?
 
     enum CodingKeys: String, CodingKey {
@@ -139,12 +149,14 @@ struct SharedContentDetail: Codable {
         case publicID = "public_id"
         case canFork = "can_fork"
         case authorUsername = "author_username"
+        case authorUserId = "author_user_id"
         case viewCount = "view_count"
         case forkCount = "fork_count"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
         case forkedFromID = "forked_from_id"
         case originalAuthorUsername = "original_author_username"
+        case originalAuthorUserId = "original_author_user_id"
         case originalContentPublicID = "original_content_public_id"
     }
 
@@ -160,12 +172,14 @@ struct SharedContentDetail: Codable {
         publicID: String,
         canFork: Bool,
         authorUsername: String?,
+        authorUserId: UUID? = nil,
         viewCount: Int,
         forkCount: Int,
         createdAt: Date,
         updatedAt: Date,
         forkedFromID: UUID? = nil,
         originalAuthorUsername: String? = nil,
+        originalAuthorUserId: UUID? = nil,
         originalContentPublicID: String? = nil
     ) {
         self.id = id
@@ -177,12 +191,14 @@ struct SharedContentDetail: Codable {
         self.publicID = publicID
         self.canFork = canFork
         self.authorUsername = authorUsername
+        self.authorUserId = authorUserId
         self.viewCount = viewCount
         self.forkCount = forkCount
         self.createdAt = createdAt
         self.updatedAt = updatedAt
         self.forkedFromID = forkedFromID
         self.originalAuthorUsername = originalAuthorUsername
+        self.originalAuthorUserId = originalAuthorUserId
         self.originalContentPublicID = originalContentPublicID
     }
 
@@ -198,6 +214,7 @@ struct SharedContentDetail: Codable {
         publicID = try container.decode(String.self, forKey: .publicID)
         canFork = try container.decode(Bool.self, forKey: .canFork)
         authorUsername = try container.decodeIfPresent(String.self, forKey: .authorUsername)
+        authorUserId = try container.decodeIfPresent(UUID.self, forKey: .authorUserId)
         viewCount = try container.decode(Int.self, forKey: .viewCount)
         forkCount = try container.decode(Int.self, forKey: .forkCount)
         createdAt = try container.decode(Date.self, forKey: .createdAt)
@@ -210,6 +227,7 @@ struct SharedContentDetail: Codable {
         // Decode attribution fields
         forkedFromID = try container.decodeIfPresent(UUID.self, forKey: .forkedFromID)
         originalAuthorUsername = try container.decodeIfPresent(String.self, forKey: .originalAuthorUsername)
+        originalAuthorUserId = try container.decodeIfPresent(UUID.self, forKey: .originalAuthorUserId)
         originalContentPublicID = try container.decodeIfPresent(String.self, forKey: .originalContentPublicID)
     }
 

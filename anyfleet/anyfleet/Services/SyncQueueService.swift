@@ -338,7 +338,8 @@ final class SyncQueueService {
                 publishedAt: response.publishedAt,
                 publicID: response.publicID,
                 canFork: response.canFork,
-                authorUsername: response.authorUsername ?? "Unknown"
+                authorUsername: response.authorUsername ?? "Unknown",
+                authorUserId: response.authorUserId
             )
             item.visibility = .public // Ensure visibility is set to public after successful publish
             item.syncStatus = .synced

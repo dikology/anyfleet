@@ -19,6 +19,7 @@ nonisolated struct LibraryModel: Identifiable, Hashable, Sendable {
 
     // Attribution for forked content
     var originalAuthorUsername: String?
+    var originalAuthorUserId: UUID?
     var originalContentPublicID: String?
     var ratingAverage: Double?
     var ratingCount: Int = 0
@@ -47,6 +48,7 @@ nonisolated struct LibraryModel: Identifiable, Hashable, Sendable {
         forkedFromID: UUID? = nil,
         forkCount: Int = 0,
         originalAuthorUsername: String? = nil,
+        originalAuthorUserId: UUID? = nil,
         originalContentPublicID: String? = nil,
         ratingAverage: Double? = nil,
         ratingCount: Int = 0,
@@ -70,6 +72,7 @@ nonisolated struct LibraryModel: Identifiable, Hashable, Sendable {
         self.forkedFromID = forkedFromID
         self.forkCount = forkCount
         self.originalAuthorUsername = originalAuthorUsername
+        self.originalAuthorUserId = originalAuthorUserId
         self.originalContentPublicID = originalContentPublicID
         self.ratingAverage = ratingAverage
         self.ratingCount = ratingCount
@@ -94,6 +97,42 @@ nonisolated struct PublicMetadata: Codable, Equatable, Hashable, Sendable {
     let publicID: String // URL-friendly slug
     let canFork: Bool
     let authorUsername: String
+    let authorUserId: UUID?
+
+    enum CodingKeys: String, CodingKey {
+        case publishedAt
+        case publicID
+        case canFork
+        case authorUsername
+        case authorUserId
+    }
+
+    init(publishedAt: Date, publicID: String, canFork: Bool, authorUsername: String, authorUserId: UUID? = nil) {
+        self.publishedAt = publishedAt
+        self.publicID = publicID
+        self.canFork = canFork
+        self.authorUsername = authorUsername
+        self.authorUserId = authorUserId
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        // Support both snake_case (new) and camelCase (legacy) for backward compatibility
+        publishedAt = try container.decode(Date.self, forKey: .publishedAt)
+        publicID = try container.decode(String.self, forKey: .publicID)
+        canFork = try container.decode(Bool.self, forKey: .canFork)
+        authorUsername = try container.decode(String.self, forKey: .authorUsername)
+        authorUserId = try container.decodeIfPresent(UUID.self, forKey: .authorUserId)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(publishedAt, forKey: .publishedAt)
+        try container.encode(publicID, forKey: .publicID)
+        try container.encode(canFork, forKey: .canFork)
+        try container.encode(authorUsername, forKey: .authorUsername)
+        try container.encodeIfPresent(authorUserId, forKey: .authorUserId)
+    }
 }
 
 // MARK: - Content Type

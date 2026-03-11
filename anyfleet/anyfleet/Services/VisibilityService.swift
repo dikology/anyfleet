@@ -204,7 +204,8 @@ final class VisibilityService: VisibilityServiceProtocol {
             publishedAt: publishedAt,
             publicID: publicID,
             canFork: true, // Default to allowing forks
-            authorUsername: authService.currentUser?.username ?? "Anonymous User"
+            authorUsername: authService.currentUser?.username ?? "Anonymous User",
+            authorUserId: authService.currentUser.flatMap { UUID(uuidString: $0.id) }
         )
 
         var updatedItem = item

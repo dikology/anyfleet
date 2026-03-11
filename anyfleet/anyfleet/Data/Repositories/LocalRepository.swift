@@ -460,6 +460,7 @@ final class LocalRepository: Sendable {
                 creatorID: existingMetadata?.creatorID,
                 forkedFromID: existingMetadata?.forkedFromID,
                 originalAuthorUsername: existingMetadata?.originalAuthorUsername,
+                originalAuthorUserId: existingMetadata?.originalAuthorUserId,
                 originalContentPublicID: existingMetadata?.originalContentPublicID,
                 tags: checklist.tags,
                 createdAt: existingMetadata?.createdAt ?? checklist.createdAt, // Preserve original creation date
@@ -505,6 +506,7 @@ final class LocalRepository: Sendable {
                 creatorID: existingMetadata?.creatorID,
                 forkedFromID: existingMetadata?.forkedFromID,
                 originalAuthorUsername: existingMetadata?.originalAuthorUsername,
+                originalAuthorUserId: existingMetadata?.originalAuthorUserId,
                 originalContentPublicID: existingMetadata?.originalContentPublicID,
                 tags: guide.tags,
                 createdAt: existingMetadata?.createdAt ?? guide.createdAt, // Preserve original creation date
