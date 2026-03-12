@@ -1,1564 +1,586 @@
-# Anyfleet – Code Review & Refactor Plan (March 2026)
+# AnyFleet iOS — March 2026 Refactor Review
 
-**Scope:** iOS app (`anyfleet/anyfleet/`) + FastAPI backend (`anyfleet-backend/`)  
-**Reviewer:** Senior iOS engineer pass — architecture, code quality, Swift/SwiftUI, UX/UI, tests, reliability
+**Scope:** Full-codebase review across 112 production Swift files (App, Core, Data, DesignSystem, Features, Services).  
+**Audience:** Junior–mid iOS engineers working on the codebase.  
+**Goal:** Identify technical debt, rank issues by impact, and tie refactoring work to the next planned feature areas.
 
 ---
 
 ## 1. Summary
 
-- **Architecture is sound overall.** MVVM + `@Observable` on iOS, layered FastAPI on the backend. The right foundations are in place; issues are tactical, not structural.
-- **Unimplemented feature reachable from UI.** The flashcard deck editor is wired up in navigation (`CreateContentMenu → coordinator.editDeck`) but the reader/editor is a `TODO` `break`. Users can trigger it today and get a silent no-op.
-- **No universal/deep-link support.** `AppCoordinator` handles navigation entirely via `AppRoute` but has no `onOpenURL` handler. For a social-sharing app (charter links, forked content), this is a significant gap.
-- **Backend has two correctness bugs.** `list_user_charters` returns `total=len(page)` instead of the true total count (pagination is broken), and `CharterRepository.find_discoverable` has a dead-expression `radius_km * 1000.0` that computes a value and discards it.
-- **Cross-cutting data contract risk.** Visibility enums exist in both Swift and Python with no shared schema contract. A new backend value will silently break the iOS client.
-- **Dual localization system is redundant.** Both a `LocalizationService` class and a SwiftGen `L10n` enum exist for the same purpose, creating confusion.
+- **Solid foundation.** MVVM + Coordinator, `@Observable` throughout, GRDB-backed offline-first sync, typed `AppRoute` navigation, and a clean `UI → ViewModel → Store → Repository → Database` layer boundary. The architecture is genuinely good.
+- **One critical state-cache bug:** `CharterStore.updateCharter()` updates the repository but never refreshes `self.charters`, so any list/detail view reading `charterStore.charters` will silently show stale data after an edit until the next full reload.
+- **Force-unwrap mines:** Three crash sites exist in production paths — `UUID!` and `SyncOperation!` in `LocalRepository`, and `EmptyResponse() as! T` in `APIClient`. None of these are behind feature flags.
+- **God file and co-location inconsistencies:** `DiscoverableCharter.swift` hosts domain model + 5 API DTOs + request types. `ProfileView.swift` is 660 lines because it embeds `ProfileViewModel`. Both slow down navigation, compilation, and testability.
+- **Next features need architectural groundwork:** Delete-with-unpublish, map user avatars, community badges, and profile overhaul all require new backend endpoints and corresponding client-side model extensions — the right time to fix the above issues is while implementing these features.
+- **Missing `@MainActor` on `AuthService`** despite directly mutating observable state from async closures — a data race under Swift 6 strict concurrency.
 
 ---
 
-## 2. Refactor Plan
+## 2. Issues & Recommendations
 
-| Priority | Step | Files |
-|---|---|---|
-| P0 | Hide or gate the flashcard deck option until implemented | `LibraryListView.swift`, `LibraryListViewModel.swift` |
-| P0 | Fix `list_user_charters` total count | `charter_service.py`, `charter.py` |
-| P1 | Add `onOpenURL` deep-link handler to `AppCoordinator` | `AppModel.swift`, `AppView.swift` |
-| P1 | Fix N+1 DELETE in `delete_user_tokens` | `user.py` |
-| P1 | Replace `get_content_stats` in-memory aggregation with SQL | `content.py` |
-| P2 | Add `unknown` case to all iOS visibility enums | `CharterVisibility.swift`, `LibraryModel.swift` |
-| P2 | Invalidate `ContentCache` on delete | `LibraryStore.swift`, `ContentCache.swift` |
-| P2 | Remove dead audience check in `apple_auth.py` | `apple_auth.py` |
-| P3 | Remove `LocalizationService` for string access, keep only for runtime language switching | `LocalizationService.swift` |
-| P3 | Restrict `test-signin` endpoint to compile-time exclusion | `auth.py`, router setup |
+### Architecture
+
+| # | Issue | File(s) | Priority |
+|---|-------|---------|----------|
+| A1 | `updateCharter()` doesn't update in-memory cache | `CharterStore.swift:154` | **Critical** |
+| A2 | `DiscoverableCharter.swift` is a god file (domain + DTOs + requests) | `Core/Models/DiscoverableCharter.swift` | High |
+| A3 | `ProfileViewModel` co-located in `ProfileView.swift` (660 lines) | `Features/Profile/ProfileView.swift` | High |
+| A4 | Fallback `init()` in `CharterListView` creates `AppDependencies()` (not `.shared`), spawning a second `SyncCoordinator` | `CharterListView.swift:15` | High |
+| A5 | `AuthService` not `@MainActor` despite mutating observable state from async closures | `Services/AuthService.swift` | Medium |
+| A6 | `AppDependencies.makeForTesting()` discards a `CharterStore` with `_ = ...` (documented bug, unfixed) | `AppDependencies.swift:283` | Medium |
+| A7 | Delete-charter flow does **not** unpublish from backend if `serverID != nil` | `CharterStore.swift`, `CharterSyncService.swift` | High (feature gap) |
+
+### Code Quality
+
+| # | Issue | File(s) | Priority |
+|---|-------|---------|----------|
+| C1 | Force-unwrap crash: `UUID(uuidString:)!` and `SyncOperation(rawValue:)!` | `LocalRepository.swift:766–767` | **Critical** |
+| C2 | Force-cast crash: `EmptyResponse() as! T` | `APIClient.swift:441` | **Critical** |
+| C3 | Magic content-type strings (`"checklist"`, `"practice_guide"`) in fork logic | `LibraryStore.swift` | Medium |
+| C4 | Hardcoded section titles "Upcoming" / "Past" bypass L10n | `CharterListView.swift:145,172` | Low |
+| C5 | Commented-out sync-enqueue calls throughout `LocalRepository` (TODOs deferred) | `LocalRepository.swift` | Medium |
+| C6 | `CLLocationManager` created inside `CharterDiscoveryViewModel.init()` — not injectable, untestable | `CharterDiscoveryViewModel.swift:46` | Medium |
+
+### Swift / SwiftUI
+
+| # | Issue | File(s) | Priority |
+|---|-------|---------|----------|
+| S1 | `ProfileViewModel` has per-method `@MainActor` annotations instead of class-level (inconsistent with rest of codebase) | `ProfileView.swift:47,55,65` | Low |
+| S2 | `resetFilters()` spawns a detached `Task { }` inside a `@MainActor` class — implicit structured-concurrency break | `CharterDiscoveryViewModel.swift:77` | Medium |
+| S3 | Sorting (`sorted { $0.startDate < $1.startDate }`) done inline inside `body`, re-runs on every render | `CharterListView.swift:124,153` | Low |
+| S4 | `returnIsInDifferentMonth` in `CharterTimelineRow` creates a `Calendar.current` on every evaluation | `CharterListView.swift:355` | Low |
+| S5 | `FlashcardDeck` is a placeholder stub scattered across `LibraryStore`, `AppCoordinator`, and routes | Multiple | Medium (cleanup before expansion) |
+
+### UX / UI
+
+| # | Issue | File(s) | Priority |
+|---|-------|---------|----------|
+| U1 | Map pins (`CharterMapAnnotation`) are not tappable profiles — no avatar, no community badge | `CharterMapView.swift` | High (Phase 3) |
+| U2 | Delete action on a publicly-synced charter gives no confirmation that it will be removed from discovery | `CharterListView.swift:132` | High |
+| U3 | Swipe actions have no discovery affordance — no gesture hint on first launch | `CharterListView.swift:131` | Medium |
+| U4 | Profile page has no communities section, no social links, no activity stats | `ProfileView.swift` | High (Phase 3) |
+| U5 | Home tab has no "nearby captains" section even when an active charter exists | `HomeView.swift` | High (Phase 3) |
+| U6 | Empty state on discovery map shows nothing (no messaging when 0 results) | `CharterMapView.swift` | Medium |
+| U7 | "Delete Account" button in Profile has an empty action closure | `ProfileView.swift` | Medium |
+
+### Tests
+
+| # | Issue | Priority |
+|---|-------|----------|
+| T1 | `CharterStore.updateCharter()` cache-drift bug has no regression test | **Critical** |
+| T2 | Delete-then-check-discovery flow (A7) has no integration test | High |
+| T3 | `APIClient` force-cast path (`EmptyResponse as! T`) is not covered | High |
+| T4 | `CharterDiscoveryViewModel` pagination + stale-cache behaviour lacks unit tests | Medium |
+| T5 | `CharterSyncService.pushPendingCharters()` with unauthenticated user path is tested, but delete-while-public path is not | Medium |
 
 ---
 
-## 3. Issues & Recommendations
+## 3. Refactor Plan (8 steps, ordered by risk/impact)
 
-### 3.1 Architecture
+### Step 1 — Fix `CharterStore.updateCharter()` cache drift *(Critical, ~30 min)*
 
-#### iOS — Flashcard Deck: Reachable Dead End
-
-`CreateContentMenu` presents a "New Flashcard Deck" option. Tapping it calls `viewModel.onCreateDeckTapped()` → `coordinator.editDeck(nil)`. The reader tap handler in `LibraryContentList` is:
+**Problem:** `updateCharter()` returns the updated model from the repo but never writes it back to `self.charters`. Any view observing `charterStore.charters` shows stale data until the next `loadCharters()`.
 
 ```swift
-case .flashcardDeck:
-    // TODO: Implement deck reader when ready
-    break
-```
+// CharterStore.swift — current (broken)
+func updateCharter(_ charterID: UUID, ...) async throws -> CharterModel {
+    let charter = try await repository.updateCharter(charterID, ...)
+    // ❌ self.charters is never updated here
+    return charter
+}
 
-The swipe-to-edit action also calls `viewModel.onEditDeckTapped(item.id)` with no guard. This is silent and confusing.
-
-**Fix:** Hide the menu item and swipe action until the feature is ready.
-
-```swift
-// In CreateContentMenu.body
-Menu {
-    Button { viewModel.onCreateChecklistTapped() } label: {
-        Label(L10n.Library.newChecklist, systemImage: "checklist")
+// CharterStore.swift — fixed
+func updateCharter(_ charterID: UUID, ...) async throws -> CharterModel {
+    let charter = try await repository.updateCharter(charterID, ...)
+    if let index = charters.firstIndex(where: { $0.id == charterID }) {
+        charters[index] = charter          // ✅ keep cache consistent
     }
-    Button { viewModel.onCreateGuideTapped() } label: {
-        Label(L10n.Library.newPracticeGuide, systemImage: "book")
-    }
-    // Flashcard deck item removed until feature ships
-} label: {
-    Image(systemName: "plus.circle.fill")
-        .font(.system(size: 22))
-        .foregroundColor(DesignSystem.Colors.primary)
+    return charter
 }
 ```
 
-In `LibraryContentList` swipe actions, remove the `.flashcardDeck` branch from the edit button or replace it with a "Coming soon" alert.
-
-**Rationale:** Unreachable UI states erode user trust and make bug reports harder to diagnose.
+**Rationale:** Single source of truth. The in-memory `charters` array must always reflect the repository state without requiring a full reload.
 
 ---
 
-#### iOS — No Deep-Link / Universal Link Support
+### Step 2 — Eliminate force-unwrap crash sites *(Critical, ~1 hr)*
 
-`AppCoordinator` uses a well-structured `AppRoute` enum but `AppView` has no `onOpenURL` modifier. Charter sharing links will open Safari, not the app.
-
-**Partial fix outline:**
+**`LocalRepository.swift`** (sync queue deserialization):
 
 ```swift
-// AppView.swift — add to NavigationStack
-.onOpenURL { url in
-    coordinator.handle(url: url)
+// Before — crashes on malformed DB row
+let contentID = UUID(uuidString: record.contentID)!
+let operation = SyncOperation(rawValue: record.operation)!
+
+// After — skip and log corrupt rows rather than crash
+guard let contentID = UUID(uuidString: record.contentID) else {
+    AppLogger.sync.error("Corrupt sync record: invalid UUID '\(record.contentID)' — skipping")
+    continue
+}
+guard let operation = SyncOperation(rawValue: record.operation) else {
+    AppLogger.sync.error("Corrupt sync record: unknown operation '\(record.operation)' — skipping")
+    continue
 }
 ```
 
-```swift
-// AppModel.swift — add to AppCoordinator
-func handle(url: URL) {
-    // Example scheme: anyfleet://charter/<id>
-    guard
-        url.scheme == "anyfleet",
-        let host = url.host,
-        let idString = url.pathComponents.dropFirst().first,
-        let id = UUID(uuidString: idString)
-    else { return }
+**`APIClient.swift`** (generic response dispatching):
 
-    switch host {
-    case "charter":
-        navigate(to: .charterDetail(id))
-    default:
-        break
-    }
+```swift
+// Before — force cast will crash if T is not EmptyResponse
+if T.self == EmptyResponse.self {
+    return EmptyResponse() as! T
 }
-```
 
-Also register the URL scheme and associated domains (`applinks:`) in `Info.plist` and entitlements.
-
-**Rationale:** Deep linking is table stakes for any social or sharing feature. Without it, every shared link creates friction.
-
----
-
-#### iOS — `UUID.localUserPlaceholder` in Data Layer
-
-`UUID+Constants.swift` exposes a static placeholder UUID for use before full auth. If this is used as a `creatorID` fallback in local storage, all unauthenticated users share a phantom creator identity — a data integrity hazard when sync eventually assigns real server IDs.
-
-**Audit:** Search for every call site:
-
-```bash
-rg "localUserPlaceholder" anyfleet/anyfleet/
-```
-
-Replace with `Optional<UUID>` in the data model and handle the `nil` case explicitly at each point. Never write a placeholder UUID to persistent storage.
-
----
-
-#### Backend — `list_user_charters` Total Count Is Wrong
-
-```python
-# charter_service.py lines 59-65
-return CharterListResponse(
-    items=[CharterResponse.model_validate(c) for c in charters],
-    total=len(charters),   # ← BUG: this is the page size, not the total
-    limit=limit,
-    offset=offset,
-)
-```
-
-`len(charters)` is at most `limit`. Any iOS pagination logic that checks `total > offset + limit` to decide whether to fetch the next page will always conclude there are no more pages.
-
-**Fix:**
-
-```python
-# charter_service.py — add a count query
-async def get_user_charters(
-    self, user_id: UUID, limit: int = 20, offset: int = 0
-) -> CharterListResponse:
-    charters = await self.charter_repo.get_user_charters(
-        user_id=user_id, limit=limit, offset=offset
-    )
-    total = await self.charter_repo.count_user_charters(user_id=user_id)
-
-    return CharterListResponse(
-        items=[CharterResponse.model_validate(c) for c in charters],
-        total=total,
-        limit=limit,
-        offset=offset,
-    )
-```
-
-```python
-# charter.py — add to CharterRepository
-async def count_user_charters(self, user_id: UUID) -> int:
-    result = await self.session.execute(
-        select(func.count(Charter.id)).where(
-            Charter.user_id == user_id,
-            Charter.deleted_at.is_(None),
-        )
-    )
-    return result.scalar_one()
-```
-
-**Rationale:** Returning page size as total count is a correctness bug that silently breaks infinite scroll / load-more UIs on the client.
-
----
-
-#### Backend — Dead Expression in `find_discoverable`
-
-```python
-# charter.py line 99
-if near_lat is not None and near_lon is not None:
-    radius_km * 1000.0   # ← result discarded, does nothing
-```
-
-This line computes a value and throws it away. If it was meant to convert to meters for a future `ST_DWithin` call, it was never wired up. The current distance calculation already works in km — this line is simply dead code.
-
-**Fix:** Delete line 99.
-
----
-
-#### Backend — N+1 DELETE in `delete_user_tokens`
-
-```python
-# user.py lines 183-188
-tokens = await self.find_many(user_id=user_id)
-count = len(tokens)
-for token in tokens:
-    await self.delete(token)   # one round-trip per token
-return count
-```
-
-**Fix:**
-
-```python
-from sqlalchemy import delete as sql_delete
-
-async def delete_user_tokens(self, user_id: uuid.UUID) -> int:
-    result = await self.session.execute(
-        sql_delete(RefreshToken).where(RefreshToken.user_id == user_id)
-    )
-    await self.session.flush()
-    return result.rowcount
-```
-
-**Rationale:** A user logged in on 5 devices triggers 5 DELETE round-trips at logout. Bulk DELETE is a single statement regardless of row count.
-
----
-
-#### Backend — `get_content_stats` Loads All Rows Into Memory
-
-```python
-# content.py lines 281-296
-all_content = await self.get_all()        # fetches every row
-total_content = len(all_content)
-total_views = sum(c.view_count for c in all_content)
-```
-
-**Fix:**
-
-```python
-from sqlalchemy import func, select
-
-async def get_content_stats(self, user_id: UUID | None = None) -> dict:
-    base_filter = [SharedContent.deleted_at.is_(None)]
-    if user_id:
-        base_filter.append(SharedContent.user_id == user_id)
-
-    result = await self.session.execute(
-        select(
-            func.count(SharedContent.id).label("total"),
-            func.sum(SharedContent.view_count).label("views"),
-            func.sum(SharedContent.fork_count).label("forks"),
-        ).where(*base_filter)
-    )
-    row = result.one()
-    total = row.total or 0
-    return {
-        "total_content": total,
-        "published_content": total,
-        "deleted_content": 0,
-        "total_views": row.views or 0,
-        "total_forks": row.forks or 0,
-    }
-```
-
-**Rationale:** Aggregate queries run in the database engine in O(1) memory; Python-side aggregation scales linearly with row count and will OOM on large datasets.
-
----
-
-### 3.2 Code Quality
-
-#### iOS — `ContentCache` Not Invalidated on Delete
-
-`LibraryStore.deleteContent` removes the record from SQLite and enqueues an unpublish sync op but never calls `contentCache.remove(for:)`. The in-memory `LRUCache` will serve stale content until the entry is naturally evicted.
-
-**Fix:** After the `LocalRepository.deleteContent` call in `LibraryStore`, add:
-
-```swift
-contentCache.remove(for: contentID)
-```
-
-**Rationale:** A cache should always be invalidated when the source of truth changes. Serving deleted content from cache, even briefly, is incorrect behavior.
-
----
-
-#### iOS — Dual Localization Systems
-
-`LocalizationService` wraps `Bundle.localizedString(forKey:)` and is injected as a dependency. `L10n` (SwiftGen) is used directly in most views. Having both creates confusion — new engineers won't know which to use.
-
-`LocalizationService` adds value only for runtime language switching. For all other string access, `L10n` is preferable because it is type-safe and validated at compile time.
-
-**Recommendation:** Keep `LocalizationService` only for the runtime language-switching path. Annotate it clearly:
-
-```swift
-/// Manages runtime language switching only.
-/// For all static string access, use the generated `L10n` enum.
-final class LocalizationService { ... }
-```
-
-Remove any `LocalizationService.string(for:)` call sites that could be replaced with a direct `L10n.*` reference.
-
----
-
-#### Backend — Redundant Apple Token Audience Check
-
-```python
-# apple_auth.py lines 56-74
-payload = jwt.decode(
-    identity_token,
-    signing_key.key,
-    algorithms=["RS256"],
-    audience=self.settings.apple_client_ids,   # already validates audience
-    ...
-)
-
-# Lines below are unreachable — jwt.decode raises InvalidAudienceError if aud mismatches
-token_audience = payload.get("aud")
-if token_audience not in self.settings.apple_client_ids:
-    logger.warning(...)
-    return None
-```
-
-`jwt.decode` with `audience=` will raise `InvalidAudienceError` before the second block is ever reached. The redundant check adds noise and a false sense of double-validation.
-
-**Fix:** Remove lines 71–76 (the manual `token_audience` check).
-
----
-
-#### Backend — `fork_content` Service Method Is Unreachable
-
-`ContentService.fork_content()` is fully implemented but no API endpoint calls it. The `POST /{public_id}/fork` endpoint calls `increment_fork_count` directly on the repository, bypassing the service. The actual fork record is created client-side.
-
-This means `fork_count` is an increment counter, not an authoritative record count. This is a valid design choice, but it should be documented explicitly and the unused `fork_content` method should either be wired up or deleted to avoid confusion.
-
----
-
-### 3.3 Swift / SwiftUI
-
-#### iOS — `CharterEditorViewModel`: No Sign-In Prompt for Non-Private Visibility
-
-When a user selects `community` or `public` visibility while unauthenticated, the charter is saved locally with `needsSync = true`. Unlike `ContentSyncService` (which marks `.unauthorized` as a terminal, non-retryable failure), `CharterSyncService.pushPendingCharters()` simply returns early and sets `needsAuthForSync = true` — the record is never marked failed, so it will sync successfully the next time the coordinator fires after authentication. The problem is therefore purely UX: the editor dismisses silently with no indication that the selected visibility is pending sync. `LibraryListView` handles this analogous case with `SignInModalView`. The charter editor should do the same.
-
-**Pattern to follow (from `LibraryListViewModel`):**
-
-```swift
-// CharterEditorViewModel.swift
-func onVisibilityChanged(_ newVisibility: CharterVisibility) {
-    guard newVisibility != .private else { return }
-    if !authObserver.isSignedIn {
-        // surface sign-in modal before allowing non-private selection
-        activeSheet = .signIn
-        formState.visibility = .private   // revert to safe default
-    }
+// After — use a type-erased extension instead of a cast
+extension Decodable {
+    static func emptyFallback() -> Self? { nil }
 }
-```
-
-Bind `onVisibilityChanged` to the visibility picker's `onChange` in the editor view.
-
----
-
-#### iOS — `LibraryListView` Fallback `init` Creates Duplicate Dependencies
-
-```swift
-// LibraryListView.swift lines 9-22
-@MainActor
-init(viewModel: LibraryListViewModel? = nil) {
-    if let viewModel = viewModel {
-        _viewModel = State(initialValue: viewModel)
-    } else {
-        let deps = AppDependencies()   // creates a second full dependency graph
-        _viewModel = State(initialValue: LibraryListViewModel(
-            libraryStore: deps.libraryStore, ...
-        ))
-    }
+// Or: constrain the method with a second overload for Void-returning endpoints
+// The simplest safe fix:
+if let empty = EmptyResponse() as? T {
+    return empty
 }
+throw APIError.decodingFailed  // should never reach here, but safe
 ```
 
-The fallback `else` branch is only needed for the canvas preview, but it silently creates a second `AppDependencies` instance (with its own database connection, sync services, etc.) whenever this view is instantiated without a view model. At runtime this branch is never reached if the environment value is always set — but the `else` branch is misleading and wasteful.
+**Rationale:** Force-unwraps in data-path code are production crash sources. Logging and skipping a corrupt sync record is always safer than terminating the process.
 
-**Fix:** Remove the `else` branch entirely and crash loudly in debug if the view model is missing, or use a preview-specific method:
+---
+
+### Step 3 — Delete charter → unpublish if public *(High, ~2 hr — do while building the feature)*
+
+This is the most impactful **feature+refactor** pairing. Currently deleting a charter only removes it locally; if it was previously synced as `.community` or `.public`, it remains visible on the discovery screen for other users.
+
+**iOS changes needed:**
 
 ```swift
-@MainActor
-init(viewModel: LibraryListViewModel) {
-    _viewModel = State(initialValue: viewModel)
-}
-```
-
-The `#Preview` block already constructs the full view model explicitly — the fallback is unnecessary.
-
----
-
-#### iOS — `CharterSyncService.needsAuthForSync` — Pattern Clarification ✅ Resolved
-
-~~`SyncCoordinator` already gates sync behind an authentication check.~~ (`SyncCoordinator` has no auth check — it delegates entirely to each service.) The previous recommendation to remove `needsAuthForSync` and centralise auth in the coordinator was incorrect.
-
-**Chosen pattern:** Each sync service is self-contained about its auth requirement. `CharterSyncService.pushPendingCharters()` returns early (leaving items in `needsSync == true`) when unauthenticated and sets `needsAuthForSync` as an observable signal for UI. `SyncQueueService` now follows the identical pattern — auth check lives in `canSync()`, queued items are never touched on an unauthenticated cycle, and `needsAuthForSync` is exposed for UI observation. `SyncCoordinator` remains auth-ignorant; each service handles its own gate.
-
----
-
-#### iOS — `SyncQueueService` Has No Retry Backoff ✅ Resolved
-
-~~Failed sync operations are retried without any delay.~~ Fixed in `v2.0.0_addNextRetryAtToSyncQueue` migration.
-
-**Implementation:** A `nextRetryAt: Date?` column was added to `sync_queue`. `SyncQueueRecord.retryDelay(for:)` computes `min(1 × 2^attempt, 300)` seconds. On each retryable failure `incrementRetry` stores `now + retryDelay`. `fetchPending` filters `nextRetryAt IS NULL OR nextRetryAt <= now`, so an operation whose backoff window has not elapsed is simply skipped until the next coordinator cycle. Delays: 1s → 2s → 4s → permanent failure at `maxRetries`. Because the window is stored in the DB, the backoff survives app restarts, and no `Task.sleep` blocks the queue for other items.
-
----
-
-### 3.4 Cross-Cutting: Visibility Enums Have No `unknown` Case
-
-`CharterVisibility` (Swift) and `ContentVisibility` (Swift) are manually mirrored from the Python enums. If the backend ships a new visibility level (e.g., `friends_only`), the iOS `Codable` decoding will throw and the entire response object will fail to decode.
-
-**Fix:** Add an `unknown` case with associated raw value to every visibility enum:
-
-```swift
-enum CharterVisibility: String, Codable, CaseIterable {
-    case `private`
-    case community
-    case `public`
-    case unknown
-
-    init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        let raw = try container.decode(String.self)
-        self = CharterVisibility(rawValue: raw) ?? .unknown
-    }
-}
-```
-
-Update all `switch` statements that handle `CharterVisibility` to include a `case .unknown: break` arm (or handle it gracefully in the UI).
-
-**Rationale:** Defensive decoding prevents a backend schema change from crashing the app for all users until a new version ships.
-
----
-
-### 3.5 UX / UI
-
-#### Flashcard Deck in `ContentFilter` Picker
-
-The `ContentFilter` enum exposes a `.decks` tab in the segmented picker. Tapping it shows an empty list (no decks exist) with no indication of why. Until the feature ships, remove the `.decks` case from `ContentFilter.allCases` or return a "Coming soon" empty state.
-
-```swift
-// ContentFilter in LibraryListViewModel.swift
-static var activeFilters: [ContentFilter] {
-    // Remove .decks until flashcard feature ships
-    [.all, .checklists, .guides]
-}
-```
-
-Use `activeFilters` in `ContentFilterPicker` instead of `ContentFilter.allCases`.
-
----
-
-#### Empty State Accessibility
-
-`LibraryEmptyState` wraps the empty state in `.accessibilityElement(children: .combine)` which is correct, but the label is a hard-coded string that duplicates the visible text. Use the design system's `EmptyStateView` semantic content and let VoiceOver derive labels from the view hierarchy instead of manually duplicating them.
-
----
-
-#### `AuthorProfileModal` Has No Minimum Tap Target
-
-`AuthorProfileModal` dismiss and action buttons should be at least 44×44 pt per Apple HIG. Verify all interactive elements in `DiscoverContentRow` and `LibraryItemRow` meet this requirement:
-
-```swift
-.frame(minWidth: 44, minHeight: 44)
-```
-
----
-
-#### Backend CORS: Wildcard + Credentials Is Invalid for Browser Clients
-
-```python
-# config.py lines 95-98
-cors_origins: list[str] = ["*"]
-cors_allow_credentials: bool = True
-```
-
-`Access-Control-Allow-Origin: *` with `Access-Control-Allow-Credentials: true` is rejected by all browsers per the CORS specification. The iOS native client is unaffected, but any future web client (the web PRD exists) will fail all credentialed requests.
-
-**Fix:**
-
-```python
-# Per-environment origin lists
-cors_origins: list[str] = Field(default_factory=list)
-# Set in .env: CORS_ORIGINS=https://app.anyfleet.com,https://staging.anyfleet.com
-```
-
-For local development, set `CORS_ORIGINS=http://localhost:3000`.
-
----
-
-### 3.6 Security
-
-#### Backend — `test-signin` Endpoint Exposed at Runtime
-
-The test signin endpoint is guarded by a runtime check:
-
-```python
-if settings.environment != "development":
-    raise HTTPException(status_code=403, ...)
-```
-
-A misconfigured `ENVIRONMENT=development` in production exposes the ability to create or elevate any user to admin. The guard should be at the router inclusion level so the endpoint does not exist in the production process at all:
-
-```python
-# main.py or router setup
-if settings.environment == "development":
-    app.include_router(test_router, prefix="/api/v1/auth")
-```
-
-This way the endpoint is not registered in production, regardless of the environment variable.
-
----
-
-#### iOS — `UUID.localUserPlaceholder` Audit
-
-```swift
-// UUID+Constants.swift
-extension UUID {
-    static let localUserPlaceholder = UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
-}
-```
-
-If this UUID ever reaches the backend as a `creatorID` or `userID` — for example, during a sync operation before auth completes — it could create records owned by a phantom user ID that silently conflicts across all unauthenticated installs.
-
-**Audit command:**
-```bash
-rg "localUserPlaceholder" anyfleet/anyfleet/
-```
-
-Every write path that produces a `creatorID` should require a real `UUID?` and fail explicitly if nil, rather than falling back to the placeholder.
-
----
-
-## 4. Refactored Code
-
-### 4.1 `CharterVisibility.swift` — Defensive Decoding
-
-**Full drop-in replacement:**
-
-```swift
-import Foundation
-
-/// Charter visibility levels. Uses defensive decoding to handle
-/// future backend values without crashing.
-enum CharterVisibility: String, Codable, CaseIterable, Sendable {
-    case `private` = "private"
-    case community = "community"
-    case `public` = "public"
-    /// Received an unrecognized value from the server.
-    case unknown
-
-    init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        let raw = try container.decode(String.self)
-        self = CharterVisibility(rawValue: raw) ?? .unknown
-    }
-
-    var displayName: String {
-        switch self {
-        case .private:   return "Private"
-        case .community: return "Community"
-        case .public:    return "Public"
-        case .unknown:   return "Unknown"
-        }
-    }
-
-    var isPubliclyVisible: Bool {
-        self == .public || self == .community
-    }
-}
-```
-
-**Rationale:** `unknown` case prevents a new backend enum value from crashing `Codable` decoding. All existing `switch` statements should add `case .unknown: break` or equivalent.
-
----
-
-### 4.2 `charter.py` — Add `count_user_charters`
-
-```python
-async def count_user_charters(self, user_id: UUID) -> int:
-    """Return the total number of non-deleted charters for a user."""
-    result = await self.session.execute(
-        select(func.count(Charter.id)).where(
-            Charter.user_id == user_id,
-            Charter.deleted_at.is_(None),
-        )
-    )
-    return result.scalar_one()
-```
-
-Add this method to `CharterRepository` immediately after `get_user_charters`.
-
----
-
-### 4.3 `charter_service.py` — Fix `get_user_charters` Total
-
-Replace the existing `get_user_charters` method body:
-
-```python
-async def get_user_charters(
-    self, user_id: UUID, limit: int = 20, offset: int = 0
-) -> CharterListResponse:
-    """Get paginated charters for a user with accurate total count."""
-    charters, total = await asyncio.gather(
-        self.charter_repo.get_user_charters(
-            user_id=user_id, limit=limit, offset=offset
-        ),
-        self.charter_repo.count_user_charters(user_id=user_id),
-    )
-
-    return CharterListResponse(
-        items=[CharterResponse.model_validate(c) for c in charters],
-        total=total,
-        limit=limit,
-        offset=offset,
-    )
-```
-
-Add `import asyncio` at the top of the file.
-
----
-
-### 4.4 `user.py` — Bulk DELETE for `delete_user_tokens`
-
-Replace the existing `delete_user_tokens` method:
-
-```python
-from sqlalchemy import delete as sql_delete
-
-async def delete_user_tokens(self, user_id: uuid.UUID) -> int:
-    """Delete all refresh tokens for a user in a single query."""
-    result = await self.session.execute(
-        sql_delete(RefreshToken).where(RefreshToken.user_id == user_id)
-    )
-    await self.session.flush()
-    return result.rowcount
-```
-
----
-
-### 4.5 `content.py` — SQL-Aggregate `get_content_stats`
-
-Replace the existing `get_content_stats` method:
-
-```python
-async def get_content_stats(self, user_id: UUID | None = None) -> dict:
-    """Get content statistics using SQL aggregation."""
-    filters = []
-    if user_id:
-        filters.append(SharedContent.user_id == user_id)
-
-    # Total (including deleted)
-    total_result = await self.session.execute(
-        select(func.count(SharedContent.id)).where(*filters)
-    )
-    total = total_result.scalar_one() or 0
-
-    # Published only
-    published_result = await self.session.execute(
-        select(
-            func.count(SharedContent.id),
-            func.coalesce(func.sum(SharedContent.view_count), 0),
-            func.coalesce(func.sum(SharedContent.fork_count), 0),
-        ).where(*filters, SharedContent.deleted_at.is_(None))
-    )
-    row = published_result.one()
-    published = row[0] or 0
-
-    return {
-        "total_content": total,
-        "published_content": published,
-        "deleted_content": total - published,
-        "total_views": row[1],
-        "total_forks": row[2],
-    }
-```
-
----
-
-### 4.6 `apple_auth.py` — Remove Dead Audience Check
-
-Remove lines 71–76 (the manual `token_audience` check after `jwt.decode`):
-
-```python
-# DELETE these lines — jwt.decode already raises InvalidAudienceError
-# token_audience = payload.get("aud")
-# if token_audience not in self.settings.apple_client_ids:
-#     logger.warning(...)
-#     return None
-```
-
-The method body after `jwt.decode` should proceed directly to the expiry check and the `apple_id` extraction.
-
----
-
-### 4.7 `LibraryListView.swift` — Remove Fallback `init`
-
-Replace the `init` with a single-path initializer:
-
-```swift
-// LibraryListView.swift
-@MainActor
-init(viewModel: LibraryListViewModel) {
-    _viewModel = State(initialValue: viewModel)
-}
-```
-
-Update the call site in `AppView` or wherever `LibraryListView()` is instantiated without arguments to always pass an explicit view model sourced from `@Environment(\.appDependencies)`.
-
----
-
-## 5. Tests
-
-### 5.1 High-Value Test Cases (iOS)
-
-**`CharterVisibilityDecodingTests`**
-```swift
-func testUnknownVisibilityDecodesGracefully() throws {
-    let json = #"{"visibility": "friends_only"}"#.data(using: .utf8)!
-    let decoded = try JSONDecoder().decode(CharterModel.self, from: json)
-    XCTAssertEqual(decoded.visibility, .unknown)
-}
-```
-Catches future backend enum additions before they reach users.
-
----
-
-**`LibraryListViewModelFilterTests`**
-```swift
-func testFilteredItemsUpdateWhenFilterChanges() {
-    let vm = LibraryListViewModel(/* inject mock store */)
-    vm.selectedFilter = .checklists
-    XCTAssertTrue(vm.filteredItems.allSatisfy { $0.type == .checklist })
-}
-```
-Validates the `updateFilteredItems()` cache stays consistent with `selectedFilter`.
-
----
-
-**`SyncQueueRetryBackoffTests`**
-```swift
-func testRetryDelayDoublesWithEachAttempt() {
-    let service = SyncQueueService(/* mock */)
-    XCTAssertEqual(service.retryDelay(for: 0), .seconds(1))
-    XCTAssertEqual(service.retryDelay(for: 1), .seconds(2))
-    XCTAssertEqual(service.retryDelay(for: 8), .seconds(256).clamped(to: .seconds(300)))
-}
-```
-
----
-
-### 5.2 High-Value Test Cases (Backend)
-
-**`test_list_user_charters_total_count`**
-```python
-async def test_list_user_charters_total_count(db_session, test_user):
-    # Create 25 charters for the user
-    for _ in range(25):
-        await charter_repo.create(user_id=test_user.id, ...)
+// CharterStore.swift — extended deleteCharter
+func deleteCharter(_ charterID: UUID) async throws {
+    AppLogger.store.startOperation("Delete Charter")
     
-    result = await charter_service.get_user_charters(
-        user_id=test_user.id, limit=10, offset=0
-    )
-    assert len(result.items) == 10
-    assert result.total == 25   # was broken: returned 10
-```
-
----
-
-**`test_delete_user_tokens_bulk`**
-```python
-async def test_delete_user_tokens_uses_single_query(db_session, test_user, monkeypatch):
-    execute_calls = []
-    original = db_session.execute
-    async def tracking_execute(stmt, *a, **kw):
-        execute_calls.append(stmt)
-        return await original(stmt, *a, **kw)
-    monkeypatch.setattr(db_session, "execute", tracking_execute)
-
-    repo = RefreshTokenRepository(db_session)
-    for _ in range(5):
-        await repo.create_token(user_id=test_user.id, ...)
-    await repo.delete_user_tokens(test_user.id)
-
-    delete_calls = [c for c in execute_calls if "DELETE" in str(c).upper()]
-    assert len(delete_calls) == 1   # was N+1
-```
-
----
-
-**`test_apple_token_expired_returns_none`**
-```python
-async def test_expired_apple_token_rejected(apple_auth_service):
-    # Craft a JWT with exp in the past
-    expired_token = create_test_jwt(exp=time.time() - 3600)
-    result = await apple_auth_service.verify_identity_token(expired_token)
-    assert result is None
-```
-
----
-
-## 6. Remaining Notes
-
-| Area | Severity | Note |
-|---|---|---|
-| Backend | Medium | Image processing (`Pillow`) in async FastAPI endpoints blocks the event loop — offload to `asyncio.to_thread()` |
-| Backend | Medium | `public_id_exists` does not filter `deleted_at` — soft-deleted public IDs can never be reused (may be intentional; document it) |
-| Backend | Low | `CharterDiscoveryFilters.radius_km` default is set in both the Pydantic schema and the route signature — remove the route-level default |
-| iOS | Medium | No sign-in prompt when setting non-private visibility in `CharterEditorView` — mirror `LibraryListView`'s `SignInModalView` pattern |
-| iOS | Low | `MarkdownParser` has no depth or block-count guard — add a `maxDepth` limit as a safeguard against malformed input |
-| iOS | Low | `CharterSyncService.needsAuthForSync` flag duplicates `SyncCoordinator`'s auth check — consolidate into the coordinator |
-| Cross | Medium | No service-layer transaction boundary — multi-step operations (create user + create token) may leave partial state on failure if the DB session doesn't auto-rollback |
-| Cross | Low | `serverID` (iOS) vs `id` (backend) naming inconsistency for charter identifiers — consider renaming iOS field to `remoteID` for clarity |
-
----
-
-## 7. Sync Behaviour Deep-Dive
-
-### 7.1 Charter Edits Don't Trigger Immediate Sync
-
-In `CharterEditorViewModel.saveCharter()`, the edit path (`else` branch) only calls `charterSyncService?.pushPendingCharters()` when **visibility changes**:
-
-```swift
-// CharterEditorViewModel.swift lines 191-194
-if charter.visibility != form.visibility {
-    try await charterStore.updateVisibility(charterID, visibility: form.visibility)
-    await charterSyncService?.pushPendingCharters()
-}
-```
-
-If a user edits a community or public charter's name, vessel, or dates, `needsSync` is never set and push is never called. The edit is saved locally and sits in SQLite until the `SyncCoordinator` timer fires — either 60 s (active) or up to 5 minutes (idle after 3 empty cycles). This is the latency the user perceives.
-
-**Root cause:** `CharterStore.updateCharter(...)` does not set `needsSync = true`, and the editor only sets it for visibility transitions.
-
-**Fix — update `CharterEditorViewModel.saveCharter()` edit branch:**
-
-```swift
-// After charterStore.updateCharter(...)
-let updatedCharter = try await charterStore.updateCharter(
-    charterID, name: form.name, boatName: ..., ...
-)
-
-// Always re-push if the charter is not private
-if form.visibility != .private {
-    // Mark needsSync so the repository records it correctly
-    var toSync = updatedCharter
-    toSync.needsSync = true
-    try await charterStore.saveCharter(toSync)
-    await charterSyncService?.pushPendingCharters()
-}
-```
-
-**Fix — also update `CharterStore.updateCharter(...)` signature to accept a `needsSync` flag, or add a dedicated `markNeedsSync` method to `CharterRepository`:**
-
-```swift
-// CharterStore.swift — new convenience
-func markNeedsSync(_ charterID: UUID) async throws {
-    try await repository.updateCharterVisibility(charterID, visibility: charters
-        .first { $0.id == charterID }?.visibility ?? .private)
-    // Set needsSync = true via dedicated repository call
-}
-```
-
-**Rationale:** "Save → sync" should feel instant for any field change on a shared charter, not eventually consistent at a timer interval. The `SyncCoordinator` is the correct fallback for when push fails, not the primary path for user-initiated saves.
-
----
-
-### 7.2 Stuck Sync Queue: Permanent-Failure Scenarios
-
-The current retry logic in `SyncQueueService.isRetryableError` has gaps that leave operations in permanent limbo:
-
-**Gap 1 — Terminal errors never increment `retryCount`, so the operation loops forever (always-pending bug).**
-
-Look at the `else` branch for non-retryable errors:
-
-```swift
-// SyncQueueService.swift lines 247-256
-} else {
-    // Max retries exceeded OR terminal error
-    await updateSyncState(contentID: operation.contentID, status: .failed)
-    if operation.operation == .publish {
-        await cancelPendingUnpublishOperations(for: operation.contentID)
+    // 1. Fetch before delete so we know its sync state
+    if let charter = charters.first(where: { $0.id == charterID }),
+       let serverID = charter.serverID,
+       charter.visibility != .private {
+        // 2. Attempt remote unpublish (fire-and-forget; local delete always succeeds)
+        try? await charterSyncService.unpublishCharter(serverID: serverID)
     }
+    
+    try await repository.deleteCharter(charterID)
+    charters.removeAll { $0.id == charterID }
+    AppLogger.store.completeOperation("Delete Charter")
 }
 ```
 
-`updateSyncState` is a **no-op** — it only logs:
-
 ```swift
-private func updateSyncState(contentID: UUID, status: ContentSyncStatus) async {
-    AppLogger.services.debug("Updated sync state for content \(contentID) to \(status.rawValue)")
-    // nothing else
+// CharterSyncService.swift — new method
+func unpublishCharter(serverID: String) async throws {
+    guard authService.isAuthenticated else { return }
+    try await apiClient.deleteCharter(serverID: serverID)
+    AppLogger.sync.info("Charter \(serverID) unpublished from discovery")
 }
 ```
 
-Critically: neither `repository.markSyncOperationComplete(operation.id)` nor `repository.incrementSyncRetryCount(...)` is called in this `else` branch. The `SyncQueueRecord` remains with `syncedAt == nil` and `retryCount == 0`. `fetchPendingOperations` picks it up again on the very next tick, executes it, hits the same terminal error, enters the `else` branch, and the cycle repeats — forever. The user sees a persistent "syncing" spinner that never resolves and no error is surfaced.
-
-**Affected error cases — all loop indefinitely without user feedback:**
-
-| Error | Scenario |
-|---|---|
-| `.unauthorized` (401) | Token expired; every cycle re-attempts and gets 401 |
-| `.forbidden` (403) | User lost account or content was moderated |
-| `.conflict` on publish (409) | Duplicate `public_id`; re-sent every cycle |
-| `.clientError` (400) | Malformed payload in DB; can never succeed |
-| `SyncError.invalidPayload` | Corrupted JSON in `SyncQueueRecord.payload` |
-| `SyncError.missingPublicID` | `publish_update` missing a server public ID |
-
-**Fix — in the `else` (terminal) branch, exhaust `retryCount` immediately:**
+**`PublishedContentDeleteModal`** (already in DesignSystem) should be used instead of the plain destructive button in swipe actions when `charter.visibility != .private`:
 
 ```swift
-} else {
-    // Force the record past maxRetries so fetchPending never picks it up again
-    try? await repository.incrementSyncRetryCountTo(
-        operation.id,
-        count: maxRetries,     // jump straight to exhausted state
-        error: error.localizedDescription
-    )
-    // Now update LibraryModel.syncStatus to .failed in the DB (not just a log)
-    if var item = try? await repository.fetchLibraryItem(operation.contentID) {
-        item.syncStatus = .failed
-        try? await repository.updateLibraryMetadata(item)
-    }
-    if operation.operation == .publish {
-        await cancelPendingUnpublishOperations(for: operation.contentID)
-    }
-}
-```
-
----
-
-**Gap 2 — `isProcessing` lock can get permanently stuck (always-pending bug).**
-
-`isProcessing` is set to `true` in `canSync()` and only reset to `false` in `processOperations()` at the end of the loop. There is no `defer` guarding it:
-
-```swift
-// canSync() sets it:
-isProcessing = true
-return true
-
-// processOperations() resets it — but only if it is reached:
-isProcessing = false
-return summary
-```
-
-If the `Task` running `processQueue()` is **cancelled** between these two points — which happens when the app backgrounds mid-sync (`willResignActiveNotification` fires → `SyncCoordinator.stop()` invalidates the timer → the task is no longer driven forward) — `isProcessing` stays `true` until the next app launch. Every subsequent `canSync()` call returns `false` immediately. All queued operations sit in "pending" state indefinitely within that session. `pendingCount` stays > 0 but nothing ever processes.
-
-**Fix — use `defer` so the lock always releases:**
-
-```swift
-private func canSync() async -> Bool {
-    guard !isProcessing else { return false }
-    guard await isNetworkReachable() else {
-        await updatePendingCounts()
-        return false
-    }
-    isProcessing = true
-    return true
-}
-
-func processQueue() async -> SyncSummary {
-    guard await canSync() else { return SyncSummary() }
-    defer { isProcessing = false }   // ← guarantees release on cancellation or throw
-    let operations = await fetchPendingOperations()
-    return await processOperations(operations)
-}
-```
-
-Remove the `isProcessing = false` line from `fetchPendingOperations()` and `processOperations()` — `defer` at the top level handles it exclusively.
-
----
-
-**Gap 3 — `publish_update` with 404 retries 3 times then stays `failed` forever:**
-
-```swift
-case .notFound:
-    return operation != .unpublish  // publish_update on 404 → retried 3 times → stuck
-```
-
-If content is deleted on the server but the iOS client still has a queued `publish_update`, the operation will exhaust its 3 retries and become a permanent `failed` entry. The user sees a red sync badge with no way to clear it except manual retry.
-
-**Gap 4 — There is no automatic reset path for `failed` operations.** `SyncQueueRecord.fetchPending` filters `retryCount < maxRetries`. Failed records (retryCount ≥ 3) are invisible to the queue processor and never automatically re-attempted after conditions change (e.g., network restored, user signs back in).
-
-**Gap 5 — No exponential backoff before retry.** Consecutive retries happen as fast as queue processing runs (next `SyncCoordinator` tick), which under bad network can waste battery.
-
-**Recommended fixes:**
-
-```swift
-// SyncQueueService.swift
-
-// 1. Treat publish_update 404 as terminal (content deleted server-side)
-private func isRetryableError(_ error: Error, operation: SyncOperation) -> Bool {
-    if let apiError = error as? APIError {
-        switch apiError {
-        case .networkError, .serverError, .invalidResponse:
-            return true
-        case .unauthorized, .forbidden, .clientError:
-            return false
-        case .notFound:
-            // 404 is terminal for both unpublish AND publish_update
-            return operation == .publish   // only plain publish retries on 404
-        case .conflict:
-            return operation != .publish
-        }
-    }
-    // ... URLError cases unchanged
-}
-
-// 2. Exponential backoff (add nextRetryAt column to SyncQueueRecord)
-private func retryDelay(attempt: Int) -> TimeInterval {
-    min(pow(2.0, Double(attempt)), 300.0) // 1s, 2s, 4s, 8s … capped at 5 min
-}
-
-// In processOperation failure path:
-let delay = retryDelay(attempt: operation.retryCount)
-let nextRetry = Date().addingTimeInterval(delay)
-try? await repository.incrementSyncRetryCount(
-    operation.id,
-    error: error.localizedDescription,
-    nextRetryAt: nextRetry
-)
-```
-
-```swift
-// SyncQueueRecord.swift — add column
-var nextRetryAt: Date?
-
-// Update fetchPending to respect nextRetryAt:
-nonisolated static func fetchPending(maxRetries: Int, db: Database) throws -> [SyncQueueRecord] {
-    try SyncQueueRecord
-        .filter(Columns.syncedAt == nil)
-        .filter(Columns.retryCount < maxRetries)
-        .filter(Columns.nextRetryAt == nil || Columns.nextRetryAt <= Date())
-        .order(Columns.createdAt.asc)
-        .fetchAll(db)
-}
-```
-
-**For the permanent-failed cleanup path**, add a "retry all failed" action in the UI (e.g., long-press the sync badge) that resets `retryCount = 0` and `nextRetryAt = nil` for all failed records, re-surfacing them to the processor:
-
-```swift
-// SyncQueueService.swift — new public method
-func resetFailedOperations() async throws {
-    try await repository.resetFailedSyncOperations()
-    await updatePendingCounts()
-}
-```
-
-**Rationale:** A sync queue that can permanently block with no user-accessible resolution path erodes trust. The user should always have a "retry" escape hatch and the system should not indefinitely retry terminal errors.
-
----
-
-### 7.3 `SyncCoordinator` Stops Timer on Background
-
-`SyncCoordinator.observeAppLifecycle()` invalidates the timer when the app resigns active:
-
-```swift
-NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)
-    .sink { [weak self] _ in self?.stop() }
-```
-
-This means queued operations are never processed when the user locks their phone. Use `BGProcessingTask` or at minimum `BGAppRefreshTask` to schedule a brief sync opportunity in the background. For offline-first apps, background sync is expected.
-
-Minimal approach — register a `BGAppRefreshTask` in `AppDelegate` / `@main` and call `contentSyncService.syncPending()` + `charterSyncService.pushPendingCharters()` from its handler. This gives iOS permission to wake the app for ~30 s when conditions are good (Wi-Fi, charging).
-
----
-
-### 7.4 Charter Sync: No Conflict Resolution on Pull
-
-`CharterSyncService.pullMyCharters()` does a blind upsert:
-
-```swift
-for remoteCharter in response.items {
-    let localModel = remoteCharter.toCharterModel()
-    try await repository.saveCharter(localModel)   // overwrites local version
-}
-```
-
-If the user edited a charter offline and a stale pull happens before push, the edit is silently overwritten. The correct last-write-wins strategy is: compare `updatedAt` timestamps and only overwrite the local record if the remote version is newer.
-
-```swift
-for remoteCharter in response.items {
-    let remote = remoteCharter.toCharterModel()
-    if let local = try? await repository.fetchCharter(id: remote.id) {
-        // Only update if remote is genuinely newer AND local doesn't need sync
-        if remote.updatedAt > local.updatedAt && !local.needsSync {
-            try await repository.saveCharter(remote)
-        }
+// CharterListView.swift — swipe action
+Button(role: .destructive) {
+    if charter.visibility != .private {
+        charterPendingDelete = charter    // @State trigger for confirmation sheet
     } else {
-        try await repository.saveCharter(remote)
+        Task { try? await viewModel.deleteCharter(charter.id) }
     }
-}
+} label: { Label("Delete", systemImage: "trash") }
 ```
 
-**Rationale:** Blind overwrites violate the offline-first contract. The device is the source of truth until a successful push has been acknowledged.
+**Backend change needed:** `DELETE /charters/{id}` endpoint (or reuse the unpublish endpoint). See backend notes below.
 
 ---
 
-## 8. Fork Count: Race Condition and Logging Bug
+### Step 4 — Split `DiscoverableCharter.swift` into focused files *(Medium, ~45 min)*
 
-### 8.1 Backend: Optimistic Read-Modify-Write Is Not Atomic
+Move each type into its own file under an `API/` subfolder inside `Core/Models/`:
 
-```python
-# content.py — fork endpoint
-await content_service.content_repo.increment_fork_count(content)
-
-# content.py (repository)
-async def increment_fork_count(self, content: SharedContent) -> SharedContent:
-    return await self.update(content, fork_count=content.fork_count + 1)
+```
+Core/Models/
+├── CharterModel.swift          (domain — unchanged)
+├── DiscoverableCharter.swift   (keep only the UI-facing domain struct)
+├── CharterVisibility.swift     (unchanged)
+└── API/
+    ├── CharterAPIResponse.swift        (CharterAPIResponse, CharterWithUserAPIResponse)
+    ├── CharterDiscoveryResponse.swift  (CharterDiscoveryAPIResponse, CharterListAPIResponse)
+    └── CharterRequestPayloads.swift    (CharterCreateRequest, CharterUpdateRequest)
 ```
 
-`content.fork_count` is the value read before the update. Two simultaneous fork requests on a popular item both read `fork_count = 42`, both write `fork_count = 43`, losing one increment.
+**Rationale:** SOLID single-responsibility. API DTOs change with every backend iteration; domain models should be stable. Separating them makes it easy to version the API layer without touching domain logic.
 
-**Fix — use a SQL atomic increment:**
+---
 
-```python
-from sqlalchemy import update as sql_update
+### Step 5 — Extract `ProfileViewModel` to its own file + add `@MainActor` *(Medium, ~30 min)*
 
-async def increment_fork_count(self, content: SharedContent) -> SharedContent:
-    await self.session.execute(
-        sql_update(SharedContent)
-        .where(SharedContent.id == content.id)
-        .values(fork_count=SharedContent.fork_count + 1)
-    )
-    await self.session.flush()
-    await self.session.refresh(content)
-    return content
-```
-
-Apply the same fix to `increment_view_count`.
-
-### 8.2 Backend: Fork Endpoint Logs Stale Count
-
-```python
-# content.py lines at bottom of fork handler
-await content_service.content_repo.increment_fork_count(content)
-
-logger.info(
-    f"Incremented fork count for content: {public_id}, new count: {content.fork_count}"
-)
-```
-
-`content.fork_count` here is the **pre-increment** value because the update happens inside the repository and `content` is the stale in-memory object. The log will always report one less than the actual DB value.
-
-**Fix:** Use the return value:
-
-```python
-updated = await content_service.content_repo.increment_fork_count(content)
-logger.info(f"Fork count for {public_id}: {updated.fork_count}")
-```
-
-### 8.3 iOS: Fork Count Is Not Refreshed After Forking
-
-When `LibraryStore.forkContent()` succeeds, the `DiscoverableCharter` displayed in the reader still shows the old `forkCount`. The view model needs to refresh the item after a successful fork:
+Create `Features/Profile/ProfileViewModel.swift`. Add `@MainActor` at class level (replacing the per-method annotations). This aligns with the rest of the codebase and reduces `ProfileView.swift` from 660 to ~350 lines.
 
 ```swift
-// After the fork API call succeeds, update the local charter model:
-if let idx = charters.firstIndex(where: { $0.publicID == publicID }) {
-    charters[idx].forkCount += 1
+// ProfileViewModel.swift
+@MainActor
+@Observable
+final class ProfileViewModel: ErrorHandling {
+    // ... existing code, removing per-method @MainActor decorators
 }
 ```
 
-This optimistic local update avoids a full reload while keeping the count accurate from the user's perspective.
-
-### 8.4 Missing Test: Fork Count Actually Increments
-
-The current test suite has no test verifying that `POST /{public_id}/fork` actually changes the persisted `fork_count`. The log bug in §8.2 went undetected because no test reads back the value after the call.
-
-**Test outline:**
-
-```python
-async def test_fork_increments_persisted_count(client, db_session, published_content):
-    public_id = published_content.public_id
-    original_count = published_content.fork_count
-
-    response = await client.post(f"/api/v1/content/{public_id}/fork")
-    assert response.status_code == 204
-
-    # Re-fetch from DB — not from the in-memory object
-    await db_session.refresh(published_content)
-    assert published_content.fork_count == original_count + 1
-
-async def test_concurrent_forks_no_count_loss(client, db_session, published_content):
-    """Two simultaneous forks must both register."""
-    public_id = published_content.public_id
-    original_count = published_content.fork_count
-
-    import asyncio
-    await asyncio.gather(
-        client.post(f"/api/v1/content/{public_id}/fork"),
-        client.post(f"/api/v1/content/{public_id}/fork"),
-    )
-
-    await db_session.refresh(published_content)
-    assert published_content.fork_count == original_count + 2  # fails with current code
-```
-
----
-
-## 9. Charter Discovery: Authentication Gate and Caching
-
-### 9.1 Discovery Requires Auth — It Shouldn't
-
-```python
-# charters.py
-@router.get("/discover", response_model=CharterDiscoveryResponse)
-@limiter.limit("30/minute")
-async def discover_charters(
-    request: Request,
-    current_user: CurrentUser,   # ← blocks unauthenticated users
-    ...
-```
-
-Compare with the content endpoints:
-
-```python
-# content.py — already public
-@router.get("/public", response_model=list[SharedContentSummary])
-async def list_public_content(...)   # no CurrentUser, no rate limit
-
-@router.get("/{public_id}", response_model=SharedContentDetail)
-async def get_content(...)           # no CurrentUser, no rate limit
-```
-
-Charter discovery shows only `PUBLIC` charters. There is no user-specific data in the response. Requiring auth to read public data is unnecessary friction and prevents sharing discovery links with non-users.
-
-**Fix — remove `CurrentUser` and rely on rate limiting instead:**
-
-```python
-@router.get("/discover", response_model=CharterDiscoveryResponse)
-@limiter.limit("60/minute")          # more generous for unauthenticated browsing
-async def discover_charters(
-    request: Request,
-    charter_service: Annotated[CharterService, Depends(get_charter_service)],
-    # current_user: CurrentUser    ← removed
-    ...
-) -> CharterDiscoveryResponse:
-```
-
-**Also add rate limits to the currently unprotected content endpoints:**
-
-```python
-# content.py
-@router.get("/public", response_model=list[SharedContentSummary])
-@limiter.limit("60/minute")          # add this
-async def list_public_content(...):
-
-@router.get("/{public_id}", response_model=SharedContentDetail)
-@limiter.limit("120/minute")         # view_count increments on every hit — protect it
-async def get_content(...):
-
-@router.post("/{public_id}/fork", status_code=status.HTTP_204_NO_CONTENT)
-@limiter.limit("30/minute")          # add this — already public, protect from abuse
-async def increment_fork_count(...):
-```
-
-**Rationale:** Auth is the wrong mechanism for public resource access control. Rate limiting protects the backend from abuse while keeping the data accessible. The pattern is already established in the codebase — adopt it consistently.
-
----
-
-### 9.2 Charter Discovery: Cache Strategy
-
-`CharterDiscoveryViewModel.load()` makes a fresh network call on every visit to the tab, every filter change, and every `onChange` of `charterSyncService.lastSyncDate`. For a browse-heavy feature with public data that changes infrequently, this is wasteful and creates a jarring loading experience on every return visit.
-
-**Recommended: stale-while-revalidate with a TTL**
-
-The pattern: serve cached results immediately (zero latency for returning users) while silently fetching fresh data in the background. Show a subtle refresh indicator instead of a blocking spinner.
+Also add `@MainActor` to `AuthService`:
 
 ```swift
-// DiscoveryCacheEntry.swift
-struct DiscoveryCacheEntry {
-    let charters: [DiscoverableCharter]
-    let fetchedAt: Date
-    let cacheKey: String
-
-    var isStale: Bool {
-        Date().timeIntervalSince(fetchedAt) > 120  // 2-minute TTL
-    }
+// AuthService.swift
+@MainActor
+@Observable
+final class AuthService: AuthServiceProtocol {
+    // Eliminates potential data races from async closures mutating @Observable state
 }
-
-// CharterDiscoveryViewModel.swift — add cache
-private var cache: [String: DiscoveryCacheEntry] = [:]
-
-private var cacheKey: String {
-    // Stable string from current filters
-    "\(filters.datePreset.rawValue)|\(filters.useNearMe)|\(Int(filters.radiusKm))"
-}
-
-private func load(appending: Bool = false) async {
-    if !appending, let cached = cache[cacheKey], !cached.isStale {
-        charters = cached.charters
-        // Silently refresh in background
-        Task { await fetchAndCacheFromNetwork(appending: false, silent: true) }
-        return
-    }
-    await fetchAndCacheFromNetwork(appending: appending, silent: false)
-}
-
-private func fetchAndCacheFromNetwork(appending: Bool, silent: Bool) async {
-    if !silent && !appending {
-        isLoading = true
-        defer { isLoading = false }
-    }
-
-    do {
-        let response = try await apiClient.discoverCharters(...)
-        let newItems = response.items.map { $0.toDiscoverableCharter() }
-        let sorted = sort(newItems)
-
-        if appending {
-            charters.append(contentsOf: sorted)
-        } else {
-            charters = sorted
-            cache[cacheKey] = DiscoveryCacheEntry(
-                charters: sorted, fetchedAt: Date(), cacheKey: cacheKey
-            )
-        }
-
-        currentOffset += newItems.count
-        hasMore = newItems.count == pageSize
-    } catch {
-        if !silent { handleError(error) }
-        // If silent background refresh fails, cached data is still shown — no error banner
-    }
-}
-```
-
-**Cache invalidation:** Clear the relevant cache entry when `charterSyncService.lastSyncDate` changes (user's own charter was published), or when a pull-to-refresh is explicitly triggered.
-
-```swift
-func refresh() async {
-    cache.removeValue(forKey: cacheKey)  // force fresh fetch
-    await loadInitial()
-}
-```
-
-**Backend `Cache-Control` headers (optional):** For truly public data, set HTTP cache headers so CDNs and the system URL cache can serve it:
-
-```python
-from fastapi import Response
-
-@router.get("/discover")
-async def discover_charters(..., response: Response):
-    response.headers["Cache-Control"] = "public, max-age=60, stale-while-revalidate=120"
-    ...
 ```
 
 ---
 
-### 9.3 Discovery Sort Is Applied Client-Side to a Single Page
+### Step 6 — Fix fallback `init()` in views that create duplicate `AppDependencies` *(High, ~1 hr)*
 
-`CharterDiscoveryViewModel.sort()` re-orders items after they arrive. But the view uses pagination — items arrive 20 at a time. Sorting page 1 independently then sorting page 2 independently means the final merged list is not globally sorted. A date-ascending sort across 100 charters will show the earliest 20 from page 1, but appending page 2 places more items at the end regardless of their dates.
+`CharterListView`, `DiscoverView`, and `ProfileView` each have a fallback `init()` that does:
 
-**Fix options:**
-1. Move `dateAscending` / `distanceAscending` sort to the backend SQL (`ORDER BY start_date ASC` / `ORDER BY distance_km ASC`). The backend already does this for the default `recentlyPosted` and `distanceAscending` case.
-2. Remove client-side sort and rely on backend ordering exclusively.
-3. If client-side sort is required for instant filter feedback, disable "load more" when a non-default sort is active and fetch all results in one shot (only feasible for small total counts).
-
-The cleanest fix is option 1 — pass `sort_by` as a query parameter to the backend:
-
-```python
-# charters.py
-@router.get("/discover")
-async def discover_charters(
-    ...
-    sort_by: Literal["date_asc", "date_desc", "distance_asc"] = "date_asc",
-    ...
-):
+```swift
+let deps = AppDependencies()   // creates a SECOND SyncCoordinator + timer
 ```
 
-```python
-# charter.py repository — apply in find_discoverable
-if sort_by == "date_asc":
-    query = query.order_by(Charter.start_date.asc())
-elif sort_by == "date_desc":
-    query = query.order_by(Charter.start_date.desc())
-# distance_asc is already applied when geo filters are active
+Fix: Never create `AppDependencies()` in a view. Preview initializers should use `AppDependencies.makeForTesting()`. Remove the fallback entirely and require a `viewModel` parameter.
+
+```swift
+// Before
+init(viewModel: CharterListViewModel? = nil) {
+    if let viewModel = viewModel { ... } else {
+        let deps = AppDependencies()   // ❌
+        ...
+    }
+}
+
+// After — previews must pass a viewModel
+init(viewModel: CharterListViewModel) {
+    _viewModel = State(initialValue: viewModel)
+}
+
+#Preview {
+    MainActor.assumeIsolated {
+        let deps = try! AppDependencies.makeForTesting()
+        return CharterListView(viewModel: .init(charterStore: deps.charterStore,
+                                                coordinator: AppCoordinator(dependencies: deps)))
+        .environment(\.appDependencies, deps)
+    }
+}
 ```
 
 ---
 
-## 10. Loading Skeletons — Implementation Guide
+### Step 7 — Map overhaul: avatars, clickable profiles, community badges *(Phase 3 feature — refactor while building)*
 
-`DesignSystem.SkeletonBlock` and `DesignSystem.CharterSkeletonRow` exist and are fully functional. They are **not used in any actual view** — only in a `#Preview`. This section shows where to wire them up.
+**Architecture changes needed before building:**
 
-### 10.1 Charter Discovery List
+1. **`DiscoverableCharter` needs `captainAvatarURL`** — currently only has `captainName`. Backend must include this in `CharterWithUserAPIResponse`.
 
-**Current state:** `CharterDiscoveryView.listView` shows a centered `ProgressView` + label when `isLoading && charters.isEmpty`. This is a full-screen block.
+2. **Community affiliation** — `DiscoverableCharter` should gain `captainCommunities: [CommunityBadge]` (Phase 4 data model). For Phase 3 we can start with just the primary community name and color.
 
-**Replace with skeletons:**
+3. **`CharterMapAnnotation` refactor** — replace the plain circle with a `UserAvatarPin`:
 
 ```swift
-// CharterDiscoveryView.swift — replace loadingState in listView overlay
-.overlay {
-    if viewModel.isLoading && viewModel.charters.isEmpty {
-        DiscoverySkeletonList()
-    }
-}
-
-// New component:
-private struct DiscoverySkeletonList: View {
+// CharterMapView.swift — new annotation component
+struct UserAvatarPin: View {
+    let charter: DiscoverableCharter
+    let isSelected: Bool
+    
     var body: some View {
-        ScrollView {
-            LazyVStack(spacing: DesignSystem.Spacing.md) {
-                ForEach(0..<6, id: \.self) { _ in
-                    DesignSystem.CharterSkeletonRow()
-                }
+        ZStack {
+            Circle()
+                .fill(communityRingColor)
+                .frame(width: isSelected ? 52 : 42)
+            
+            AsyncImage(url: charter.captainAvatarURL) { image in
+                image.resizable().scaledToFill()
+            } placeholder: {
+                Image(systemName: "person.fill")
+                    .foregroundColor(.white)
             }
-            .padding(.horizontal, DesignSystem.Spacing.screenPadding)
-            .padding(.vertical, DesignSystem.Spacing.md)
-        }
-        .background(DesignSystem.Colors.background.ignoresSafeArea())
-        .allowsHitTesting(false)
-    }
-}
-```
-
-The shimmer animation in `SkeletonBlock` is already implemented. No additional work needed — just use it.
-
-### 10.2 Charter List (My Charters Tab)
-
-Add a `CharterListSkeletonView` that mirrors the shape of `CharterTimelineRow`. The existing `CharterSkeletonRow` already matches this shape exactly:
-
-```swift
-// CharterListView.swift — in the body when isLoading && charters.isEmpty
-if viewModel.isLoading {
-    VStack(spacing: 0) {
-        ForEach(0..<4, id: \.self) { _ in
-            DesignSystem.CharterSkeletonRow()
-                .padding(.horizontal, DesignSystem.Spacing.lg)
-        }
-    }
-} else if viewModel.charters.isEmpty {
-    CharterEmptyState()
-} else {
-    // existing list
-}
-```
-
-### 10.3 Library List
-
-`LibraryListView` has no skeleton state either. The library items are `LibraryItemRow` cards. A `LibrarySkeletonRow` should be added to `DesignSystem`:
-
-```swift
-// SkeletonRow.swift — add alongside CharterSkeletonRow
-extension DesignSystem {
-    struct LibrarySkeletonRow: View {
-        var body: some View {
-            VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
-                HStack {
-                    SkeletonBlock(width: 24, height: 24)
-                    SkeletonBlock(width: 180, height: 18)
-                    Spacer()
-                    SkeletonBlock(width: 56, height: 16)
-                }
-                SkeletonBlock(height: 14)
-                SkeletonBlock(width: 120, height: 12)
-            }
-            .padding(DesignSystem.Spacing.md)
-            .background(DesignSystem.Colors.surface)
-            .cornerRadius(DesignSystem.Spacing.cardCornerRadius)
-        }
-    }
-}
-```
-
-Use in `LibraryListView`:
-
-```swift
-if viewModel.isLoading && viewModel.isEmpty {
-    VStack(spacing: DesignSystem.Spacing.sm) {
-        ForEach(0..<5, id: \.self) { _ in
-            DesignSystem.LibrarySkeletonRow()
-        }
-    }
-    .padding(.horizontal, DesignSystem.Spacing.lg)
-    .padding(.top, DesignSystem.Spacing.sm)
-}
-```
-
-### 10.4 `isLoading` State During Load-More (Pagination)
-
-For the "load more" case in discovery (`viewModel.isLoadingMore`), the current pattern is a `ProgressView()` at the bottom of the list. This is fine — skeletons are most impactful on the initial load, not on pagination spinners.
-
-### 10.5 Skeleton Animation Performance Note
-
-`SkeletonBlock` uses `withAnimation(.linear(duration: 1.2).repeatForever(autoreverses: false))`. Each block creates its own independent animation timer. For a list of 6 skeleton rows with 3 blocks each (18 total), these will drift out of phase over time. To keep all skeletons in sync, share a single `animating` binding via a parent view:
-
-```swift
-struct SynchronizedSkeletonList: View {
-    @State private var animating = false
-
-    var body: some View {
-        VStack {
-            ForEach(0..<6, id: \.self) { _ in
-                SyncedCharterSkeletonRow(animating: animating)
+            .frame(width: isSelected ? 44 : 36)
+            .clipShape(Circle())
+            
+            if let badge = charter.primaryCommunityBadge {
+                CommunityBadgeOverlay(badge: badge)
+                    .offset(x: 12, y: 12)
             }
         }
-        .onAppear {
-            withAnimation(.linear(duration: 1.2).repeatForever(autoreverses: false)) {
-                animating = true
-            }
-        }
+        .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
+        .animation(.spring(response: 0.2), value: isSelected)
+    }
+    
+    private var communityRingColor: Color {
+        charter.primaryCommunityBadge?.color ?? DesignSystem.Colors.primary
     }
 }
 ```
 
-Pass `animating` as a `let` (not `@Binding`) into each row — since it's a `Bool`, it will update correctly when the parent re-renders.
+4. **Filtering logic** — `CharterDiscoveryFilters` should gain `communityID: String?` once community model exists. The `CharterFilterView` sheet gets a new "Community" section.
+
+5. **`CLLocationManager` injection** — extract to `LocationProviding` protocol and inject into `CharterDiscoveryViewModel` (fixes testability):
+
+```swift
+protocol LocationProviding {
+    var currentLocation: CLLocationCoordinate2D? { get }
+    func requestWhenInUseAuthorization()
+}
+
+// CharterDiscoveryViewModel.swift
+init(apiClient: APIClientProtocol, locationProvider: LocationProviding = CLLocationManager()) {
+    self.apiClient = apiClient
+    self.locationProvider = locationProvider
+}
+```
 
 ---
 
-## 11. Additional Tests for New Findings
+### Step 8 — Profile overhaul: communities, socials, stats *(Phase 3 feature — refactor while building)*
 
-### Sync Behaviour
-
-```swift
-// CharterEditorViewModelSyncTests.swift
-
-@Test("Editing charter name triggers immediate sync push")
-func editNameTriggersSync() async throws {
-    let mockSync = MockCharterSyncService()
-    let vm = CharterEditorViewModel(
-        charterStore: mockCharterStore,
-        charterSyncService: mockSync,
-        charterID: existingPublicCharterID,
-        onDismiss: {}
-    )
-    vm.form.name = "Updated Name"
-    await vm.saveCharter()
-    #expect(mockSync.pushCalledCount == 1)
-}
-
-@Test("Failed sync after maxRetries is surfaced to user, not silently dropped")
-func maxRetriesExposesFailedState() async throws {
-    // Inject a mock API that always returns 500
-    let vm = makeSyncQueueService(apiReturns: .serverError)
-    for _ in 0..<4 { await vm.processQueue() }
-    #expect(vm.failedCount == 1)
-    #expect(vm.pendingCount == 0)
-}
-```
-
-### Fork Count
-
-```python
-# test_content.py
-async def test_fork_count_atomic_increment(client, db_session, published_content):
-    """Concurrent forks must not lose increments (race condition test)."""
-    import asyncio
-    tasks = [client.post(f"/api/v1/content/{published_content.public_id}/fork")
-             for _ in range(5)]
-    await asyncio.gather(*tasks)
-    await db_session.refresh(published_content)
-    assert published_content.fork_count == 5
-```
-
-### Discovery Cache
+**Data model additions needed:**
 
 ```swift
-@Test("Discovery serves cache on second visit without network call")
-func secondVisitUsesCachedData() async throws {
-    let mockAPI = MockAPIClient(latency: 0)
-    let vm = CharterDiscoveryViewModel(apiClient: mockAPI)
-    await vm.loadInitial()                     // populates cache
-    mockAPI.shouldFail = true                  // network now broken
-    await vm.loadInitial()                     // should serve from cache
-    #expect(vm.charters.isEmpty == false)      // still has data
-    #expect(mockAPI.discoverCallCount == 1)    // only one real network call
+// Core/Models/UserInfo.swift (extend existing)
+struct UserInfo: Codable {
+    // ... existing fields ...
+    var socialLinks: [SocialLink]?      // instagram, twitter, website
+    var communities: [CommunityMembership]?
+    var stats: CaptainStats?
+}
+
+struct SocialLink: Codable, Identifiable {
+    var id: UUID = UUID()
+    let platform: SocialPlatform         // .instagram, .twitter, .website
+    let handle: String
+    var url: URL? { platform.url(for: handle) }
+}
+
+enum SocialPlatform: String, Codable {
+    case instagram, twitter, website
+    func url(for handle: String) -> URL? { ... }
+}
+
+struct CaptainStats: Codable {
+    let chartersCompleted: Int
+    let contentPublished: Int
+    let communitiesJoined: Int
+    let regionsVisited: Int              // computed from charter destinations
+}
+
+struct CommunityMembership: Codable, Identifiable {
+    let id: String
+    let name: String
+    let iconURL: URL?
+    let role: CommunityRole              // .member, .moderator, .founder
+    var isPrimary: Bool
 }
 ```
+
+**`ProfileView` decomposition** — the existing 660-line monolith should be split into:
+
+```
+Features/Profile/
+├── ProfileView.swift           (~150 lines — container + state routing)
+├── ProfileViewModel.swift      (~200 lines — extracted in Step 5)
+├── Components/
+│   ├── ProfileHeroCard.swift   (avatar, name, bio, edit button)
+│   ├── ProfileStatsBar.swift   (4-stat row: charters, content, communities, regions)
+│   ├── CommunitiesSection.swift (community chips with join/leave, primary toggle)
+│   ├── SocialLinksSection.swift (instagram/twitter/website edit row)
+│   └── ProfileEditForm.swift   (inline edit state — username, bio, location)
+```
+
+**Community selection** in the edit form:
+
+```swift
+// CommunitiesSection.swift
+struct CommunitiesSection: View {
+    @Binding var memberships: [CommunityMembership]
+    let onJoin: (String) -> Void
+    let onLeave: (String) -> Void
+    let onSetPrimary: (String) -> Void
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
+            DesignSystem.SectionHeader(title: "Communities")
+            
+            ForEach(memberships) { membership in
+                CommunityRow(
+                    membership: membership,
+                    onSetPrimary: { onSetPrimary(membership.id) },
+                    onLeave: { onLeave(membership.id) }
+                )
+            }
+            
+            Button("+ Find Communities") { /* navigate to community directory */ }
+                .font(DesignSystem.Typography.caption)
+                .foregroundColor(DesignSystem.Colors.primary)
+        }
+    }
+}
+```
+
+---
+
+## 4. Upcoming Features: Refactor Context
+
+The following planned features each have a "refactor hook" — the right time to clean up adjacent code.
+
+### Delete charter → unpublish (Step 3 above)
+
+**What to do while building:**
+- Extend `CharterSyncService` with `unpublishCharter(serverID:)`
+- Replace plain swipe-delete with `PublishedContentDeleteModal` (already in DesignSystem) when `visibility != .private`
+- Add `DELETE /charters/{id}` to backend (or reuse visibility PATCH to `.private` before delete)
+- **Test to add:** `CharterSyncServiceTests` → `testDeletePublicCharterCallsUnpublish()`
+
+**Backend note:** The FastAPI charter repository at `anyfleet-backend/app/repositories/charter.py` needs a `delete_charter(charter_id, user_id)` method, and `app/schemas/charter.py` should expose a `DELETE /charters/{id}` route with auth.
+
+---
+
+### Map overhaul (Steps 7 + backend)
+
+**What to do while building:**
+- Inject `LocationProviding` protocol (Step 7 — makes VM testable)
+- Add `captainAvatarURL` to `CharterWithUserAPIResponse` in backend `app/schemas/charter.py`
+- Introduce `CommunityBadge` as a lightweight struct in `Core/Models/` (even as stub)
+- Replace `CharterMapAnnotation` with `UserAvatarPin` (Step 7)
+- Add empty-state overlay when `charters.isEmpty && !isLoading` on the map
+
+---
+
+### Home tab: nearby captains when active charter
+
+**What to do while building:**
+- `HomeViewModel` needs a `nearbyCaptains: [NearbyCaption]` property (initially empty array)
+- Add a `NearbyCaption` model: `{ id, name, avatarURL, distanceKm, activeCommunity }`
+- Home tab shows a horizontal scroll strip of `NearbyCaptainCard` below the hero charter card — this strip is hidden when location permission is denied
+- The backend needs `GET /captains/nearby?lat=&lon=&radius_km=` — add to `APIClientProtocol` now even if response is always `[]` while the backend feature is in progress
+- **Refactor while building:** `HomeView` can be split from its current ~280-line body into `HomeHeroCard`, `UpcomingStrip`, `NearbyCaptainsStrip`, and `PinnedContentGrid` sub-views
+
+---
+
+### Onboarding + swipe gesture hints
+
+**What to do while building:**
+- Create `OnboardingService` (simple `UserDefaults` wrapper) storing which hints have been shown
+- `CharterListView` should show a `SwipeHintOverlay` on first display (pointing right-to-left with "Swipe to edit or delete")
+- The hint is a `ZStack` overlay that disappears after first swipe or a 3s timer
+- Onboarding flow should be a new `AppRoute.onboarding` that `AppCoordinator` presents as a sheet on first launch (check `OnboardingService.hasCompletedOnboarding`)
+
+---
+
+### Caching strategy
+
+**Current state:** `CharterDiscoveryViewModel` has an in-memory 120-second dict cache. `LibraryStore` has an `LRUCache`. No persistent response cache.
+
+**Improvements while building Phase 3:**
+- **Stale-while-revalidate for charters discovery:** Cache the last successful response to SQLite (`DiscoveryCacheRecord`) so the map/list shows results immediately after re-launch even without network
+- **Avatar image caching:** Add `AsyncImageCache` (simple `NSCache<NSURL, UIImage>`) behind a custom `CachedAsyncImage` view component — reuse across map pins, profile, and author cards
+- **Prefetch on WiFi:** When network changes to WiFi, trigger a background `CharterSyncService.pullRemoteCharters()` silently
+
+---
+
+### Profile overhaul (Step 8 above)
+
+**What to do while building:**
+- Extract `ProfileViewModel` to own file (Step 5) — prerequisite
+- Add `SocialLinksSection`, `CommunitiesSection`, `ProfileStatsBar` (Step 8)
+- Backend `app/schemas/profile.py` needs to accept and return `social_links: list[SocialLink]` and `communities: list[CommunityMembership]`
+- Wire "Delete Account" button to `authService.deleteAccount()` — currently empty closure
+- **Visual:** Hero card should use a `AsyncImage` background (sailing photo) falling back to a gradient — blueprint is in `DesignSystem+Profile.swift` under `ProfileHeroCard`
+
+---
+
+## 5. Recommended Tests (5 high-value cases)
+
+```swift
+// 1. CRITICAL — CharterStore cache after update
+func testUpdateCharterUpdatesInMemoryCache() async throws {
+    let store = CharterStore(repository: MockCharterRepository())
+    let charter = try await store.createCharter(name: "Test", ...)
+    let updated = try await store.updateCharter(charter.id, name: "Renamed", ...)
+    XCTAssertEqual(store.charters.first(where: { $0.id == charter.id })?.name, "Renamed")
+}
+
+// 2. CRITICAL — Delete public charter calls unpublish
+func testDeletePublicCharterCallsUnpublish() async throws {
+    let mockAPI = MockAPIClient()
+    let service = CharterSyncService(repository: mock, apiClient: mockAPI, ...)
+    let charter = CharterModel(..., serverID: "srv-123", visibility: .community)
+    await service.unpublishCharter(serverID: "srv-123")
+    XCTAssertTrue(mockAPI.calledDeleteCharter)
+    XCTAssertEqual(mockAPI.deletedServerID, "srv-123")
+}
+
+// 3. HIGH — APIClient EmptyResponse path doesn't crash
+func testAPIClientEmptyResponsePathIsSafe() async throws {
+    // Verify that performRequest (Void) doesn't crash when T is EmptyResponse
+    let client = APIClient(session: MockURLSession(statusCode: 204, data: Data()))
+    XCTAssertNoThrow(try await client.performRequest(method: "DELETE", path: "/test"))
+}
+
+// 4. HIGH — Discovery pagination loads page 2 from offset
+func testDiscoveryViewModelPaginationAppendsResults() async throws {
+    let vm = CharterDiscoveryViewModel(apiClient: MockAPIClient(pages: [page1, page2]))
+    await vm.loadInitial()
+    await vm.loadMore()
+    XCTAssertEqual(vm.charters.count, 40)  // 20 + 20
+    XCTAssertEqual(vm.currentOffset, 40)
+}
+
+// 5. MEDIUM — Stale cache triggers background refresh
+func testStaleCacheEntryTriggersBackgroundFetch() async throws {
+    let staleEntry = DiscoveryCacheEntry(charters: [old], fetchedAt: .init(timeIntervalSinceNow: -200), cacheKey: "k")
+    XCTAssertTrue(staleEntry.isStale)
+    // Verify that load() calls fetchAndCache(silent: true) when entry is stale
+}
+```
+
+---
+
+## 6. Backend Notes (anyfleet-backend)
+
+These iOS changes require corresponding backend work:
+
+| iOS need | Backend endpoint | File |
+|----------|-----------------|------|
+| Delete public charter → unpublish | `DELETE /charters/{id}` | `app/repositories/charter.py` + new route in `app/main.py` |
+| Map pin avatars | Add `avatar_url` to `CharterWithUserResponse` | `app/schemas/charter.py` |
+| Nearby captains | `GET /captains/nearby?lat&lon&radius_km` | New `app/repositories/captain.py` |
+| Profile communities | `PATCH /profile` accepts `communities[]` | `app/schemas/profile.py` |
+| Profile social links | `PATCH /profile` accepts `social_links[]` | `app/schemas/profile.py` |
+
+---
+
+## 7. File-change Map (quick reference)
+
+| File | Change | Step |
+|------|--------|------|
+| `Core/Stores/CharterStore.swift` | Fix `updateCharter` cache + add `deleteCharter` unpublish call | 1, 3 |
+| `Data/Repositories/LocalRepository.swift` | Replace force-unwraps with guarded logging | 2 |
+| `Services/APIClient.swift` | Replace `as! T` with safe cast | 2 |
+| `Services/CharterSyncService.swift` | Add `unpublishCharter(serverID:)` | 3 |
+| `Core/Models/DiscoverableCharter.swift` | Keep domain struct; split DTOs to `Core/Models/API/` | 4 |
+| `Features/Profile/ProfileView.swift` | Remove `ProfileViewModel`; decompose into sub-views | 5, 8 |
+| `Features/Profile/ProfileViewModel.swift` | New file; add `@MainActor` at class level | 5 |
+| `Services/AuthService.swift` | Add `@MainActor` | 5 |
+| `Features/Charter/CharterListView.swift` | Remove fallback `init()`; wire `PublishedContentDeleteModal` | 6, 3 |
+| `Features/Charter/Discovery/CharterMapView.swift` | `UserAvatarPin` + empty state overlay | 7 |
+| `Features/Charter/Discovery/CharterDiscoveryViewModel.swift` | Inject `LocationProviding`; remove `Task {}` in `resetFilters` | 7 |
+| `Core/Models/UserInfo.swift` (extend) | Add `socialLinks`, `communities`, `stats` | 8 |
+
+---
+
+*Document version: 1.0 — March 2026*  
+*Based on codebase snapshot at commit time; re-validate force-unwrap line numbers before each fix.*
