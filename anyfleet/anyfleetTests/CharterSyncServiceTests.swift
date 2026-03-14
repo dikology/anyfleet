@@ -492,6 +492,55 @@ struct CharterSyncServiceTests {
                 "Charter not in local DB — always save regardless of timestamps")
     }
 
+    // MARK: - unpublishCharter
+
+    @Test("unpublishCharter - calls deleteCharter on API with the correct serverID")
+    @MainActor
+    func testUnpublishCharter_CallsDeleteOnAPI() async throws {
+        let (_, apiClient, _, _, service) = makeDependencies(isAuthenticated: true)
+        let serverID = UUID()
+
+        try await service.unpublishCharter(serverID: serverID)
+
+        #expect(apiClient.deleteCharterCallCount == 1)
+        #expect(apiClient.lastDeletedCharterID == serverID)
+    }
+
+    @Test("unpublishCharter - skips API call when not authenticated")
+    @MainActor
+    func testUnpublishCharter_SkipsWhenUnauthenticated() async throws {
+        let (_, apiClient, _, _, service) = makeDependencies(isAuthenticated: false)
+
+        try await service.unpublishCharter(serverID: UUID())
+
+        #expect(apiClient.deleteCharterCallCount == 0)
+    }
+
+    @Test("unpublishCharter - propagates API errors to caller")
+    @MainActor
+    func testUnpublishCharter_PropagatesAPIError() async {
+        let (_, apiClient, _, _, service) = makeDependencies(isAuthenticated: true)
+        apiClient.shouldFail = true
+
+        await #expect(throws: (any Error).self) {
+            try await service.unpublishCharter(serverID: UUID())
+        }
+    }
+
+    @Test("unpublishCharter - unauthenticated: skips API, does NOT silently delete server record")
+    @MainActor
+    func testUnpublishCharter_Unauthenticated_DoesNotCallDeleteCharter() async throws {
+        // Regression: when the user is not signed in, unpublishCharter must return early
+        // without calling the backend. The charter must remain on the server until the user
+        // signs in and explicitly removes it.
+        let (_, apiClient, _, _, service) = makeDependencies(isAuthenticated: false)
+
+        try await service.unpublishCharter(serverID: UUID())
+
+        #expect(apiClient.deleteCharterCallCount == 0,
+                "deleteCharter must never be called when the user is not authenticated")
+    }
+
     // MARK: - syncAll
 
     @Test("syncAll - calls both push and pull")

@@ -323,6 +323,99 @@ struct CharterDiscoveryViewModelTests {
         #expect(vm.charters.map { $0.id } == originalIDs)
     }
 
+    // MARK: - Cache behaviour
+
+    @Test("cache hit - shows cached charters immediately then refreshes from offset 0")
+    @MainActor
+    func testCacheHit_BackgroundRefreshUsesOffsetZero() async {
+        let (vm, apiClient) = makeViewModel()
+
+        // First load: 2 charters cached.
+        let firstItems = [makeDiscoverableCharter(), makeDiscoverableCharter()]
+        apiClient.mockDiscoverChartersResponse = makeDiscoveryResponse(items: firstItems)
+        await vm.loadInitial()
+        #expect(vm.charters.count == 2)
+        #expect(apiClient.lastDiscoverChartersOffset == 0)
+
+        // Second loadInitial within the 120-second cache window: should show cached data,
+        // then fire a background refresh from offset 0 — NOT from offset 2 (the cached count).
+        // A third charter has appeared on the server since the last fetch.
+        let freshItems = [makeDiscoverableCharter(), makeDiscoverableCharter(), makeDiscoverableCharter()]
+        apiClient.mockDiscoverChartersResponse = makeDiscoveryResponse(items: freshItems)
+        await vm.loadInitial()
+
+        // The stale-check fires as an unstructured Task on @MainActor. `await vm.loadInitial()`
+        // returns as soon as the synchronous cache-hit path finishes; the background Task is
+        // merely enqueued at that point. Two yields are required:
+        //   • yield 1 – starts the Task, runs it to the `await apiClient.discoverCharters(...)` call
+        //   • yield 2 – lets the mock result be applied back on the main actor
+        await Task.yield()
+        await Task.yield()
+
+        // The background call must have been made (call count == 2) and it must have used offset 0.
+        #expect(apiClient.discoverChartersCallCount == 2,
+                "Second loadInitial (cache hit) must still fire a background API call")
+        #expect(apiClient.lastDiscoverChartersOffset == 0,
+                "Background stale-refresh must always fetch from offset 0, not from the cached count")
+    }
+
+    @Test("cache hit background refresh - replaces full list, not just delta")
+    @MainActor
+    func testCacheHit_BackgroundRefreshReplacesFullList() async {
+        let (vm, apiClient) = makeViewModel()
+
+        // First load: 2 items, cached.
+        let firstPage = [makeDiscoverableCharter(), makeDiscoverableCharter()]
+        apiClient.mockDiscoverChartersResponse = makeDiscoveryResponse(items: firstPage)
+        await vm.loadInitial()
+        #expect(vm.charters.count == 2)
+
+        // Server now has 3 items. Background refresh should replace all 2 with all 3,
+        // not fetch from offset=2 and replace the list with just the 1 new item.
+        let allThree = (0..<3).map { _ in makeDiscoverableCharter() }
+        apiClient.mockDiscoverChartersResponse = makeDiscoveryResponse(items: allThree)
+
+        // Trigger a second loadInitial (cache still warm).
+        await vm.loadInitial()
+
+        // The stale-check fires as an unstructured Task on @MainActor. Yield twice so it
+        // completes before we assert: first yield starts the task and suspends it at the
+        // mock API call; second yield lets the result be applied back on the main actor.
+        await Task.yield()
+        await Task.yield()
+
+        // After the background Task runs, charters should be the full fresh page (3).
+        // This is the regression test: previously charters became [newItem] (count 1).
+        #expect(vm.charters.count == 3,
+                "Background refresh must replace list with the full first page, not just the delta from the previous offset")
+    }
+
+    @Test("loadMore - offset advances correctly after cache-hit loadInitial")
+    @MainActor
+    func testLoadMore_OffsetAfterCacheHit() async {
+        let (vm, apiClient) = makeViewModel()
+
+        // Fill a full first page (20 items), cache it.
+        let pageOne = (0..<20).map { _ in makeDiscoverableCharter() }
+        apiClient.mockDiscoverChartersResponse = makeDiscoveryResponse(items: pageOne)
+        await vm.loadInitial()
+        #expect(vm.charters.count == 20)
+        #expect(vm.hasMore == true)
+
+        // Trigger cache-hit loadInitial; background refresh also returns 20 items.
+        apiClient.mockDiscoverChartersResponse = makeDiscoveryResponse(items: pageOne)
+        await vm.loadInitial()
+
+        // Now loadMore should request from offset 20, not from an incorrect offset.
+        let pageTwo = [makeDiscoverableCharter(), makeDiscoverableCharter()]
+        apiClient.mockDiscoverChartersResponse = makeDiscoveryResponse(items: pageTwo)
+        await vm.loadMore()
+
+        #expect(vm.charters.count == 22)
+        #expect(apiClient.lastDiscoverChartersOffset == 20,
+                "loadMore offset must be the page size (20), not a stale value from a previous background refresh")
+    }
+
     // MARK: - isEmpty
 
     @Test("isEmpty - true when charters empty and not loading")

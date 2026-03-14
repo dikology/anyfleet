@@ -1,0 +1,30 @@
+---
+description: iOS Swift/SwiftUI architecture and code quality standards
+globs: **/*.swift
+alwaysApply: false
+---
+
+# iOS Architecture & Code Quality Standards
+
+## Architecture & Layers
+
+- Enforce a clear layer boundary: `UI → ViewModel → UseCase/Service → Repository → API/Storage`
+- Views present data only; view models handle UI logic; services handle networking and persistence
+- Prefer composition + protocols over inheritance; no new singletons — use dependency injection
+- State must be single-source-of-truth per feature; never duplicate the same state across layers
+- Separate models and mappers for API vs domain vs UI representations
+
+## Swift & SwiftUI Code Quality
+
+- Use clear, descriptive names that reflect domain concepts
+- No force unwraps (`!`) or forced casts; prefer `guard` + early returns for optional handling
+- Split long functions or complex `body` implementations into smaller, focused units
+- Minimize logic in SwiftUI `body`; move it to computed properties or view models
+- Break large views into smaller subviews to aid compiler performance and readability
+- Use property wrappers (`@State`, `@Binding`, `@Observable`, `@Environment`, etc.) intentionally
+- Keep UI updates on the main actor; make async effects and navigation explicit
+
+## Accessibility
+
+- Use semantic SwiftUI components with meaningful labels, hints, and traits
+- Ensure dynamic type compatibility and sufficient color contrast

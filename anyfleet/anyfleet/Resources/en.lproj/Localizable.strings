@@ -95,6 +95,12 @@
 "greeting.night" = "Good night";
 
 "charter.activeCharter" = "Active";
+"charter.list.sectionUpcoming" = "Upcoming";
+"charter.list.sectionPastWithCount" = "Past (%d)";
+"charter.list.actionDelete" = "Delete";
+"charter.list.actionEdit" = "Edit";
+"charter.list.signInToSyncBanner" = "Sign in to sync your charters";
+
 "charter.list.emptyState.title" = "No Charters Yet";
 "charter.list.emptyState.message" = "Create your first charter to start planning your sailing adventure. Track dates, vessels, and locations all in one place.";
 "charter.list.emptyState.action" = "Create Charter";
@@ -251,6 +257,15 @@
 "charter.editor.draftsSavedNote" = "Drafts are saved automatically";
 "charter.editor.back" = "Back";
 "charter.editor.saveTitle" = "Save Charter";
+
+// Charter delete modal (when charter is in discovery)
+"charter.deleteModal.title" = "This charter is visible in discovery";
+"charter.deleteModal.explanation" = "\"%@\" can be found by other sailors. Choose how you'd like to handle it:";
+"charter.deleteModal.unpublishAndDeleteTitle" = "Unpublish & Delete";
+"charter.deleteModal.unpublishAndDeleteSubtitle" = "Remove from discovery and delete from device";
+"charter.deleteModal.deleteLocalOnlyTitle" = "Delete from Device Only";
+"charter.deleteModal.deleteLocalOnlySubtitle" = "Keep in discovery, remove from this device";
+"charter.deleteModal.unpublishRequiresSignIn" = "Sign in to remove from discovery";
 
 // Charter Visibility options
 "charter.visibility.private.name" = "Private";

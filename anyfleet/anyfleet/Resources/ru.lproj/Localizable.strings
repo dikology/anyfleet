@@ -95,6 +95,12 @@
 "greeting.night" = "Доброй ночи";
 
 "charter.activeCharter" = "Активный";
+"charter.list.sectionUpcoming" = "Предстоящие";
+"charter.list.sectionPastWithCount" = "Прошедшие (%d)";
+"charter.list.actionDelete" = "Удалить";
+"charter.list.actionEdit" = "Изменить";
+"charter.list.signInToSyncBanner" = "Войдите, чтобы синхронизировать чартеры";
+
 "charter.list.emptyState.title" = "Пока нет чартеров";
 "charter.list.emptyState.message" = "Создайте первый чартер, чтобы начать планировать путешествие. Отслеживайте даты, суда и локации в одном месте.";
 "charter.list.emptyState.action" = "Создать чартер";
@@ -230,6 +236,15 @@
 "charter.editor.draftsSavedNote" = "Черновики сохраняются автоматически";
 "charter.editor.back" = "Назад";
 "charter.editor.saveTitle" = "Сохранить чартер";
+
+// Charter delete modal (when charter is in discovery)
+"charter.deleteModal.title" = "Этот чартер отображается в ленте";
+"charter.deleteModal.explanation" = "«%@» могут видеть другие яхтсмены. Выберите, что сделать:";
+"charter.deleteModal.unpublishAndDeleteTitle" = "Снять с публикации и удалить";
+"charter.deleteModal.unpublishAndDeleteSubtitle" = "Убрать из ленты и удалить с устройства";
+"charter.deleteModal.deleteLocalOnlyTitle" = "Удалить только с устройства";
+"charter.deleteModal.deleteLocalOnlySubtitle" = "Оставить в ленте, удалить с этого устройства";
+"charter.deleteModal.unpublishRequiresSignIn" = "Войдите, чтобы убрать из ленты";
 
 // Charter Visibility options
 "charter.visibility.private.name" = "Приватный";

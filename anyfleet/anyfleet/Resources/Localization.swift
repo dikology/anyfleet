@@ -1401,6 +1401,34 @@ enum L10n {
         )
 
         enum List {
+            static let sectionUpcoming = NSLocalizedString(
+                "charter.list.sectionUpcoming",
+                tableName: "Localizable",
+                comment: "Section header for upcoming charters"
+            )
+            static func sectionPastWithCount(_ count: Int) -> String {
+                String(format: NSLocalizedString(
+                    "charter.list.sectionPastWithCount",
+                    tableName: "Localizable",
+                    comment: "Section header for past charters; %d = count"
+                ), count)
+            }
+            static let actionDelete = NSLocalizedString(
+                "charter.list.actionDelete",
+                tableName: "Localizable",
+                comment: "Swipe action: delete charter"
+            )
+            static let actionEdit = NSLocalizedString(
+                "charter.list.actionEdit",
+                tableName: "Localizable",
+                comment: "Swipe action: edit charter"
+            )
+            static let signInToSyncBanner = NSLocalizedString(
+                "charter.list.signInToSyncBanner",
+                tableName: "Localizable",
+                comment: "Banner text when user needs to sign in to sync charters"
+            )
+
             enum EmptyState {
                 static let title = NSLocalizedString(
                     "charter.list.emptyState.title",
@@ -1790,6 +1818,47 @@ enum L10n {
                     )
                 }
             }
+        }
+
+        /// Charter delete confirmation modal (when charter is visible in discovery).
+        enum DeleteModal {
+            static let title = NSLocalizedString(
+                "charter.deleteModal.title",
+                tableName: "Localizable",
+                comment: "Title for the charter delete confirmation when charter is in discovery"
+            )
+            static func explanation(_ charterName: String) -> String {
+                String(format: NSLocalizedString(
+                    "charter.deleteModal.explanation",
+                    tableName: "Localizable",
+                    comment: "Explanation text; %@ = charter name"
+                ), charterName)
+            }
+            static let unpublishAndDeleteTitle = NSLocalizedString(
+                "charter.deleteModal.unpublishAndDeleteTitle",
+                tableName: "Localizable",
+                comment: "Option: unpublish from discovery and delete locally"
+            )
+            static let unpublishAndDeleteSubtitle = NSLocalizedString(
+                "charter.deleteModal.unpublishAndDeleteSubtitle",
+                tableName: "Localizable",
+                comment: "Subtitle for unpublish and delete option"
+            )
+            static let deleteLocalOnlyTitle = NSLocalizedString(
+                "charter.deleteModal.deleteLocalOnlyTitle",
+                tableName: "Localizable",
+                comment: "Option: delete only from this device, keep in discovery"
+            )
+            static let deleteLocalOnlySubtitle = NSLocalizedString(
+                "charter.deleteModal.deleteLocalOnlySubtitle",
+                tableName: "Localizable",
+                comment: "Subtitle for delete local only option"
+            )
+            static let unpublishRequiresSignIn = NSLocalizedString(
+                "charter.deleteModal.unpublishRequiresSignIn",
+                tableName: "Localizable",
+                comment: "Shown instead of the unpublish subtitle when the user is not signed in"
+            )
         }
 
         enum CheckInChecklist {
