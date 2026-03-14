@@ -344,11 +344,17 @@ struct CharterDiscoveryViewModelTests {
         apiClient.mockDiscoverChartersResponse = makeDiscoveryResponse(items: freshItems)
         await vm.loadInitial()
 
-        // Cached charters are shown instantly (still 2 from the synchronous path).
-        // Background refresh fires asynchronously; in unit tests it runs to completion
-        // because we await loadInitial which awaits load which spawns the Task.
-        // After the Task completes the count should reflect the fresh server response.
-        // We confirm the background call used offset 0 (not 2).
+        // The stale-check fires as an unstructured Task on @MainActor. `await vm.loadInitial()`
+        // returns as soon as the synchronous cache-hit path finishes; the background Task is
+        // merely enqueued at that point. Two yields are required:
+        //   • yield 1 – starts the Task, runs it to the `await apiClient.discoverCharters(...)` call
+        //   • yield 2 – lets the mock result be applied back on the main actor
+        await Task.yield()
+        await Task.yield()
+
+        // The background call must have been made (call count == 2) and it must have used offset 0.
+        #expect(apiClient.discoverChartersCallCount == 2,
+                "Second loadInitial (cache hit) must still fire a background API call")
         #expect(apiClient.lastDiscoverChartersOffset == 0,
                 "Background stale-refresh must always fetch from offset 0, not from the cached count")
     }
@@ -371,6 +377,12 @@ struct CharterDiscoveryViewModelTests {
 
         // Trigger a second loadInitial (cache still warm).
         await vm.loadInitial()
+
+        // The stale-check fires as an unstructured Task on @MainActor. Yield twice so it
+        // completes before we assert: first yield starts the task and suspends it at the
+        // mock API call; second yield lets the result be applied back on the main actor.
+        await Task.yield()
+        await Task.yield()
 
         // After the background Task runs, charters should be the full fresh page (3).
         // This is the regression test: previously charters became [newItem] (count 1).
