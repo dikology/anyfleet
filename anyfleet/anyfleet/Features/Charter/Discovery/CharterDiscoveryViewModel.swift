@@ -95,6 +95,9 @@ final class CharterDiscoveryViewModel: ErrorHandling {
     private func load(appending: Bool = false) async {
         if !appending, let cached = cache[cacheKey], !cached.isStale {
             charters = cached.charters
+            // currentOffset tracks where loadMore should continue from.
+            // The background stale-refresh always restarts from offset 0 (see fetchAndCache),
+            // so it is safe to set this here for an immediate loadMore call.
             currentOffset = cached.charters.count
             hasMore = cached.charters.count == pageSize
             Task { await fetchAndCache(appending: false, silent: true) }
@@ -115,6 +118,12 @@ final class CharterDiscoveryViewModel: ErrorHandling {
             // Backend caps radius_km at 10 000; use max for global (no location) search.
             let radius = filters.useNearMe ? filters.radiusKm : 10_000.0
 
+            // Fresh (non-appending) loads always start from offset 0.
+            // Using currentOffset here was the source of a bug: a cache-hit sets
+            // currentOffset = cached.count before firing the background refresh, which
+            // then fetched only the delta and *replaced* the full list with it.
+            let fetchOffset = appending ? currentOffset : 0
+
             let response = try await apiClient.discoverCharters(
                 dateFrom: filters.effectiveDateFrom,
                 dateTo: filters.effectiveDateTo,
@@ -123,19 +132,20 @@ final class CharterDiscoveryViewModel: ErrorHandling {
                 radiusKm: radius,
                 sortBy: filters.sortOrder.backendValue,
                 limit: pageSize,
-                offset: currentOffset
+                offset: fetchOffset
             )
 
             let newItems = response.items.map { $0.toDiscoverableCharter() }
 
             if appending {
                 charters.append(contentsOf: newItems)
+                currentOffset += newItems.count
             } else {
                 charters = newItems
+                currentOffset = newItems.count
                 cache[cacheKey] = DiscoveryCacheEntry(charters: newItems, fetchedAt: Date(), cacheKey: cacheKey)
             }
 
-            currentOffset += newItems.count
             hasMore = newItems.count == pageSize
 
             AppLogger.view.info("Loaded \(newItems.count) discoverable charters (total: \(charters.count))")

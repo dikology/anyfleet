@@ -6,6 +6,7 @@ struct CharterListView: View {
     @Environment(\.appCoordinator) private var coordinator
 
     @State private var showPast = false
+    @State private var charterPendingDelete: CharterModel?
 
     @MainActor
     init(viewModel: CharterListViewModel? = nil) {
@@ -40,7 +41,7 @@ struct CharterListView: View {
                     HStack(spacing: DesignSystem.Spacing.sm) {
                         Image(systemName: "icloud.and.arrow.up")
                             .font(.system(size: 14, weight: .semibold))
-                        Text("Sign in to sync your charters")
+                        Text(L10n.Charter.List.signInToSyncBanner)
                             .font(DesignSystem.Typography.caption)
                             .fixedSize(horizontal: false, vertical: true)
                         Spacer()
@@ -88,6 +89,26 @@ struct CharterListView: View {
         .refreshable {
             await viewModel.refresh()
         }
+        .sheet(item: $charterPendingDelete) { charter in
+            CharterDeleteModal(
+                charterName: charter.name,
+                canUnpublish: dependencies.isAuthenticated && charter.serverID != nil,
+                onUnpublishAndDelete: {
+                    charterPendingDelete = nil
+                    Task {
+                        if let serverID = charter.serverID {
+                            try? await dependencies.charterSyncService.unpublishCharter(serverID: serverID)
+                        }
+                        try? await viewModel.deleteCharter(charter.id)
+                    }
+                },
+                onDeleteLocalOnly: {
+                    charterPendingDelete = nil
+                    Task { try? await viewModel.deleteCharter(charter.id) }
+                },
+                onCancel: { charterPendingDelete = nil }
+            )
+        }
     }
 
     // MARK: - States
@@ -129,20 +150,31 @@ struct CharterListView: View {
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
                         .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                            Button(role: .destructive) {
-                                Task { try? await viewModel.deleteCharter(charter.id) }
-                            } label: { Label("Delete", systemImage: "trash") }
+                            // Use role: .destructive only when deletion is immediate.
+                            // For non-private charters a confirmation modal is shown first;
+                            // using .destructive there causes SwiftUI to animate the row away
+                            // before any data change, making the charter vanish on cancel.
+                            if charter.visibility != .private {
+                                Button {
+                                    charterPendingDelete = charter
+                                } label: { Label(L10n.Charter.List.actionDelete, systemImage: "trash") }
+                                .tint(.red)
+                            } else {
+                                Button(role: .destructive) {
+                                    Task { try? await viewModel.deleteCharter(charter.id) }
+                                } label: { Label(L10n.Charter.List.actionDelete, systemImage: "trash") }
+                            }
 
                             Button {
                                 coordinator.editCharter(charter.id)
                             } label: {
-                                Label("Edit", systemImage: "pencil")
+                                Label(L10n.Charter.List.actionEdit, systemImage: "pencil")
                             }
                             .tint(.gray)
                         }
                     }
                 } header: {
-                    sectionLabel("Upcoming")
+                    sectionLabel(L10n.Charter.List.sectionUpcoming)
                 }
             }
 
@@ -158,9 +190,16 @@ struct CharterListView: View {
                             .listRowSeparator(.hidden)
                             .listRowBackground(Color.clear)
                             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                Button(role: .destructive) {
-                                    Task { try? await viewModel.deleteCharter(charter.id) }
-                                } label: { Label("Delete", systemImage: "trash") }
+                                if charter.visibility != .private {
+                                    Button {
+                                        charterPendingDelete = charter
+                                    } label: { Label(L10n.Charter.List.actionDelete, systemImage: "trash") }
+                                    .tint(.red)
+                                } else {
+                                    Button(role: .destructive) {
+                                        Task { try? await viewModel.deleteCharter(charter.id) }
+                                    } label: { Label(L10n.Charter.List.actionDelete, systemImage: "trash") }
+                                }
                             }
                         }
                     }
@@ -169,7 +208,7 @@ struct CharterListView: View {
                         withAnimation(.spring(response: 0.3)) { showPast.toggle() }
                     } label: {
                         HStack(spacing: DesignSystem.Spacing.xs) {
-                            sectionLabel("Past (\(viewModel.pastCharters.count))")
+                            sectionLabel(L10n.Charter.List.sectionPastWithCount(viewModel.pastCharters.count))
                             Spacer()
                             Image(systemName: showPast ? "chevron.up" : "chevron.down")
                                 .font(.system(size: 11, weight: .semibold))

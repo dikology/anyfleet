@@ -2,6 +2,10 @@ import SwiftUI
 
 struct DiscoverView: View {
     @State private var viewModel: DiscoverViewModel
+    /// Persisted across tab switches so the in-memory cache survives when the user
+    /// temporarily leaves the charters sub-tab. Creating a new VM on every render
+    /// was the root cause of the "shows nothing on return" bug.
+    @State private var charterDiscoveryViewModel: CharterDiscoveryViewModel
     @Environment(\.appDependencies) private var dependencies
     @Environment(\.appCoordinator) private var coordinator
 
@@ -28,18 +32,24 @@ struct DiscoverView: View {
     }
 
     @MainActor
-    init(viewModel: DiscoverViewModel? = nil) {
+    init(
+        viewModel: DiscoverViewModel? = nil,
+        charterDiscoveryViewModel: CharterDiscoveryViewModel? = nil
+    ) {
+        let deps = AppDependencies.shared
         if let viewModel = viewModel {
             _viewModel = State(initialValue: viewModel)
         } else {
-            // Create a placeholder for previews and testing
-            let deps = AppDependencies()
             _viewModel = State(initialValue: DiscoverViewModel(
                 apiClient: deps.apiClient,
                 libraryStore: deps.libraryStore,
                 coordinator: AppCoordinator(dependencies: deps)
             ))
         }
+        _charterDiscoveryViewModel = State(
+            initialValue: charterDiscoveryViewModel
+                ?? CharterDiscoveryViewModel(apiClient: deps.apiClient)
+        )
     }
 
     var body: some View {
@@ -119,9 +129,7 @@ struct DiscoverView: View {
     }
 
     private var charterDiscoveryTabView: some View {
-        CharterDiscoveryView(
-            viewModel: CharterDiscoveryViewModel(apiClient: dependencies.apiClient)
-        )
+        CharterDiscoveryView(viewModel: charterDiscoveryViewModel)
     }
 
     // MARK: - Content Tab (Library Content Discovery)

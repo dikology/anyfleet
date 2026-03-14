@@ -136,6 +136,16 @@ final class CharterSyncService {
         await pullMyCharters()
     }
 
+    /// Remove a charter from the discovery feed by calling the backend delete endpoint.
+    ///
+    /// Called fire-and-forget when the user deletes a charter that was previously synced
+    /// as non-private. Local deletion always proceeds regardless of whether this call succeeds.
+    func unpublishCharter(serverID: UUID) async throws {
+        guard authService.isAuthenticated else { return }
+        try await apiClient.deleteCharter(id: serverID)
+        AppLogger.sync.info("Charter \(serverID.uuidString) unpublished from discovery")
+    }
+
     // MARK: - Private Helpers
 
     private func push(_ charter: CharterModel) async {
