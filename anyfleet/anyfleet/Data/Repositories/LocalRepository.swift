@@ -759,11 +759,19 @@ extension LocalRepository {
             for record in records {
                 AppLogger.repository.debug("Pending operation: ID=\(record.id ?? -1), contentID=\(record.contentID), operation=\(record.operation), syncedAt=\(record.syncedAt?.description ?? "nil")")
             }
-            return records.map { record in
-                SyncQueueOperation(
+            return records.compactMap { record in
+                guard let contentID = UUID(uuidString: record.contentID) else {
+                    AppLogger.sync.error("Corrupt sync record: invalid UUID '\(record.contentID)' — skipping")
+                    return nil
+                }
+                guard let operation = SyncOperation(rawValue: record.operation) else {
+                    AppLogger.sync.error("Corrupt sync record: unknown operation '\(record.operation)' — skipping")
+                    return nil
+                }
+                return SyncQueueOperation(
                     id: record.id!,
-                    contentID: UUID(uuidString: record.contentID)!,
-                    operation: SyncOperation(rawValue: record.operation)!,
+                    contentID: contentID,
+                    operation: operation,
                     visibility: ContentVisibility(rawValue: record.visibilityState) ?? .unknown,
                     payload: record.payload?.data(using: .utf8),
                     retryCount: record.retryCount,

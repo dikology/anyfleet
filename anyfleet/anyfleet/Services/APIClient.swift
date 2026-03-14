@@ -437,8 +437,8 @@ final class APIClient: APIClientProtocol {
         // Handle status codes
         switch httpResponse.statusCode {
         case 200...299:
-            if T.self == EmptyResponse.self {
-                return EmptyResponse() as! T
+            if T.self == EmptyResponse.self, let empty = EmptyResponse() as? T {
+                return empty
             }
             return try decoder.decode(T.self, from: data)
             
@@ -495,8 +495,8 @@ final class APIClient: APIClientProtocol {
         // Handle status codes
         switch httpResponse.statusCode {
         case 200...299:
-            if T.self == EmptyResponse.self {
-                return EmptyResponse() as! T
+            if T.self == EmptyResponse.self, let empty = EmptyResponse() as? T {
+                return empty
             }
             return try decoder.decode(T.self, from: data)
 

@@ -157,6 +157,9 @@ final class CharterStore {
         
         do {
             let charter = try await repository.updateCharter(charterID, name: name, boatName: boatName, location: location, latitude: latitude, longitude: longitude, locationPlaceID: locationPlaceID, startDate: startDate, endDate: endDate, checkInChecklistID: checkInChecklistID)
+            if let index = charters.firstIndex(where: { $0.id == charterID }) {
+                charters[index] = charter
+            }
             AppLogger.store.info("Charter updated successfully with ID: \(charter.id.uuidString)")
             AppLogger.store.completeOperation("Update Charter")
             return charter
