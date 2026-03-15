@@ -33,23 +33,11 @@ struct DiscoverView: View {
 
     @MainActor
     init(
-        viewModel: DiscoverViewModel? = nil,
-        charterDiscoveryViewModel: CharterDiscoveryViewModel? = nil
+        viewModel: DiscoverViewModel,
+        charterDiscoveryViewModel: CharterDiscoveryViewModel
     ) {
-        let deps = AppDependencies.shared
-        if let viewModel = viewModel {
-            _viewModel = State(initialValue: viewModel)
-        } else {
-            _viewModel = State(initialValue: DiscoverViewModel(
-                apiClient: deps.apiClient,
-                libraryStore: deps.libraryStore,
-                coordinator: AppCoordinator(dependencies: deps)
-            ))
-        }
-        _charterDiscoveryViewModel = State(
-            initialValue: charterDiscoveryViewModel
-                ?? CharterDiscoveryViewModel(apiClient: deps.apiClient)
-        )
+        _viewModel = State(initialValue: viewModel)
+        _charterDiscoveryViewModel = State(initialValue: charterDiscoveryViewModel)
     }
 
     var body: some View {
@@ -264,20 +252,23 @@ struct DiscoverView: View {
             )
         ]
 
-        let dependencies = AppDependencies()
-        let coordinator = AppCoordinator(dependencies: dependencies)
+        let deps = try! AppDependencies.makeForTesting()
+        let coordinator = AppCoordinator(dependencies: deps)
         let viewModel = DiscoverViewModel(
-            apiClient: dependencies.apiClient,
-            libraryStore: dependencies.libraryStore,
+            apiClient: deps.apiClient,
+            libraryStore: deps.libraryStore,
             coordinator: coordinator
         )
         // For preview, inject sample data
         viewModel.content = sampleContent
 
         return NavigationStack {
-            DiscoverView(viewModel: viewModel)
+            DiscoverView(
+                viewModel: viewModel,
+                charterDiscoveryViewModel: CharterDiscoveryViewModel(apiClient: deps.apiClient)
+            )
         }
-        .environment(\.appDependencies, dependencies)
+        .environment(\.appDependencies, deps)
         .environment(\.appCoordinator, coordinator)
     }
 }

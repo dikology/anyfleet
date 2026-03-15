@@ -2,182 +2,6 @@ import SwiftUI
 import AuthenticationServices
 import PhotosUI
 
-// MARK: - View Model
-
-@Observable
-final class ProfileViewModel: ErrorHandling {
-    private let authService: AuthServiceProtocol
-    private var imageUploadService: ImageUploadService?
-    let authObserver: AuthStateObserverProtocol
-
-    var currentError: AppError?
-    var showErrorBanner: Bool = false
-    var isLoading = false
-
-    // Phase 2: Reputation metrics
-    var contributionMetrics: ContributionMetrics?
-
-    // Profile editing
-    var isEditingProfile = false
-    var editedUsername = ""
-    var editedBio = ""
-    var editedLocation = ""
-    var editedNationality = ""
-    var isSavingProfile = false
-
-    // Profile image
-    var selectedPhotoItem: PhotosPickerItem?
-    var isUploadingImage = false
-
-    // Auth state (exposed through viewModel for proper observation)
-    var isSignedIn: Bool {
-        authObserver.isSignedIn
-    }
-
-    var currentUser: UserInfo? {
-        authObserver.currentUser
-    }
-
-    init(authService: AuthServiceProtocol, authObserver: AuthStateObserverProtocol? = nil) {
-        self.authService = authService
-        self.authObserver = authObserver ?? AuthStateObserver(authService: authService)
-        self.imageUploadService = ImageUploadService(authService: authService)
-    }
-    
-    @MainActor
-    func logout() async {
-        isLoading = true
-        defer { isLoading = false }
-
-        await authService.logout()
-    }
-
-    @MainActor
-    func startEditingProfile(user: UserInfo) {
-        isEditingProfile = true
-        editedUsername = user.username ?? ""
-        editedBio = user.bio ?? ""
-        editedLocation = user.location ?? ""
-        editedNationality = user.nationality ?? ""
-        clearError()
-    }
-
-    @MainActor
-    func cancelEditingProfile() {
-        isEditingProfile = false
-        editedUsername = ""
-        editedBio = ""
-        editedLocation = ""
-        editedNationality = ""
-        selectedPhotoItem = nil
-        clearError()
-    }
-
-    @MainActor
-    func saveProfile() async {
-        guard !editedUsername.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            handleError(AppError.validationFailed(field: "username", reason: "Display name cannot be empty"))
-            return
-        }
-
-        isSavingProfile = true
-        clearError()
-        defer { isSavingProfile = false }
-
-        do {
-            let trimmedUsername = editedUsername.trimmingCharacters(in: .whitespacesAndNewlines)
-            let trimmedBio = editedBio.trimmingCharacters(in: .whitespacesAndNewlines)
-            let trimmedLocation = editedLocation.trimmingCharacters(in: .whitespacesAndNewlines)
-            let trimmedNationality = editedNationality.trimmingCharacters(in: .whitespacesAndNewlines)
-            
-            _ = try await authService.updateProfile(
-                username: trimmedUsername,
-                bio: trimmedBio.isEmpty ? nil : trimmedBio,
-                location: trimmedLocation.isEmpty ? nil : trimmedLocation,
-                nationality: trimmedNationality.isEmpty ? nil : trimmedNationality,
-                profileVisibility: nil
-            )
-            isEditingProfile = false
-            editedUsername = ""
-            editedBio = ""
-            editedLocation = ""
-            editedNationality = ""
-        } catch {
-            handleError(error)
-        }
-    }
-    
-    @MainActor
-    func handlePhotoSelection() async {
-        guard let selectedPhotoItem = selectedPhotoItem,
-              let imageUploadService = imageUploadService else {
-            AppLogger.services.warning("No photo item or image upload service available")
-            return
-        }
-
-        AppLogger.services.info("Starting photo upload process")
-        isUploadingImage = true
-        clearError()
-        defer {
-            isUploadingImage = false
-            self.selectedPhotoItem = nil
-            AppLogger.services.debug("Photo upload process completed")
-        }
-
-        do {
-            _ = try await imageUploadService.processAndUploadImage(selectedPhotoItem)
-            AppLogger.services.info("Photo uploaded successfully")
-        } catch {
-            AppLogger.services.error("Photo upload failed", error: error)
-            handleError(error)
-        }
-    }
-    
-    func calculateProfileCompletion(for user: UserInfo) -> Int {
-        var completedFields = 0
-        let totalFields = 3
-        
-        // Username is always filled (required)
-        completedFields += 1
-        
-        if user.profileImageUrl != nil {
-            completedFields += 1
-        }
-        if let bio = user.bio, !bio.isEmpty {
-            completedFields += 1
-        }
-        
-        return Int((Double(completedFields) / Double(totalFields)) * 100)
-    }
-    
-    @MainActor
-    func handleAppleSignIn(
-        result: Result<ASAuthorization, Error>
-    ) async {
-        isLoading = true
-        clearError()
-        defer { isLoading = false }
-
-        do {
-            try await authService.handleAppleSignIn(result: result)
-        } catch {
-            handleError(error)
-        }
-    }
-}
-
-// MARK: - Models
-
-struct ContributionMetrics: Codable, Sendable {
-    let totalContributions: Int
-    let totalForks: Int
-    let averageRating: Double
-    let verificationTier: DesignSystem.Profile.VerificationTier
-    let createdCount: Int
-    let forkedCount: Int
-    let importedCount: Int
-}
-
 // MARK: - Main View
 
 @MainActor
@@ -186,14 +10,8 @@ struct ProfileView: View {
     @State private var viewModel: ProfileViewModel
 
     @MainActor
-    init(viewModel: ProfileViewModel? = nil) {
-        if let viewModel = viewModel {
-            _viewModel = State(initialValue: viewModel)
-        } else {
-            // Create a placeholder for previews and testing
-            let deps = AppDependencies()
-            _viewModel = State(initialValue: ProfileViewModel(authService: deps.authService, authObserver: deps.authStateObserver))
-        }
+    init(viewModel: ProfileViewModel) {
+        _viewModel = State(initialValue: viewModel)
     }
     
     var body: some View {
@@ -625,16 +443,16 @@ struct ProfileView: View {
 // MARK: - Preview
 
 #Preview("Unauthenticated") { @MainActor in
-    let authService = AuthService()
-    let authObserver = AuthStateObserver(authService: authService)
-    let viewModel = ProfileViewModel(authService: authService, authObserver: authObserver)
+    let deps = try! AppDependencies.makeForTesting()
+    let viewModel = ProfileViewModel(authService: deps.authService, authObserver: deps.authStateObserver)
     return ProfileView(viewModel: viewModel)
+        .environment(\.appDependencies, deps)
 }
 
 #Preview("Authenticated") { @MainActor in
-    let authService = AuthService()
-    authService.isAuthenticated = true
-    authService.currentUser = UserInfo(
+    let deps = try! AppDependencies.makeForTesting()
+    deps.authService.isAuthenticated = true
+    deps.authService.currentUser = UserInfo(
         id: "user-123",
         email: "john.doe@example.com",
         username: "John Doe",
@@ -647,8 +465,7 @@ struct ProfileView: View {
         profileVisibility: "public"
     )
 
-    let authObserver = AuthStateObserver(authService: authService)
-    let viewModel = ProfileViewModel(authService: authService, authObserver: authObserver)
+    let viewModel = ProfileViewModel(authService: deps.authService, authObserver: deps.authStateObserver)
     viewModel.contributionMetrics = ContributionMetrics(
         totalContributions: 42,
         totalForks: 15,
@@ -660,4 +477,5 @@ struct ProfileView: View {
     )
 
     return ProfileView(viewModel: viewModel)
+        .environment(\.appDependencies, deps)
 }

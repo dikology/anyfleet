@@ -13,14 +13,15 @@ struct CharterListViewTests {
 
     @Test("CharterListView builds with environment objects")
     @MainActor
-    func charterListView_builds() {
+    func charterListView_builds() throws {
         // Arrange
-        let dependencies = AppDependencies()
+        let dependencies = try AppDependencies.makeForTesting()
         let coordinator = AppCoordinator(dependencies: dependencies)
+        let viewModel = CharterListViewModel(charterStore: dependencies.charterStore, coordinator: coordinator)
 
-        // Act & Assert - creating the view with environment objects should not throw
+        // Act & Assert - creating the view with viewModel and environment objects should not throw
         #expect(throws: Never.self) {
-            let view = CharterListView()
+            let view = CharterListView(viewModel: viewModel)
                 .environment(\.appDependencies, dependencies)
                 .environment(\.appCoordinator, coordinator)
             // View creation with environment objects succeeds
@@ -30,12 +31,11 @@ struct CharterListViewTests {
 
     @Test("CharterListView builds with custom viewModel")
     @MainActor
-    func charterListView_buildsWithCustomViewModel() {
+    func charterListView_buildsWithCustomViewModel() throws {
         // Arrange
-        let dependencies = AppDependencies()
+        let dependencies = try AppDependencies.makeForTesting()
         let coordinator = AppCoordinator(dependencies: dependencies)
-        let charterStore = CharterStore(repository: LocalRepository())
-        let viewModel = CharterListViewModel(charterStore: charterStore, coordinator: coordinator)
+        let viewModel = CharterListViewModel(charterStore: dependencies.charterStore, coordinator: coordinator)
 
         // Act & Assert - creating the view with custom viewModel and environment objects should not throw
         #expect(throws: Never.self) {

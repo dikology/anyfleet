@@ -9,16 +9,8 @@ struct CharterListView: View {
     @State private var charterPendingDelete: CharterModel?
 
     @MainActor
-    init(viewModel: CharterListViewModel? = nil) {
-        if let viewModel = viewModel {
-            _viewModel = State(initialValue: viewModel)
-        } else {
-            let deps = AppDependencies()
-            _viewModel = State(initialValue: CharterListViewModel(
-                charterStore: CharterStore(repository: LocalRepository()),
-                coordinator: AppCoordinator(dependencies: deps)
-            ))
-        }
+    init(viewModel: CharterListViewModel) {
+        _viewModel = State(initialValue: viewModel)
     }
 
     var body: some View {
@@ -410,11 +402,12 @@ struct CharterTimelineRow: View {
 
 #Preview {
     MainActor.assumeIsolated {
-        let dependencies = try! AppDependencies.makeForTesting()
-        let coordinator = AppCoordinator(dependencies: dependencies)
+        let deps = try! AppDependencies.makeForTesting()
+        let coordinator = AppCoordinator(dependencies: deps)
         return CharterListView(
-            viewModel: CharterListViewModel(charterStore: dependencies.charterStore, coordinator: coordinator)
+            viewModel: CharterListViewModel(charterStore: deps.charterStore, coordinator: coordinator)
         )
-        .environment(\.appDependencies, dependencies)
+        .environment(\.appDependencies, deps)
+        .environment(\.appCoordinator, coordinator)
     }
 }

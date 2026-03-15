@@ -87,6 +87,7 @@ struct ProfileImageUploadResponse: Codable {
     }
 }
 
+@MainActor
 @Observable
 final class AuthService: AuthServiceProtocol {
     var isAuthenticated = false
@@ -475,7 +476,7 @@ final class AuthService: AuthServiceProtocol {
     // MARK: - Profile Update
 
     /// Builds the URLRequest for profile update. Exposed for testing to verify HTTP method and body.
-    static func buildUpdateProfileRequest(
+    nonisolated static func buildUpdateProfileRequest(
         baseURL: String,
         username: String?,
         bio: String?,

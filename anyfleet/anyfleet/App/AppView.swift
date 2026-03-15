@@ -76,7 +76,8 @@ struct AppView: View {
                         apiClient: dependencies.apiClient,
                         libraryStore: dependencies.libraryStore,
                         coordinator: coordinator
-                    )
+                    ),
+                    charterDiscoveryViewModel: CharterDiscoveryViewModel(apiClient: dependencies.apiClient)
                 )
                     .navigationDestination(for: AppRoute.self) { route in
                         coordinator.destination(for: route)
@@ -106,10 +107,10 @@ struct AppView: View {
 
 #Preview {
     MainActor.assumeIsolated {
-        let dependencies = AppDependencies()
-        let coordinator = AppCoordinator(dependencies: dependencies)
+        let deps = try! AppDependencies.makeForTesting()
+        let coordinator = AppCoordinator(dependencies: deps)
         return AppView()
-            .environment(\.appDependencies, dependencies)
-            .environment(coordinator)
+            .environment(\.appDependencies, deps)
+            .environment(\.appCoordinator, coordinator)
     }
 }
