@@ -12,85 +12,33 @@ struct DiscoverContentRow: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            
-            // SECTION 1: Content (Title + Description)
-            VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
-                // Icon + Title
-                HStack(alignment: .top, spacing: DesignSystem.Spacing.md) {
-                    contentTypeIcon
-                    
-                    VStack(alignment: .leading, spacing: 0) {
+            // SECTION 1: Icon + Title + Badge + Description (reference: flex gap-4)
+            HStack(alignment: .top, spacing: DesignSystem.Spacing.lg) {
+                contentTypeIcon
+
+                VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
+                    // Title row with type badge inline (reference: flex justify-between items-start)
+                    HStack(alignment: .top) {
                         Text(content.title)
-                            .font(.system(size: 18, weight: .bold))
-                            .foregroundStyle(
-                                LinearGradient(
-                                    colors: [
-                                        DesignSystem.Colors.textPrimary,
-                                        DesignSystem.Colors.textPrimary.opacity(0.8)
-                                    ],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            )
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(DesignSystem.Colors.textPrimary)
                             .lineLimit(2)
                             .fixedSize(horizontal: false, vertical: true)
+
+                        Spacer(minLength: DesignSystem.Spacing.sm)
+
+                        contentTypeBadge
+                    }
+
+                    if let description = content.description, !description.isEmpty {
+                        Text(description)
+                            .font(.system(size: 13, weight: .regular))
+                            .foregroundColor(DesignSystem.Colors.textSecondary)
+                            .lineLimit(2)
                     }
                 }
-                
-                // Description
-                if let description = content.description, !description.isEmpty {
-                    Text(description)
-                        .font(.system(size: 13, weight: .regular))
-                        .foregroundColor(DesignSystem.Colors.textSecondary)
-                        .lineLimit(2)
-                        .padding(.leading, 44)
-                }
             }
-            .padding(.horizontal, DesignSystem.Spacing.lg)
-            .padding(.vertical, DesignSystem.Spacing.md)
-            .contentShape(Rectangle())
-            .onTapGesture {
-                onTap()
-            }
-            
-            Divider()
-                .background(DesignSystem.Colors.border.opacity(0.3))
-                .padding(.horizontal, DesignSystem.Spacing.lg)
-            
-            // SECTION 2: Tags
-            VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
-                // Tags and Content Type Badge
-                HStack(alignment: .center, spacing: DesignSystem.Spacing.xs) {
-                    // Left side: Tags
-                    HStack(spacing: DesignSystem.Spacing.xs) {
-                        ForEach(content.tags.prefix(3), id: \.self) { tag in
-                            Text(tag)
-                                .font(.system(size: 11, weight: .medium))
-                                .foregroundColor(DesignSystem.Colors.primary)
-                                .padding(.horizontal, DesignSystem.Spacing.sm)
-                                .padding(.vertical, 4)
-                                .background(
-                                    Capsule()
-                                        .fill(DesignSystem.Colors.primary.opacity(0.08))
-                                )
-                        }
-
-                        if content.tags.count > 3 {
-                            Text("+\(content.tags.count - 3)")
-                                .font(.system(size: 11, weight: .medium))
-                                .foregroundColor(DesignSystem.Colors.textSecondary)
-                        }
-                    }
-                    .layoutPriority(1)
-
-                    Spacer()
-
-                    // Right side: Content Type Badge (always shown)
-                    contentTypeBadge
-                }
-            }
-            .padding(.horizontal, DesignSystem.Spacing.lg)
-            .padding(.vertical, DesignSystem.Spacing.md)
+            .padding(DesignSystem.Spacing.lg)
             .contentShape(Rectangle())
             .onTapGesture {
                 onTap()
@@ -100,26 +48,23 @@ struct DiscoverContentRow: View {
                 .background(DesignSystem.Colors.border.opacity(0.3))
                 .padding(.horizontal, DesignSystem.Spacing.lg)
 
-            // SECTION 3: Author & Fork
-            HStack(spacing: DesignSystem.Spacing.md) {
-                // Author Info with Attribution Avatar Stack
-                VStack(alignment: .leading, spacing: 2) {
-                    // Attribution avatar stack (includes all authors)
+            // SECTION 2: Attribution avatars + fork count (reference: border-t pt-3)
+            HStack(alignment: .center, spacing: DesignSystem.Spacing.md) {
+                HStack(spacing: DesignSystem.Spacing.sm) {
                     attributionAvatarStack
 
                     Text(content.createdAt.formatted(.relative(presentation: .named)))
                         .font(.system(size: 11, weight: .regular))
                         .foregroundColor(DesignSystem.Colors.textSecondary)
                 }
-                
+
                 Spacer()
-                
-                // Fork indicator
+
                 HStack(spacing: 4) {
                     Image(systemName: "arrow.triangle.branch")
                         .font(.system(size: 11, weight: .medium))
                         .foregroundColor(DesignSystem.Colors.textSecondary)
-                    
+
                     Text("\(content.forkCount)")
                         .font(.system(size: 11, weight: .medium))
                         .foregroundColor(DesignSystem.Colors.textSecondary)
@@ -127,15 +72,14 @@ struct DiscoverContentRow: View {
             }
             .padding(.horizontal, DesignSystem.Spacing.lg)
             .padding(.vertical, DesignSystem.Spacing.md)
-
-            
         }
         .background(DesignSystem.Colors.surface)
-        .cornerRadius(DesignSystem.Spacing.md)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
         .overlay(
-            RoundedRectangle(cornerRadius: DesignSystem.Spacing.md)
+            RoundedRectangle(cornerRadius: 12)
                 .stroke(DesignSystem.Colors.border.opacity(0.3), lineWidth: 1)
         )
+        .shadow(color: .black.opacity(0.06), radius: 2, x: 0, y: 1)
         .scaleEffect(isPressed ? 0.98 : 1.0)
         .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isPressed)
         // Swipe actions for fork
@@ -150,71 +94,43 @@ struct DiscoverContentRow: View {
     // MARK: - Subviews
     
     private var contentTypeIcon: some View {
-        ZStack {
-            Circle()
-                .fill(
-                    LinearGradient(
-                        colors: [
-                            DesignSystem.Colors.primary.opacity(0.12),
-                            DesignSystem.Colors.primary.opacity(0.06)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-            
+        let (bgColor, iconColor) = content.contentType.iconColors
+        return ZStack {
+            RoundedRectangle(cornerRadius: 12)
+                .fill(bgColor)
+
             Image(systemName: content.contentType.icon)
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(DesignSystem.Colors.primary)
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundColor(iconColor)
         }
-        .frame(width: 36, height: 36)
+        .frame(width: 48, height: 48)
     }
-    
+
     private var contentTypeBadge: some View {
-        Text(content.contentType.displayName)
-            .font(.system(size: 11, weight: .semibold))
-            .foregroundColor(DesignSystem.Colors.primary)
-            .padding(.horizontal, DesignSystem.Spacing.sm)
-            .padding(.vertical, 4)
-            .background(
-                Capsule()
-                    .fill(DesignSystem.Colors.primary.opacity(0.15))
-                    .stroke(DesignSystem.Colors.primary.opacity(0.3), lineWidth: 1)
+        let (textColor, borderColor) = content.contentType.badgeColors
+        return Text(content.contentType.displayName)
+            .font(.system(size: 10, weight: .bold))
+            .foregroundColor(textColor)
+            .textCase(.uppercase)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .overlay(
+                RoundedRectangle(cornerRadius: 4)
+                    .stroke(borderColor, lineWidth: 1)
             )
     }
 
+    /// Stacked attribution avatars (reference: h-6 w-6 rounded-full, compact overlap).
+    /// Avatars use 24pt size with -6pt overlap; touch target provided by parent padding.
     private var attributionAvatarStack: some View {
-        HStack(spacing: -8) {
+        HStack(spacing: -6) {
             // Original author avatar (if exists) - show first
             if let originalAuthor = content.originalAuthorUsername {
                 Button(action: {
                     // TODO: Show timeline modal when implemented
                     print("Tapped original author: \(originalAuthor)")
                 }) {
-                    ZStack {
-                        Circle()
-                            .fill(
-                                LinearGradient(
-                                    colors: [
-                                        hashColor(originalAuthor).opacity(0.7),
-                                        hashColor(originalAuthor).opacity(0.5)
-                                    ],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-
-                        Text(originalAuthor.prefix(1).uppercased())
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(.white)
-                    }
-                    .frame(width: 24, height: 24)
-                    .overlay(
-                        Circle()
-                            .stroke(DesignSystem.Colors.surface, lineWidth: 2)
-                    )
-                    .frame(minWidth: 44, minHeight: 44)
-                    .contentShape(Rectangle())
+                    avatarCircle(username: originalAuthor, size: 24)
                 }
                 .accessibilityLabel("Original author \(originalAuthor)")
                 .accessibilityHint("Tap to view attribution timeline")
@@ -226,53 +142,17 @@ struct DiscoverContentRow: View {
                 Button(action: {
                     onAuthorTapped(currentAuthor)
                 }) {
-                    ZStack {
-                        Circle()
-                            .fill(
-                                LinearGradient(
-                                    colors: [
-                                        hashColor(currentAuthor).opacity(0.7),
-                                        hashColor(currentAuthor).opacity(0.5)
-                                    ],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-
-                        Text(currentAuthor.prefix(1).uppercased())
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(.white)
-                    }
-                    .frame(width: 24, height: 24)
-                    .overlay(
-                        Circle()
-                            .stroke(DesignSystem.Colors.surface, lineWidth: 2)
-                    )
-                    .frame(minWidth: 44, minHeight: 44)
-                    .contentShape(Rectangle())
+                    avatarCircle(username: currentAuthor, size: 24)
                 }
                 .accessibilityLabel("Author \(currentAuthor)")
                 .accessibilityHint("Tap to view author profile")
                 .buttonStyle(.plain)
             } else {
-                // Anonymous author fallback
-                ZStack {
-                    Circle()
-                        .fill(DesignSystem.Colors.primary.opacity(0.1))
-
-                    Image(systemName: "questionmark.circle.fill")
-                        .font(.system(size: 12))
-                        .foregroundColor(DesignSystem.Colors.textSecondary)
-                }
-                .frame(width: 24, height: 24)
-                .overlay(
-                    Circle()
-                        .stroke(DesignSystem.Colors.surface, lineWidth: 2)
-                )
+                anonymousAvatarView(size: 24)
             }
 
-            // Show "3+" indicator if there are multiple contributors
-            if content.forkCount > 2 {
+            // Show "3+" indicator when the published attribution chain has 3+ distinct authors
+            if content.chainDepth > 2 {
                 Button(action: {
                     // TODO: Show timeline modal when implemented
                     print("Tapped attribution chain - show timeline modal")
@@ -290,19 +170,19 @@ struct DiscoverContentRow: View {
                         Circle()
                             .stroke(DesignSystem.Colors.surface, lineWidth: 2)
                     )
-                    .frame(minWidth: 44, minHeight: 44)
-                    .contentShape(Rectangle())
                 }
                 .accessibilityLabel("Multiple contributors")
                 .accessibilityHint("Tap to view attribution timeline")
                 .buttonStyle(.plain)
             }
         }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 10)
+        .contentShape(Rectangle())
     }
-    
-    private func authorAvatarView(username: String) -> some View {
+
+    private func avatarCircle(username: String, size: CGFloat) -> some View {
         ZStack {
-            // Avatar circle with gradient background
             Circle()
                 .fill(
                     LinearGradient(
@@ -314,16 +194,31 @@ struct DiscoverContentRow: View {
                         endPoint: .bottomTrailing
                     )
                 )
-            
-            // Initials or icon
+
             Text(username.prefix(1).uppercased())
-                .font(.system(size: 14, weight: .semibold))
+                .font(.system(size: size * 0.5, weight: .semibold))
                 .foregroundColor(.white)
         }
-        .frame(width: 36, height: 36)
+        .frame(width: size, height: size)
         .overlay(
             Circle()
-                .stroke(DesignSystem.Colors.border.opacity(0.3), lineWidth: 1)
+                .stroke(DesignSystem.Colors.surface, lineWidth: 2)
+        )
+    }
+
+    private func anonymousAvatarView(size: CGFloat) -> some View {
+        ZStack {
+            Circle()
+                .fill(DesignSystem.Colors.primary.opacity(0.1))
+
+            Image(systemName: "questionmark.circle.fill")
+                .font(.system(size: size * 0.5))
+                .foregroundColor(DesignSystem.Colors.textSecondary)
+        }
+        .frame(width: size, height: size)
+        .overlay(
+            Circle()
+                .stroke(DesignSystem.Colors.surface, lineWidth: 2)
         )
     }
     

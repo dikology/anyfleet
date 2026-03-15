@@ -19,6 +19,9 @@ struct DiscoverContent: Identifiable, Hashable, Sendable {
     let originalAuthorUsername: String?
     let originalAuthorUserId: UUID?
     let originalContentPublicID: String?
+    /// Depth of the published fork lineage (1 = original, 2 = one fork deep, 3+ = deeper chain).
+    /// Only increments when a forked copy is re-published by a new author, not on every local fork.
+    let chainDepth: Int
 
     // MARK: - Initialization
 
@@ -36,7 +39,8 @@ struct DiscoverContent: Identifiable, Hashable, Sendable {
         forkedFromID: UUID? = nil,
         originalAuthorUsername: String? = nil,
         originalAuthorUserId: UUID? = nil,
-        originalContentPublicID: String? = nil
+        originalContentPublicID: String? = nil,
+        chainDepth: Int = 1
     ) {
         self.id = id
         self.title = title
@@ -52,6 +56,7 @@ struct DiscoverContent: Identifiable, Hashable, Sendable {
         self.originalAuthorUsername = originalAuthorUsername
         self.originalAuthorUserId = originalAuthorUserId
         self.originalContentPublicID = originalContentPublicID
+        self.chainDepth = chainDepth
     }
 
     // MARK: - Mapping from API Response
@@ -72,6 +77,7 @@ struct DiscoverContent: Identifiable, Hashable, Sendable {
         self.originalAuthorUsername = response.originalAuthorUsername
         self.originalAuthorUserId = response.originalAuthorUserId
         self.originalContentPublicID = response.originalContentPublicID
+        self.chainDepth = response.chainDepth
     }
 }
 
@@ -96,6 +102,7 @@ struct SharedContentSummary: Codable {
     let originalAuthorUsername: String?
     let originalAuthorUserId: UUID?
     let originalContentPublicID: String?
+    let chainDepth: Int
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -113,6 +120,63 @@ struct SharedContentSummary: Codable {
         case originalAuthorUsername = "original_author_username"
         case originalAuthorUserId = "original_author_user_id"
         case originalContentPublicID = "original_content_public_id"
+        case chainDepth = "chain_depth"
+    }
+
+    init(
+        id: UUID,
+        title: String,
+        description: String?,
+        contentType: String,
+        tags: [String],
+        publicID: String,
+        authorUsername: String?,
+        authorUserId: UUID?,
+        viewCount: Int,
+        forkCount: Int,
+        createdAt: Date,
+        forkedFromID: UUID? = nil,
+        originalAuthorUsername: String? = nil,
+        originalAuthorUserId: UUID? = nil,
+        originalContentPublicID: String? = nil,
+        chainDepth: Int = 1
+    ) {
+        self.id = id
+        self.title = title
+        self.description = description
+        self.contentType = contentType
+        self.tags = tags
+        self.publicID = publicID
+        self.authorUsername = authorUsername
+        self.authorUserId = authorUserId
+        self.viewCount = viewCount
+        self.forkCount = forkCount
+        self.createdAt = createdAt
+        self.forkedFromID = forkedFromID
+        self.originalAuthorUsername = originalAuthorUsername
+        self.originalAuthorUserId = originalAuthorUserId
+        self.originalContentPublicID = originalContentPublicID
+        self.chainDepth = chainDepth
+    }
+
+    nonisolated init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(UUID.self, forKey: .id)
+        title = try c.decode(String.self, forKey: .title)
+        description = try c.decodeIfPresent(String.self, forKey: .description)
+        contentType = try c.decode(String.self, forKey: .contentType)
+        tags = try c.decode([String].self, forKey: .tags)
+        publicID = try c.decode(String.self, forKey: .publicID)
+        authorUsername = try c.decodeIfPresent(String.self, forKey: .authorUsername)
+        authorUserId = try c.decodeIfPresent(UUID.self, forKey: .authorUserId)
+        viewCount = try c.decode(Int.self, forKey: .viewCount)
+        forkCount = try c.decode(Int.self, forKey: .forkCount)
+        createdAt = try c.decode(Date.self, forKey: .createdAt)
+        forkedFromID = try c.decodeIfPresent(UUID.self, forKey: .forkedFromID)
+        originalAuthorUsername = try c.decodeIfPresent(String.self, forKey: .originalAuthorUsername)
+        originalAuthorUserId = try c.decodeIfPresent(UUID.self, forKey: .originalAuthorUserId)
+        originalContentPublicID = try c.decodeIfPresent(String.self, forKey: .originalContentPublicID)
+        chainDepth = (try? c.decode(Int.self, forKey: .chainDepth)) ?? 1
     }
 }
 
@@ -138,6 +202,7 @@ struct SharedContentDetail: Codable {
     let originalAuthorUsername: String?
     let originalAuthorUserId: UUID?
     let originalContentPublicID: String?
+    let chainDepth: Int
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -158,6 +223,7 @@ struct SharedContentDetail: Codable {
         case originalAuthorUsername = "original_author_username"
         case originalAuthorUserId = "original_author_user_id"
         case originalContentPublicID = "original_content_public_id"
+        case chainDepth = "chain_depth"
     }
 
     // MARK: - Memberwise Initializer
@@ -180,7 +246,8 @@ struct SharedContentDetail: Codable {
         forkedFromID: UUID? = nil,
         originalAuthorUsername: String? = nil,
         originalAuthorUserId: UUID? = nil,
-        originalContentPublicID: String? = nil
+        originalContentPublicID: String? = nil,
+        chainDepth: Int = 1
     ) {
         self.id = id
         self.title = title
@@ -200,11 +267,12 @@ struct SharedContentDetail: Codable {
         self.originalAuthorUsername = originalAuthorUsername
         self.originalAuthorUserId = originalAuthorUserId
         self.originalContentPublicID = originalContentPublicID
+        self.chainDepth = chainDepth
     }
 
     // MARK: - Custom Decoding for contentData
 
-    init(from decoder: Decoder) throws {
+    nonisolated init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(UUID.self, forKey: .id)
         title = try container.decode(String.self, forKey: .title)
@@ -229,6 +297,7 @@ struct SharedContentDetail: Codable {
         originalAuthorUsername = try container.decodeIfPresent(String.self, forKey: .originalAuthorUsername)
         originalAuthorUserId = try container.decodeIfPresent(UUID.self, forKey: .originalAuthorUserId)
         originalContentPublicID = try container.decodeIfPresent(String.self, forKey: .originalContentPublicID)
+        chainDepth = (try? container.decode(Int.self, forKey: .chainDepth)) ?? 1
     }
 
     func encode(to encoder: Encoder) throws {
