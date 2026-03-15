@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 
 // MARK: - Library Model
 
@@ -156,6 +157,26 @@ enum ContentType: String, Codable, CaseIterable, Sendable, Hashable {
         case .checklist: return "checklist"
         //case .flashcardDeck: return "rectangle.stack"
         case .practiceGuide: return "book"
+        }
+    }
+
+    /// Background and icon colors for Discover card icon (reference: primary/10 vs secondary/10)
+    var iconColors: (bg: Color, icon: Color) {
+        switch self {
+        case .checklist:
+            return (DesignSystem.Colors.primary.opacity(0.1), DesignSystem.Colors.primary)
+        case .practiceGuide:
+            return (DesignSystem.Colors.gold.opacity(0.1), DesignSystem.Colors.gold)
+        }
+    }
+
+    /// Text and border colors for type badge (reference: checklist=secondary, guide=primary)
+    var badgeColors: (text: Color, border: Color) {
+        switch self {
+        case .checklist:
+            return (DesignSystem.Colors.gold, DesignSystem.Colors.gold.opacity(0.3))
+        case .practiceGuide:
+            return (DesignSystem.Colors.primary, DesignSystem.Colors.primary.opacity(0.3))
         }
     }
 }
