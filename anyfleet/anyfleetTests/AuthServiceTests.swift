@@ -430,6 +430,7 @@ struct AuthServiceTests {
     // MARK: - Image URL Handling Tests
 
     @Test("AuthService adds https protocol to image URLs without protocol")
+    @MainActor
     func testImageUrlProtocolAddition() async {
         // Given
         let authService = AuthService(baseURL: "https://test.example.com/api/v1")
@@ -483,6 +484,7 @@ struct AuthServiceTests {
     }
 
     @Test("AuthService preserves https protocol for URLs that already have it")
+    @MainActor
     func testHttpsUrlPreservation() async {
         // Given
         let authService = AuthService(baseURL: "https://test.example.com/api/v1")
@@ -536,6 +538,7 @@ struct AuthServiceTests {
     }
 
     @Test("AuthService handles loadCurrentUser URL protocol addition")
+    @MainActor
     func testLoadCurrentUserUrlProtocolAddition() async {
         // Given
         let authService = AuthService(baseURL: "https://test.example.com/api/v1")
