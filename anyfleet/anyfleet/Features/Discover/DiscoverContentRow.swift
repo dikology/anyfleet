@@ -74,11 +74,12 @@ struct DiscoverContentRow: View {
             .padding(.vertical, DesignSystem.Spacing.md)
         }
         .background(DesignSystem.Colors.surface)
-        .cornerRadius(DesignSystem.Spacing.md)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
         .overlay(
-            RoundedRectangle(cornerRadius: DesignSystem.Spacing.md)
+            RoundedRectangle(cornerRadius: 12)
                 .stroke(DesignSystem.Colors.border.opacity(0.3), lineWidth: 1)
         )
+        .shadow(color: .black.opacity(0.06), radius: 2, x: 0, y: 1)
         .scaleEffect(isPressed ? 0.98 : 1.0)
         .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isPressed)
         // Swipe actions for fork
