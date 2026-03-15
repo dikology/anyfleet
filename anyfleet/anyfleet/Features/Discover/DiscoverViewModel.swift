@@ -140,7 +140,9 @@ final class DiscoverViewModel: ErrorHandling {
             try await libraryStore.forkContent(from: fullContent)
             AppLogger.view.info("Successfully forked content")
 
-            // Optimistically update the fork count in the discovery list
+            // Optimistically update the fork count in the discovery list.
+            // chainDepth is NOT incremented here — it only grows when a forked copy is
+            // re-published by a new author, which happens server-side.
             if let idx = self.content.firstIndex(where: { $0.publicID == content.publicID }) {
                 let item = self.content[idx]
                 self.content[idx] = DiscoverContent(
@@ -156,7 +158,9 @@ final class DiscoverViewModel: ErrorHandling {
                     createdAt: item.createdAt,
                     forkedFromID: item.forkedFromID,
                     originalAuthorUsername: item.originalAuthorUsername,
-                    originalContentPublicID: item.originalContentPublicID
+                    originalAuthorUserId: item.originalAuthorUserId,
+                    originalContentPublicID: item.originalContentPublicID,
+                    chainDepth: item.chainDepth
                 )
             }
 

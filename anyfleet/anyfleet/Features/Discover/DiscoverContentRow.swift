@@ -271,8 +271,8 @@ struct DiscoverContentRow: View {
                 )
             }
 
-            // Show "3+" indicator if there are multiple contributors
-            if content.forkCount > 2 {
+            // Show "3+" indicator when the published attribution chain has 3+ distinct authors
+            if content.chainDepth > 2 {
                 Button(action: {
                     // TODO: Show timeline modal when implemented
                     print("Tapped attribution chain - show timeline modal")
