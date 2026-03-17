@@ -8,8 +8,10 @@ struct ProfileStatsBar: View {
     let stats: CaptainStats
 
     var body: some View {
-        HStack(spacing: DesignSystem.Spacing.sm) {
-            StatCircle(
+        VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
+            DesignSystem.SectionLabel(L10n.Profile.Stats.dashboardLabel)
+            HStack(spacing: DesignSystem.Spacing.sm) {
+                StatCircle(
                 value: "\(stats.chartersCompleted)",
                 label: L10n.Profile.Stats.chartersCompleted,
                 color: DesignSystem.Colors.primary,
@@ -37,14 +39,8 @@ struct ProfileStatsBar: View {
                 progress: progressCapped(stats.communitiesJoined, max: 10),
                 isPlaceholder: false
             )
+            }
         }
-        .padding(DesignSystem.Spacing.md)
-        .background(DesignSystem.Colors.surface)
-        .cornerRadius(16)
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(DesignSystem.Colors.border.opacity(0.5), lineWidth: 1)
-        )
     }
 
     private func progressCapped(_ value: Int, max: Int) -> Double {

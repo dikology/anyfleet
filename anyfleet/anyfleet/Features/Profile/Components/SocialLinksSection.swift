@@ -104,15 +104,7 @@ struct SocialLinksDisplaySection: View {
     var body: some View {
         if !activeLinks.isEmpty {
             VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
-                HStack(spacing: DesignSystem.Spacing.xs) {
-                    Image(systemName: "link")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundColor(DesignSystem.Colors.info)
-                    Text(L10n.Profile.SocialLinks.title)
-                        .font(DesignSystem.Typography.caption)
-                        .fontWeight(.semibold)
-                        .foregroundColor(DesignSystem.Colors.textPrimary)
-                }
+                DesignSystem.SectionLabel(L10n.Profile.SocialLinks.title)
 
                 HStack(spacing: DesignSystem.Spacing.sm) {
                     ForEach(activeLinks) { link in
@@ -141,13 +133,6 @@ struct SocialLinksDisplaySection: View {
                     Spacer()
                 }
             }
-            .padding(DesignSystem.Spacing.md)
-            .background(DesignSystem.Colors.surface)
-            .cornerRadius(16)
-            .overlay(
-                RoundedRectangle(cornerRadius: 16)
-                    .stroke(DesignSystem.Colors.border.opacity(0.5), lineWidth: 1)
-            )
         }
     }
 

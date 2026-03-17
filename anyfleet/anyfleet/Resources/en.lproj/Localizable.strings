@@ -402,6 +402,7 @@
 "profile.validation.displayNameEmpty" = "Display name cannot be empty";
 
 // Stats
+"profile.stats.dashboardLabel" = "Data Dashboard";
 "profile.stats.chartersCompleted" = "Charters\nCompleted";
 "profile.stats.nauticalMiles" = "Nautical\nMiles";
 "profile.stats.daysAtSea" = "Days\nat Sea";

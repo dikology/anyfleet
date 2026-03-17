@@ -381,6 +381,7 @@
 "profile.validation.displayNameEmpty" = "Отображаемое имя не может быть пустым";
 
 // Stats
+"profile.stats.dashboardLabel" = "Панель данных";
 "profile.stats.chartersCompleted" = "Чартеры\nзавершены";
 "profile.stats.nauticalMiles" = "Морские\nмили";
 "profile.stats.daysAtSea" = "Дней\nв море";

@@ -48,13 +48,14 @@ struct ProfileView: View {
     private var authenticatedContent: some View {
         if let user = viewModel.currentUser {
             ScrollView {
-                VStack(spacing: DesignSystem.Spacing.xl) {
+                VStack(spacing: 0) {
                     heroSection(user: user)
+                    headerContentSection(user: user)
                     mainContent(user: user)
                     accountManagementSection
+                        .padding(.horizontal, DesignSystem.Spacing.screenPadding)
                 }
-                .padding(.horizontal, DesignSystem.Spacing.screenPadding)
-                .padding(.vertical, DesignSystem.Spacing.lg)
+                .padding(.bottom, DesignSystem.Spacing.xl)
             }
         }
     }
@@ -62,26 +63,37 @@ struct ProfileView: View {
     private func heroSection(user: UserInfo) -> some View {
         DesignSystem.Profile.Hero(
             user: user,
+            onEditTap: { viewModel.startEditingProfile(user: user) }
+        )
+    }
+
+    private func headerContentSection(user: UserInfo) -> some View {
+        DesignSystem.Profile.HeaderContent(
+            user: user,
             verificationTier: viewModel.contributionMetrics?.verificationTier,
-            completionPercentage: viewModel.calculateProfileCompletion(for: user),
             primaryCommunity: viewModel.communities.first(where: \.isPrimary),
-            onEditTap: { viewModel.startEditingProfile(user: user) },
+            memberSince: formatDate(user.createdAt).map { L10n.Profile.memberSincePrefix + " " + $0 },
             onPhotoSelect: { item in
                 viewModel.selectedPhotoItem = item
                 Task { await viewModel.handlePhotoSelection() }
             },
             isUploadingImage: viewModel.isUploadingImage
         )
-        .sectionContainer()
+        .padding(.horizontal, DesignSystem.Spacing.screenPadding)
+        .padding(.top, -64)
+        .padding(.bottom, DesignSystem.Spacing.lg)
     }
 
     @ViewBuilder
     private func mainContent(user: UserInfo) -> some View {
-        if viewModel.isEditingProfile {
-            editingContent
-        } else {
-            displayContent(user: user)
+        Group {
+            if viewModel.isEditingProfile {
+                editingContent
+            } else {
+                displayContent(user: user)
+            }
         }
+        .padding(.horizontal, DesignSystem.Spacing.screenPadding)
     }
 
     // MARK: - Edit Mode
@@ -99,7 +111,6 @@ struct ProfileView: View {
             onAddCommunityTapped: { viewModel.showCommunitySearch = true },
             isSaving: viewModel.isSavingProfile
         )
-        .sectionContainer()
     }
 
     // MARK: - Display Mode
@@ -121,19 +132,9 @@ struct ProfileView: View {
                 onAddTapped: { viewModel.showCommunitySearch = true }
             )
 
-            // Bio
-            if let bio = user.bio, !bio.isEmpty {
-                bioCard(bio: bio)
-            }
-
-            // Social links
+            // Social links (bio and member since are in header)
             if let links = user.socialLinks {
                 SocialLinksDisplaySection(links: links)
-            }
-
-            // Member since
-            if let date = formatDate(user.createdAt) {
-                memberSinceBadge(date: date)
             }
         }
 
@@ -142,63 +143,15 @@ struct ProfileView: View {
         }
     }
 
-    private func bioCard(bio: String) -> some View {
-        VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
-            HStack(spacing: DesignSystem.Spacing.xs) {
-                Image(systemName: "text.bubble.fill")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(DesignSystem.Colors.primary)
-                Text(L10n.Profile.Bio.title)
-                    .font(DesignSystem.Typography.caption)
-                    .fontWeight(.semibold)
-                    .foregroundColor(DesignSystem.Colors.textPrimary)
-            }
-            Text(bio)
-                .font(DesignSystem.Typography.body)
-                .foregroundColor(DesignSystem.Colors.textPrimary)
-                .lineSpacing(4)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(DesignSystem.Spacing.md)
-        .background(DesignSystem.Colors.surfaceAlt)
-        .cornerRadius(12)
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(DesignSystem.Colors.border.opacity(0.5), lineWidth: 1)
-        )
-    }
-
-    private func memberSinceBadge(date: String) -> some View {
-        HStack(spacing: DesignSystem.Spacing.xs) {
-            Image(systemName: "calendar.badge.clock")
-                .font(.system(size: 14, weight: .medium))
-                .foregroundColor(DesignSystem.Colors.info)
-            Text(L10n.Profile.memberSincePrefix + " " + date)
-                .font(DesignSystem.Typography.caption)
-                .fontWeight(.medium)
-        }
-        .foregroundColor(DesignSystem.Colors.textSecondary)
-        .padding(.vertical, DesignSystem.Spacing.sm)
-        .padding(.horizontal, DesignSystem.Spacing.md)
-        .background(
-            RoundedRectangle(cornerRadius: DesignSystem.Spacing.md)
-                .fill(DesignSystem.Colors.info.opacity(0.1))
-                .overlay(
-                    RoundedRectangle(cornerRadius: DesignSystem.Spacing.md)
-                        .stroke(DesignSystem.Colors.info.opacity(0.3), lineWidth: 1)
-                )
-        )
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
     // MARK: - Account Management
 
     private var accountManagementSection: some View {
         VStack(spacing: DesignSystem.Spacing.md) {
-            DesignSystem.SectionHeader(
-                L10n.Profile.accountTitle,
-                subtitle: L10n.Profile.accountSubtitle
-            )
+            DesignSystem.SectionLabel(L10n.Profile.accountTitle)
+            Text(L10n.Profile.accountSubtitle)
+                .font(DesignSystem.Typography.caption)
+                .foregroundColor(DesignSystem.Colors.textSecondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
 
             VStack(spacing: DesignSystem.Spacing.sm) {
                 accountActionButton(
@@ -236,7 +189,6 @@ struct ProfileView: View {
                 .disabled(viewModel.isLoading)
             }
         }
-        .sectionContainer()
     }
 
     private func accountActionButton(

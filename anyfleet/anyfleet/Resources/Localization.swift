@@ -641,6 +641,11 @@ enum L10n {
 
         // Stats
         enum Stats {
+            static let dashboardLabel = NSLocalizedString(
+                "profile.stats.dashboardLabel",
+                tableName: "Localizable",
+                comment: "Section label for stats dashboard"
+            )
             static let chartersCompleted = NSLocalizedString(
                 "profile.stats.chartersCompleted",
                 tableName: "Localizable",

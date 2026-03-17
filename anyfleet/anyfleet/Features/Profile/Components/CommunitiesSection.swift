@@ -14,15 +14,7 @@ struct CommunitiesSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
             HStack {
-                HStack(spacing: DesignSystem.Spacing.xs) {
-                    Image(systemName: "person.3.fill")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundColor(DesignSystem.Colors.communityAccent)
-                    Text(L10n.Profile.Communities.title)
-                        .font(DesignSystem.Typography.caption)
-                        .fontWeight(.semibold)
-                        .foregroundColor(DesignSystem.Colors.textPrimary)
-                }
+                DesignSystem.SectionLabel(L10n.Profile.Communities.title)
                 Spacer()
                 if !memberships.isEmpty {
                     Text("\(memberships.count)")
@@ -45,13 +37,6 @@ struct CommunitiesSection: View {
 
             findCommunitiesButton
         }
-        .padding(DesignSystem.Spacing.md)
-        .background(DesignSystem.Colors.surface)
-        .cornerRadius(16)
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(DesignSystem.Colors.border.opacity(0.5), lineWidth: 1)
-        )
     }
 
     private var emptyState: some View {
