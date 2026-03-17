@@ -46,7 +46,9 @@ final class MockAuthService: AuthServiceProtocol {
                 bio: nil,
                 location: nil,
                 nationality: nil,
-                profileVisibility: "public"
+                profileVisibility: "public",
+                socialLinks: nil,
+                communities: nil
             )
         }
 
@@ -55,31 +57,42 @@ final class MockAuthService: AuthServiceProtocol {
         }
     }
 
+    func loadCurrentUser() async {
+        // Mock: no-op or could refresh from a mock source
+    }
+
     func logout() async {
         mockIsAuthenticated = false
         mockCurrentUser = nil
     }
 
-    func updateProfile(username: String?, bio: String?, location: String?, nationality: String?, profileVisibility: String?) async throws -> UserInfo {
-        // For mock, just update the current user with new values
+    func updateProfile(
+        username: String?,
+        bio: String?,
+        location: String?,
+        nationality: String?,
+        profileVisibility: String?,
+        socialLinks: [SocialLink]?,
+        communityMemberships: [CommunityMembership]?
+    ) async throws -> UserInfo {
         guard var user = mockCurrentUser else {
             throw AuthError.unauthorized
         }
 
-        if let username = username {
-            user = UserInfo(
-                id: user.id,
-                email: user.email,
-                username: username,
-                createdAt: user.createdAt,
-                profileImageUrl: user.profileImageUrl,
-                profileImageThumbnailUrl: user.profileImageThumbnailUrl,
-                bio: bio ?? user.bio,
-                location: location ?? user.location,
-                nationality: nationality ?? user.nationality,
-                profileVisibility: profileVisibility ?? user.profileVisibility
-            )
-        }
+        user = UserInfo(
+            id: user.id,
+            email: user.email,
+            username: username ?? user.username,
+            createdAt: user.createdAt,
+            profileImageUrl: user.profileImageUrl,
+            profileImageThumbnailUrl: user.profileImageThumbnailUrl,
+            bio: bio ?? user.bio,
+            location: location ?? user.location,
+            nationality: nationality ?? user.nationality,
+            profileVisibility: profileVisibility ?? user.profileVisibility,
+            socialLinks: socialLinks ?? user.socialLinks,
+            communities: communityMemberships ?? user.communities
+        )
 
         mockCurrentUser = user
         return user
@@ -105,7 +118,9 @@ final class MockAuthService: AuthServiceProtocol {
             bio: user.bio,
             location: user.location,
             nationality: user.nationality,
-            profileVisibility: user.profileVisibility
+            profileVisibility: user.profileVisibility,
+            socialLinks: user.socialLinks,
+            communities: user.communities
         )
 
         mockCurrentUser = user
@@ -127,7 +142,9 @@ final class MockAuthService: AuthServiceProtocol {
                 bio: nil,
                 location: nil,
                 nationality: nil,
-                profileVisibility: "public"
+                profileVisibility: "public",
+                socialLinks: nil,
+                communities: nil
             )
         case .failure:
             throw AuthError.invalidToken

@@ -38,13 +38,25 @@ struct LibraryAuthorProfileTests {
                     totalContributions: 10,
                     averageRating: 4.5,
                     totalForks: 5
-                )
+                ),
+                socialLinks: nil,
+                primaryCommunity: nil
             )
         }
 
         func fetchPublicProfileByUserId(_ userId: UUID) async throws -> PublicProfileResponse {
             return try await fetchPublicProfile(username: "user-\(userId.uuidString.prefix(8))")
         }
+
+        func fetchProfileStats() async throws -> ProfileStatsAPIResponse {
+            ProfileStatsAPIResponse(totalContributions: 0, averageRating: nil, totalForks: 0, communitiesJoined: 0, daysAtSea: 0)
+        }
+        func searchCommunities(query: String, limit: Int = 10) async throws -> [CommunitySearchResult] { [] }
+        func createCommunity(name: String) async throws -> CommunitySearchResult {
+            CommunitySearchResult(id: UUID().uuidString, name: name, iconURL: nil, memberCount: 1, isOpen: true)
+        }
+        func joinCommunity(id: String) async throws {}
+        func leaveCommunity(id: String) async throws {}
 
         // Content API stubs (unused in these tests)
         func publishContent(title: String, description: String?, contentType: String, contentData: [String: Any], tags: [String], language: String, publicID: String, canFork: Bool, forkedFromID: UUID?) async throws -> PublishContentResponse {
@@ -127,7 +139,9 @@ struct LibraryAuthorProfileTests {
                 totalContributions: 42,
                 averageRating: 4.9,
                 totalForks: 18
-            )
+            ),
+            socialLinks: nil,
+            primaryCommunity: nil
         )
         let viewModel = makeViewModel(apiClient: apiClient)
 
