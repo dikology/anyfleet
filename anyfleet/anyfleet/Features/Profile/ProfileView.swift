@@ -48,14 +48,15 @@ struct ProfileView: View {
     private var authenticatedContent: some View {
         if let user = viewModel.currentUser {
             ScrollView {
-                VStack(spacing: 0) {
+                VStack(spacing: DesignSystem.Spacing.xxl) {
                     heroSection(user: user)
                     headerContentSection(user: user)
                     mainContent(user: user)
                     accountManagementSection
                         .padding(.horizontal, DesignSystem.Spacing.screenPadding)
+                        .padding(.top, DesignSystem.Spacing.lg)
                 }
-                .padding(.bottom, DesignSystem.Spacing.xl)
+                .padding(.bottom, DesignSystem.Spacing.xxl)
             }
         }
     }
@@ -80,8 +81,8 @@ struct ProfileView: View {
             isUploadingImage: viewModel.isUploadingImage
         )
         .padding(.horizontal, DesignSystem.Spacing.screenPadding)
-        .padding(.top, -64)
-        .padding(.bottom, DesignSystem.Spacing.lg)
+        .padding(.top, -48)
+        .padding(.bottom, DesignSystem.Spacing.xl)
     }
 
     @ViewBuilder
@@ -94,6 +95,7 @@ struct ProfileView: View {
             }
         }
         .padding(.horizontal, DesignSystem.Spacing.screenPadding)
+        .padding(.top, DesignSystem.Spacing.md)
     }
 
     // MARK: - Edit Mode
@@ -117,7 +119,7 @@ struct ProfileView: View {
 
     @ViewBuilder
     private func displayContent(user: UserInfo) -> some View {
-        VStack(spacing: DesignSystem.Spacing.lg) {
+        VStack(spacing: DesignSystem.Spacing.xxl) {
             // Stats bar
             if let stats = viewModel.captainStats {
                 ProfileStatsBar(stats: stats)
@@ -146,14 +148,14 @@ struct ProfileView: View {
     // MARK: - Account Management
 
     private var accountManagementSection: some View {
-        VStack(spacing: DesignSystem.Spacing.md) {
+        VStack(alignment: .leading, spacing: DesignSystem.Spacing.lg) {
             DesignSystem.SectionLabel(L10n.Profile.accountTitle)
             Text(L10n.Profile.accountSubtitle)
                 .font(DesignSystem.Typography.caption)
                 .foregroundColor(DesignSystem.Colors.textSecondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-            VStack(spacing: DesignSystem.Spacing.sm) {
+            VStack(spacing: DesignSystem.Spacing.md) {
                 accountActionButton(
                     icon: "trash.fill",
                     label: L10n.Profile.deleteAccount,
@@ -161,7 +163,7 @@ struct ProfileView: View {
                     action: {}
                 )
 
-                Divider().padding(.vertical, DesignSystem.Spacing.sm)
+                Divider().padding(.vertical, DesignSystem.Spacing.md)
 
                 Button {
                     Task { await viewModel.logout() }
@@ -176,7 +178,7 @@ struct ProfileView: View {
                             .foregroundColor(DesignSystem.Colors.textSecondary)
                             .font(.system(size: 14))
                     }
-                    .padding(.vertical, DesignSystem.Spacing.sm)
+                    .padding(.vertical, DesignSystem.Spacing.md)
                     .padding(.horizontal, DesignSystem.Spacing.md)
                     .background(DesignSystem.Colors.surface)
                     .cornerRadius(DesignSystem.Spacing.md)
@@ -206,7 +208,7 @@ struct ProfileView: View {
                     .foregroundColor(DesignSystem.Colors.textSecondary)
                     .font(.system(size: 14))
             }
-            .padding(.vertical, DesignSystem.Spacing.sm)
+            .padding(.vertical, DesignSystem.Spacing.md)
             .padding(.horizontal, DesignSystem.Spacing.md)
             .background(DesignSystem.Colors.surface)
             .cornerRadius(DesignSystem.Spacing.md)
@@ -223,9 +225,9 @@ struct ProfileView: View {
     private var unauthenticatedContent: some View {
         ZStack {
             DesignSystem.Colors.background.ignoresSafeArea()
-            VStack(spacing: DesignSystem.Spacing.xxl) {
+            VStack(spacing: DesignSystem.Spacing.xxxl) {
                 Spacer()
-                VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
+                VStack(alignment: .leading, spacing: DesignSystem.Spacing.lg) {
                     Text(L10n.Profile.welcomeTitle)
                         .font(DesignSystem.Typography.largeTitle)
                         .fontWeight(.bold)
@@ -248,13 +250,13 @@ struct ProfileView: View {
     }
 
     private var signInSection: some View {
-        VStack(spacing: DesignSystem.Spacing.md) {
+        VStack(spacing: DesignSystem.Spacing.lg) {
             DesignSystem.SectionHeader(
                 L10n.Profile.getStartedTitle,
                 subtitle: L10n.Profile.getStartedSubtitle
             )
 
-            VStack(spacing: DesignSystem.Spacing.md) {
+            VStack(spacing: DesignSystem.Spacing.lg) {
                 SignInWithAppleButton(
                     onRequest: { $0.requestedScopes = [.email, .fullName] },
                     onCompletion: { result in
