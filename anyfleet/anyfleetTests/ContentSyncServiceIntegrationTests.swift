@@ -1282,14 +1282,13 @@ class MockAPIClient: APIClientProtocol {
         return []
     }
 
-    func createCommunity(name: String) async throws -> CommunitySearchResult {
+    func createCommunity(name: String) async throws -> CreateAndJoinCommunityResponse {
         if shouldFail { throw APIError.serverError }
-        return CommunitySearchResult(
-            id: UUID().uuidString,
-            name: name,
-            iconURL: nil,
-            memberCount: 1,
-            isOpen: true
+        return CreateAndJoinCommunityResponse(
+            communityId: UUID().uuidString,
+            communityName: name,
+            role: .member,
+            message: "Joined community"
         )
     }
 

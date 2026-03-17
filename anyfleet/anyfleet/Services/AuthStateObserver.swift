@@ -34,14 +34,7 @@ final class AuthStateObserver: AuthStateObserverProtocol {
     
     /// The current authenticated user, or nil if not signed in
     var currentUser: UserInfo? {
-        let user = authService.currentUser
-        // Debug: Log when currentUser is accessed
-        if let user = user {
-            AppLogger.auth.debug("AuthStateObserver.currentUser accessed: \(user.username ?? "nil") with image: \(user.profileImageUrl ?? "nil")")
-        } else {
-            AppLogger.auth.debug("AuthStateObserver.currentUser accessed: nil")
-        }
-        return user
+        authService.currentUser
     }
     
     /// User's email address, if available
