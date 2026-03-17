@@ -11,6 +11,7 @@ extension DesignSystem {
       let user: UserInfo
       let verificationTier: VerificationTier?
       let completionPercentage: Int?
+      var primaryCommunity: CommunityMembership? = nil
       let onEditTap: () -> Void
       let onPhotoSelect: (PhotosPickerItem) -> Void
       let isUploadingImage: Bool
@@ -70,19 +71,34 @@ extension DesignSystem {
                     .foregroundColor(.white)
                     .lineLimit(1)
                     .shadow(color: Color.black.opacity(0.3), radius: 4, x: 0, y: 2)
-                  
-                  // Verification badge
+
                   if let tier = verificationTier {
                     verificationBadgeView(tier)
                       .frame(width: 24, height: 24)
                   }
                 }
 
-                Text(user.email)
-                  .font(Typography.caption)
-                  .foregroundColor(.white.opacity(0.9))
-                  .lineLimit(1)
+                if let location = user.location, !location.isEmpty {
+                  HStack(spacing: 3) {
+                    Image(systemName: "mappin.circle.fill")
+                      .font(.system(size: 11))
+                    Text(location)
+                      .font(Typography.caption)
+                  }
+                  .foregroundColor(.white.opacity(0.85))
                   .shadow(color: Color.black.opacity(0.3), radius: 2, x: 0, y: 1)
+                } else {
+                  Text(user.email)
+                    .font(Typography.caption)
+                    .foregroundColor(.white.opacity(0.9))
+                    .lineLimit(1)
+                    .shadow(color: Color.black.opacity(0.3), radius: 2, x: 0, y: 1)
+                }
+
+                if let community = primaryCommunity {
+                  CommunityBadge(name: community.name, iconURL: community.iconURL, style: .pill)
+                    .padding(.top, 2)
+                }
               }
               .frame(maxWidth: .infinity, alignment: .leading)
             }
