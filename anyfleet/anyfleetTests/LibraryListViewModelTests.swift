@@ -28,11 +28,20 @@ struct LibraryListViewModelTests {
             UpdateContentResponse(id: UUID(), publicID: publicID, updatedAt: Date())
         }
         func fetchPublicProfile(username: String) async throws -> PublicProfileResponse {
-            PublicProfileResponse(id: UUID(), username: username, profileImageUrl: nil, profileImageThumbnailUrl: nil, bio: nil, location: nil, nationality: nil, isVerified: false, verificationTier: nil, createdAt: Date(), stats: PublicProfileStatsResponse(totalContributions: 0, averageRating: nil, totalForks: 0))
+            PublicProfileResponse(id: UUID(), username: username, profileImageUrl: nil, profileImageThumbnailUrl: nil, bio: nil, location: nil, nationality: nil, isVerified: false, verificationTier: nil, createdAt: Date(), stats: PublicProfileStatsResponse(totalContributions: 0, averageRating: nil, totalForks: 0), socialLinks: nil, primaryCommunity: nil)
         }
         func fetchPublicProfileByUserId(_ userId: UUID) async throws -> PublicProfileResponse {
             try await fetchPublicProfile(username: "user-\(userId.uuidString.prefix(8))")
         }
+        func fetchProfileStats() async throws -> ProfileStatsAPIResponse {
+            ProfileStatsAPIResponse(totalContributions: 0, averageRating: nil, totalForks: 0, communitiesJoined: 0, daysAtSea: 0)
+        }
+        func searchCommunities(query: String, limit: Int = 10) async throws -> [CommunitySearchResult] { [] }
+        func createCommunity(name: String) async throws -> CommunitySearchResult {
+            CommunitySearchResult(id: UUID().uuidString, name: name, iconURL: nil, memberCount: 1, isOpen: true)
+        }
+        func joinCommunity(id: String) async throws {}
+        func leaveCommunity(id: String) async throws {}
         func createCharter(_ request: CharterCreateRequest) async throws -> CharterAPIResponse {
             CharterAPIResponse(id: UUID(), userId: UUID(), name: request.name, boatName: nil, locationText: nil, startDate: request.startDate, endDate: request.endDate, latitude: nil, longitude: nil, locationPlaceId: nil, visibility: "private", createdAt: Date(), updatedAt: Date())
         }

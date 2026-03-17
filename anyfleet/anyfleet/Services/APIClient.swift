@@ -7,8 +7,17 @@ protocol AuthServiceProtocol {
     var currentUser: UserInfo? { get }
     func getAccessToken() async throws -> String
     func ensureCurrentUserLoaded() async throws
+    func loadCurrentUser() async
     func logout() async
-    func updateProfile(username: String?, bio: String?, location: String?, nationality: String?, profileVisibility: String?) async throws -> UserInfo
+    func updateProfile(
+        username: String?,
+        bio: String?,
+        location: String?,
+        nationality: String?,
+        profileVisibility: String?,
+        socialLinks: [SocialLink]?,
+        communityMemberships: [CommunityMembership]?
+    ) async throws -> UserInfo
     func uploadProfileImage(_ imageData: Data) async throws -> UserInfo
     func handleAppleSignIn(result: Result<ASAuthorization, Error>) async throws
 }
@@ -47,6 +56,15 @@ protocol APIClientProtocol {
 
     func fetchPublicProfile(username: String) async throws -> PublicProfileResponse
     func fetchPublicProfileByUserId(_ userId: UUID) async throws -> PublicProfileResponse
+
+    // MARK: Profile Stats
+    func fetchProfileStats() async throws -> ProfileStatsAPIResponse
+
+    // MARK: Community API
+    func searchCommunities(query: String, limit: Int) async throws -> [CommunitySearchResult]
+    func createCommunity(name: String) async throws -> CommunitySearchResult
+    func joinCommunity(id: String) async throws
+    func leaveCommunity(id: String) async throws
 
     // MARK: Charter API
 
@@ -191,6 +209,33 @@ final class APIClient: APIClientProtocol {
             AppLogger.api.error("Failed to fetch public profile for user ID \(userId)", error: error)
             throw error
         }
+    }
+
+    // MARK: - Profile Stats
+
+    func fetchProfileStats() async throws -> ProfileStatsAPIResponse {
+        AppLogger.api.debug("Fetching profile stats")
+        return try await get("/profile/stats", body: EmptyBody())
+    }
+
+    // MARK: - Community Endpoints
+
+    func searchCommunities(query: String, limit: Int = 10) async throws -> [CommunitySearchResult] {
+        let encoded = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? query
+        return try await getUnauthenticated("/communities/search?q=\(encoded)&limit=\(limit)", body: EmptyBody())
+    }
+
+    func createCommunity(name: String) async throws -> CommunitySearchResult {
+        let body = CreateCommunityRequest(name: name)
+        return try await post("/communities", body: body)
+    }
+
+    func joinCommunity(id: String) async throws {
+        try await performRequest(method: "POST", path: "/communities/\(id)/join", body: EmptyBody())
+    }
+
+    func leaveCommunity(id: String) async throws {
+        try await performRequest(method: "DELETE", path: "/communities/\(id)/leave", body: EmptyBody())
     }
 
     // MARK: - Charter Endpoints
@@ -674,7 +719,7 @@ struct PublicProfileStatsResponse: Codable {
     let totalContributions: Int
     let averageRating: Double?
     let totalForks: Int
-    
+
     enum CodingKeys: String, CodingKey {
         case totalContributions = "total_contributions"
         case averageRating = "average_rating"
@@ -694,7 +739,9 @@ struct PublicProfileResponse: Codable {
     let verificationTier: String?
     let createdAt: Date
     let stats: PublicProfileStatsResponse
-    
+    let socialLinks: [SocialLink]?
+    let primaryCommunity: CommunityMembership?
+
     enum CodingKeys: String, CodingKey {
         case id
         case username
@@ -707,8 +754,10 @@ struct PublicProfileResponse: Codable {
         case verificationTier = "verification_tier"
         case createdAt = "created_at"
         case stats
+        case socialLinks = "social_links"
+        case primaryCommunity = "primary_community"
     }
-    
+
     /// Convert to AuthorProfile for use in AuthorProfileModal
     func toAuthorProfile(email: String = "") -> AuthorProfile {
         return AuthorProfile(
@@ -727,4 +776,29 @@ struct PublicProfileResponse: Codable {
             )
         )
     }
+}
+
+// MARK: - Profile Stats API Response
+
+/// Maps to `GET /profile/stats` response
+struct ProfileStatsAPIResponse: Codable {
+    let totalContributions: Int
+    let averageRating: Double?
+    let totalForks: Int
+    let communitiesJoined: Int
+    let daysAtSea: Int
+
+    enum CodingKeys: String, CodingKey {
+        case totalContributions = "total_contributions"
+        case averageRating = "average_rating"
+        case totalForks = "total_forks"
+        case communitiesJoined = "communities_joined"
+        case daysAtSea = "days_at_sea"
+    }
+}
+
+// MARK: - Community Request Types
+
+struct CreateCommunityRequest: Encodable {
+    let name: String
 }

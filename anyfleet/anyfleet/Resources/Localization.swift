@@ -484,6 +484,189 @@ enum L10n {
                 comment: "Add location prompt"
             )
         }
+
+        // Communities
+        enum Communities {
+            static let title = NSLocalizedString(
+                "profile.communities.title",
+                tableName: "Localizable",
+                comment: "Communities section title"
+            )
+            static let emptyState = NSLocalizedString(
+                "profile.communities.emptyState",
+                tableName: "Localizable",
+                comment: "Empty state when user has no communities"
+            )
+            static let setAsPrimary = NSLocalizedString(
+                "profile.communities.setAsPrimary",
+                tableName: "Localizable",
+                comment: "Context menu action to set community as primary"
+            )
+            static let leave = NSLocalizedString(
+                "profile.communities.leave",
+                tableName: "Localizable",
+                comment: "Context menu action to leave community"
+            )
+            static let find = NSLocalizedString(
+                "profile.communities.find",
+                tableName: "Localizable",
+                comment: "Button to find and join communities"
+            )
+        }
+
+        // Community Search
+        enum CommunitySearch {
+            static let title = NSLocalizedString(
+                "profile.communitySearch.title",
+                tableName: "Localizable",
+                comment: "Community search sheet title"
+            )
+            static let done = NSLocalizedString(
+                "profile.communitySearch.done",
+                tableName: "Localizable",
+                comment: "Done button to dismiss community search"
+            )
+            static let placeholder = NSLocalizedString(
+                "profile.communitySearch.placeholder",
+                tableName: "Localizable",
+                comment: "Search field placeholder"
+            )
+            static let emptyPrompt = NSLocalizedString(
+                "profile.communitySearch.emptyPrompt",
+                tableName: "Localizable",
+                comment: "Prompt when search field is empty"
+            )
+            static func createCommunity(_ name: String) -> String {
+                String(format: NSLocalizedString(
+                    "profile.communitySearch.createCommunity",
+                    tableName: "Localizable",
+                    comment: "Create community row title with name"
+                ), name)
+            }
+            static let startNew = NSLocalizedString(
+                "profile.communitySearch.startNew",
+                tableName: "Localizable",
+                comment: "Subtitle for create community row"
+            )
+            static let member = NSLocalizedString(
+                "profile.communitySearch.member",
+                tableName: "Localizable",
+                comment: "Singular: 1 member"
+            )
+            static let members = NSLocalizedString(
+                "profile.communitySearch.members",
+                tableName: "Localizable",
+                comment: "Plural: N members"
+            )
+            static let open = NSLocalizedString(
+                "profile.communitySearch.open",
+                tableName: "Localizable",
+                comment: "Open community badge"
+            )
+            static let moderated = NSLocalizedString(
+                "profile.communitySearch.moderated",
+                tableName: "Localizable",
+                comment: "Moderated community badge"
+            )
+            static let join = NSLocalizedString(
+                "profile.communitySearch.join",
+                tableName: "Localizable",
+                comment: "Join community button"
+            )
+        }
+
+        // Social Links
+        enum SocialLinks {
+            enum Platform {
+                static let instagram = NSLocalizedString(
+                    "profile.socialLinks.platform.instagram",
+                    tableName: "Localizable",
+                    comment: "Instagram platform name"
+                )
+                static let telegram = NSLocalizedString(
+                    "profile.socialLinks.platform.telegram",
+                    tableName: "Localizable",
+                    comment: "Telegram platform name"
+                )
+                static let other = NSLocalizedString(
+                    "profile.socialLinks.platform.other",
+                    tableName: "Localizable",
+                    comment: "Other link platform name"
+                )
+            }
+            static let title = NSLocalizedString(
+                "profile.socialLinks.title",
+                tableName: "Localizable",
+                comment: "Social links section title"
+            )
+            static let urlPlaceholder = NSLocalizedString(
+                "profile.socialLinks.urlPlaceholder",
+                tableName: "Localizable",
+                comment: "Placeholder for Other social link URL"
+            )
+            static let usernamePlaceholder = NSLocalizedString(
+                "profile.socialLinks.usernamePlaceholder",
+                tableName: "Localizable",
+                comment: "Placeholder for Instagram/Telegram handle"
+            )
+        }
+
+        // Edit Form
+        enum EditForm {
+            static let cancel = NSLocalizedString(
+                "profile.editForm.cancel",
+                tableName: "Localizable",
+                comment: "Cancel edit button"
+            )
+            static let save = NSLocalizedString(
+                "profile.editForm.save",
+                tableName: "Localizable",
+                comment: "Save edit button"
+            )
+            static func bioCounter(_ count: Int, limit: Int) -> String {
+                String(format: NSLocalizedString(
+                    "profile.editForm.bioCounter",
+                    tableName: "Localizable",
+                    comment: "Bio character counter"
+                ), count, limit)
+            }
+        }
+
+        // Validation
+        static let displayNameEmpty = NSLocalizedString(
+            "profile.validation.displayNameEmpty",
+            tableName: "Localizable",
+            comment: "Validation error when display name is empty"
+        )
+
+        // Stats
+        enum Stats {
+            static let dashboardLabel = NSLocalizedString(
+                "profile.stats.dashboardLabel",
+                tableName: "Localizable",
+                comment: "Section label for stats dashboard"
+            )
+            static let chartersCompleted = NSLocalizedString(
+                "profile.stats.chartersCompleted",
+                tableName: "Localizable",
+                comment: "Charters completed stat label"
+            )
+            static let nauticalMiles = NSLocalizedString(
+                "profile.stats.nauticalMiles",
+                tableName: "Localizable",
+                comment: "Nautical miles stat label"
+            )
+            static let daysAtSea = NSLocalizedString(
+                "profile.stats.daysAtSea",
+                tableName: "Localizable",
+                comment: "Days at sea stat label"
+            )
+            static let communitiesJoined = NSLocalizedString(
+                "profile.stats.communitiesJoined",
+                tableName: "Localizable",
+                comment: "Communities joined stat label"
+            )
+        }
     }
     
     enum Error {

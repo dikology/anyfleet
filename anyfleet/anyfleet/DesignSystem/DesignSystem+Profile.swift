@@ -6,130 +6,72 @@ extension DesignSystem {
   enum Profile {
     
     // MARK: - Profile Hero Section
-    /// Hero header displaying user identity with optional completion indicator
+    /// Full-bleed hero background. Avatar and user info live in overlapping content below.
     struct Hero: View {
       let user: UserInfo
-      let verificationTier: VerificationTier?
-      let completionPercentage: Int?
       let onEditTap: () -> Void
-      let onPhotoSelect: (PhotosPickerItem) -> Void
-      let isUploadingImage: Bool
 
-      // UX: Fixed dimensions for consistent, immersive hero experience
-      private let heroHeight: CGFloat = 300
-      private let avatarSize: CGFloat = 96
+      private let heroHeight: CGFloat = 256
       
       var body: some View {
-        ZStack(alignment: .bottomLeading) {
-          // Full-bleed background image with blur
+        ZStack(alignment: .topTrailing) {
           heroBackgroundView
             .frame(height: heroHeight)
             .frame(maxWidth: .infinity)
+            .clipped()
           
-          // Strong gradient overlay for text legibility
           LinearGradient(
             colors: [
-              Color.black.opacity(0),
-              Color.black.opacity(0.3),
-              Color.black.opacity(0.7)
+              Color.clear,
+              Color.clear,
+              Colors.background.opacity(0.3),
+              Colors.background
             ],
             startPoint: .top,
             endPoint: .bottom
           )
           
-          // Content overlay
-          VStack(spacing: 0) {
-            // Top right edit button
-            HStack {
-              Spacer()
-              Button(action: onEditTap) {
-                Image(systemName: "pencil")
-                  .font(.system(size: 14, weight: .semibold))
-                  .foregroundColor(Colors.onPrimary)
-                  .frame(width: 40, height: 40)
-                  .background(.ultraThinMaterial)
-                  .clipShape(Circle())
-                  .shadow(color: Colors.shadowStrong.opacity(0.3), radius: 8, x: 0, y: 4)
-              }
-            }
-            .padding(Spacing.lg)
-            
-            Spacer()
-            
-            // Bottom content area with avatar and user info
-            HStack(alignment: .bottom, spacing: Spacing.md) {
-              // Profile avatar with camera button
-              profileImageStackView
-              
-              // User info
-              VStack(alignment: .leading, spacing: Spacing.xs) {
-                HStack(spacing: Spacing.xs) {
-                  Text(user.username ?? user.email)
-                    .font(Typography.title)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-                    .lineLimit(1)
-                    .shadow(color: Color.black.opacity(0.3), radius: 4, x: 0, y: 2)
-                  
-                  // Verification badge
-                  if let tier = verificationTier {
-                    verificationBadgeView(tier)
-                      .frame(width: 24, height: 24)
-                  }
-                }
-
-                Text(user.email)
-                  .font(Typography.caption)
-                  .foregroundColor(.white.opacity(0.9))
-                  .lineLimit(1)
-                  .shadow(color: Color.black.opacity(0.3), radius: 2, x: 0, y: 1)
-              }
-              .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .padding(Spacing.lg)
+          Button(action: onEditTap) {
+            Image(systemName: "pencil")
+              .font(.system(size: 14, weight: .semibold))
+              .foregroundColor(.white)
+              .frame(width: 40, height: 40)
+              .glassPanel()
+              .clipShape(Circle())
           }
+          .padding(.top, 56)
+          .padding(.trailing, Spacing.lg)
         }
         .frame(height: heroHeight)
-        .clipShape(RoundedRectangle(cornerRadius: 20))
-        .shadow(color: Colors.shadowStrong.opacity(0.2), radius: 16, x: 0, y: 8)
+        .frame(maxWidth: .infinity)
       }
       
-      // MARK: - Hero Helper Views
-      
       private var heroBackgroundView: some View {
-        GeometryReader { geometry in
-          ZStack {
-            // Full-bleed background image with blur effect
-            if let url = user.profileImageUrl {
-              AsyncImage(url: URL(string: url)) { phase in
-                switch phase {
-                case .success(let image):
-                  image
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: geometry.size.width, height: heroHeight)
-                    //.blur(radius: 1) // UX: Blur for text legibility and depth
-                    .clipped() // CRITICAL: Prevents overflow
-                case .failure:
+        Group {
+          if let url = user.profileImageUrl {
+            AsyncImage(url: URL(string: url)) { phase in
+              switch phase {
+              case .success(let image):
+                image
+                  .resizable()
+                  .aspectRatio(contentMode: .fill)
+              case .failure:
+                gradientBackground
+              case .empty:
+                ZStack {
                   gradientBackground
-                case .empty:
-                  ZStack {
-                    gradientBackground
-                    ProgressView()
-                      .tint(.white)
-                  }
-                @unknown default:
-                  gradientBackground
+                  ProgressView().tint(.white)
                 }
+              @unknown default:
+                gradientBackground
               }
-            } else {
-              gradientBackground
             }
+          } else {
+            gradientBackground
           }
         }
       }
       
-      // Default gradient background when no image
       private var gradientBackground: some View {
         LinearGradient(
           colors: [
@@ -141,18 +83,52 @@ extension DesignSystem {
           endPoint: .bottomTrailing
         )
       }
+    }
+    
+    // MARK: - Profile Header Content (overlapping)
+    /// Avatar, name, metadata, bio — overlaps the hero with negative margin.
+    struct HeaderContent: View {
+      let user: UserInfo
+      let verificationTier: VerificationTier?
+      var primaryCommunity: CommunityMembership? = nil
+      let memberSince: String?
+      let onPhotoSelect: (PhotosPickerItem) -> Void
+      let isUploadingImage: Bool
+
+      private let avatarSize: CGFloat = 112
       
-      private var profileImageStackView: some View {
+      var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+          avatarView
+            .padding(.bottom, Spacing.md)
+          
+          Text(user.username ?? user.email)
+            .font(.system(size: 28, weight: .bold, design: .rounded))
+            .tracking(-0.5)
+            .foregroundColor(Colors.textPrimary)
+            .lineLimit(1)
+            .padding(.bottom, Spacing.sm)
+          
+          metadataRow
+          
+          if let bio = user.bio, !bio.isEmpty {
+            Text(bio)
+              .font(Typography.body)
+              .foregroundColor(Colors.textSecondary)
+              .lineSpacing(4)
+              .padding(.top, Spacing.md)
+          }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+      }
+      
+      private var avatarView: some View {
         ZStack(alignment: .bottomTrailing) {
-          // Avatar with prominent shadow and border
           ZStack {
-            // White border ring
             Circle()
-              .strokeBorder(.white, lineWidth: 4)
+              .strokeBorder(Colors.background, lineWidth: 4)
               .frame(width: avatarSize, height: avatarSize)
-              .shadow(color: Color.black.opacity(0.3), radius: 12, x: 0, y: 6)
             
-            // Avatar image or placeholder
             Group {
               if let url = user.profileImageThumbnailUrl {
                 AsyncImage(url: URL(string: url)) { phase in
@@ -168,8 +144,7 @@ extension DesignSystem {
                   case .empty:
                     ZStack {
                       Circle().fill(Colors.surfaceAlt)
-                      ProgressView()
-                        .tint(.white)
+                      ProgressView().tint(.white)
                     }
                     .frame(width: avatarSize - 8, height: avatarSize - 8)
                   @unknown default:
@@ -182,30 +157,18 @@ extension DesignSystem {
             }
           }
 
-          // Camera button with glassmorphism effect
           PhotosPicker(selection: Binding(
             get: { nil },
-            set: { item in
-              if let item = item {
-                onPhotoSelect(item)
-              }
-            }
+            set: { item in if let item = item { onPhotoSelect(item) } }
           ), matching: .images) {
             ZStack {
-              // Glassmorphism background
               Circle()
                 .fill(.ultraThinMaterial)
                 .frame(width: 36, height: 36)
-                .overlay(
-                  Circle()
-                    .strokeBorder(.white.opacity(0.3), lineWidth: 1.5)
-                )
-                .shadow(color: Color.black.opacity(0.3), radius: 8, x: 0, y: 4)
+                .overlay(Circle().strokeBorder(Color.white.opacity(0.3), lineWidth: 1.5))
               
               if isUploadingImage {
-                ProgressView()
-                  .tint(Colors.primary)
-                  .scaleEffect(0.8)
+                ProgressView().tint(Colors.primary).scaleEffect(0.8)
               } else {
                 Image(systemName: "camera.fill")
                   .font(.system(size: 14, weight: .semibold))
@@ -224,50 +187,44 @@ extension DesignSystem {
           Circle()
             .fill(
               LinearGradient(
-                colors: [
-                  Colors.primary.opacity(0.8),
-                  Colors.primary
-                ],
+                colors: [Colors.primary.opacity(0.8), Colors.primary],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
               )
             )
             .frame(width: avatarSize - 8, height: avatarSize - 8)
-          
           Image(systemName: "person.fill")
-            .font(.system(size: 40, weight: .medium))
+            .font(.system(size: 44, weight: .medium))
             .foregroundColor(.white)
         }
       }
       
-      private func completionBannerView(_ percentage: Int) -> some View {
-        HStack(spacing: Spacing.md) {
-          Image(systemName: "chart.pie.fill")
-            .foregroundColor(.primary)
-          
-          VStack(alignment: .leading, spacing: 4) {
-            Text("Profile \(percentage)% complete")
-              .font(.subheadline.weight(.semibold))
-            ProgressView(value: Double(percentage), total: 100)
-              .tint(.primary)
+      private var metadataRow: some View {
+        HStack(spacing: Spacing.lg) {
+          if let location = user.location, !location.isEmpty {
+            HStack(spacing: 4) {
+              Image(systemName: "mappin.circle.fill")
+                .font(.system(size: 13))
+                .foregroundColor(Colors.primary)
+              Text(location)
+                .font(.system(size: 13, weight: .medium))
+                .foregroundColor(Colors.textSecondary)
+            }
           }
-          
-          Spacer()
+          if let date = memberSince {
+            HStack(spacing: 4) {
+              Image(systemName: "calendar")
+                .font(.system(size: 13))
+                .foregroundColor(Colors.primary)
+              Text(date)
+                .font(.system(size: 13, weight: .medium))
+                .foregroundColor(Colors.textSecondary)
+            }
+          }
+          if let community = primaryCommunity {
+            CommunityBadge(name: community.name, iconURL: community.iconURL, style: .pill)
+          }
         }
-        .padding()
-        .background(.ultraThinMaterial)
-        .cornerRadius(12)
-      }
-      
-      private func verificationBadgeView(_ tier: VerificationTier) -> some View {
-        ZStack {
-          Circle()
-            .fill(.ultraThinMaterial)
-          Image(systemName: tier.icon)
-            .font(.system(size: 14, weight: .bold))
-            .foregroundColor(tier.color)
-        }
-        .shadow(color: Color.black.opacity(0.3), radius: 4, x: 0, y: 2)
       }
     }
     
@@ -565,11 +522,7 @@ extension DesignSystem {
       nationality: nil,
       profileVisibility: "public"
     ),
-    verificationTier: .expert,
-    completionPercentage: 80,
-    onEditTap: {},
-    onPhotoSelect: { _ in },
-    isUploadingImage: false
+    onEditTap: {}
   )
   .padding()
 }

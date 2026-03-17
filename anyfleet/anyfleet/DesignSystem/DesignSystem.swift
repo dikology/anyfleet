@@ -39,6 +39,34 @@ enum DesignSystem {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
+
+    /// Immersive section label — uppercase, wide tracking, muted. For "Data Dashboard", "Communities", etc.
+    struct SectionLabel: View {
+        let text: String
+
+        init(_ text: String) {
+            self.text = text
+        }
+
+        var body: some View {
+            Text(text.uppercased())
+                .font(.system(size: 11, weight: .bold))
+                .tracking(1.2)
+                .foregroundColor(Colors.textSecondary)
+        }
+    }
+
+    /// Glass-style panel — backdrop blur, semi-transparent, subtle border. For floating buttons.
+    struct GlassPanel: ViewModifier {
+        func body(content: Content) -> some View {
+            content
+                .background(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.white.opacity(0.15), lineWidth: 1)
+                )
+        }
+    }
     
     struct Pill: View {
         let text: String
@@ -446,6 +474,10 @@ extension View {
     
     func sectionContainer() -> some View {
         modifier(DesignSystem.SectionContainer())
+    }
+
+    func glassPanel() -> some View {
+        modifier(DesignSystem.GlassPanel())
     }
     
     func heroCardStyle(elevation: DesignSystem.HeroCardStyle.Elevation = .medium) -> some View {

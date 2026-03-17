@@ -41,7 +41,7 @@ struct UserInfo: Codable {
     let email: String
     let username: String?
     let createdAt: String
-    
+
     // Phase 1 additions
     let profileImageUrl: String?
     let profileImageThumbnailUrl: String?
@@ -49,13 +49,19 @@ struct UserInfo: Codable {
     let location: String?
     let nationality: String?
     let profileVisibility: String?
-    
+
+    // Phase 2 additions — defaulting to nil keeps all existing call sites unchanged
+    var socialLinks: [SocialLink]? = nil
+    var communities: [CommunityMembership]? = nil
+
     enum CodingKeys: String, CodingKey {
         case id, email, username, bio, location, nationality
         case createdAt = "created_at"
         case profileImageUrl = "profile_image_url"
         case profileImageThumbnailUrl = "profile_image_thumbnail_url"
         case profileVisibility = "profile_visibility"
+        case socialLinks = "social_links"
+        case communities = "community_memberships"
     }
 }
 
@@ -84,6 +90,35 @@ struct ProfileImageUploadResponse: Codable {
         case profileImageUrl = "profile_image_url"
         case profileImageThumbnailUrl = "profile_image_thumbnail_url"
         case message
+    }
+}
+
+/// Request body for `PUT /auth/me`. Only non-nil fields are sent to the backend.
+struct UpdateProfileBody: Encodable {
+    var username: String?
+    var bio: String?
+    var location: String?
+    var nationality: String?
+    var profileVisibility: String?
+    var socialLinks: [SocialLink]?
+    var communityMemberships: [CommunityMembership]?
+
+    enum CodingKeys: String, CodingKey {
+        case username, bio, location, nationality
+        case profileVisibility = "profile_visibility"
+        case socialLinks = "social_links"
+        case communityMemberships = "community_memberships"
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encodeIfPresent(username, forKey: .username)
+        try container.encodeIfPresent(bio, forKey: .bio)
+        try container.encodeIfPresent(location, forKey: .location)
+        try container.encodeIfPresent(nationality, forKey: .nationality)
+        try container.encodeIfPresent(profileVisibility, forKey: .profileVisibility)
+        try container.encodeIfPresent(socialLinks, forKey: .socialLinks)
+        try container.encodeIfPresent(communityMemberships, forKey: .communityMemberships)
     }
 }
 
@@ -218,25 +253,27 @@ final class AuthService: AuthServiceProtocol {
         keychain.saveRefreshToken(tokenResponse.refreshToken)
         AppLogger.auth.info("Tokens stored securely in keychain")
         
-        // Ensure image URLs have proper protocol
-        var user = tokenResponse.user
-        if let imageUrl = user.profileImageUrl, !imageUrl.hasPrefix("http") {
-            user = UserInfo(
-                id: user.id,
-                email: user.email,
-                username: user.username,
-                createdAt: user.createdAt,
-                profileImageUrl: "https://\(imageUrl)",
-                profileImageThumbnailUrl: user.profileImageThumbnailUrl?.hasPrefix("http") == false ? "https://\(user.profileImageThumbnailUrl!)" : user.profileImageThumbnailUrl,
-                bio: user.bio,
-                location: user.location,
-                nationality: user.nationality,
-                profileVisibility: user.profileVisibility
-            )
-        }
+            // Ensure image URLs have proper protocol
+            var user = tokenResponse.user
+            if let imageUrl = user.profileImageUrl, !imageUrl.hasPrefix("http") {
+                user = UserInfo(
+                    id: user.id,
+                    email: user.email,
+                    username: user.username,
+                    createdAt: user.createdAt,
+                    profileImageUrl: "https://\(imageUrl)",
+                    profileImageThumbnailUrl: user.profileImageThumbnailUrl?.hasPrefix("http") == false ? "https://\(user.profileImageThumbnailUrl!)" : user.profileImageThumbnailUrl,
+                    bio: user.bio,
+                    location: user.location,
+                    nationality: user.nationality,
+                    profileVisibility: user.profileVisibility,
+                    socialLinks: user.socialLinks,
+                    communities: user.communities
+                )
+            }
 
-        // Update state
-        currentUser = user
+            // Update state
+            currentUser = user
         isAuthenticated = true
         let usernameInfo = tokenResponse.user.username != nil ? " (username: \(tokenResponse.user.username!))" : " (no username)"
         AppLogger.auth.info("Sign-in successful for user: \(tokenResponse.user.email)\(usernameInfo)")
@@ -298,7 +335,9 @@ final class AuthService: AuthServiceProtocol {
                 bio: user.bio,
                 location: user.location,
                 nationality: user.nationality,
-                profileVisibility: user.profileVisibility
+                profileVisibility: user.profileVisibility,
+                socialLinks: user.socialLinks,
+                communities: user.communities
             )
         }
 
@@ -461,7 +500,9 @@ final class AuthService: AuthServiceProtocol {
                     bio: user.bio,
                     location: user.location,
                     nationality: user.nationality,
-                    profileVisibility: user.profileVisibility
+                    profileVisibility: user.profileVisibility,
+                    socialLinks: user.socialLinks,
+                    communities: user.communities
                 )
             }
 
@@ -482,35 +523,37 @@ final class AuthService: AuthServiceProtocol {
         bio: String?,
         location: String?,
         nationality: String?,
-        profileVisibility: String?
+        profileVisibility: String?,
+        socialLinks: [SocialLink]? = nil,
+        communityMemberships: [CommunityMembership]? = nil
     ) throws -> URLRequest {
         let url = URL(string: "\(baseURL)/auth/me")!
         var request = URLRequest(url: url)
         request.httpMethod = "PUT"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
-        var body: [String: String?] = [:]
-        if let username = username {
-            body["username"] = username
-        }
-        if let bio = bio {
-            body["bio"] = bio
-        }
-        if let location = location {
-            body["location"] = location
-        }
-        if let nationality = nationality {
-            body["nationality"] = nationality
-        }
-        if let profileVisibility = profileVisibility {
-            body["profile_visibility"] = profileVisibility
-        }
-
+        let body = UpdateProfileBody(
+            username: username,
+            bio: bio,
+            location: location,
+            nationality: nationality,
+            profileVisibility: profileVisibility,
+            socialLinks: socialLinks,
+            communityMemberships: communityMemberships
+        )
         request.httpBody = try JSONEncoder().encode(body)
         return request
     }
 
-    func updateProfile(username: String? = nil, bio: String? = nil, location: String? = nil, nationality: String? = nil, profileVisibility: String? = nil) async throws -> UserInfo {
+    func updateProfile(
+        username: String? = nil,
+        bio: String? = nil,
+        location: String? = nil,
+        nationality: String? = nil,
+        profileVisibility: String? = nil,
+        socialLinks: [SocialLink]? = nil,
+        communityMemberships: [CommunityMembership]? = nil
+    ) async throws -> UserInfo {
         AppLogger.auth.info("Updating profile")
 
         let request = try Self.buildUpdateProfileRequest(
@@ -519,15 +562,15 @@ final class AuthService: AuthServiceProtocol {
             bio: bio,
             location: location,
             nationality: nationality,
-            profileVisibility: profileVisibility
+            profileVisibility: profileVisibility,
+            socialLinks: socialLinks,
+            communityMemberships: communityMemberships
         )
 
         let data = try await makeAuthenticatedRequestWithRetry(request: request)
         let updatedUser = try JSONDecoder().decode(UserInfo.self, from: data)
 
-        // Update local state
         currentUser = updatedUser
-
         AppLogger.auth.info("Profile updated successfully for user: \(updatedUser.email)")
         return updatedUser
     }
@@ -583,7 +626,9 @@ final class AuthService: AuthServiceProtocol {
                 bio: currentUser.bio,
                 location: currentUser.location,
                 nationality: currentUser.nationality,
-                profileVisibility: currentUser.profileVisibility
+                profileVisibility: currentUser.profileVisibility,
+                socialLinks: currentUser.socialLinks,
+                communities: currentUser.communities
             )
             self.currentUser = updatedUser
             AppLogger.auth.info("Updated currentUser image URLs: \(oldImageUrl ?? "nil") -> \(updatedUser.profileImageUrl ?? "nil")")

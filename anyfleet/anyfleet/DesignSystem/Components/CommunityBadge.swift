@@ -1,0 +1,93 @@
+import SwiftUI
+
+/// Shared community badge — appears on profile chips, charter cards, and map pins.
+/// Uses `DesignSystem.Colors.communityAccent` (gold) for border and text.
+struct CommunityBadge: View {
+    let name: String
+    let iconURL: URL?
+    var style: Style = .pill
+
+    enum Style {
+        /// Full pill with text label
+        case pill
+        /// Small square icon only (initials fallback)
+        case icon
+    }
+
+    var body: some View {
+        switch style {
+        case .pill:
+            pillView
+        case .icon:
+            iconView
+        }
+    }
+
+    private var pillView: some View {
+        HStack(spacing: 4) {
+            initialsView(size: 16)
+            Text(name)
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(DesignSystem.Colors.communityAccent)
+                .lineLimit(1)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 5)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(DesignSystem.Colors.communityAccent.opacity(0.1))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .strokeBorder(DesignSystem.Colors.communityAccent.opacity(0.6), lineWidth: 1)
+                )
+        )
+    }
+
+    private var iconView: some View {
+        initialsView(size: 28)
+            .clipShape(RoundedRectangle(cornerRadius: 6))
+            .overlay(
+                RoundedRectangle(cornerRadius: 6)
+                    .strokeBorder(DesignSystem.Colors.communityAccent.opacity(0.6), lineWidth: 1)
+            )
+    }
+
+    @ViewBuilder
+    private func initialsView(size: CGFloat) -> some View {
+        if let url = iconURL {
+            AsyncImage(url: url) { phase in
+                switch phase {
+                case .success(let image):
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: size, height: size)
+                default:
+                    initialsPlaceholder(size: size)
+                }
+            }
+            .frame(width: size, height: size)
+        } else {
+            initialsPlaceholder(size: size)
+        }
+    }
+
+    private func initialsPlaceholder(size: CGFloat) -> some View {
+        ZStack {
+            DesignSystem.Colors.communityAccent.opacity(0.2)
+            Text(String(name.prefix(1)).uppercased())
+                .font(.system(size: size * 0.55, weight: .bold))
+                .foregroundColor(DesignSystem.Colors.communityAccent)
+        }
+        .frame(width: size, height: size)
+    }
+}
+
+#Preview {
+    VStack(spacing: 16) {
+        CommunityBadge(name: "Med Sailors", iconURL: nil, style: .pill)
+        CommunityBadge(name: "Racing Crew", iconURL: nil, style: .pill)
+        CommunityBadge(name: "Med Sailors", iconURL: nil, style: .icon)
+    }
+    .padding()
+}

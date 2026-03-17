@@ -364,3 +364,46 @@
 "profile.completion.addPhoto" = "Add a profile photo";
 "profile.completion.addBio" = "Write your bio";
 "profile.completion.addLocation" = "Add your location";
+
+// Communities
+"profile.communities.title" = "Communities";
+"profile.communities.emptyState" = "No communities yet — discover sailors who share your waters";
+"profile.communities.setAsPrimary" = "Set as Primary";
+"profile.communities.leave" = "Leave Community";
+"profile.communities.find" = "Find Communities";
+
+// Community Search
+"profile.communitySearch.title" = "Find Communities";
+"profile.communitySearch.done" = "Done";
+"profile.communitySearch.placeholder" = "Search communities…";
+"profile.communitySearch.emptyPrompt" = "Type to search communities";
+"profile.communitySearch.createCommunity" = "Create \"%@\"";
+"profile.communitySearch.startNew" = "Start a new community";
+"profile.communitySearch.member" = "member";
+"profile.communitySearch.members" = "members";
+"profile.communitySearch.open" = "Open";
+"profile.communitySearch.moderated" = "Moderated";
+"profile.communitySearch.join" = "Join";
+
+// Social Links
+"profile.socialLinks.platform.instagram" = "Instagram";
+"profile.socialLinks.platform.telegram" = "Telegram";
+"profile.socialLinks.platform.other" = "Other";
+"profile.socialLinks.title" = "Social Links";
+"profile.socialLinks.urlPlaceholder" = "https://your-website.com";
+"profile.socialLinks.usernamePlaceholder" = "username";
+
+// Edit Form
+"profile.editForm.cancel" = "Cancel";
+"profile.editForm.save" = "Save";
+"profile.editForm.bioCounter" = "%d / %d";
+
+// Validation
+"profile.validation.displayNameEmpty" = "Display name cannot be empty";
+
+// Stats
+"profile.stats.dashboardLabel" = "Data Dashboard";
+"profile.stats.chartersCompleted" = "Charters\nCompleted";
+"profile.stats.nauticalMiles" = "Nautical\nMiles";
+"profile.stats.daysAtSea" = "Days\nat Sea";
+"profile.stats.communitiesJoined" = "Communities\nJoined";

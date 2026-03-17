@@ -343,3 +343,46 @@
 "profile.completion.addPhoto" = "Добавьте фото профиля";
 "profile.completion.addBio" = "Напишите о себе";
 "profile.completion.addLocation" = "Добавьте местоположение";
+
+// Communities
+"profile.communities.title" = "Сообщества";
+"profile.communities.emptyState" = "Пока нет сообществ — найдите моряков, которые разделяют ваши воды";
+"profile.communities.setAsPrimary" = "Сделать основным";
+"profile.communities.leave" = "Покинуть сообщество";
+"profile.communities.find" = "Найти сообщества";
+
+// Community Search
+"profile.communitySearch.title" = "Найти сообщества";
+"profile.communitySearch.done" = "Готово";
+"profile.communitySearch.placeholder" = "Поиск сообществ…";
+"profile.communitySearch.emptyPrompt" = "Введите текст для поиска";
+"profile.communitySearch.createCommunity" = "Создать «%@»";
+"profile.communitySearch.startNew" = "Создать новое сообщество";
+"profile.communitySearch.member" = "участник";
+"profile.communitySearch.members" = "участников";
+"profile.communitySearch.open" = "Открытое";
+"profile.communitySearch.moderated" = "Модерируемое";
+"profile.communitySearch.join" = "Вступить";
+
+// Social Links
+"profile.socialLinks.platform.instagram" = "Instagram";
+"profile.socialLinks.platform.telegram" = "Telegram";
+"profile.socialLinks.platform.other" = "Другое";
+"profile.socialLinks.title" = "Социальные сети";
+"profile.socialLinks.urlPlaceholder" = "https://ваш-сайт.com";
+"profile.socialLinks.usernamePlaceholder" = "имя пользователя";
+
+// Edit Form
+"profile.editForm.cancel" = "Отмена";
+"profile.editForm.save" = "Сохранить";
+"profile.editForm.bioCounter" = "%d / %d";
+
+// Validation
+"profile.validation.displayNameEmpty" = "Отображаемое имя не может быть пустым";
+
+// Stats
+"profile.stats.dashboardLabel" = "Панель данных";
+"profile.stats.chartersCompleted" = "Чартеры\nзавершены";
+"profile.stats.nauticalMiles" = "Морские\nмили";
+"profile.stats.daysAtSea" = "Дней\nв море";
+"profile.stats.communitiesJoined" = "Сообществ\nприсоединено";

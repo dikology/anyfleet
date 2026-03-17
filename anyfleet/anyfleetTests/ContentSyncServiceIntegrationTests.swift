@@ -1256,12 +1256,49 @@ class MockAPIClient: APIClientProtocol {
                 totalContributions: 5,
                 averageRating: nil,
                 totalForks: 2
-            )
+            ),
+            socialLinks: nil,
+            primaryCommunity: nil
         )
     }
 
     func fetchPublicProfileByUserId(_ userId: UUID) async throws -> PublicProfileResponse {
         return try await fetchPublicProfile(username: "user-\(userId.uuidString.prefix(8))")
+    }
+
+    func fetchProfileStats() async throws -> ProfileStatsAPIResponse {
+        if shouldFail { throw APIError.serverError }
+        return ProfileStatsAPIResponse(
+            totalContributions: 0,
+            averageRating: nil,
+            totalForks: 0,
+            communitiesJoined: 0,
+            daysAtSea: 0
+        )
+    }
+
+    func searchCommunities(query: String, limit: Int = 10) async throws -> [CommunitySearchResult] {
+        if shouldFail { throw APIError.serverError }
+        return []
+    }
+
+    func createCommunity(name: String) async throws -> CommunitySearchResult {
+        if shouldFail { throw APIError.serverError }
+        return CommunitySearchResult(
+            id: UUID().uuidString,
+            name: name,
+            iconURL: nil,
+            memberCount: 1,
+            isOpen: true
+        )
+    }
+
+    func joinCommunity(id: String) async throws {
+        if shouldFail { throw APIError.serverError }
+    }
+
+    func leaveCommunity(id: String) async throws {
+        if shouldFail { throw APIError.serverError }
     }
 
     // MARK: Charter API
