@@ -52,8 +52,8 @@ struct LibraryAuthorProfileTests {
             ProfileStatsAPIResponse(totalContributions: 0, averageRating: nil, totalForks: 0, communitiesJoined: 0, daysAtSea: 0)
         }
         func searchCommunities(query: String, limit: Int = 10) async throws -> [CommunitySearchResult] { [] }
-        func createCommunity(name: String) async throws -> CommunitySearchResult {
-            CommunitySearchResult(id: UUID().uuidString, name: name, iconURL: nil, memberCount: 1, isOpen: true)
+        func createCommunity(name: String) async throws -> CreateAndJoinCommunityResponse {
+            CreateAndJoinCommunityResponse(communityId: UUID().uuidString, communityName: name, role: .member, message: "Joined community")
         }
         func joinCommunity(id: String) async throws {}
         func leaveCommunity(id: String) async throws {}

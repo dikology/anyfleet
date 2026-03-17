@@ -62,7 +62,7 @@ protocol APIClientProtocol {
 
     // MARK: Community API
     func searchCommunities(query: String, limit: Int) async throws -> [CommunitySearchResult]
-    func createCommunity(name: String) async throws -> CommunitySearchResult
+    func createCommunity(name: String) async throws -> CreateAndJoinCommunityResponse
     func joinCommunity(id: String) async throws
     func leaveCommunity(id: String) async throws
 
@@ -225,9 +225,9 @@ final class APIClient: APIClientProtocol {
         return try await getUnauthenticated("/communities/search?q=\(encoded)&limit=\(limit)", body: EmptyBody())
     }
 
-    func createCommunity(name: String) async throws -> CommunitySearchResult {
+    func createCommunity(name: String) async throws -> CreateAndJoinCommunityResponse {
         let body = CreateCommunityRequest(name: name)
-        return try await post("/communities", body: body)
+        return try await post("/communities/create-and-join", body: body)
     }
 
     func joinCommunity(id: String) async throws {

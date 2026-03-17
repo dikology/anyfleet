@@ -233,22 +233,21 @@ final class ProfileViewModel: ErrorHandling {
         }
     }
 
-    /// Creates a new community and joins it.
+    /// Creates a new community and joins it atomically via the create-and-join endpoint.
     func createAndJoinCommunity(name: String) async {
         guard let apiClient else { return }
         do {
-            let community = try await apiClient.createCommunity(name: name)
-            try await apiClient.joinCommunity(id: community.id)
+            let response = try await apiClient.createCommunity(name: name)
             let isPrimary = communities.isEmpty && editedCommunities.isEmpty
             let membership = CommunityMembership(
-                id: community.id,
-                name: community.name,
-                iconURL: community.iconURL,
-                role: .member,
+                id: response.communityId,
+                name: response.communityName,
+                iconURL: nil,
+                role: response.role,
                 isPrimary: isPrimary
             )
             if isEditingProfile {
-                guard !editedCommunities.contains(where: { $0.id == community.id }) else { return }
+                guard !editedCommunities.contains(where: { $0.id == response.communityId }) else { return }
                 editedCommunities.append(membership)
             } else {
                 await authService.loadCurrentUser()

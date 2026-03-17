@@ -75,6 +75,21 @@ enum CommunityRole: String, Codable {
     case founder
 }
 
+/// Response returned by POST /communities/create-and-join
+struct CreateAndJoinCommunityResponse: Codable {
+    let communityId: String
+    let communityName: String
+    let role: CommunityRole
+    let message: String
+
+    enum CodingKeys: String, CodingKey {
+        case communityId = "community_id"
+        case communityName = "community_name"
+        case role
+        case message
+    }
+}
+
 /// Lightweight model returned by community search / directory listing
 struct CommunitySearchResult: Codable, Identifiable {
     let id: String
