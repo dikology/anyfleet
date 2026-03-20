@@ -39,9 +39,23 @@ final class CharterEditorViewModel: ErrorHandling {
     private let charterStore: CharterStore
     private let charterSyncService: CharterSyncService?
     private let authService: (any AuthServiceProtocol)?
+    private let apiClient: (any APIClientProtocol)?
     let locationSearchService: any LocationSearchService
     private let charterID: UUID?
     private let onDismiss: () -> Void
+
+    // MARK: - Community manager (publish on behalf)
+
+    var managedCommunities: [ManagedCommunity] = []
+    var selectedVirtualCaptain: VirtualCaptain?
+    var showVirtualCaptainPicker = false
+
+    var isCommunityManager: Bool { !managedCommunities.isEmpty }
+
+    var selectedVirtualCaptainCommunity: ManagedCommunity? {
+        guard let vc = selectedVirtualCaptain else { return nil }
+        return managedCommunities.first { $0.id == vc.communityId }
+    }
     
     // MARK: - State
     
@@ -96,6 +110,7 @@ final class CharterEditorViewModel: ErrorHandling {
         charterStore: CharterStore,
         charterSyncService: CharterSyncService? = nil,
         authService: (any AuthServiceProtocol)? = nil,
+        apiClient: (any APIClientProtocol)? = nil,
         locationSearchService: any LocationSearchService = MKLocationSearchService(),
         charterID: UUID? = nil,
         onDismiss: @escaping () -> Void,
@@ -104,6 +119,7 @@ final class CharterEditorViewModel: ErrorHandling {
         self.charterStore = charterStore
         self.charterSyncService = charterSyncService
         self.authService = authService
+        self.apiClient = apiClient
         self.locationSearchService = locationSearchService
         self.charterID = charterID
         self.onDismiss = onDismiss
@@ -145,6 +161,44 @@ final class CharterEditorViewModel: ErrorHandling {
             handleError(error)
         }
     }
+
+    func loadManagedCommunities() async {
+        guard let apiClient, authService?.isAuthenticated == true else {
+            managedCommunities = []
+            return
+        }
+        do {
+            managedCommunities = try await apiClient.getManagedCommunities()
+        } catch {
+            managedCommunities = []
+        }
+    }
+
+    /// After `loadCharter` and `loadManagedCommunities`, maps stored `onBehalfOfVirtualCaptainID` to `selectedVirtualCaptain`.
+    func resolveVirtualCaptainSelectionFromStore() async {
+        guard let charterID, let apiClient else {
+            selectedVirtualCaptain = nil
+            return
+        }
+        guard let charter = try? await charterStore.fetchCharter(charterID),
+              let targetID = charter.onBehalfOfVirtualCaptainID
+        else {
+            selectedVirtualCaptain = nil
+            return
+        }
+        for community in managedCommunities {
+            do {
+                let response = try await apiClient.listVirtualCaptains(communityId: community.id, limit: 100, offset: 0)
+                if let match = response.items.first(where: { $0.id == targetID }) {
+                    selectedVirtualCaptain = match
+                    return
+                }
+            } catch {
+                continue
+            }
+        }
+        selectedVirtualCaptain = nil
+    }
     
     /// Saves the charter and dismisses the view on success.
     func saveCharter() async {
@@ -182,6 +236,7 @@ final class CharterEditorViewModel: ErrorHandling {
                 if form.visibility != .private {
                     charter.visibility = form.visibility
                     charter.needsSync = true
+                    charter.onBehalfOfVirtualCaptainID = selectedVirtualCaptain?.id
                     try await charterStore.saveCharter(charter)
                     await charterSyncService?.pushPendingCharters()
                 }
@@ -192,6 +247,7 @@ final class CharterEditorViewModel: ErrorHandling {
                 onDismiss()
             } else {
                 guard let charterID = charterID else { return }
+                let onBehalf = form.visibility == .private ? nil : selectedVirtualCaptain?.id
                 let charter = try await charterStore.updateCharter(
                     charterID,
                     name: form.name,
@@ -202,7 +258,8 @@ final class CharterEditorViewModel: ErrorHandling {
                     locationPlaceID: form.selectedPlace?.id,
                     startDate: form.startDate,
                     endDate: form.endDate,
-                    checkInChecklistID: nil
+                    checkInChecklistID: nil,
+                    onBehalfOfVirtualCaptainID: onBehalf
                 )
 
                 // For any non-private charter, updateVisibility sets needsSync = true (idempotent
@@ -237,6 +294,9 @@ final class CharterEditorViewModel: ErrorHandling {
     /// unchanged, and `showSignIn` is set to `true` so the view can present
     /// the sign-in sheet.
     func onVisibilityChanged(_ newVisibility: CharterVisibility) {
+        if newVisibility == .private {
+            selectedVirtualCaptain = nil
+        }
         if newVisibility != .private, let authService, !authService.isAuthenticated {
             pendingVisibility = newVisibility
             showSignIn = true

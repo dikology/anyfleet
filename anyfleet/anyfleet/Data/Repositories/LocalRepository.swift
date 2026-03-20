@@ -98,7 +98,7 @@ final class LocalRepository: Sendable {
     }
     
     /// Update charter with new values
-    func updateCharter(_ charterID: UUID, name: String, boatName: String?, location: String?, latitude: Double?, longitude: Double?, locationPlaceID: String?, startDate: Date, endDate: Date, checkInChecklistID: UUID?) async throws -> CharterModel {
+    func updateCharter(_ charterID: UUID, name: String, boatName: String?, location: String?, latitude: Double?, longitude: Double?, locationPlaceID: String?, startDate: Date, endDate: Date, checkInChecklistID: UUID?, onBehalfOfVirtualCaptainID: UUID? = nil) async throws -> CharterModel {
         AppLogger.repository.startOperation("Update Charter")
         defer { AppLogger.repository.completeOperation("Update Charter") }
 
@@ -125,7 +125,8 @@ final class LocalRepository: Sendable {
                 lastSyncedAt: existingCharter.lastSyncedAt,
                 latitude: latitude ?? existingCharter.latitude,
                 longitude: longitude ?? existingCharter.longitude,
-                locationPlaceID: locationPlaceID ?? existingCharter.locationPlaceID
+                locationPlaceID: locationPlaceID ?? existingCharter.locationPlaceID,
+                onBehalfOfVirtualCaptainID: onBehalfOfVirtualCaptainID
             )
 
             try await database.dbWriter.write { db in

@@ -180,7 +180,8 @@ struct DiscoverableCharterTests {
                 username: "sailor_joe",
                 profileImageThumbnailUrl: "https://example.com/thumb.jpg"
             ),
-            distanceKm: 42.0
+            distanceKm: 42.0,
+            communityBadgeUrl: nil
         )
 
         let charter = response.toDiscoverableCharter()
@@ -212,7 +213,8 @@ struct DiscoverableCharterTests {
             longitude: nil,
             visibility: "public",
             user: UserBasicAPIResponse(id: UUID(), username: nil, profileImageThumbnailUrl: nil),
-            distanceKm: nil
+            distanceKm: nil,
+            communityBadgeUrl: nil
         )
 
         let charter = response.toDiscoverableCharter()
@@ -246,7 +248,8 @@ struct DiscoverableCharterTests {
             locationPlaceId: "place_abc123",
             visibility: "community",
             createdAt: now,
-            updatedAt: now
+            updatedAt: now,
+            virtualCaptainId: nil
         )
 
         let model = response.toCharterModel()
@@ -279,7 +282,8 @@ struct DiscoverableCharterTests {
             locationPlaceId: nil,
             visibility: "unknown_value",
             createdAt: Date(),
-            updatedAt: Date()
+            updatedAt: Date(),
+            virtualCaptainId: nil
         )
 
         let model = response.toCharterModel()

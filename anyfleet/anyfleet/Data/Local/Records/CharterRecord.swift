@@ -33,6 +33,7 @@ nonisolated struct CharterRecord: Codable, FetchableRecord, PersistableRecord {
     var latitude: Double?
     var longitude: Double?
     var locationPlaceID: String?
+    var onBehalfOfVirtualCaptainID: String?
 
     // MARK: - Column Definitions
 
@@ -42,6 +43,7 @@ nonisolated struct CharterRecord: Codable, FetchableRecord, PersistableRecord {
         case createdAt, updatedAt, syncStatus
         case serverID, visibility, needsSync, lastSyncedAt
         case latitude, longitude, locationPlaceID
+        case onBehalfOfVirtualCaptainID
     }
 
     // MARK: - Initialization
@@ -63,7 +65,8 @@ nonisolated struct CharterRecord: Codable, FetchableRecord, PersistableRecord {
         lastSyncedAt: Date? = nil,
         latitude: Double? = nil,
         longitude: Double? = nil,
-        locationPlaceID: String? = nil
+        locationPlaceID: String? = nil,
+        onBehalfOfVirtualCaptainID: String? = nil
     ) {
         self.id = id
         self.name = name
@@ -82,6 +85,7 @@ nonisolated struct CharterRecord: Codable, FetchableRecord, PersistableRecord {
         self.latitude = latitude
         self.longitude = longitude
         self.locationPlaceID = locationPlaceID
+        self.onBehalfOfVirtualCaptainID = onBehalfOfVirtualCaptainID
     }
 
     // MARK: - Conversion from Domain Model
@@ -104,6 +108,7 @@ nonisolated struct CharterRecord: Codable, FetchableRecord, PersistableRecord {
         self.latitude = charter.latitude
         self.longitude = charter.longitude
         self.locationPlaceID = charter.locationPlaceID
+        self.onBehalfOfVirtualCaptainID = charter.onBehalfOfVirtualCaptainID?.uuidString
     }
 
     /// Create record from domain model, preserving existing metadata when updating
@@ -140,7 +145,8 @@ nonisolated struct CharterRecord: Codable, FetchableRecord, PersistableRecord {
             lastSyncedAt: lastSyncedAt,
             latitude: latitude,
             longitude: longitude,
-            locationPlaceID: locationPlaceID
+            locationPlaceID: locationPlaceID,
+            onBehalfOfVirtualCaptainID: onBehalfOfVirtualCaptainID.flatMap { UUID(uuidString: $0) }
         )
     }
 }

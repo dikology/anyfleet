@@ -20,7 +20,7 @@ struct CharterMapView: View {
                 ForEach(chartersWithLocation) { charter in
                     if let coordinate = charter.coordinate {
                         Annotation(charter.name, coordinate: coordinate, anchor: .bottom) {
-                            CharterMapAnnotation(
+                            UserAvatarPin(
                                 charter: charter,
                                 isSelected: selectedCharterID == charter.id
                             ) {
@@ -68,30 +68,55 @@ struct CharterMapView: View {
     }
 }
 
-// MARK: - Map Annotation
+// MARK: - User avatar pin (discovery map)
 
-struct CharterMapAnnotation: View {
+struct UserAvatarPin: View {
     let charter: DiscoverableCharter
     let isSelected: Bool
     let onTap: () -> Void
 
     var body: some View {
         Button(action: onTap) {
-            ZStack {
+            ZStack(alignment: .bottomTrailing) {
                 Circle()
-                    .fill(.white)
-                    .frame(width: isSelected ? 44 : 36, height: isSelected ? 44 : 36)
-                    .shadow(color: .black.opacity(0.2), radius: 3)
+                    .fill(ringColor)
+                    .frame(width: isSelected ? 52 : 44)
 
-                Image(systemName: "sailboat.fill")
-                    .font(.system(size: isSelected ? 20 : 16))
-                    .foregroundColor(charter.urgencyLevel.mapPinColor)
+                CachedAsyncImage(url: charter.captain.profileImageThumbnailURL) { image in
+                    image.resizable().scaledToFill()
+                } placeholder: {
+                    Image(systemName: "person.fill")
+                        .foregroundStyle(.white)
+                        .font(.system(size: isSelected ? 22 : 18))
+                }
+                .frame(width: isSelected ? 44 : 36)
+                .clipShape(Circle())
+
+                if let badgeURL = charter.communityBadgeURL {
+                    CachedAsyncImage(url: badgeURL) { image in
+                        image.resizable().scaledToFill()
+                    } placeholder: {
+                        EmptyView()
+                    }
+                    .frame(width: 18, height: 18)
+                    .clipShape(Circle())
+                    .overlay(Circle().stroke(Color.white, lineWidth: 1.5))
+                    .offset(x: 4, y: 4)
+                }
             }
+            .shadow(color: .black.opacity(0.18), radius: 4, x: 0, y: 2)
+            .animation(.spring(response: 0.2), value: isSelected)
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Charter: \(charter.name)")
         .accessibilityHint("Double tap to select")
-        .animation(.spring(response: 0.3), value: isSelected)
+    }
+
+    private var ringColor: Color {
+        if charter.communityBadgeURL != nil {
+            return DesignSystem.Colors.communityAccent
+        }
+        return charter.urgencyLevel.mapPinColor
     }
 }
 
@@ -112,9 +137,19 @@ private struct CharterMapCallout: View {
                     .lineLimit(1)
 
                 HStack(spacing: DesignSystem.Spacing.sm) {
-                    Text(charter.captain.username ?? "Captain")
-                        .font(DesignSystem.Typography.caption)
-                        .foregroundColor(DesignSystem.Colors.textSecondary)
+                    HStack(spacing: 4) {
+                        Text(charter.captain.username ?? "Captain")
+                            .font(DesignSystem.Typography.caption)
+                            .foregroundColor(DesignSystem.Colors.textSecondary)
+                        if charter.captain.isVirtualCaptain {
+                            Text("·")
+                                .foregroundColor(DesignSystem.Colors.textSecondary)
+                                .font(DesignSystem.Typography.caption)
+                            Text(L10n.Charter.Discovery.virtualCaptainBadge)
+                                .font(DesignSystem.Typography.caption)
+                                .foregroundColor(DesignSystem.Colors.communityAccent)
+                        }
+                    }
 
                     Text("•")
                         .foregroundColor(DesignSystem.Colors.textSecondary)

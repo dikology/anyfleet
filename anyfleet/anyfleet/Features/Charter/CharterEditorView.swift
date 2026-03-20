@@ -24,6 +24,14 @@ struct CharterEditorView: View {
                         nameAndVesselCard
                         datesCard
                         visibilityCard
+                        if viewModel.isCommunityManager && viewModel.form.visibility != .private {
+                            PublishingAsSection(
+                                currentUser: dependencies.authService.currentUser,
+                                selectedCaptain: viewModel.selectedVirtualCaptain,
+                                community: viewModel.selectedVirtualCaptainCommunity,
+                                onChangeTap: { viewModel.showVirtualCaptainPicker = true }
+                            )
+                        }
                         destinationCard
                     }
                     .padding(.horizontal, DesignSystem.Spacing.screenPadding)
@@ -51,7 +59,17 @@ struct CharterEditorView: View {
             }
         }
         .task {
+            await viewModel.loadManagedCommunities()
             await viewModel.loadCharter()
+            await viewModel.resolveVirtualCaptainSelectionFromStore()
+        }
+        .sheet(isPresented: $viewModel.showVirtualCaptainPicker) {
+            VirtualCaptainPickerSheet(
+                apiClient: dependencies.apiClient,
+                currentUser: dependencies.authService.currentUser,
+                managedCommunities: viewModel.managedCommunities,
+                selectedCaptain: $viewModel.selectedVirtualCaptain
+            )
         }
         .sheet(isPresented: $viewModel.showSignIn) {
             SignInModalView(

@@ -39,6 +39,9 @@ nonisolated struct CharterModel: Identifiable, Hashable, Sendable {
     var longitude: Double?
     var locationPlaceID: String?
 
+    /// When non-nil, the next create/update sync publishes as this virtual captain (manager-only).
+    var onBehalfOfVirtualCaptainID: UUID? = nil
+
     // MARK: - Computed Properties
 
     /// Days until charter starts (negative if already started)

@@ -17,6 +17,33 @@ struct DiscoverableCharter: Identifiable, Hashable, Sendable {
     let longitude: Double?
     let distanceKm: Double?
     let captain: CaptainBasicInfo
+    let communityBadgeURL: URL?
+
+    init(
+        id: UUID,
+        name: String,
+        boatName: String?,
+        destination: String?,
+        startDate: Date,
+        endDate: Date,
+        latitude: Double?,
+        longitude: Double?,
+        distanceKm: Double?,
+        captain: CaptainBasicInfo,
+        communityBadgeURL: URL? = nil
+    ) {
+        self.id = id
+        self.name = name
+        self.boatName = boatName
+        self.destination = destination
+        self.startDate = startDate
+        self.endDate = endDate
+        self.latitude = latitude
+        self.longitude = longitude
+        self.distanceKm = distanceKm
+        self.captain = captain
+        self.communityBadgeURL = communityBadgeURL
+    }
 
     var hasLocation: Bool {
         latitude != nil && longitude != nil
@@ -63,6 +90,22 @@ struct CaptainBasicInfo: Hashable, Sendable {
     let id: UUID
     let username: String?
     let profileImageThumbnailURL: URL?
+    let isVirtualCaptain: Bool
+    let socialLinks: [SocialLink]
+
+    init(
+        id: UUID,
+        username: String?,
+        profileImageThumbnailURL: URL?,
+        isVirtualCaptain: Bool = false,
+        socialLinks: [SocialLink] = []
+    ) {
+        self.id = id
+        self.username = username
+        self.profileImageThumbnailURL = profileImageThumbnailURL
+        self.isVirtualCaptain = isVirtualCaptain
+        self.socialLinks = socialLinks
+    }
 }
 
 // MARK: - Urgency Level

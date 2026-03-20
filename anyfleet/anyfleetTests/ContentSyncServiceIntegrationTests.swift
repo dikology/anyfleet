@@ -1328,7 +1328,8 @@ class MockAPIClient: APIClientProtocol {
             locationPlaceId: request.locationPlaceId,
             visibility: request.visibility,
             createdAt: Date(),
-            updatedAt: Date()
+            updatedAt: Date(),
+            virtualCaptainId: nil
         )
     }
 
@@ -1352,7 +1353,8 @@ class MockAPIClient: APIClientProtocol {
             locationPlaceId: nil,
             visibility: "private",
             createdAt: Date(),
-            updatedAt: Date()
+            updatedAt: Date(),
+            virtualCaptainId: nil
         )
     }
 
@@ -1372,7 +1374,8 @@ class MockAPIClient: APIClientProtocol {
             locationPlaceId: request.locationPlaceId,
             visibility: request.visibility ?? "private",
             createdAt: Date(),
-            updatedAt: Date()
+            updatedAt: Date(),
+            virtualCaptainId: nil
         )
     }
 

@@ -34,6 +34,9 @@ final class ProfileViewModel: ErrorHandling {
     // Social links editing
     var editedSocialLinks: [SocialLink] = []
 
+    /// Communities the user manages (virtual captain / publish-on-behalf).
+    var managedCommunities: [ManagedCommunity] = []
+
     // Community state
     var communities: [CommunityMembership] { currentUser?.communities ?? [] }
     var editedCommunities: [CommunityMembership] = []
@@ -60,6 +63,18 @@ final class ProfileViewModel: ErrorHandling {
     }
 
     // MARK: - Auth
+
+    func loadManagedCommunities() async {
+        guard let apiClient, isSignedIn else {
+            managedCommunities = []
+            return
+        }
+        do {
+            managedCommunities = try await apiClient.getManagedCommunities()
+        } catch {
+            managedCommunities = []
+        }
+    }
 
     func logout() async {
         isLoading = true

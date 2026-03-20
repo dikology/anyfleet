@@ -278,7 +278,8 @@ struct CharterSyncServiceTests {
             locationPlaceId: nil,
             visibility: "private",
             createdAt: Date(),
-            updatedAt: Date()
+            updatedAt: Date(),
+            virtualCaptainId: nil
         )
         apiClient.mockFetchMyChartersResponse = CharterListAPIResponse(
             items: [remoteCharter],
@@ -352,7 +353,8 @@ struct CharterSyncServiceTests {
             locationPlaceId: nil,
             visibility: "community",
             createdAt: Date().addingTimeInterval(-86400),
-            updatedAt: newerDate
+            updatedAt: newerDate,
+            virtualCaptainId: nil
         )
         apiClient.mockFetchMyChartersResponse = CharterListAPIResponse(
             items: [remoteCharter],
@@ -397,7 +399,8 @@ struct CharterSyncServiceTests {
             locationPlaceId: nil,
             visibility: "community",
             createdAt: Date().addingTimeInterval(-86400),
-            updatedAt: olderDate
+            updatedAt: olderDate,
+            virtualCaptainId: nil
         )
         apiClient.mockFetchMyChartersResponse = CharterListAPIResponse(
             items: [remoteCharter],
@@ -440,7 +443,8 @@ struct CharterSyncServiceTests {
             locationPlaceId: nil,
             visibility: "community",
             createdAt: Date().addingTimeInterval(-86400),
-            updatedAt: newerDate
+            updatedAt: newerDate,
+            virtualCaptainId: nil
         )
         apiClient.mockFetchMyChartersResponse = CharterListAPIResponse(
             items: [remoteCharter],
@@ -476,7 +480,8 @@ struct CharterSyncServiceTests {
             locationPlaceId: nil,
             visibility: "community",
             createdAt: Date(),
-            updatedAt: Date()
+            updatedAt: Date(),
+            virtualCaptainId: nil
         )
         apiClient.mockFetchMyChartersResponse = CharterListAPIResponse(
             items: [remoteCharter],

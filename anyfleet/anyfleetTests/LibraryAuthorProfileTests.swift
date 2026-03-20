@@ -74,14 +74,14 @@ struct LibraryAuthorProfileTests {
 
         // Charter API stubs (unused in these tests)
         func createCharter(_ request: CharterCreateRequest) async throws -> CharterAPIResponse {
-            CharterAPIResponse(id: UUID(), userId: UUID(), name: request.name, boatName: nil, locationText: nil, startDate: request.startDate, endDate: request.endDate, latitude: nil, longitude: nil, locationPlaceId: nil, visibility: "private", createdAt: Date(), updatedAt: Date())
+            CharterAPIResponse(id: UUID(), userId: UUID(), name: request.name, boatName: nil, locationText: nil, startDate: request.startDate, endDate: request.endDate, latitude: nil, longitude: nil, locationPlaceId: nil, visibility: "private", createdAt: Date(), updatedAt: Date(), virtualCaptainId: nil)
         }
         func fetchMyCharters() async throws -> CharterListAPIResponse { CharterListAPIResponse(items: [], total: 0, limit: 20, offset: 0) }
         func fetchCharter(id: UUID) async throws -> CharterAPIResponse {
-            CharterAPIResponse(id: id, userId: UUID(), name: "Mock", boatName: nil, locationText: nil, startDate: Date(), endDate: Date(), latitude: nil, longitude: nil, locationPlaceId: nil, visibility: "private", createdAt: Date(), updatedAt: Date())
+            CharterAPIResponse(id: id, userId: UUID(), name: "Mock", boatName: nil, locationText: nil, startDate: Date(), endDate: Date(), latitude: nil, longitude: nil, locationPlaceId: nil, visibility: "private", createdAt: Date(), updatedAt: Date(), virtualCaptainId: nil)
         }
         func updateCharter(id: UUID, request: CharterUpdateRequest) async throws -> CharterAPIResponse {
-            CharterAPIResponse(id: id, userId: UUID(), name: request.name ?? "Mock", boatName: nil, locationText: nil, startDate: request.startDate ?? Date(), endDate: request.endDate ?? Date(), latitude: nil, longitude: nil, locationPlaceId: nil, visibility: "private", createdAt: Date(), updatedAt: Date())
+            CharterAPIResponse(id: id, userId: UUID(), name: request.name ?? "Mock", boatName: nil, locationText: nil, startDate: request.startDate ?? Date(), endDate: request.endDate ?? Date(), latitude: nil, longitude: nil, locationPlaceId: nil, visibility: "private", createdAt: Date(), updatedAt: Date(), virtualCaptainId: nil)
         }
         func deleteCharter(id: UUID) async throws {}
         func discoverCharters(dateFrom: Date?, dateTo: Date?, nearLat: Double?, nearLon: Double?, radiusKm: Double, sortBy: String, limit: Int, offset: Int) async throws -> CharterDiscoveryAPIResponse {

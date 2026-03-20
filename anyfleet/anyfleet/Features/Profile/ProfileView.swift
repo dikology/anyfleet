@@ -34,7 +34,9 @@ struct ProfileView: View {
             }
             .task {
                 guard viewModel.isSignedIn else { return }
-                await viewModel.loadProfileStats()
+                async let stats = viewModel.loadProfileStats()
+                async let managed = viewModel.loadManagedCommunities()
+                _ = await (stats, managed)
             }
         }
         .sheet(isPresented: $viewModel.showCommunitySearch) {
@@ -133,6 +135,36 @@ struct ProfileView: View {
                 onLeave: { id in Task { await viewModel.leaveCommunity(id: id) } },
                 onAddTapped: { viewModel.showCommunitySearch = true }
             )
+
+            if !viewModel.managedCommunities.isEmpty {
+                NavigationLink(value: AppRoute.communityManager) {
+                    HStack(spacing: DesignSystem.Spacing.md) {
+                        Image(systemName: "person.3.sequence.fill")
+                            .foregroundColor(DesignSystem.Colors.communityAccent)
+                            .frame(width: 28)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(L10n.CommunityManager.sectionTitle)
+                                .font(DesignSystem.Typography.body)
+                                .foregroundColor(DesignSystem.Colors.textPrimary)
+                            Text(L10n.CommunityManager.sectionSubtitle)
+                                .font(DesignSystem.Typography.caption)
+                                .foregroundColor(DesignSystem.Colors.textSecondary)
+                        }
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.caption)
+                            .foregroundColor(DesignSystem.Colors.textSecondary)
+                    }
+                    .padding(DesignSystem.Spacing.md)
+                    .background(DesignSystem.Colors.surface)
+                    .cornerRadius(DesignSystem.Spacing.md)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: DesignSystem.Spacing.md)
+                            .stroke(DesignSystem.Colors.border, lineWidth: 1)
+                    )
+                }
+                .buttonStyle(.plain)
+            }
 
             // Social links (bio and member since are in header)
             if let links = user.socialLinks {
