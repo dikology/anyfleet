@@ -8,10 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		921220A02EEEA4C9003D9C84 /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 92121B762EEABE7D003D9C84 /* GRDB */; };
-		C02488822F22567A00971CF1 /* (null) in Frameworks */ = {isa = PBXBuildFile; };
 		C02488832F22567A00971CF1 /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 92121B762EEABE7D003D9C84 /* GRDB */; };
-		C02488842F22567A00971CF1 /* (null) in Frameworks */ = {isa = PBXBuildFile; };
-		C02488852F22567A00971CF1 /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 92121B762EEABE7D003D9C84 /* GRDB */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -81,7 +78,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C02488822F22567A00971CF1 /* (null) in Frameworks */,
 				C02488832F22567A00971CF1 /* GRDB in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -90,8 +86,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C02488842F22567A00971CF1 /* (null) in Frameworks */,
-				C02488852F22567A00971CF1 /* GRDB in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -185,9 +179,6 @@
 				92121B652EEABE7C003D9C84 /* anyfleetUITests */,
 			);
 			name = anyfleetUITests;
-			packageProductDependencies = (
-				92121B762EEABE7D003D9C84 /* GRDB */,
-			);
 			productName = anyfleetUITests;
 			productReference = 92121B622EEABE7C003D9C84 /* anyfleetUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
@@ -435,7 +426,7 @@
 				CODE_SIGN_ENTITLEMENTS = anyfleet/anyfleetDebug.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 30;
+				CURRENT_PROJECT_VERSION = 31;
 				DEVELOPMENT_TEAM = 8WHGN987JR;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -475,7 +466,7 @@
 				CODE_SIGN_ENTITLEMENTS = anyfleet/anyfleet.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 30;
+				CURRENT_PROJECT_VERSION = 31;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 8WHGN987JR;
 				ENABLE_PREVIEWS = YES;
@@ -556,6 +547,7 @@
 		92121B732EEABE7C003D9C84 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 8WHGN987JR;
@@ -577,6 +569,7 @@
 		92121B742EEABE7C003D9C84 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 8WHGN987JR;

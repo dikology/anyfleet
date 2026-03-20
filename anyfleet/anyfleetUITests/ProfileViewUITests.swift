@@ -6,7 +6,6 @@
 //
 
 import XCTest
-@testable import anyfleet
 
 final class ProfileViewUITests: XCTestCase {
 
