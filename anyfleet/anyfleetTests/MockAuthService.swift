@@ -14,6 +14,11 @@ final class MockAuthService: AuthServiceProtocol {
     var mockAccessToken: String = "mock_access_token_123"
     var shouldFail = false
     var getAccessTokenCallCount = 0
+    var refreshCallCount = 0
+    var shouldFailRefresh = false
+    /// When set, `getAccessToken` returns the first element then advances to the next.
+    /// Use this to simulate an expired token followed by a fresh one post-refresh.
+    var tokenSequence: [String] = []
     var mockIsAuthenticated = true
     var mockCurrentUser: UserInfo?
 
@@ -30,7 +35,17 @@ final class MockAuthService: AuthServiceProtocol {
         if shouldFail {
             throw AuthError.invalidToken
         }
+        if !tokenSequence.isEmpty {
+            return tokenSequence.removeFirst()
+        }
         return mockAccessToken
+    }
+
+    func refreshAccessToken() async throws {
+        refreshCallCount += 1
+        if shouldFailRefresh {
+            throw AuthError.unauthorized
+        }
     }
 
     func ensureCurrentUserLoaded() async throws {
