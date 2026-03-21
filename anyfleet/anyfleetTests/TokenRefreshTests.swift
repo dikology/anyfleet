@@ -68,6 +68,32 @@ private let emptyCharterListJSON = """
 """.data(using: .utf8)!
 
 /// Token refresh success payload matching `TokenResponse`.
+/// Asserts `operation` throws a given `APIError` case (avoids `#expect(throws:)` + `InferIsolatedConformances`).
+private func assertThrowsAPIError(
+    _ expected: APIError,
+    performing operation: () async throws -> Void
+) async {
+    do {
+        try await operation()
+        Issue.record("Expected APIError, but no error was thrown")
+    } catch let error as APIError {
+        let matches: Bool
+        switch (expected, error) {
+        case (.unauthorized, .unauthorized),
+             (.forbidden, .forbidden),
+             (.notFound, .notFound):
+            matches = true
+        default:
+            matches = false
+        }
+        if !matches {
+            Issue.record("Expected \(expected), got \(error)")
+        }
+    } catch {
+        Issue.record("Expected APIError \(expected), got \(error)")
+    }
+}
+
 private func tokenRefreshJSON(access: String = "new_access", refresh: String = "new_refresh") -> Data {
     """
     {
@@ -135,7 +161,7 @@ struct APIClientTokenRefreshTests {
         let auth = MockAuthService()
         let client = APIClient(authService: auth, session: makeStubSession())
 
-        await #expect(throws: APIError.unauthorized) {
+        await assertThrowsAPIError(.unauthorized) {
             _ = try await client.fetchMyCharters()
         }
         #expect(auth.refreshCallCount == 1, "Should not loop — one refresh attempt only")
@@ -153,7 +179,7 @@ struct APIClientTokenRefreshTests {
         auth.shouldFailRefresh = true
         let client = APIClient(authService: auth, session: makeStubSession())
 
-        await #expect(throws: APIError.unauthorized) {
+        await assertThrowsAPIError(.unauthorized) {
             _ = try await client.fetchMyCharters()
         }
         #expect(auth.refreshCallCount == 1)
@@ -170,7 +196,7 @@ struct APIClientTokenRefreshTests {
         let auth = MockAuthService()
         let client = APIClient(authService: auth, session: makeStubSession())
 
-        await #expect(throws: APIError.forbidden) {
+        await assertThrowsAPIError(.forbidden) {
             _ = try await client.fetchMyCharters()
         }
         #expect(auth.refreshCallCount == 0)
@@ -185,7 +211,7 @@ struct APIClientTokenRefreshTests {
         let auth = MockAuthService()
         let client = APIClient(authService: auth, session: makeStubSession())
 
-        await #expect(throws: APIError.notFound) {
+        await assertThrowsAPIError(.notFound) {
             _ = try await client.fetchMyCharters()
         }
         #expect(auth.refreshCallCount == 0)

@@ -804,7 +804,7 @@ enum APIError: LocalizedError {
     case serverError
     case invalidResponse
     case networkError(Error)
-    
+
     var errorDescription: String? {
         switch self {
         case .unauthorized:
