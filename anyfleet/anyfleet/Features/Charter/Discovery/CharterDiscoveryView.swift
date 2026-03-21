@@ -83,10 +83,10 @@ struct CharterDiscoveryView: View {
         .overlay(alignment: .top) {
             if viewModel.isLoading {
                 ProgressView()
-                    .padding(8)
-                    .background(.ultraThinMaterial)
-                    .cornerRadius(8)
-                    .padding(.top, 8)
+                    .padding(DesignSystem.Spacing.cardPadding)
+                    .glassPanel()
+                    .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusSmall, style: .continuous))
+                    .padding(.top, DesignSystem.Spacing.sm)
             }
         }
     }

@@ -412,3 +412,7 @@
 
 // Charter discovery map
 "charter.discovery.virtualCaptainBadge" = "Виртуальный капитан";
+"charter.discovery.mapCommunityFallback" = "Программа сообщества";
+"charter.discovery.mapEmptyTitle" = "На карте нет чартеров";
+"charter.discovery.mapEmptySubtitle" = "Измените период или уменьшите масштаб.";
+"charter.discovery.mapCalloutSwipeHint" = "Проведите вверх, чтобы открыть чартер.";

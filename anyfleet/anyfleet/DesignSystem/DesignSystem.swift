@@ -1,6 +1,11 @@
 import SwiftUI
 
 enum DesignSystem {
+
+    /// Shared motion presets (DESIGN.md — spring for cards, pins, sheets).
+    enum Motion {
+        static let spring = SwiftUI.Animation.spring(response: 0.35, dampingFraction: 0.8)
+    }
     struct CardStyle: ViewModifier {
         func body(content: Content) -> some View {
             content

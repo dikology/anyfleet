@@ -435,3 +435,7 @@
 
 // Charter discovery map
 "charter.discovery.virtualCaptainBadge" = "Virtual captain";
+"charter.discovery.mapCommunityFallback" = "Community program";
+"charter.discovery.mapEmptyTitle" = "No charters on the map";
+"charter.discovery.mapEmptySubtitle" = "Adjust your date range or zoom out.";
+"charter.discovery.mapCalloutSwipeHint" = "Swipe up to open this charter.";

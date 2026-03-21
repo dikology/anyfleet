@@ -1806,6 +1806,26 @@ enum L10n {
                 tableName: "Localizable",
                 comment: "Short label when the host is a virtual captain"
             )
+            static let mapCommunityFallback = NSLocalizedString(
+                "charter.discovery.mapCommunityFallback",
+                tableName: "Localizable",
+                comment: "Label when a charter has a community badge but no community name from the API"
+            )
+            static let mapEmptyTitle = NSLocalizedString(
+                "charter.discovery.mapEmptyTitle",
+                tableName: "Localizable",
+                comment: "Title when no discoverable charters appear on the map"
+            )
+            static let mapEmptySubtitle = NSLocalizedString(
+                "charter.discovery.mapEmptySubtitle",
+                tableName: "Localizable",
+                comment: "Subtitle suggesting filter or zoom changes when the map has no pins"
+            )
+            static let mapCalloutSwipeHint = NSLocalizedString(
+                "charter.discovery.mapCalloutSwipeHint",
+                tableName: "Localizable",
+                comment: "VoiceOver hint for map charter card: swipe up opens detail"
+            )
             static let sectionCaptain = NSLocalizedString(
                 "charter.discovery.sectionCaptain",
                 tableName: "Localizable",

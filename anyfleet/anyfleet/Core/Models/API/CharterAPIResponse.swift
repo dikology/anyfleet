@@ -118,7 +118,8 @@ struct CharterWithUserAPIResponse: Codable {
             longitude: longitude,
             distanceKm: distanceKm,
             captain: user.toCaptainBasicInfo(),
-            communityBadgeURL: badgeURL
+            communityBadgeURL: badgeURL,
+            communityName: nil
         )
     }
 }
