@@ -26,6 +26,10 @@ final class CharterDiscoveryViewModel: ErrorHandling {
     private let pageSize = 20
     private var currentOffset = 0
 
+    /// Debounce delay before reloading discovery after map filter slider drags (nanoseconds).
+    private let filterDebounceNanoseconds: UInt64
+    private var filterApplyTask: Task<Void, Never>?
+
     // MARK: - Cache
 
     private var cache: [String: DiscoveryCacheEntry] = [:]
@@ -41,9 +45,10 @@ final class CharterDiscoveryViewModel: ErrorHandling {
 
     // MARK: - Initialization
 
-    init(apiClient: APIClientProtocol) {
+    init(apiClient: APIClientProtocol, filterDebounceNanoseconds: UInt64 = 300_000_000) {
         self.apiClient = apiClient
         self.locationManager = CLLocationManager()
+        self.filterDebounceNanoseconds = filterDebounceNanoseconds
     }
 
     // MARK: - Actions
@@ -69,12 +74,31 @@ final class CharterDiscoveryViewModel: ErrorHandling {
     }
 
     func applyFilters() async {
+        filterApplyTask?.cancel()
         await loadInitial()
     }
 
-    func resetFilters() {
-        filters = .default
+    /// Coalesces rapid map date-slider changes into a single reload (see `map-redesign.md`).
+    func scheduleDebouncedFilterApply() {
+        filterApplyTask?.cancel()
+        filterApplyTask = Task { @MainActor in
+            if filterDebounceNanoseconds > 0 {
+                try? await Task.sleep(nanoseconds: filterDebounceNanoseconds)
+            }
+            guard !Task.isCancelled else { return }
+            await loadInitial()
+        }
+    }
+
+    /// Immediate reload after toggles / presets / sort (no debounce).
+    func applyFiltersImmediately() {
+        filterApplyTask?.cancel()
         Task { await loadInitial() }
+    }
+
+    func resetFilters() {
+        filters = CharterDiscoveryFilters()
+        applyFiltersImmediately()
     }
 
     func requestLocationIfNeeded() {
@@ -89,7 +113,7 @@ final class CharterDiscoveryViewModel: ErrorHandling {
     // MARK: - Private
 
     private var cacheKey: String {
-        "\(filters.datePreset.rawValue)|\(filters.useNearMe)|\(Int(filters.radiusKm))|\(filters.sortOrder.rawValue)"
+        "\(Int(filters.windowStart.timeIntervalSince1970))|\(Int(filters.windowEnd.timeIntervalSince1970))|\(filters.useNearMe)|\(Int(filters.radiusKm))|\(filters.sortOrder.rawValue)"
     }
 
     private func load(appending: Bool = false) async {
