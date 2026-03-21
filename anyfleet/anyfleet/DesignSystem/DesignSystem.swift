@@ -7,12 +7,12 @@ enum DesignSystem {
                 .padding(Spacing.lg)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(Colors.surface)
-                .cornerRadius(12)
+                .clipShape(RoundedRectangle(cornerRadius: Spacing.cardCornerRadius, style: .continuous))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 12)
+                    RoundedRectangle(cornerRadius: Spacing.cardCornerRadius, style: .continuous)
                         .stroke(Colors.border, lineWidth: 1)
                 )
-                .shadow(color: Color.black.opacity(0.04), radius: 4, x: 0, y: 2)
+                .shadow(color: Colors.shadowStrong.opacity(0.08), radius: 6, x: 0, y: 2)
         }
     }
     
@@ -153,9 +153,9 @@ enum DesignSystem {
                 .padding(Spacing.lg)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(Colors.surface)
-                .cornerRadius(12)
+                .clipShape(RoundedRectangle(cornerRadius: Spacing.cardCornerRadius, style: .continuous))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 12)
+                    RoundedRectangle(cornerRadius: Spacing.cardCornerRadius, style: .continuous)
                         .stroke(Colors.border, lineWidth: 1)
                 )
         }

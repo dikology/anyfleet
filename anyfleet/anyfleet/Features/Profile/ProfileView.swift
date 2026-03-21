@@ -34,7 +34,9 @@ struct ProfileView: View {
             }
             .task {
                 guard viewModel.isSignedIn else { return }
-                await viewModel.loadProfileStats()
+                async let stats = viewModel.loadProfileStats()
+                async let managed = viewModel.loadManagedCommunities()
+                _ = await (stats, managed)
             }
         }
         .sheet(isPresented: $viewModel.showCommunitySearch) {
@@ -134,6 +136,34 @@ struct ProfileView: View {
                 onAddTapped: { viewModel.showCommunitySearch = true }
             )
 
+            if !viewModel.managedCommunities.isEmpty {
+                NavigationLink(value: AppRoute.communityManager) {
+                    HStack(spacing: DesignSystem.Spacing.md) {
+                        ZStack {
+                            Circle()
+                                .fill(DesignSystem.Colors.communityAccent.opacity(0.18))
+                                .frame(width: 40, height: 40)
+                            Image(systemName: "person.3.sequence.fill")
+                                .font(.system(size: 18, weight: .medium))
+                                .foregroundColor(DesignSystem.Colors.communityAccent)
+                        }
+                        VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
+                            Text(L10n.CommunityManager.sectionTitle)
+                                .font(DesignSystem.Typography.body)
+                                .fontWeight(.semibold)
+                                .foregroundColor(DesignSystem.Colors.textPrimary)
+                            Text(L10n.CommunityManager.sectionSubtitle)
+                                .font(DesignSystem.Typography.caption)
+                                .foregroundColor(DesignSystem.Colors.textSecondary)
+                        }
+                        Spacer()
+                        profileChevron
+                    }
+                    .cardStyle()
+                }
+                .buttonStyle(.plain)
+            }
+
             // Social links (bio and member since are in header)
             if let links = user.socialLinks {
                 SocialLinksDisplaySection(links: links)
@@ -172,20 +202,12 @@ struct ProfileView: View {
                         Image(systemName: "arrow.right.square")
                             .foregroundColor(DesignSystem.Colors.error)
                         Text(L10n.Profile.signOut)
+                            .font(DesignSystem.Typography.body)
                             .foregroundColor(DesignSystem.Colors.error)
                         Spacer()
-                        Image(systemName: "chevron.right")
-                            .foregroundColor(DesignSystem.Colors.textSecondary)
-                            .font(.system(size: 14))
+                        profileChevron
                     }
-                    .padding(.vertical, DesignSystem.Spacing.md)
-                    .padding(.horizontal, DesignSystem.Spacing.md)
-                    .background(DesignSystem.Colors.surface)
-                    .cornerRadius(DesignSystem.Spacing.md)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: DesignSystem.Spacing.md)
-                            .stroke(DesignSystem.Colors.border, lineWidth: 1)
-                    )
+                    .cardStyle()
                 }
                 .buttonStyle(.plain)
                 .disabled(viewModel.isLoading)
@@ -202,22 +224,22 @@ struct ProfileView: View {
         Button(action: action) {
             HStack {
                 Image(systemName: icon).foregroundColor(iconColor).frame(width: 20)
-                Text(label).foregroundColor(DesignSystem.Colors.textPrimary)
+                Text(label)
+                    .font(DesignSystem.Typography.body)
+                    .foregroundColor(DesignSystem.Colors.textPrimary)
                 Spacer()
-                Image(systemName: "chevron.right")
-                    .foregroundColor(DesignSystem.Colors.textSecondary)
-                    .font(.system(size: 14))
+                profileChevron
             }
-            .padding(.vertical, DesignSystem.Spacing.md)
-            .padding(.horizontal, DesignSystem.Spacing.md)
-            .background(DesignSystem.Colors.surface)
-            .cornerRadius(DesignSystem.Spacing.md)
-            .overlay(
-                RoundedRectangle(cornerRadius: DesignSystem.Spacing.md)
-                    .stroke(DesignSystem.Colors.border, lineWidth: 1)
-            )
+            .cardStyle()
         }
         .buttonStyle(.plain)
+    }
+
+    private var profileChevron: some View {
+        Image(systemName: "chevron.right")
+            .font(DesignSystem.Typography.caption)
+            .fontWeight(.semibold)
+            .foregroundColor(DesignSystem.Colors.textSecondary)
     }
 
     // MARK: - Unauthenticated
@@ -266,9 +288,9 @@ struct ProfileView: View {
                 .signInWithAppleButtonStyle(.black)
                 .frame(height: 50)
                 .frame(maxWidth: .infinity)
-                .cornerRadius(DesignSystem.Spacing.md)
+                .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusSmall, style: .continuous))
                 .disabled(viewModel.isLoading)
-                .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+                .shadow(color: DesignSystem.Colors.shadowStrong.opacity(0.12), radius: 4, x: 0, y: 2)
                 .accessibilityIdentifier("sign_in_apple_button")
 
                 if viewModel.isLoading {
@@ -303,6 +325,41 @@ struct ProfileView: View {
         authObserver: deps.authStateObserver,
         apiClient: deps.apiClient
     )
+    return ProfileView(viewModel: vm)
+        .environment(\.appDependencies, deps)
+}
+
+#Preview("Authenticated — editing") { @MainActor in
+    let deps = try! AppDependencies.makeForTesting()
+    deps.authService.isAuthenticated = true
+    deps.authService.currentUser = UserInfo(
+        id: "user-123",
+        email: "john.doe@example.com",
+        username: "John Doe",
+        createdAt: "2024-01-15T10:30:00Z",
+        profileImageUrl: nil,
+        profileImageThumbnailUrl: nil,
+        bio: "Experienced sailor.",
+        location: "Cork, Ireland",
+        nationality: "Irish",
+        profileVisibility: "public",
+        socialLinks: [SocialLink(platform: .instagram, handle: "john_sailor")],
+        communities: [
+            CommunityMembership(id: "c1", name: "Med Sailors", iconURL: nil, role: .member, isPrimary: true)
+        ]
+    )
+    let vm = ProfileViewModel(
+        authService: deps.authService,
+        authObserver: deps.authStateObserver,
+        apiClient: deps.apiClient
+    )
+    vm.isEditingProfile = true
+    vm.editedUsername = "John Doe"
+    vm.editedBio = vm.currentUser?.bio ?? ""
+    vm.editedLocation = vm.currentUser?.location ?? ""
+    vm.editedNationality = vm.currentUser?.nationality ?? ""
+    vm.editedSocialLinks = vm.currentUser?.socialLinks ?? []
+    vm.editedCommunities = vm.communities
     return ProfileView(viewModel: vm)
         .environment(\.appDependencies, deps)
 }

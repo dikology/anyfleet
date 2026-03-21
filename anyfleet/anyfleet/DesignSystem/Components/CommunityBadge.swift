@@ -24,20 +24,21 @@ struct CommunityBadge: View {
     }
 
     private var pillView: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: DesignSystem.Spacing.xs) {
             initialsView(size: 16)
             Text(name)
-                .font(.system(size: 12, weight: .medium))
+                .font(DesignSystem.Typography.caption)
+                .fontWeight(.medium)
                 .foregroundColor(DesignSystem.Colors.communityAccent)
                 .lineLimit(1)
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 5)
         .background(
-            RoundedRectangle(cornerRadius: 20)
+            RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusSmall, style: .continuous)
                 .fill(DesignSystem.Colors.communityAccent.opacity(0.1))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 20)
+                    RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusSmall, style: .continuous)
                         .strokeBorder(DesignSystem.Colors.communityAccent.opacity(0.6), lineWidth: 1)
                 )
         )
@@ -45,9 +46,9 @@ struct CommunityBadge: View {
 
     private var iconView: some View {
         initialsView(size: 28)
-            .clipShape(RoundedRectangle(cornerRadius: 6))
+            .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusSmall, style: .continuous))
             .overlay(
-                RoundedRectangle(cornerRadius: 6)
+                RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusSmall, style: .continuous)
                     .strokeBorder(DesignSystem.Colors.communityAccent.opacity(0.6), lineWidth: 1)
             )
     }
@@ -76,7 +77,7 @@ struct CommunityBadge: View {
         ZStack {
             DesignSystem.Colors.communityAccent.opacity(0.2)
             Text(String(name.prefix(1)).uppercased())
-                .font(.system(size: size * 0.55, weight: .bold))
+                .font(.system(size: max(10, size * 0.5), weight: .bold, design: .rounded))
                 .foregroundColor(DesignSystem.Colors.communityAccent)
         }
         .frame(width: size, height: size)

@@ -311,6 +311,7 @@
 "common.close" = "Закрыть";
 "common.cancel" = "Отмена";
 "common.save" = "Сохранить";
+"common.ok" = "OK";
 
 // Author Profile
 "authorProfile.title" = "Профиль автора";
@@ -386,3 +387,28 @@
 "profile.stats.nauticalMiles" = "Морские\nмили";
 "profile.stats.daysAtSea" = "Дней\nв море";
 "profile.stats.communitiesJoined" = "Сообществ\nприсоединено";
+
+// Community manager
+"communityManager.title" = "Управление сообществами";
+"communityManager.sectionTitle" = "Управление сообществами";
+"communityManager.sectionSubtitle" = "Виртуальные капитаны и публикация";
+"communityManager.emptyManaged" = "Нет сообществ, которыми вы управляете.";
+"communityManager.virtualCaptainsSection" = "Виртуальные капитаны";
+"communityManager.noVirtualCaptainsYet" = "Пока нет виртуальных капитанов.";
+"communityManager.addVirtualCaptain" = "Добавить виртуального капитана";
+"communityManager.deleteBlockedTitle" = "Невозможно удалить";
+"communityManager.deleteBlockedMessage" = "У %@ есть активные чартеры. Удалите их или переназначьте перед удалением этого капитана.";
+"communityManager.virtualCaptainCount" = "%d виртуальных капитанов";
+"communityManager.memberCount" = "%d участников";
+"communityManager.editorTitleNew" = "Новый виртуальный капитан";
+"communityManager.editorTitleEdit" = "Редактировать виртуального капитана";
+"communityManager.displayNameLabel" = "Отображаемое имя";
+
+// Charter editor — publishing as (virtual captain)
+"charter.editor.publishingAs.title" = "Публикация от имени";
+"charter.editor.publishingAs.yourself" = "Себя";
+"charter.editor.publishingAs.yourselfSubtitle" = "В разделе «Открытия» отображается ваш профиль";
+"charter.editor.publishingAs.pickerTitle" = "Выберите капитана";
+
+// Charter discovery map
+"charter.discovery.virtualCaptainBadge" = "Виртуальный капитан";

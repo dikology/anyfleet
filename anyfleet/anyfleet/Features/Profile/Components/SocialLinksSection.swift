@@ -12,7 +12,8 @@ struct SocialLinksSection: View {
         VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
             HStack(spacing: DesignSystem.Spacing.xs) {
                 Image(systemName: "link")
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(DesignSystem.Typography.caption)
+                    .fontWeight(.semibold)
                     .foregroundColor(DesignSystem.Colors.info)
                 Text(L10n.Profile.SocialLinks.title)
                     .font(DesignSystem.Typography.caption)
@@ -35,14 +36,17 @@ struct SocialLinksSection: View {
         return HStack(spacing: DesignSystem.Spacing.sm) {
             // Platform icon
             Image(systemName: platform.icon)
-                .font(.system(size: 15, weight: .medium))
+                .font(DesignSystem.Typography.caption)
+                .fontWeight(.medium)
                 .foregroundColor(DesignSystem.Colors.info)
                 .frame(width: 22)
 
             // Prefix label or "https://"
             if !platform.urlPrefix.isEmpty {
                 Text(platform.urlPrefix)
-                    .font(.system(size: 12, weight: .regular, design: .monospaced))
+                    .font(DesignSystem.Typography.caption)
+                    .fontWeight(.regular)
+                    .monospaced()
                     .foregroundColor(DesignSystem.Colors.textSecondary)
                     .lineLimit(1)
             }
@@ -59,16 +63,16 @@ struct SocialLinksSection: View {
                let url = platform.url(for: handle.trimmingCharacters(in: .whitespacesAndNewlines)) {
                 Link(destination: url) {
                     Image(systemName: "arrow.up.right.circle")
-                        .font(.system(size: 16))
+                        .font(DesignSystem.Typography.body)
                         .foregroundColor(DesignSystem.Colors.info.opacity(0.8))
                 }
             }
         }
         .padding(DesignSystem.Spacing.sm)
         .background(DesignSystem.Colors.surfaceAlt)
-        .cornerRadius(10)
+        .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusSmall, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: 10)
+            RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusSmall, style: .continuous)
                 .stroke(DesignSystem.Colors.border, lineWidth: 1)
         )
     }
@@ -112,18 +116,20 @@ struct SocialLinksDisplaySection: View {
                             Link(destination: url) {
                                 HStack(spacing: 4) {
                                     Image(systemName: link.platform.icon)
-                                        .font(.system(size: 13, weight: .medium))
+                                        .font(DesignSystem.Typography.caption)
+                                        .fontWeight(.medium)
                                     Text(localizedPlatformName(link.platform))
-                                        .font(.system(size: 12, weight: .medium))
+                                        .font(DesignSystem.Typography.caption)
+                                        .fontWeight(.medium)
                                 }
                                 .foregroundColor(DesignSystem.Colors.info)
                                 .padding(.horizontal, 10)
                                 .padding(.vertical, 6)
                                 .background(
-                                    RoundedRectangle(cornerRadius: 8)
+                                    RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusSmall, style: .continuous)
                                         .fill(DesignSystem.Colors.info.opacity(0.1))
                                         .overlay(
-                                            RoundedRectangle(cornerRadius: 8)
+                                            RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusSmall, style: .continuous)
                                                 .stroke(DesignSystem.Colors.info.opacity(0.3), lineWidth: 1)
                                         )
                                 )

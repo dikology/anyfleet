@@ -151,12 +151,12 @@ final class CharterStore {
         }
     }
 
-    func updateCharter(_ charterID: UUID, name: String, boatName: String?, location: String?, latitude: Double? = nil, longitude: Double? = nil, locationPlaceID: String? = nil, startDate: Date, endDate: Date, checkInChecklistID: UUID?) async throws -> CharterModel {
+    func updateCharter(_ charterID: UUID, name: String, boatName: String?, location: String?, latitude: Double? = nil, longitude: Double? = nil, locationPlaceID: String? = nil, startDate: Date, endDate: Date, checkInChecklistID: UUID?, onBehalfOfVirtualCaptainID: UUID? = nil) async throws -> CharterModel {
         AppLogger.store.startOperation("Update Charter")
         AppLogger.store.info("Updating charter with ID: \(charterID.uuidString)")
         
         do {
-            let charter = try await repository.updateCharter(charterID, name: name, boatName: boatName, location: location, latitude: latitude, longitude: longitude, locationPlaceID: locationPlaceID, startDate: startDate, endDate: endDate, checkInChecklistID: checkInChecklistID)
+            let charter = try await repository.updateCharter(charterID, name: name, boatName: boatName, location: location, latitude: latitude, longitude: longitude, locationPlaceID: locationPlaceID, startDate: startDate, endDate: endDate, checkInChecklistID: checkInChecklistID, onBehalfOfVirtualCaptainID: onBehalfOfVirtualCaptainID)
             if let index = charters.firstIndex(where: { $0.id == charterID }) {
                 charters[index] = charter
             }

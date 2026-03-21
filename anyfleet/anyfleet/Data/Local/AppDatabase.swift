@@ -375,6 +375,12 @@ final class AppDatabase: Sendable {
             }
         }
 
+        migrator.registerMigration("v2.2.0_addOnBehalfOfVirtualCaptainToCharters") { db in
+            try db.alter(table: "charters") { t in
+                t.add(column: "onBehalfOfVirtualCaptainID", .text)
+            }
+        }
+
         return migrator
     }
     

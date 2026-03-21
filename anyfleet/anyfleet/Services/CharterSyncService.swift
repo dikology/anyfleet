@@ -152,6 +152,7 @@ final class CharterSyncService {
         do {
             if let serverID = charter.serverID {
                 // Update existing server record
+                let shouldEncodeOnBehalf = charter.visibility != .private
                 let request = CharterUpdateRequest(
                     name: charter.name,
                     boatName: charter.boatName,
@@ -161,7 +162,9 @@ final class CharterSyncService {
                     visibility: charter.visibility.rawValue,
                     latitude: charter.latitude,
                     longitude: charter.longitude,
-                    locationPlaceId: charter.locationPlaceID
+                    locationPlaceId: charter.locationPlaceID,
+                    onBehalfOfVirtualCaptainId: charter.onBehalfOfVirtualCaptainID,
+                    shouldEncodeOnBehalfOfVirtualCaptainId: shouldEncodeOnBehalf
                 )
                 let response = try await apiClient.updateCharter(id: serverID, request: request)
                 try await repository.markCharterSynced(charter.id, serverID: response.id)
@@ -177,7 +180,8 @@ final class CharterSyncService {
                     visibility: charter.visibility.rawValue,
                     latitude: charter.latitude,
                     longitude: charter.longitude,
-                    locationPlaceId: charter.locationPlaceID
+                    locationPlaceId: charter.locationPlaceID,
+                    onBehalfOfVirtualCaptainId: charter.visibility != .private ? charter.onBehalfOfVirtualCaptainID : nil
                 )
                 let response = try await apiClient.createCharter(request)
                 try await repository.markCharterSynced(charter.id, serverID: response.id)

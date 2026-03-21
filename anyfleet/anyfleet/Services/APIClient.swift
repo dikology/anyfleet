@@ -83,6 +83,16 @@ protocol APIClientProtocol {
         limit: Int,
         offset: Int
     ) async throws -> CharterDiscoveryAPIResponse
+
+    // MARK: Community manager — managed communities & virtual captains
+
+    func getManagedCommunities() async throws -> [ManagedCommunity]
+    func listVirtualCaptains(communityId: UUID, limit: Int, offset: Int) async throws -> VirtualCaptainListResponse
+    func createVirtualCaptain(communityId: UUID, displayName: String, socialLinks: [SocialLink]) async throws -> VirtualCaptain
+    func updateVirtualCaptain(communityId: UUID, captainId: UUID, displayName: String?, socialLinks: [SocialLink]?) async throws -> VirtualCaptain
+    func deleteVirtualCaptain(communityId: UUID, captainId: UUID) async throws
+    func uploadVirtualCaptainAvatar(communityId: UUID, captainId: UUID, imageData: Data, filename: String) async throws -> VirtualCaptain
+    func uploadCommunityIcon(communityId: UUID, imageData: Data, filename: String) async throws -> CommunityAPIResponse
 }
 
 /// API client for authenticated requests to backend
@@ -300,6 +310,41 @@ final class APIClient: APIClientProtocol {
         return try await getUnauthenticated("/charters/discover\(queryString)", body: EmptyBody())
     }
 
+    // MARK: - Community manager
+
+    func getManagedCommunities() async throws -> [ManagedCommunity] {
+        try await request(method: "GET", path: "/communities/managed", body: EmptyBody())
+    }
+
+    func listVirtualCaptains(communityId: UUID, limit: Int = 50, offset: Int = 0) async throws -> VirtualCaptainListResponse {
+        let path = "/communities/\(communityId.uuidString)/virtual-captains?limit=\(limit)&offset=\(offset)"
+        return try await request(method: "GET", path: path, body: EmptyBody())
+    }
+
+    func createVirtualCaptain(communityId: UUID, displayName: String, socialLinks: [SocialLink]) async throws -> VirtualCaptain {
+        let body = CreateVirtualCaptainRequest(displayName: displayName, socialLinks: socialLinks)
+        return try await request(method: "POST", path: "/communities/\(communityId.uuidString)/virtual-captains", body: body)
+    }
+
+    func updateVirtualCaptain(communityId: UUID, captainId: UUID, displayName: String?, socialLinks: [SocialLink]?) async throws -> VirtualCaptain {
+        let body = UpdateVirtualCaptainRequest(displayName: displayName, socialLinks: socialLinks)
+        return try await request(method: "PATCH", path: "/communities/\(communityId.uuidString)/virtual-captains/\(captainId.uuidString)", body: body)
+    }
+
+    func deleteVirtualCaptain(communityId: UUID, captainId: UUID) async throws {
+        try await performRequest(method: "DELETE", path: "/communities/\(communityId.uuidString)/virtual-captains/\(captainId.uuidString)", body: EmptyBody())
+    }
+
+    func uploadVirtualCaptainAvatar(communityId: UUID, captainId: UUID, imageData: Data, filename: String) async throws -> VirtualCaptain {
+        let path = "/communities/\(communityId.uuidString)/virtual-captains/\(captainId.uuidString)/avatar"
+        return try await uploadMultipart(path: path, fileData: imageData, filename: filename, mimeType: "image/jpeg")
+    }
+
+    func uploadCommunityIcon(communityId: UUID, imageData: Data, filename: String) async throws -> CommunityAPIResponse {
+        let path = "/communities/\(communityId.uuidString)/icon"
+        return try await uploadMultipart(path: path, fileData: imageData, filename: filename, mimeType: "image/jpeg")
+    }
+
     // MARK: - HTTP Methods
 
     private func get<T: Decodable>(
@@ -444,6 +489,54 @@ final class APIClient: APIClientProtocol {
         case 500...599:
             throw APIError.serverError
 
+        default:
+            throw APIError.invalidResponse
+        }
+    }
+
+    private func uploadMultipart<T: Decodable>(path: String, fileData: Data, filename: String, mimeType: String) async throws -> T {
+        guard let url = URL(string: baseURL.absoluteString + path) else {
+            throw APIError.invalidResponse
+        }
+        var urlRequest = URLRequest(url: url)
+        urlRequest.httpMethod = "POST"
+        let boundary = UUID().uuidString
+        urlRequest.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        urlRequest.setValue("application/json", forHTTPHeaderField: "Accept")
+
+        let accessToken = try await authService.getAccessToken()
+        urlRequest.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+
+        var body = Data()
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"file\"; filename=\"\(filename)\"\r\n".data(using: .utf8)!)
+        body.append("Content-Type: \(mimeType)\r\n\r\n".data(using: .utf8)!)
+        body.append(fileData)
+        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+        urlRequest.httpBody = body
+
+        let (data, response) = try await session.data(for: urlRequest)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw APIError.invalidResponse
+        }
+        switch httpResponse.statusCode {
+        case 200...299:
+            if T.self == EmptyResponse.self, let empty = EmptyResponse() as? T {
+                return empty
+            }
+            return try decoder.decode(T.self, from: data)
+        case 401:
+            throw APIError.unauthorized
+        case 403:
+            throw APIError.forbidden
+        case 404:
+            throw APIError.notFound
+        case 409:
+            throw APIError.conflict
+        case 400...499:
+            throw APIError.clientError(httpResponse.statusCode)
+        case 500...599:
+            throw APIError.serverError
         default:
             throw APIError.invalidResponse
         }

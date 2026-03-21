@@ -36,7 +36,8 @@ struct CharterDiscoveryViewModelTests {
             longitude: 16.4,
             visibility: "community",
             user: UserBasicAPIResponse(id: UUID(), username: "sailor", profileImageThumbnailUrl: nil),
-            distanceKm: distanceKm
+            distanceKm: distanceKm,
+            communityBadgeUrl: nil
         )
     }
 

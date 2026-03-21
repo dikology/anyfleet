@@ -66,9 +66,9 @@ struct ProfileEditForm: View {
                     .frame(minHeight: 80)
                     .padding(DesignSystem.Spacing.xs)
                     .background(DesignSystem.Colors.surfaceAlt)
-                    .cornerRadius(DesignSystem.Spacing.sm)
+                    .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusSmall, style: .continuous))
                     .overlay(
-                        RoundedRectangle(cornerRadius: DesignSystem.Spacing.sm)
+                        RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusSmall, style: .continuous)
                             .stroke(DesignSystem.Colors.border, lineWidth: 1)
                     )
             }
@@ -95,9 +95,9 @@ struct ProfileEditForm: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, DesignSystem.Spacing.md)
                     .background(DesignSystem.Colors.surface)
-                    .cornerRadius(DesignSystem.Spacing.md)
+                    .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusSmall, style: .continuous))
                     .overlay(
-                        RoundedRectangle(cornerRadius: DesignSystem.Spacing.md)
+                        RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusSmall, style: .continuous)
                             .stroke(DesignSystem.Colors.border, lineWidth: 1)
                     )
             }
@@ -118,7 +118,7 @@ struct ProfileEditForm: View {
                 .padding(.vertical, DesignSystem.Spacing.md)
             }
             .background(DesignSystem.Gradients.primary)
-            .cornerRadius(DesignSystem.Spacing.md)
+            .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusSmall, style: .continuous))
             .disabled(isSaving || bio.count > bioCharacterLimit)
         }
     }
@@ -150,4 +150,32 @@ struct ProfileEditForm: View {
             content()
         }
     }
+}
+
+#Preview {
+    @Previewable @State var username = "Jane Sailor"
+    @Previewable @State var bio = "Day skipper."
+    @Previewable @State var location = "Oslo"
+    @Previewable @State var nationality = "Norwegian"
+    @Previewable @State var socialLinks: [SocialLink] = [
+        SocialLink(platform: .instagram, handle: "jane_sails")
+    ]
+    @Previewable @State var communities: [CommunityMembership] = [
+        CommunityMembership(id: "1", name: "Nordic Crew", iconURL: nil, role: .member, isPrimary: true)
+    ]
+
+    ProfileEditForm(
+        username: $username,
+        bio: $bio,
+        location: $location,
+        nationality: $nationality,
+        socialLinks: $socialLinks,
+        communities: $communities,
+        onSave: {},
+        onCancel: {},
+        onAddCommunityTapped: {},
+        isSaving: false
+    )
+    .padding()
+    .background(DesignSystem.Colors.background)
 }

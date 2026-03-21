@@ -1692,6 +1692,29 @@ enum L10n {
                 tableName: "Localizable",
                 comment: "Save button when editing charter"
             )
+
+            enum PublishingAs {
+                static let title = NSLocalizedString(
+                    "charter.editor.publishingAs.title",
+                    tableName: "Localizable",
+                    comment: "Section title for publish-on-behalf picker"
+                )
+                static let yourself = NSLocalizedString(
+                    "charter.editor.publishingAs.yourself",
+                    tableName: "Localizable",
+                    comment: "Option: publishing as the signed-in user"
+                )
+                static let yourselfSubtitle = NSLocalizedString(
+                    "charter.editor.publishingAs.yourselfSubtitle",
+                    tableName: "Localizable",
+                    comment: "Subtitle under yourself option"
+                )
+                static let pickerTitle = NSLocalizedString(
+                    "charter.editor.publishingAs.pickerTitle",
+                    tableName: "Localizable",
+                    comment: "Navigation title for virtual captain picker sheet"
+                )
+            }
         }
 
         // MARK: - Visibility options
@@ -1777,6 +1800,11 @@ enum L10n {
                 "charter.discovery.charterHost",
                 tableName: "Localizable",
                 comment: "Role label shown under captain's name in detail view"
+            )
+            static let virtualCaptainBadge = NSLocalizedString(
+                "charter.discovery.virtualCaptainBadge",
+                tableName: "Localizable",
+                comment: "Short label when the host is a virtual captain"
             )
             static let sectionCaptain = NSLocalizedString(
                 "charter.discovery.sectionCaptain",
@@ -2104,6 +2132,91 @@ enum L10n {
             "common.save",
             tableName: "Localizable",
             comment: "Save button text"
+        )
+
+        static let ok = NSLocalizedString(
+            "common.ok",
+            tableName: "Localizable",
+            comment: "OK button text"
+        )
+    }
+
+    enum CommunityManager {
+        static let title = NSLocalizedString(
+            "communityManager.title",
+            tableName: "Localizable",
+            comment: "Navigation title for community manager dashboard"
+        )
+        static let sectionTitle = NSLocalizedString(
+            "communityManager.sectionTitle",
+            tableName: "Localizable",
+            comment: "Profile section header for community manager entry"
+        )
+        static let sectionSubtitle = NSLocalizedString(
+            "communityManager.sectionSubtitle",
+            tableName: "Localizable",
+            comment: "Profile section subtitle for virtual captains"
+        )
+        static let emptyManaged = NSLocalizedString(
+            "communityManager.emptyManaged",
+            tableName: "Localizable",
+            comment: "Empty state when user manages no communities"
+        )
+        static let virtualCaptainsSection = NSLocalizedString(
+            "communityManager.virtualCaptainsSection",
+            tableName: "Localizable",
+            comment: "Section header for virtual captain list"
+        )
+        static let noVirtualCaptainsYet = NSLocalizedString(
+            "communityManager.noVirtualCaptainsYet",
+            tableName: "Localizable",
+            comment: "Placeholder when a community has no virtual captains"
+        )
+        static let addVirtualCaptain = NSLocalizedString(
+            "communityManager.addVirtualCaptain",
+            tableName: "Localizable",
+            comment: "Accessibility / toolbar: add virtual captain"
+        )
+        static let deleteBlockedTitle = NSLocalizedString(
+            "communityManager.deleteBlockedTitle",
+            tableName: "Localizable",
+            comment: "Alert title when virtual captain cannot be deleted"
+        )
+        static func deleteBlockedMessage(_ name: String) -> String {
+            String(format: NSLocalizedString(
+                "communityManager.deleteBlockedMessage",
+                tableName: "Localizable",
+                comment: "Alert message: %@ = virtual captain display name"
+            ), name)
+        }
+        static func virtualCaptainCount(_ count: Int) -> String {
+            String(format: NSLocalizedString(
+                "communityManager.virtualCaptainCount",
+                tableName: "Localizable",
+                comment: "Subtitle: %d = number of virtual captains"
+            ), count)
+        }
+        static func memberCount(_ count: Int) -> String {
+            String(format: NSLocalizedString(
+                "communityManager.memberCount",
+                tableName: "Localizable",
+                comment: "Subtitle: %d = member count"
+            ), count)
+        }
+        static let editorTitleNew = NSLocalizedString(
+            "communityManager.editorTitleNew",
+            tableName: "Localizable",
+            comment: "Title when creating a virtual captain"
+        )
+        static let editorTitleEdit = NSLocalizedString(
+            "communityManager.editorTitleEdit",
+            tableName: "Localizable",
+            comment: "Title when editing a virtual captain"
+        )
+        static let displayNameLabel = NSLocalizedString(
+            "communityManager.displayNameLabel",
+            tableName: "Localizable",
+            comment: "Label for virtual captain display name field"
         )
     }
 

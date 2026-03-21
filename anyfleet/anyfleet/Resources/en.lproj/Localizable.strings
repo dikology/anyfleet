@@ -407,3 +407,31 @@
 "profile.stats.nauticalMiles" = "Nautical\nMiles";
 "profile.stats.daysAtSea" = "Days\nat Sea";
 "profile.stats.communitiesJoined" = "Communities\nJoined";
+
+// Common
+"common.ok" = "OK";
+
+// Community manager
+"communityManager.title" = "Community Manager";
+"communityManager.sectionTitle" = "Community Manager";
+"communityManager.sectionSubtitle" = "Virtual captains & publishing";
+"communityManager.emptyManaged" = "No managed communities.";
+"communityManager.virtualCaptainsSection" = "Virtual captains";
+"communityManager.noVirtualCaptainsYet" = "No virtual captains yet.";
+"communityManager.addVirtualCaptain" = "Add virtual captain";
+"communityManager.deleteBlockedTitle" = "Cannot delete";
+"communityManager.deleteBlockedMessage" = "%@ has active charters. Remove or reassign them before deleting this captain.";
+"communityManager.virtualCaptainCount" = "%d virtual captains";
+"communityManager.memberCount" = "%d members";
+"communityManager.editorTitleNew" = "New virtual captain";
+"communityManager.editorTitleEdit" = "Edit virtual captain";
+"communityManager.displayNameLabel" = "Display name";
+
+// Charter editor — publishing as
+"charter.editor.publishingAs.title" = "Publishing as";
+"charter.editor.publishingAs.yourself" = "Yourself";
+"charter.editor.publishingAs.yourselfSubtitle" = "Your profile appears on discovery";
+"charter.editor.publishingAs.pickerTitle" = "Choose captain";
+
+// Charter discovery map
+"charter.discovery.virtualCaptainBadge" = "Virtual captain";

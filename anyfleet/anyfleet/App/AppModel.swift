@@ -34,6 +34,9 @@ enum AppRoute: Hashable {
 
     // Discover Content
     case discoverContent(String) // publicID
+
+    // Community manager
+    case communityManager
 }
 
 @MainActor
@@ -204,6 +207,7 @@ final class AppCoordinator: AppCoordinatorProtocol {
                     charterStore: dependencies.charterStore,
                     charterSyncService: dependencies.charterSyncService,
                     authService: dependencies.authService,
+                    apiClient: dependencies.apiClient,
                     charterID: nil,
                     onDismiss: { self.pop(from: .charters) },
                     initialForm: CharterFormState()
@@ -223,6 +227,7 @@ final class AppCoordinator: AppCoordinatorProtocol {
                     charterStore: dependencies.charterStore,
                     charterSyncService: dependencies.charterSyncService,
                     authService: dependencies.authService,
+                    apiClient: dependencies.apiClient,
                     charterID: id,
                     onDismiss: { self.pop(from: .charters) },
                     initialForm: CharterFormState()
@@ -297,6 +302,9 @@ final class AppCoordinator: AppCoordinatorProtocol {
             DiscoveredCharterDetailView(charter: charter) {
                 self.pop(from: .discover)
             }
+
+        case .communityManager:
+            CommunityManagerView(apiClient: dependencies.apiClient)
         }
     }
 

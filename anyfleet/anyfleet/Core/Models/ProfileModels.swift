@@ -2,7 +2,7 @@ import Foundation
 
 // MARK: - Social Links
 
-struct SocialLink: Codable, Identifiable {
+struct SocialLink: Codable, Identifiable, Hashable {
     var id: UUID
     var platform: SocialPlatform
     var handle: String
