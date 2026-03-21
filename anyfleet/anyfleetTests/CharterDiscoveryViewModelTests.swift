@@ -15,9 +15,9 @@ struct CharterDiscoveryViewModelTests {
     // MARK: - Helpers
 
     @MainActor
-    private func makeViewModel() -> (viewModel: CharterDiscoveryViewModel, apiClient: MockAPIClient) {
+    private func makeViewModel(debounceNs: UInt64 = 0) -> (viewModel: CharterDiscoveryViewModel, apiClient: MockAPIClient) {
         let apiClient = MockAPIClient()
-        let viewModel = CharterDiscoveryViewModel(apiClient: apiClient)
+        let viewModel = CharterDiscoveryViewModel(apiClient: apiClient, filterDebounceNanoseconds: debounceNs)
         return (viewModel, apiClient)
     }
 
@@ -254,7 +254,47 @@ struct CharterDiscoveryViewModelTests {
         // Reset
         vm.resetFilters()
 
-        #expect(vm.filters == CharterDiscoveryFilters.default)
+        #expect(vm.filters.isDefaultDiscoveryWindow())
+        #expect(vm.filters.useNearMe == false)
+        #expect(vm.filters.radiusKm == 100.0)
+        #expect(vm.filters.sortOrder == .dateAscending)
+    }
+
+    @Test("loadInitial - sends discovery window dates to API")
+    @MainActor
+    func testLoadInitial_PassesDateWindowToAPI() async {
+        let (vm, apiClient) = makeViewModel()
+        var cal = Calendar(identifier: .gregorian)
+        cal.timeZone = TimeZone(secondsFromGMT: 0)!
+        let ref = Date(timeIntervalSince1970: 1_720_000_000)
+        let start = cal.startOfDay(for: ref)
+        let end = cal.date(byAdding: .day, value: 14, to: start)!
+        vm.filters.windowStart = start
+        vm.filters.windowEnd = end
+
+        apiClient.mockDiscoverChartersResponse = makeDiscoveryResponse(items: [])
+        await vm.loadInitial()
+
+        #expect(apiClient.lastDiscoverDateFrom != nil)
+        #expect(apiClient.lastDiscoverDateTo != nil)
+        #expect(abs(apiClient.lastDiscoverDateFrom!.timeIntervalSince(start)) < 2)
+        #expect(abs(apiClient.lastDiscoverDateTo!.timeIntervalSince(end)) < 2)
+    }
+
+    @Test("scheduleDebouncedFilterApply - coalesces to one extra fetch")
+    @MainActor
+    func testDebouncedFilterApply_Coalesces() async {
+        let (vm, apiClient) = makeViewModel(debounceNs: 25_000_000)
+        apiClient.mockDiscoverChartersResponse = makeDiscoveryResponse(items: [])
+
+        await vm.loadInitial()
+        #expect(apiClient.discoverChartersCallCount == 1)
+
+        vm.scheduleDebouncedFilterApply()
+        vm.scheduleDebouncedFilterApply()
+        try? await Task.sleep(nanoseconds: 80_000_000)
+
+        #expect(apiClient.discoverChartersCallCount == 2)
     }
 
     // MARK: - Sorting

@@ -1311,6 +1311,8 @@ class MockAPIClient: APIClientProtocol {
     var lastDeletedCharterID: UUID?
     var discoverChartersCallCount = 0
     var lastDiscoverChartersOffset: Int = 0
+    var lastDiscoverDateFrom: Date?
+    var lastDiscoverDateTo: Date?
 
     func createCharter(_ request: CharterCreateRequest) async throws -> CharterAPIResponse {
         createCharterCallCount += 1
@@ -1397,6 +1399,8 @@ class MockAPIClient: APIClientProtocol {
     ) async throws -> CharterDiscoveryAPIResponse {
         discoverChartersCallCount += 1
         lastDiscoverChartersOffset = offset
+        lastDiscoverDateFrom = dateFrom
+        lastDiscoverDateTo = dateTo
         if shouldFail { throw APIError.serverError }
         return mockDiscoverChartersResponse ?? CharterDiscoveryAPIResponse(
             items: [],

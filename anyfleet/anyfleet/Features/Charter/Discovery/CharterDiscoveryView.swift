@@ -4,6 +4,8 @@ import SwiftUI
 /// Supports list and map view modes with date/location filters.
 struct CharterDiscoveryView: View {
     @State private var viewModel: CharterDiscoveryViewModel
+    /// After the user opens map once, keep `Map` in the hierarchy when switching back to list so MapKit's Metal drawable is not torn down mid-frame (avoids debug Metal asserts and occasional crashes).
+    @State private var mapEverMounted = false
     @Environment(\.appCoordinator) private var coordinator
     @Environment(\.appDependencies) private var dependencies
 
@@ -15,6 +17,9 @@ struct CharterDiscoveryView: View {
         ZStack {
             mainContent
             errorBanner
+        }
+        .onChange(of: viewModel.showMapView) { _, show in
+            if show { mapEverMounted = true }
         }
         .navigationTitle(L10n.Charter.Discovery.title)
         .navigationBarTitleDisplayMode(.inline)
@@ -45,10 +50,17 @@ struct CharterDiscoveryView: View {
 
     @ViewBuilder
     private var mainContent: some View {
-        if viewModel.showMapView {
-            mapView
-        } else {
+        ZStack {
             listView
+                .opacity(viewModel.showMapView ? 0 : 1)
+                .allowsHitTesting(!viewModel.showMapView)
+
+            if mapEverMounted {
+                mapView
+                    .opacity(viewModel.showMapView ? 1 : 0)
+                    .allowsHitTesting(viewModel.showMapView)
+                    .accessibilityHidden(!viewModel.showMapView)
+            }
         }
     }
 
@@ -81,12 +93,22 @@ struct CharterDiscoveryView: View {
             viewModel.selectedCharter = charter
         }
         .overlay(alignment: .top) {
-            if viewModel.isLoading {
-                ProgressView()
-                    .padding(8)
-                    .background(.ultraThinMaterial)
-                    .cornerRadius(8)
-                    .padding(.top, 8)
+            VStack(spacing: 0) {
+                if viewModel.showMapView {
+                    MapFilterBar(
+                        filters: $viewModel.filters,
+                        onDebouncedApply: { viewModel.scheduleDebouncedFilterApply() },
+                        onImmediateApply: { viewModel.applyFiltersImmediately() },
+                        onNearMeToggled: { viewModel.requestLocationIfNeeded() }
+                    )
+                }
+                if viewModel.isLoading {
+                    ProgressView()
+                        .padding(DesignSystem.Spacing.cardPadding)
+                        .glassPanel()
+                        .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusSmall, style: .continuous))
+                        .padding(.top, DesignSystem.Spacing.sm)
+                }
             }
         }
     }
@@ -125,10 +147,12 @@ struct CharterDiscoveryView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: DesignSystem.Spacing.sm) {
                     FilterChip(
-                        label: viewModel.filters.datePreset.localizedLabel,
-                        isSelected: viewModel.filters.datePreset != .upcoming
+                        label: viewModel.filters.dateFilterChipLabel,
+                        isSelected: !viewModel.filters.isDefaultDiscoveryWindow()
                     ) {
-                        viewModel.showFilters = true
+                        withAnimation(DesignSystem.Motion.spring) {
+                            viewModel.showMapView = true
+                        }
                     }
 
                     if viewModel.filters.useNearMe {

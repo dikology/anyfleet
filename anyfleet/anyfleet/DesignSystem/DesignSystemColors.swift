@@ -38,6 +38,19 @@ extension DesignSystem {
         static let onPrimary = Color.white
         static let onPrimaryMuted = Color.white.opacity(0.9)
         static let shadowStrong = Color.black.opacity(0.18)
+
+        /// Deterministic accent for avatar monogram backgrounds (seed with stable ids, not display names).
+        static func hashColor(for seed: String) -> Color {
+            let palette: [Color] = [
+                primary,
+                Color(red: 0.8, green: 0.5, blue: 0.3),
+                Color(red: 0.3, green: 0.7, blue: 0.8),
+                Color(red: 0.7, green: 0.3, blue: 0.6),
+                Color(red: 0.5, green: 0.7, blue: 0.3)
+            ]
+            let hash = seed.utf8.reduce(0) { $0 &+ Int($1) }
+            return palette[abs(hash) % palette.count]
+        }
     }
 
     enum Gradients {

@@ -328,6 +328,17 @@
 "charter.discovery.filter.sort.distanceAscending" = "Distance (Closest First)";
 "charter.discovery.filter.sort.recentlyPosted" = "Recently Posted";
 
+// Charter discovery — map filter bar
+"charter.discovery.mapFilter.dateRangeChip" = "Date range";
+"charter.discovery.mapFilter.sortChip" = "Sort";
+"charter.discovery.mapFilter.preset.threeMonths" = "3 Months";
+"charter.discovery.mapFilter.preset.all" = "All";
+"charter.discovery.mapFilter.resetChip" = "Reset";
+"charter.discovery.mapFilter.sheet.dateHintTitle" = "Date range";
+"charter.discovery.mapFilter.sheet.dateHintBody" = "Adjust the charter date window on the map — switch to map view and use the Date range chip above the map.";
+"charter.discovery.mapFilter.track.now" = "Now";
+"charter.discovery.mapFilter.track.plusOneYear" = "+1 yr";
+
 // Common
 "common.close" = "Close";
 "common.cancel" = "Cancel";
@@ -435,3 +446,7 @@
 
 // Charter discovery map
 "charter.discovery.virtualCaptainBadge" = "Virtual captain";
+"charter.discovery.mapCommunityFallback" = "Community program";
+"charter.discovery.mapEmptyTitle" = "No charters on the map";
+"charter.discovery.mapEmptySubtitle" = "Adjust your date range or zoom out.";
+"charter.discovery.mapCalloutSwipeHint" = "Swipe up to open this charter.";

@@ -18,6 +18,8 @@ struct DiscoverableCharter: Identifiable, Hashable, Sendable {
     let distanceKm: Double?
     let captain: CaptainBasicInfo
     let communityBadgeURL: URL?
+    /// Display name for the managing community when `communityBadgeURL` is set (optional until API provides it).
+    let communityName: String?
 
     init(
         id: UUID,
@@ -30,7 +32,8 @@ struct DiscoverableCharter: Identifiable, Hashable, Sendable {
         longitude: Double?,
         distanceKm: Double?,
         captain: CaptainBasicInfo,
-        communityBadgeURL: URL? = nil
+        communityBadgeURL: URL? = nil,
+        communityName: String? = nil
     ) {
         self.id = id
         self.name = name
@@ -43,6 +46,7 @@ struct DiscoverableCharter: Identifiable, Hashable, Sendable {
         self.distanceKm = distanceKm
         self.captain = captain
         self.communityBadgeURL = communityBadgeURL
+        self.communityName = communityName
     }
 
     var hasLocation: Bool {

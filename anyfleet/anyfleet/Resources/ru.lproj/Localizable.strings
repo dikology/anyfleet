@@ -307,6 +307,16 @@
 "charter.discovery.filter.sort.distanceAscending" = "Расстояние (сначала ближние)";
 "charter.discovery.filter.sort.recentlyPosted" = "Недавно опубликованные";
 
+"charter.discovery.mapFilter.dateRangeChip" = "Диапазон дат";
+"charter.discovery.mapFilter.sortChip" = "Сортировка";
+"charter.discovery.mapFilter.preset.threeMonths" = "3 месяца";
+"charter.discovery.mapFilter.preset.all" = "Все";
+"charter.discovery.mapFilter.resetChip" = "Сброс";
+"charter.discovery.mapFilter.sheet.dateHintTitle" = "Диапазон дат";
+"charter.discovery.mapFilter.sheet.dateHintBody" = "Настройте период на карте — переключитесь на карту и используйте чип «Диапазон дат» над картой.";
+"charter.discovery.mapFilter.track.now" = "Сейчас";
+"charter.discovery.mapFilter.track.plusOneYear" = "+1 г";
+
 // Common
 "common.close" = "Закрыть";
 "common.cancel" = "Отмена";
@@ -412,3 +422,7 @@
 
 // Charter discovery map
 "charter.discovery.virtualCaptainBadge" = "Виртуальный капитан";
+"charter.discovery.mapCommunityFallback" = "Программа сообщества";
+"charter.discovery.mapEmptyTitle" = "На карте нет чартеров";
+"charter.discovery.mapEmptySubtitle" = "Измените период или уменьшите масштаб.";
+"charter.discovery.mapCalloutSwipeHint" = "Проведите вверх, чтобы открыть чартер.";

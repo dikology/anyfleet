@@ -3,37 +3,6 @@ import SwiftUI
 // MARK: - Filter Model
 
 struct CharterDiscoveryFilters: Equatable {
-    enum DatePreset: String, CaseIterable {
-        case upcoming = "Upcoming"
-        case thisWeek = "This Week"
-        case thisMonth = "This Month"
-        case custom = "Custom"
-
-        var localizedLabel: String {
-            switch self {
-            case .upcoming: return L10n.Charter.Discovery.Filter.DatePreset.upcoming
-            case .thisWeek: return L10n.Charter.Discovery.Filter.DatePreset.thisWeek
-            case .thisMonth: return L10n.Charter.Discovery.Filter.DatePreset.thisMonth
-            case .custom: return L10n.Charter.Discovery.Filter.DatePreset.custom
-            }
-        }
-
-        var dateRange: (Date, Date)? {
-            let now = Date()
-            let cal = Calendar.current
-            switch self {
-            case .upcoming:
-                return (now, cal.date(byAdding: .year, value: 1, to: now) ?? now)
-            case .thisWeek:
-                return (now, cal.date(byAdding: .day, value: 7, to: now) ?? now)
-            case .thisMonth:
-                return (now, cal.date(byAdding: .month, value: 1, to: now) ?? now)
-            case .custom:
-                return nil
-            }
-        }
-    }
-
     enum SortOrder: String, CaseIterable {
         case dateAscending = "Date (Earliest First)"
         case distanceAscending = "Distance (Closest First)"
@@ -48,34 +17,165 @@ struct CharterDiscoveryFilters: Equatable {
         }
     }
 
-    var datePreset: DatePreset = .upcoming
-    var customDateFrom: Date = Date()
-    var customDateTo: Date = Calendar.current.date(byAdding: .month, value: 3, to: Date()) ?? Date()
+    /// Inclusive discovery window start (API `date_from`). Aligned to start of day when set via map helpers.
+    var windowStart: Date
+    /// Inclusive discovery window end (API `date_to`).
+    var windowEnd: Date
     var useNearMe: Bool = false
     var radiusKm: Double = 100.0
     var sortOrder: SortOrder = .dateAscending
 
-    var effectiveDateFrom: Date {
-        datePreset == .custom ? customDateFrom : (datePreset.dateRange?.0 ?? Date())
+    init(
+        windowStart: Date? = nil,
+        windowEnd: Date? = nil,
+        useNearMe: Bool = false,
+        radiusKm: Double = 100.0,
+        sortOrder: SortOrder = .dateAscending
+    ) {
+        let (s, e) = Self.defaultDiscoveryWindow()
+        self.windowStart = windowStart ?? s
+        self.windowEnd = windowEnd ?? e
+        self.useNearMe = useNearMe
+        self.radiusKm = radiusKm
+        self.sortOrder = sortOrder
     }
 
-    var effectiveDateTo: Date {
-        datePreset == .custom ? customDateTo : (datePreset.dateRange?.1 ?? Date())
+    var effectiveDateFrom: Date { windowStart }
+    var effectiveDateTo: Date { windowEnd }
+
+    /// Default window: today (start of day) through the same day + 12 months (map slider track).
+    static func defaultDiscoveryWindow(reference: Date = Date(), calendar: Calendar = .current) -> (Date, Date) {
+        let start = calendar.startOfDay(for: reference)
+        let end = calendar.date(byAdding: .month, value: Self.mapTrackMonthSpan, to: start) ?? start
+        return (start, end)
+    }
+
+    /// Months covered by the discovery map range slider (`now` → `now + span`).
+    static let mapTrackMonthSpan = 12
+
+    func isDefaultDiscoveryWindow(reference: Date = Date(), calendar: Calendar = .current) -> Bool {
+        let (ds, de) = Self.defaultDiscoveryWindow(reference: reference, calendar: calendar)
+        let tol: TimeInterval = 120
+        return abs(windowStart.timeIntervalSince(ds)) < tol && abs(windowEnd.timeIntervalSince(de)) < tol
+    }
+
+    var dateFilterChipLabel: String {
+        if isDefaultDiscoveryWindow() {
+            return L10n.Charter.Discovery.Filter.DatePreset.upcoming
+        }
+        return shortDateWindowLabel
+    }
+
+    private var shortDateWindowLabel: String {
+        let f = DateFormatter()
+        f.dateFormat = "MMM d"
+        return "\(f.string(from: windowStart)) – \(f.string(from: windowEnd))"
+    }
+
+    func mapRangeMonthLabels(calendar: Calendar = .current) -> (String, String) {
+        let f = DateFormatter()
+        f.dateFormat = "MMM"
+        return (f.string(from: windowStart), f.string(from: windowEnd))
+    }
+
+    /// Normalized thumb positions (0…1) on the fixed track from track start through +`mapTrackMonthSpan` months.
+    func normalizedMapRange(reference: Date = Date(), calendar: Calendar = .current) -> (lower: Double, upper: Double) {
+        let t0 = Self.mapTrackStart(reference: reference, calendar: calendar).timeIntervalSince1970
+        let t1 = Self.mapTrackEnd(reference: reference, calendar: calendar).timeIntervalSince1970
+        guard t1 > t0 else { return (0, 1) }
+        let span = t1 - t0
+        var lower = (windowStart.timeIntervalSince1970 - t0) / span
+        var upper = (windowEnd.timeIntervalSince1970 - t0) / span
+        lower = min(max(lower, 0), 1)
+        upper = min(max(upper, 0), 1)
+        if upper < lower + 0.05 {
+            upper = min(lower + 0.05, 1)
+        }
+        return (lower, upper)
+    }
+
+    mutating func setMapWindowFromNormalized(
+        lower: Double,
+        upper: Double,
+        reference: Date = Date(),
+        calendar: Calendar = .current
+    ) {
+        let t0 = Self.mapTrackStart(reference: reference, calendar: calendar).timeIntervalSince1970
+        let t1 = Self.mapTrackEnd(reference: reference, calendar: calendar).timeIntervalSince1970
+        guard t1 > t0 else { return }
+        let span = t1 - t0
+        var l = min(max(lower, 0), 1)
+        var u = min(max(upper, 0), 1)
+        RangeSlider.clamp(lower: &l, upper: &u, minSpan: 0.05)
+        let rawStart = Date(timeIntervalSince1970: t0 + span * l)
+        let rawEnd = Date(timeIntervalSince1970: t0 + span * u)
+        windowStart = calendar.startOfDay(for: rawStart)
+        windowEnd = calendar.startOfDay(for: rawEnd)
+        if windowEnd < windowStart {
+            windowEnd = windowStart
+        }
+    }
+
+    mutating func applyMapDatePreset(_ preset: CharterDiscoveryMapDatePreset, reference: Date = Date(), calendar: Calendar = .current) {
+        let trackStart = Self.mapTrackStart(reference: reference, calendar: calendar)
+        let trackEnd = Self.mapTrackEnd(reference: reference, calendar: calendar)
+        switch preset {
+        case .thisWeek:
+            windowStart = trackStart
+            windowEnd = min(calendar.date(byAdding: .day, value: 7, to: trackStart) ?? trackEnd, trackEnd)
+        case .thisMonth:
+            windowStart = trackStart
+            windowEnd = min(calendar.date(byAdding: .month, value: 1, to: trackStart) ?? trackEnd, trackEnd)
+        case .threeMonths:
+            windowStart = trackStart
+            windowEnd = min(calendar.date(byAdding: .month, value: 3, to: trackStart) ?? trackEnd, trackEnd)
+        case .all:
+            windowStart = trackStart
+            windowEnd = trackEnd
+        }
+        if windowEnd < windowStart { windowEnd = windowStart }
+    }
+
+    private static func mapTrackStart(reference: Date = Date(), calendar: Calendar = .current) -> Date {
+        calendar.startOfDay(for: reference)
+    }
+
+    private static func mapTrackEnd(reference: Date = Date(), calendar: Calendar = .current) -> Date {
+        let start = mapTrackStart(reference: reference, calendar: calendar)
+        return calendar.date(byAdding: .month, value: mapTrackMonthSpan, to: start) ?? start
     }
 
     var activeFilterCount: Int {
         var count = 0
-        if datePreset != .upcoming { count += 1 }
+        if !isDefaultDiscoveryWindow() { count += 1 }
         if useNearMe { count += 1 }
         if radiusKm != 100.0 { count += 1 }
         if sortOrder != .dateAscending { count += 1 }
         return count
     }
 
-    static let `default` = CharterDiscoveryFilters()
+    var hasNonDefaultFilters: Bool { activeFilterCount > 0 }
 }
 
-// MARK: - Filter Sheet View
+// MARK: - Map-only date presets (chip row under range slider)
+
+enum CharterDiscoveryMapDatePreset: CaseIterable {
+    case thisWeek
+    case thisMonth
+    case threeMonths
+    case all
+
+    var localizedTitle: String {
+        switch self {
+        case .thisWeek: return L10n.Charter.Discovery.Filter.DatePreset.thisWeek
+        case .thisMonth: return L10n.Charter.Discovery.Filter.DatePreset.thisMonth
+        case .threeMonths: return L10n.Charter.Discovery.MapFilter.presetThreeMonths
+        case .all: return L10n.Charter.Discovery.MapFilter.presetAll
+        }
+    }
+}
+
+// MARK: - Filter Sheet View (list mode — location & sort only; date is on the map bar)
 
 struct CharterFilterView: View {
     @Binding var filters: CharterDiscoveryFilters
@@ -96,7 +196,7 @@ struct CharterFilterView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: DesignSystem.Spacing.xl) {
-                    dateSection
+                    mapDateHintSection
                     locationSection
                     sortSection
                 }
@@ -121,8 +221,8 @@ struct CharterFilterView: View {
             }
             .safeAreaInset(edge: .bottom) {
                 Button(L10n.Charter.Discovery.Filter.reset) {
-                    localFilters = .default
-                    filters = .default
+                    localFilters = CharterDiscoveryFilters()
+                    filters = CharterDiscoveryFilters()
                     onReset()
                     dismiss()
                 }
@@ -134,40 +234,14 @@ struct CharterFilterView: View {
         }
     }
 
-    // MARK: - Sections
-
-    private var dateSection: some View {
-        VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
-            Text(L10n.Charter.Discovery.Filter.sectionDateRange)
+    private var mapDateHintSection: some View {
+        VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
+            Text(L10n.Charter.Discovery.MapFilter.dateRangeSheetHintTitle)
                 .font(DesignSystem.Typography.headline)
                 .foregroundColor(DesignSystem.Colors.textPrimary)
-
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: DesignSystem.Spacing.sm) {
-                    ForEach(CharterDiscoveryFilters.DatePreset.allCases, id: \.self) { preset in
-                        FilterChip(
-                            label: preset.localizedLabel,
-                            isSelected: localFilters.datePreset == preset
-                        ) {
-                            localFilters.datePreset = preset
-                        }
-                    }
-                }
-            }
-
-            if localFilters.datePreset == .custom {
-                VStack(spacing: DesignSystem.Spacing.sm) {
-                    DatePicker(L10n.charterCreateFrom, selection: $localFilters.customDateFrom, displayedComponents: .date)
-                        .font(DesignSystem.Typography.body)
-                    DatePicker(L10n.charterCreateTo, selection: $localFilters.customDateTo,
-                               in: localFilters.customDateFrom...,
-                               displayedComponents: .date)
-                        .font(DesignSystem.Typography.body)
-                }
-                .padding(DesignSystem.Spacing.md)
-                .background(DesignSystem.Colors.surface)
-                .cornerRadius(DesignSystem.Spacing.sm)
-            }
+            Text(L10n.Charter.Discovery.MapFilter.dateRangeSheetHintBody)
+                .font(DesignSystem.Typography.caption)
+                .foregroundColor(DesignSystem.Colors.textSecondary)
         }
     }
 
@@ -202,9 +276,9 @@ struct CharterFilterView: View {
                     Slider(value: $localFilters.radiusKm, in: 10...500, step: 10)
                         .tint(DesignSystem.Colors.primary)
                     HStack {
-                        Text("10 km").font(.caption2)
+                        Text("10 km").font(DesignSystem.Typography.micro)
                         Spacer()
-                        Text("500 km").font(.caption2)
+                        Text("500 km").font(DesignSystem.Typography.micro)
                     }
                     .foregroundColor(DesignSystem.Colors.textSecondary)
                 }
@@ -243,7 +317,7 @@ struct CharterFilterView: View {
         }
         .padding(DesignSystem.Spacing.md)
         .background(DesignSystem.Colors.surface)
-        .cornerRadius(DesignSystem.Spacing.sm)
+        .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusSmall, style: .continuous))
     }
 
     private func radiusLabel(_ km: Double) -> String {
@@ -271,9 +345,9 @@ struct FilterChip: View {
                         ? DesignSystem.Colors.primary.opacity(0.12)
                         : DesignSystem.Colors.surface
                 )
-                .cornerRadius(20)
+                .clipShape(Capsule())
                 .overlay(
-                    RoundedRectangle(cornerRadius: 20)
+                    Capsule()
                         .stroke(
                             isSelected ? DesignSystem.Colors.primary.opacity(0.4) : DesignSystem.Colors.border,
                             lineWidth: 1

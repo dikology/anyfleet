@@ -1806,6 +1806,26 @@ enum L10n {
                 tableName: "Localizable",
                 comment: "Short label when the host is a virtual captain"
             )
+            static let mapCommunityFallback = NSLocalizedString(
+                "charter.discovery.mapCommunityFallback",
+                tableName: "Localizable",
+                comment: "Label when a charter has a community badge but no community name from the API"
+            )
+            static let mapEmptyTitle = NSLocalizedString(
+                "charter.discovery.mapEmptyTitle",
+                tableName: "Localizable",
+                comment: "Title when no discoverable charters appear on the map"
+            )
+            static let mapEmptySubtitle = NSLocalizedString(
+                "charter.discovery.mapEmptySubtitle",
+                tableName: "Localizable",
+                comment: "Subtitle suggesting filter or zoom changes when the map has no pins"
+            )
+            static let mapCalloutSwipeHint = NSLocalizedString(
+                "charter.discovery.mapCalloutSwipeHint",
+                tableName: "Localizable",
+                comment: "VoiceOver hint for map charter card: swipe up opens detail"
+            )
             static let sectionCaptain = NSLocalizedString(
                 "charter.discovery.sectionCaptain",
                 tableName: "Localizable",
@@ -2028,6 +2048,56 @@ enum L10n {
                         comment: "Sort order: most recently posted"
                     )
                 }
+            }
+
+            // MARK: Map filter bar (charter discovery map mode)
+
+            enum MapFilter {
+                static let dateRangeChip = NSLocalizedString(
+                    "charter.discovery.mapFilter.dateRangeChip",
+                    tableName: "Localizable",
+                    comment: "Map filter bar chip to open date window controls"
+                )
+                static let sortChip = NSLocalizedString(
+                    "charter.discovery.mapFilter.sortChip",
+                    tableName: "Localizable",
+                    comment: "Map filter bar chip for sort menu"
+                )
+                static let presetThreeMonths = NSLocalizedString(
+                    "charter.discovery.mapFilter.preset.threeMonths",
+                    tableName: "Localizable",
+                    comment: "Map date preset: next three months"
+                )
+                static let presetAll = NSLocalizedString(
+                    "charter.discovery.mapFilter.preset.all",
+                    tableName: "Localizable",
+                    comment: "Map date preset: full slider range (e.g. 12 months)"
+                )
+                static let resetChip = NSLocalizedString(
+                    "charter.discovery.mapFilter.resetChip",
+                    tableName: "Localizable",
+                    comment: "Map filter bar control to clear non-default filters"
+                )
+                static let dateRangeSheetHintTitle = NSLocalizedString(
+                    "charter.discovery.mapFilter.sheet.dateHintTitle",
+                    tableName: "Localizable",
+                    comment: "List filter sheet: title explaining date is on map"
+                )
+                static let dateRangeSheetHintBody = NSLocalizedString(
+                    "charter.discovery.mapFilter.sheet.dateHintBody",
+                    tableName: "Localizable",
+                    comment: "List filter sheet: body explaining date is on map"
+                )
+                static let trackNow = NSLocalizedString(
+                    "charter.discovery.mapFilter.track.now",
+                    tableName: "Localizable",
+                    comment: "Map date slider left track label"
+                )
+                static let trackPlusOneYear = NSLocalizedString(
+                    "charter.discovery.mapFilter.track.plusOneYear",
+                    tableName: "Localizable",
+                    comment: "Map date slider right track label (rolling year window)"
+                )
             }
         }
 
