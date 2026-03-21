@@ -18,10 +18,11 @@ struct CommunitiesSection: View {
                 Spacer()
                 if !memberships.isEmpty {
                     Text("\(memberships.count)")
-                        .font(.system(size: 12, weight: .bold))
+                        .font(DesignSystem.Typography.caption)
+                        .fontWeight(.bold)
                         .foregroundColor(DesignSystem.Colors.communityAccent)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
+                        .padding(.horizontal, DesignSystem.Spacing.sm)
+                        .padding(.vertical, DesignSystem.Spacing.xss + 1)
                         .background(
                             Capsule()
                                 .fill(DesignSystem.Colors.communityAccent.opacity(0.15))
@@ -47,7 +48,7 @@ struct CommunitiesSection: View {
     }
 
     private var chipsFlow: some View {
-        FlowLayout(spacing: 8) {
+        FlowLayout(spacing: DesignSystem.Spacing.sm) {
             ForEach(memberships) { membership in
                 communityChip(membership)
             }
@@ -57,14 +58,17 @@ struct CommunitiesSection: View {
     private func communityChip(_ membership: CommunityMembership) -> some View {
         Group {
             if membership.isPrimary {
-                HStack(spacing: 4) {
-                    Text("⚓")
-                        .font(.system(size: 10))
+                HStack(spacing: DesignSystem.Spacing.xs) {
+                    Image(systemName: "anchor.circle.fill")
+                        .font(DesignSystem.Typography.caption)
+                        .fontWeight(.semibold)
+                        .foregroundColor(DesignSystem.Colors.communityAccent)
                     CommunityBadge(name: membership.name, iconURL: membership.iconURL, style: .pill)
                 }
-                .padding(.horizontal, 4)
+                .padding(.horizontal, DesignSystem.Spacing.xs)
+                .padding(.vertical, DesignSystem.Spacing.xss)
                 .background(
-                    RoundedRectangle(cornerRadius: 20)
+                    RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusSmall, style: .continuous)
                         .strokeBorder(DesignSystem.Colors.communityAccent, lineWidth: 1.5)
                 )
             } else {
@@ -91,7 +95,8 @@ struct CommunitiesSection: View {
         Button(action: onAddTapped) {
             HStack(spacing: DesignSystem.Spacing.xs) {
                 Image(systemName: "plus.circle.fill")
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(DesignSystem.Typography.caption)
+                    .fontWeight(.semibold)
                 Text(L10n.Profile.Communities.find)
                     .font(DesignSystem.Typography.caption)
                     .fontWeight(.medium)
@@ -107,7 +112,7 @@ struct CommunitiesSection: View {
 
 /// Simple wrapping horizontal layout for community chips
 struct FlowLayout: Layout {
-    var spacing: CGFloat = 8
+    var spacing: CGFloat = DesignSystem.Spacing.sm
 
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
         let containerWidth = proposal.width ?? 0
@@ -149,7 +154,7 @@ struct FlowLayout: Layout {
 
 // MARK: - Preview
 
-#Preview {
+#Preview("Display") {
     CommunitiesSection(
         memberships: [
             CommunityMembership(id: "1", name: "Med Sailors", iconURL: nil, role: .member, isPrimary: true),
@@ -162,4 +167,31 @@ struct FlowLayout: Layout {
         onAddTapped: {}
     )
     .padding()
+    .background(DesignSystem.Colors.background)
+}
+
+#Preview("Empty") {
+    CommunitiesSection(
+        memberships: [],
+        isEditing: false,
+        onSetPrimary: { _ in },
+        onLeave: { _ in },
+        onAddTapped: {}
+    )
+    .padding()
+    .background(DesignSystem.Colors.background)
+}
+
+#Preview("Edit mode") {
+    CommunitiesSection(
+        memberships: [
+            CommunityMembership(id: "1", name: "Med Sailors", iconURL: nil, role: .member, isPrimary: true)
+        ],
+        isEditing: true,
+        onSetPrimary: { _ in },
+        onLeave: { _ in },
+        onAddTapped: {}
+    )
+    .padding()
+    .background(DesignSystem.Colors.background)
 }

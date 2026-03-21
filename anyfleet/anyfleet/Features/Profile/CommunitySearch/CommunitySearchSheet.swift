@@ -61,7 +61,7 @@ struct CommunitySearchSheet: View {
         }
         .padding(DesignSystem.Spacing.sm)
         .background(DesignSystem.Colors.surfaceAlt)
-        .cornerRadius(12)
+        .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusSmall, style: .continuous))
         .padding(.horizontal, DesignSystem.Spacing.screenPadding)
         .padding(.vertical, DesignSystem.Spacing.md)
     }
@@ -112,7 +112,7 @@ struct CommunitySearchSheet: View {
         } label: {
             HStack(spacing: DesignSystem.Spacing.md) {
                 ZStack {
-                    RoundedRectangle(cornerRadius: 8)
+                    RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusSmall, style: .continuous)
                         .fill(DesignSystem.Colors.communityAccent.opacity(0.15))
                         .frame(width: 36, height: 36)
                     Image(systemName: "plus")
@@ -203,16 +203,62 @@ struct CommunityResultRow: View {
 
             Button(action: onJoin) {
                 Text(L10n.Profile.CommunitySearch.join)
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(DesignSystem.Typography.caption)
+                    .fontWeight(.semibold)
                     .foregroundColor(DesignSystem.Colors.onPrimary)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 7)
                     .background(DesignSystem.Colors.primary)
-                    .cornerRadius(20)
+                    .clipShape(Capsule(style: .continuous))
             }
             .buttonStyle(.plain)
         }
         .padding(.vertical, DesignSystem.Spacing.xs)
         .listRowBackground(DesignSystem.Colors.background)
     }
+}
+
+#Preview("Result row") {
+    List {
+        CommunityResultRow(
+            result: CommunitySearchResult(
+                id: "demo",
+                name: "Baltic Cruisers",
+                iconURL: nil,
+                memberCount: 42,
+                isOpen: true
+            ),
+            onJoin: {}
+        )
+    }
+    .listStyle(.plain)
+}
+
+// MARK: - Previews (sheet)
+
+@MainActor
+private struct CommunitySearchSheetPreviewContainer: View {
+    @State private var presented = true
+    private let deps: AppDependencies
+    private let vm: ProfileViewModel
+
+    init() {
+        let d = try! AppDependencies.makeForTesting()
+        d.authService.isAuthenticated = true
+        deps = d
+        vm = ProfileViewModel(
+            authService: d.authService,
+            authObserver: d.authStateObserver,
+            apiClient: d.apiClient
+        )
+    }
+
+    var body: some View {
+        CommunitySearchSheet(viewModel: vm, isPresented: $presented)
+            .environment(\.appDependencies, deps)
+    }
+}
+
+#Preview("Community search sheet") {
+    CommunitySearchSheetPreviewContainer()
 }
