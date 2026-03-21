@@ -130,9 +130,13 @@ final class AuthService: AuthServiceProtocol {
 
     private let baseURL: String
     private let keychain = KeychainService.shared
+    private let session: URLSession
+    /// Serialises concurrent refresh calls: the second caller awaits the first task's result
+    /// instead of firing a duplicate network request (which would burn the single-use refresh token).
+    private var tokenRefreshTask: Task<Void, Error>?
 
-    // Public initializer for DI
-    init(baseURL: String? = nil) {
+    // Public initializer for DI; `session` is injectable for unit tests.
+    init(baseURL: String? = nil, session: URLSession = .shared) {
         self.baseURL = baseURL ?? {
             #if targetEnvironment(simulator)
             return "http://127.0.0.1:8000/api/v1"
@@ -140,6 +144,7 @@ final class AuthService: AuthServiceProtocol {
             return "https://anyfleet-api-staging.up.railway.app/api/v1"
             #endif
         }()
+        self.session = session
 
         // Check if we have stored tokens
         if let _ = keychain.getAccessToken() {
@@ -280,46 +285,67 @@ final class AuthService: AuthServiceProtocol {
     }
     
     // MARK: - Token Management
-    
+
     func refreshAccessToken() async throws {
+        // Coalesce concurrent callers: if a refresh is already in flight, piggyback on it
+        // rather than firing a second request (the backend issues single-use rotating tokens).
+        if let existing = tokenRefreshTask {
+            AppLogger.auth.debug("Token refresh already in progress, awaiting existing task")
+            try await existing.value
+            return
+        }
+
+        let task = Task<Void, Error> { [weak self] in
+            guard let self else { throw AuthError.unauthorized }
+            try await self.performTokenRefresh()
+        }
+        tokenRefreshTask = task
+        do {
+            try await task.value
+            tokenRefreshTask = nil
+        } catch {
+            tokenRefreshTask = nil
+            throw error
+        }
+    }
+
+    private func performTokenRefresh() async throws {
         AppLogger.auth.debug("Refreshing access token")
-        
+
         guard let refreshToken = keychain.getRefreshToken() else {
             AppLogger.auth.warning("No refresh token found in keychain")
             throw AuthError.unauthorized
         }
-        
+
         let url = URL(string: "\(baseURL)/auth/refresh")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
+
         let body = ["refresh_token": refreshToken]
         request.httpBody = try JSONEncoder().encode(body)
-        
+
         let (data, response): (Data, URLResponse)
         do {
-            (data, response) = try await URLSession.shared.data(for: request)
+            (data, response) = try await session.data(for: request)
         } catch {
             AppLogger.auth.error("Network error during token refresh", error: error)
-            // Re-throw network errors as-is so they can be converted to NetworkError
             throw error
         }
-        
+
         guard let httpResponse = response as? HTTPURLResponse else {
             AppLogger.auth.error("Invalid response type during token refresh")
             throw AuthError.invalidResponse
         }
-        
+
         AppLogger.auth.info("Token refresh response status: \(httpResponse.statusCode)")
-        
+
         guard httpResponse.statusCode == 200 else {
             AppLogger.auth.warning("Token refresh failed with status \(httpResponse.statusCode), logging out")
-            // Refresh token is invalid, logout user
             await logout()
             throw AuthError.unauthorized
         }
-        
+
         let tokenResponse = try JSONDecoder().decode(TokenResponse.self, from: data)
 
         // Ensure image URLs have proper protocol
@@ -341,7 +367,6 @@ final class AuthService: AuthServiceProtocol {
             )
         }
 
-        // Update stored tokens
         keychain.saveAccessToken(tokenResponse.accessToken)
         keychain.saveRefreshToken(tokenResponse.refreshToken)
         AppLogger.auth.info("Tokens refreshed successfully")

@@ -6,6 +6,9 @@ protocol AuthServiceProtocol {
     var isAuthenticated: Bool { get }
     var currentUser: UserInfo? { get }
     func getAccessToken() async throws -> String
+    /// Refresh the access token using the stored refresh token.
+    /// Concurrent calls are coalesced — only one network refresh fires at a time.
+    func refreshAccessToken() async throws
     func ensureCurrentUserLoaded() async throws
     func loadCurrentUser() async
     func logout() async
@@ -103,21 +106,21 @@ final class APIClient: APIClientProtocol {
     private let decoder: JSONDecoder
     private let encoder: JSONEncoder
 
-    init(authService: AuthServiceProtocol) {
+    init(authService: AuthServiceProtocol, session: URLSession = .shared) {
         // Environment-based URL
         #if targetEnvironment(simulator)
         self.baseURL = URL(string: "http://127.0.0.1:8000/api/v1")!
         #else
         self.baseURL = URL(string: "https://anyfleet-api-staging.up.railway.app/api/v1")!
         #endif
-        
+
         self.authService = authService
-        self.session = URLSession.shared
-        
+        self.session = session
+
         self.decoder = JSONDecoder()
         self.decoder.dateDecodingStrategy = .iso8601
         // REMOVED: keyDecodingStrategy - we use explicit CodingKeys everywhere
-        
+
         self.encoder = JSONEncoder()
         self.encoder.dateEncodingStrategy = .iso8601
         // REMOVED: keyEncodingStrategy - we use explicit CodingKeys instead
@@ -579,10 +582,31 @@ final class APIClient: APIClientProtocol {
                 return empty
             }
             return try decoder.decode(T.self, from: data)
-            
+
         case 401:
+            // Access token expired — refresh and retry exactly once.
+            // refreshAccessToken() coalesces concurrent callers so only one network
+            // round-trip fires even when multiple requests hit 401 simultaneously.
+            do {
+                try await authService.refreshAccessToken()
+            } catch {
+                AppLogger.api.warning("Token refresh failed after 401, propagating unauthorized")
+                throw APIError.unauthorized
+            }
+            let newToken = try await authService.getAccessToken()
+            urlRequest.setValue("Bearer \(newToken)", forHTTPHeaderField: "Authorization")
+            let (retryData, retryResponse) = try await session.data(for: urlRequest)
+            guard let retryHTTP = retryResponse as? HTTPURLResponse else {
+                throw APIError.invalidResponse
+            }
+            if (200...299).contains(retryHTTP.statusCode) {
+                if T.self == EmptyResponse.self, let empty = EmptyResponse() as? T {
+                    return empty
+                }
+                return try decoder.decode(T.self, from: retryData)
+            }
             throw APIError.unauthorized
-            
+
         case 403:
             throw APIError.forbidden
             
