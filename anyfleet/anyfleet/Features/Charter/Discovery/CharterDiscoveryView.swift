@@ -28,7 +28,7 @@ struct CharterDiscoveryView: View {
             CharterFilterView(
                 filters: $viewModel.filters,
                 onApply: { Task { await viewModel.applyFilters() } },
-                onReset: { viewModel.resetFilters() }
+                onReset: { Task { await viewModel.resetFilters() } }
             )
         }
         .sheet(item: $viewModel.selectedCharter) { charter in
@@ -98,7 +98,7 @@ struct CharterDiscoveryView: View {
                     MapFilterBar(
                         filters: $viewModel.filters,
                         onDebouncedApply: { viewModel.scheduleDebouncedFilterApply() },
-                        onImmediateApply: { viewModel.applyFiltersImmediately() },
+                        onImmediateApply: { Task { await viewModel.applyFiltersImmediately() } },
                         onNearMeToggled: { viewModel.requestLocationIfNeeded() }
                     )
                 }
@@ -165,7 +165,7 @@ struct CharterDiscoveryView: View {
                     }
 
                     Button {
-                        viewModel.resetFilters()
+                        Task { await viewModel.resetFilters() }
                     } label: {
                         Label(L10n.Charter.Discovery.clearAll, systemImage: "xmark.circle.fill")
                             .font(DesignSystem.Typography.caption)
@@ -202,7 +202,7 @@ struct CharterDiscoveryView: View {
 
             if viewModel.filters.activeFilterCount > 0 {
                 Button(L10n.Charter.Discovery.clearFilters) {
-                    viewModel.resetFilters()
+                    Task { await viewModel.resetFilters() }
                 }
                 .buttonStyle(DesignSystem.SecondaryButtonStyle())
             }

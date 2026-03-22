@@ -272,7 +272,7 @@ struct CharterDiscoveryViewModelTests {
         vm.filters.sortOrder = .distanceAscending
 
         // Reset
-        vm.resetFilters()
+        await vm.resetFilters()
 
         #expect(vm.filters.isDefaultDiscoveryWindow())
         #expect(vm.filters.useNearMe == false)

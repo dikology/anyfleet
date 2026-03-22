@@ -95,14 +95,14 @@ final class CharterDiscoveryViewModel: ErrorHandling {
     }
 
     /// Immediate reload after toggles / presets / sort (no debounce).
-    func applyFiltersImmediately() {
+    func applyFiltersImmediately() async {
         filterApplyTask?.cancel()
-        Task { await loadInitial() }
+        await loadInitial()
     }
 
-    func resetFilters() {
+    func resetFilters() async {
         filters = CharterDiscoveryFilters()
-        applyFiltersImmediately()
+        await applyFiltersImmediately()
     }
 
     func requestLocationIfNeeded() {
