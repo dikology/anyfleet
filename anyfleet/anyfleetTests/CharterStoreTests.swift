@@ -327,6 +327,42 @@ struct CharterStoreTests {
         #expect(store.charters.first?.id == charter.id)
     }
 
+    // MARK: - updateCharter
+
+    /// Regression: `updateCharter` must write the repository result into `charters` so list/detail observers stay in sync.
+    @Test("Update charter - success updates in-memory cache to match returned model")
+    @MainActor
+    func testUpdateCharterUpdatesInMemoryCache() async throws {
+        let mockRepository = MockLocalRepository()
+        let store = CharterStore(repository: mockRepository)
+
+        let charter = try await store.createCharter(
+            name: "Test",
+            boatName: nil,
+            location: nil,
+            startDate: Date(),
+            endDate: Date()
+        )
+
+        var updated = charter
+        updated.name = "Renamed"
+        mockRepository.updateCharterResult = .success(updated)
+
+        let returned = try await store.updateCharter(
+            charter.id,
+            name: "Renamed",
+            boatName: charter.boatName,
+            location: charter.location,
+            startDate: charter.startDate,
+            endDate: charter.endDate,
+            checkInChecklistID: charter.checkInChecklistID
+        )
+
+        let cached = store.charters.first { $0.id == charter.id }
+        #expect(cached == updated)
+        #expect(returned == updated)
+    }
+
     // MARK: - updateVisibility
 
     @Test("Update visibility - success updates in-memory cache")
