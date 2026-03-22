@@ -39,7 +39,7 @@
 | C2 | Force-cast crash: `EmptyResponse() as! T` | `APIClient.swift:441` | **Critical** |
 | C3 | Magic content-type strings (`"checklist"`, `"practice_guide"`) in fork logic | `LibraryStore.swift` | Medium |
 | C4 | Hardcoded section titles "Upcoming" / "Past" bypass L10n | `CharterListView.swift:145,172` | Low |
-| C5 | Commented-out sync-enqueue calls throughout `LocalRepository` (TODOs deferred) | `LocalRepository.swift` | Medium |
+| C5 | ~~Commented-out sync-enqueue TODOs in `LocalRepository`~~ **Resolved:** queue ops stay in `SyncQueueService` / `LibraryStore`; repository documents the boundary. | `LocalRepository.swift` | Done |
 | C6 | `CLLocationManager` created inside `CharterDiscoveryViewModel.init()` — not injectable, untestable | `CharterDiscoveryViewModel.swift:46` | Medium |
 
 ### Swift / SwiftUI
@@ -614,7 +614,7 @@ Status reflects **anyfleet** iOS + **anyfleet-backend** as verified after the or
 - [x] **C4** — Charter list section headers use `L10n` (not hardcoded “Upcoming” / “Past”).
 - [ ] **A6** — `AppDependencies.makeForTesting(mockRepository:)` still constructs a discarded `CharterStore` (`_ = …`); fix or document a single supported test pattern.
 - [ ] **C3** — Replace magic fork/publish strings (`"checklist"`, `"practice_guide"`, etc.) in `LibraryStore` with shared typed constants or an enum.
-- [ ] **C5** — Resolve or implement `LocalRepository` TODOs around enqueueing sync after local mutations.
+- [x] **C5** — Resolve or implement `LocalRepository` TODOs around enqueueing sync after local mutations.
 - [ ] **C6 / Step 7** — Introduce `LocationProviding` (or equivalent) and inject into `CharterDiscoveryViewModel` instead of owning `CLLocationManager()` inside `init`.
 - [ ] **S2 / Step 7** — Remove unstructured `Task { await loadInitial() }` from the filter-apply path (`applyFiltersImmediately` / related); prefer structured concurrency from the caller.
 - [ ] **S5** — `FlashcardDeck` stub: consolidate or remove placeholders across `LibraryStore`, repositories, and discover reader until the feature is real.
