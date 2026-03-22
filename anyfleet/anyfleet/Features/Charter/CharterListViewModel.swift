@@ -97,13 +97,15 @@ final class CharterListViewModel: ErrorHandling {
     
     /// Deletes a charter by ID.
     ///
-    /// - Parameter charterID: The ID of the charter to delete
-    func deleteCharter(_ charterID: UUID) async throws {
+    /// - Parameters:
+    ///   - charterID: The ID of the charter to delete
+    ///   - unpublishFromDiscoveryIfNeeded: When `false`, skips the server unpublish step (local-only delete from the confirmation sheet).
+    func deleteCharter(_ charterID: UUID, unpublishFromDiscoveryIfNeeded: Bool = true) async throws {
         AppLogger.view.startOperation("Delete Charter")
         AppLogger.view.info("Deleting charter with ID: \(charterID.uuidString)")
         
         do {
-            try await charterStore.deleteCharter(charterID)
+            try await charterStore.deleteCharter(charterID, unpublishFromDiscoveryIfNeeded: unpublishFromDiscoveryIfNeeded)
             AppLogger.view.completeOperation("Delete Charter")
         } catch {
             AppLogger.view.failOperation("Delete Charter", error: error)

@@ -158,6 +158,7 @@ final class AppDependencies {
             authService: authService
         )
         self.charterSyncService = charterSync
+        charterStore.setDiscoveryUnpublisher(charterSync)
 
         // Initialize sync coordinator (replaces direct timer in AppCoordinator)
         self.syncCoordinator = SyncCoordinator(
@@ -235,6 +236,7 @@ final class AppDependencies {
             authService: authService
         )
         self.charterSyncService = charterSync
+        charterStore.setDiscoveryUnpublisher(charterSync)
         self.syncCoordinator = SyncCoordinator(
             contentSyncService: contentSyncService,
             charterSyncService: charterSync

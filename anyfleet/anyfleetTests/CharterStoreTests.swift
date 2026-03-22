@@ -9,6 +9,19 @@ import Foundation
 import Testing
 @testable import anyfleet
 
+@MainActor
+private final class MockCharterDiscoveryUnpublishing: CharterDiscoveryUnpublishing {
+    var unpublishCallCount = 0
+    var lastServerID: UUID?
+    var errorOnUnpublish: Error?
+
+    func unpublishCharter(serverID: UUID) async throws {
+        unpublishCallCount += 1
+        lastServerID = serverID
+        if let errorOnUnpublish { throw errorOnUnpublish }
+    }
+}
+
 @Suite("CharterStore Tests")
 struct CharterStoreTests {
     
@@ -325,6 +338,157 @@ struct CharterStoreTests {
         // Assert - Original charter should still be there
         #expect(store.charters.count == 1)
         #expect(store.charters.first?.id == charter.id)
+    }
+
+    @Test("Delete charter - non-private with serverID calls discovery unpublish")
+    @MainActor
+    func testDeleteCharter_NonPrivateWithServerID_CallsUnpublish() async throws {
+        let mockRepository = MockLocalRepository()
+        let store = CharterStore(repository: mockRepository)
+        let unpublisher = MockCharterDiscoveryUnpublishing()
+        store.setDiscoveryUnpublisher(unpublisher)
+
+        let charter = try await store.createCharter(
+            name: "Synced",
+            boatName: nil,
+            location: nil,
+            startDate: Date(),
+            endDate: Date()
+        )
+        var synced = charter
+        let serverID = UUID()
+        synced.serverID = serverID
+        synced.visibility = .community
+        mockRepository.saveCharterResult = .success(())
+        try await store.saveCharter(synced)
+
+        mockRepository.deleteCharterResult = .success(())
+        try await store.deleteCharter(synced.id)
+
+        #expect(unpublisher.unpublishCallCount == 1)
+        #expect(unpublisher.lastServerID == serverID)
+        #expect(store.charters.isEmpty)
+        #expect(mockRepository.deleteCharterCallCount == 1)
+    }
+
+    @Test("Delete charter - unpublishFromDiscoveryIfNeeded false skips unpublish")
+    @MainActor
+    func testDeleteCharter_LocalOnlyOptOut_SkipsUnpublish() async throws {
+        let mockRepository = MockLocalRepository()
+        let store = CharterStore(repository: mockRepository)
+        let unpublisher = MockCharterDiscoveryUnpublishing()
+        store.setDiscoveryUnpublisher(unpublisher)
+
+        let charter = try await store.createCharter(
+            name: "Local only",
+            boatName: nil,
+            location: nil,
+            startDate: Date(),
+            endDate: Date()
+        )
+        var synced = charter
+        synced.serverID = UUID()
+        synced.visibility = .public
+        mockRepository.saveCharterResult = .success(())
+        try await store.saveCharter(synced)
+
+        mockRepository.deleteCharterResult = .success(())
+        try await store.deleteCharter(synced.id, unpublishFromDiscoveryIfNeeded: false)
+
+        #expect(unpublisher.unpublishCallCount == 0)
+        #expect(store.charters.isEmpty)
+    }
+
+    @Test("Delete charter - private visibility does not call unpublish even with serverID")
+    @MainActor
+    func testDeleteCharter_PrivateWithServerID_SkipsUnpublish() async throws {
+        let mockRepository = MockLocalRepository()
+        let store = CharterStore(repository: mockRepository)
+        let unpublisher = MockCharterDiscoveryUnpublishing()
+        store.setDiscoveryUnpublisher(unpublisher)
+
+        let charter = try await store.createCharter(
+            name: "Private",
+            boatName: nil,
+            location: nil,
+            startDate: Date(),
+            endDate: Date()
+        )
+        var local = charter
+        local.serverID = UUID()
+        local.visibility = .private
+        mockRepository.saveCharterResult = .success(())
+        try await store.saveCharter(local)
+
+        mockRepository.deleteCharterResult = .success(())
+        try await store.deleteCharter(local.id)
+
+        #expect(unpublisher.unpublishCallCount == 0)
+        #expect(store.charters.isEmpty)
+    }
+
+    @Test("Delete charter - unpublish failure still deletes locally")
+    @MainActor
+    func testDeleteCharter_UnpublishFailureStillDeletesLocally() async throws {
+        let mockRepository = MockLocalRepository()
+        let store = CharterStore(repository: mockRepository)
+        let unpublisher = MockCharterDiscoveryUnpublishing()
+        unpublisher.errorOnUnpublish = NSError(domain: "Test", code: 1)
+        store.setDiscoveryUnpublisher(unpublisher)
+
+        let charter = try await store.createCharter(
+            name: "X",
+            boatName: nil,
+            location: nil,
+            startDate: Date(),
+            endDate: Date()
+        )
+        var synced = charter
+        synced.serverID = UUID()
+        synced.visibility = .community
+        mockRepository.saveCharterResult = .success(())
+        try await store.saveCharter(synced)
+
+        mockRepository.deleteCharterResult = .success(())
+        try await store.deleteCharter(synced.id)
+
+        #expect(unpublisher.unpublishCallCount == 1)
+        #expect(store.charters.isEmpty)
+    }
+
+    @Test("Delete charter - uses repository fetch when charter not in memory cache")
+    @MainActor
+    func testDeleteCharter_ResolvesFromRepositoryWhenNotCached() async throws {
+        let mockRepository = MockLocalRepository()
+        let store = CharterStore(repository: mockRepository)
+        let unpublisher = MockCharterDiscoveryUnpublishing()
+        store.setDiscoveryUnpublisher(unpublisher)
+
+        let charter = try await store.createCharter(
+            name: "Off cache",
+            boatName: nil,
+            location: nil,
+            startDate: Date(),
+            endDate: Date()
+        )
+        var synced = charter
+        let serverID = UUID()
+        synced.serverID = serverID
+        synced.visibility = .community
+        mockRepository.saveCharterResult = .success(())
+        try await store.saveCharter(synced)
+
+        mockRepository.fetchAllChartersResult = .success([])
+        try await store.loadCharters()
+        #expect(store.charters.isEmpty)
+
+        mockRepository.fetchCharterResult = .success(synced)
+        mockRepository.deleteCharterResult = .success(())
+        try await store.deleteCharter(synced.id)
+
+        #expect(unpublisher.unpublishCallCount == 1)
+        #expect(unpublisher.lastServerID == serverID)
+        #expect(mockRepository.fetchCharterCallCount >= 1)
     }
 
     // MARK: - updateCharter
