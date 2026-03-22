@@ -40,7 +40,7 @@
 | C3 | Magic content-type strings (`"checklist"`, `"practice_guide"`) in fork logic | `LibraryStore.swift` | Medium |
 | C4 | Hardcoded section titles "Upcoming" / "Past" bypass L10n | `CharterListView.swift:145,172` | Low |
 | C5 | ~~Commented-out sync-enqueue TODOs in `LocalRepository`~~ **Resolved:** queue ops stay in `SyncQueueService` / `LibraryStore`; repository documents the boundary. | `LocalRepository.swift` | Done |
-| C6 | `CLLocationManager` created inside `CharterDiscoveryViewModel.init()` — not injectable, untestable | `CharterDiscoveryViewModel.swift:46` | Medium |
+| C6 | ~~`CLLocationManager` in `CharterDiscoveryViewModel.init`~~ **Resolved:** `LocationProviding` + `SystemLocationProvider`, injected via `AppDependencies`. | `CharterDiscoveryViewModel.swift`, `LocationProviding.swift` | Done |
 
 ### Swift / SwiftUI
 
@@ -532,7 +532,7 @@ func testAPIClientEmptyResponsePathIsSafe() async throws {
 
 // 4. HIGH — Discovery pagination loads page 2 from offset
 func testDiscoveryViewModelPaginationAppendsResults() async throws {
-    let vm = CharterDiscoveryViewModel(apiClient: MockAPIClient(pages: [page1, page2]))
+    let vm = CharterDiscoveryViewModel(apiClient: MockAPIClient(pages: [page1, page2]), locationProvider: mockLocationProvider)
     await vm.loadInitial()
     await vm.loadMore()
     XCTAssertEqual(vm.charters.count, 40)  // 20 + 20
@@ -615,7 +615,7 @@ Status reflects **anyfleet** iOS + **anyfleet-backend** as verified after the or
 - [ ] **A6** — `AppDependencies.makeForTesting(mockRepository:)` still constructs a discarded `CharterStore` (`_ = …`); fix or document a single supported test pattern.
 - [ ] **C3** — Replace magic fork/publish strings (`"checklist"`, `"practice_guide"`, etc.) in `LibraryStore` with shared typed constants or an enum.
 - [x] **C5** — Resolve or implement `LocalRepository` TODOs around enqueueing sync after local mutations.
-- [ ] **C6 / Step 7** — Introduce `LocationProviding` (or equivalent) and inject into `CharterDiscoveryViewModel` instead of owning `CLLocationManager()` inside `init`.
+- [x] **C6 / Step 7** — Introduce `LocationProviding` (or equivalent) and inject into `CharterDiscoveryViewModel` instead of owning `CLLocationManager()` inside `init`.
 - [ ] **S2 / Step 7** — Remove unstructured `Task { await loadInitial() }` from the filter-apply path (`applyFiltersImmediately` / related); prefer structured concurrency from the caller.
 - [ ] **S5** — `FlashcardDeck` stub: consolidate or remove placeholders across `LibraryStore`, repositories, and discover reader until the feature is real.
 - [ ] **U3** — Onboarding: `OnboardingService` (UserDefaults), first-launch swipe hint on `CharterListView`, optional `AppRoute.onboarding` sheet.

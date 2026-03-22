@@ -41,13 +41,17 @@ final class CharterDiscoveryViewModel: ErrorHandling {
     // MARK: - Dependencies
 
     private let apiClient: APIClientProtocol
-    private let locationManager: CLLocationManager
+    private let locationProvider: LocationProviding
 
     // MARK: - Initialization
 
-    init(apiClient: APIClientProtocol, filterDebounceNanoseconds: UInt64 = 300_000_000) {
+    init(
+        apiClient: APIClientProtocol,
+        locationProvider: LocationProviding,
+        filterDebounceNanoseconds: UInt64 = 300_000_000
+    ) {
         self.apiClient = apiClient
-        self.locationManager = CLLocationManager()
+        self.locationProvider = locationProvider
         self.filterDebounceNanoseconds = filterDebounceNanoseconds
     }
 
@@ -103,9 +107,9 @@ final class CharterDiscoveryViewModel: ErrorHandling {
 
     func requestLocationIfNeeded() {
         if filters.useNearMe {
-            locationManager.requestWhenInUseAuthorization()
-            if let location = locationManager.location {
-                userLocation = location.coordinate
+            locationProvider.requestWhenInUseAuthorization()
+            if let coordinate = locationProvider.locationCoordinate {
+                userLocation = coordinate
             }
         }
     }

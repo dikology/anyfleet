@@ -294,7 +294,8 @@ final class AppCoordinator: AppCoordinatorProtocol {
         case .discoverCharters:
             CharterDiscoveryView(
                 viewModel: CharterDiscoveryViewModel(
-                    apiClient: dependencies.apiClient
+                    apiClient: dependencies.apiClient,
+                    locationProvider: dependencies.locationProvider
                 )
             )
 

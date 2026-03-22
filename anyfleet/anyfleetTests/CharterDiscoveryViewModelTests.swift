@@ -5,9 +5,20 @@
 //  Unit tests for CharterDiscoveryViewModel using Swift Testing
 //
 
+import CoreLocation
 import Foundation
 import Testing
 @testable import anyfleet
+
+@MainActor
+private final class MockLocationProvider: LocationProviding {
+    var requestWhenInUseCallCount = 0
+    var locationCoordinate: CLLocationCoordinate2D?
+
+    func requestWhenInUseAuthorization() {
+        requestWhenInUseCallCount += 1
+    }
+}
 
 @Suite("CharterDiscoveryViewModel Tests")
 struct CharterDiscoveryViewModelTests {
@@ -15,10 +26,19 @@ struct CharterDiscoveryViewModelTests {
     // MARK: - Helpers
 
     @MainActor
-    private func makeViewModel(debounceNs: UInt64 = 0) -> (viewModel: CharterDiscoveryViewModel, apiClient: MockAPIClient) {
+    private func makeViewModel(debounceNs: UInt64 = 0) -> (
+        viewModel: CharterDiscoveryViewModel,
+        apiClient: MockAPIClient,
+        locationProvider: MockLocationProvider
+    ) {
         let apiClient = MockAPIClient()
-        let viewModel = CharterDiscoveryViewModel(apiClient: apiClient, filterDebounceNanoseconds: debounceNs)
-        return (viewModel, apiClient)
+        let locationProvider = MockLocationProvider()
+        let viewModel = CharterDiscoveryViewModel(
+            apiClient: apiClient,
+            locationProvider: locationProvider,
+            filterDebounceNanoseconds: debounceNs
+        )
+        return (viewModel, apiClient, locationProvider)
     }
 
     private func makeDiscoverableCharter(
@@ -60,7 +80,7 @@ struct CharterDiscoveryViewModelTests {
     @Test("Initial state - charters empty, not loading")
     @MainActor
     func testInitialState() {
-        let (vm, _) = makeViewModel()
+        let (vm, _, _) = makeViewModel()
         #expect(vm.charters.isEmpty)
         #expect(vm.isLoading == false)
         #expect(vm.isLoadingMore == false)
@@ -78,7 +98,7 @@ struct CharterDiscoveryViewModelTests {
     @Test("loadInitial - success populates charters")
     @MainActor
     func testLoadInitial_Success() async {
-        let (vm, apiClient) = makeViewModel()
+        let (vm, apiClient, _) = makeViewModel()
 
         let items = [makeDiscoverableCharter(), makeDiscoverableCharter()]
         apiClient.mockDiscoverChartersResponse = makeDiscoveryResponse(items: items)
@@ -95,7 +115,7 @@ struct CharterDiscoveryViewModelTests {
     @Test("loadInitial - handles error and sets error state")
     @MainActor
     func testLoadInitial_Error() async {
-        let (vm, apiClient) = makeViewModel()
+        let (vm, apiClient, _) = makeViewModel()
         apiClient.shouldFail = true
 
         await vm.loadInitial()
@@ -108,7 +128,7 @@ struct CharterDiscoveryViewModelTests {
     @Test("loadInitial - prevents duplicate concurrent loads")
     @MainActor
     func testLoadInitial_PreventsDoubleTrigger() async {
-        let (vm, apiClient) = makeViewModel()
+        let (vm, apiClient, _) = makeViewModel()
         apiClient.mockDiscoverChartersResponse = makeDiscoveryResponse(items: [])
 
         // Simulate load already in progress
@@ -123,7 +143,7 @@ struct CharterDiscoveryViewModelTests {
     @Test("loadInitial - resets offset and charter list on each call")
     @MainActor
     func testLoadInitial_ResetsPreviousData() async {
-        let (vm, apiClient) = makeViewModel()
+        let (vm, apiClient, _) = makeViewModel()
 
         // First load with 1 item
         apiClient.mockDiscoverChartersResponse = makeDiscoveryResponse(items: [makeDiscoverableCharter()])
@@ -143,7 +163,7 @@ struct CharterDiscoveryViewModelTests {
     @Test("hasMore - false when fewer items than page size returned")
     @MainActor
     func testHasMore_FalseWhenLessThanPageSize() async {
-        let (vm, apiClient) = makeViewModel()
+        let (vm, apiClient, _) = makeViewModel()
         // Return only 5 items (less than pageSize=20)
         let items = (0..<5).map { _ in makeDiscoverableCharter() }
         apiClient.mockDiscoverChartersResponse = makeDiscoveryResponse(items: items, limit: 20)
@@ -156,7 +176,7 @@ struct CharterDiscoveryViewModelTests {
     @Test("hasMore - true when exactly page size items returned")
     @MainActor
     func testHasMore_TrueWhenFullPageReturned() async {
-        let (vm, apiClient) = makeViewModel()
+        let (vm, apiClient, _) = makeViewModel()
         // Return 20 items (equals pageSize=20)
         let items = (0..<20).map { _ in makeDiscoverableCharter() }
         apiClient.mockDiscoverChartersResponse = makeDiscoveryResponse(items: items, limit: 20)
@@ -171,7 +191,7 @@ struct CharterDiscoveryViewModelTests {
     @Test("loadMore - appends charters to existing list")
     @MainActor
     func testLoadMore_AppendsPaginated() async {
-        let (vm, apiClient) = makeViewModel()
+        let (vm, apiClient, _) = makeViewModel()
 
         // Load first full page
         let firstPage = (0..<20).map { _ in makeDiscoverableCharter() }
@@ -192,7 +212,7 @@ struct CharterDiscoveryViewModelTests {
     @Test("loadMore - skips when hasMore is false")
     @MainActor
     func testLoadMore_SkipsWhenNoMore() async {
-        let (vm, apiClient) = makeViewModel()
+        let (vm, apiClient, _) = makeViewModel()
 
         // Load a partial page to set hasMore=false
         apiClient.mockDiscoverChartersResponse = makeDiscoveryResponse(items: [makeDiscoverableCharter()])
@@ -210,7 +230,7 @@ struct CharterDiscoveryViewModelTests {
     @Test("refresh - reloads with fresh data")
     @MainActor
     func testRefresh_ReloadsData() async {
-        let (vm, apiClient) = makeViewModel()
+        let (vm, apiClient, _) = makeViewModel()
 
         // Initial load
         apiClient.mockDiscoverChartersResponse = makeDiscoveryResponse(items: [makeDiscoverableCharter()])
@@ -231,7 +251,7 @@ struct CharterDiscoveryViewModelTests {
     @Test("applyFilters - triggers fresh load")
     @MainActor
     func testApplyFilters_TriggersReload() async {
-        let (vm, apiClient) = makeViewModel()
+        let (vm, apiClient, _) = makeViewModel()
         apiClient.mockDiscoverChartersResponse = makeDiscoveryResponse(items: [])
 
         await vm.applyFilters()
@@ -244,7 +264,7 @@ struct CharterDiscoveryViewModelTests {
     @Test("resetFilters - restores default filter values")
     @MainActor
     func testResetFilters_RestoresDefaults() async {
-        let (vm, _) = makeViewModel()
+        let (vm, _, _) = makeViewModel()
 
         // Modify filters
         vm.filters.useNearMe = true
@@ -260,10 +280,30 @@ struct CharterDiscoveryViewModelTests {
         #expect(vm.filters.sortOrder == .dateAscending)
     }
 
+    // MARK: - requestLocationIfNeeded
+
+    @Test("requestLocationIfNeeded - forwards to provider when near me is enabled")
+    @MainActor
+    func testRequestLocationIfNeeded_WhenNearMe() {
+        let (vm, _, loc) = makeViewModel()
+        vm.filters.useNearMe = true
+        vm.requestLocationIfNeeded()
+        #expect(loc.requestWhenInUseCallCount == 1)
+    }
+
+    @Test("requestLocationIfNeeded - does not call provider when near me is disabled")
+    @MainActor
+    func testRequestLocationIfNeeded_WhenNotNearMe() {
+        let (vm, _, loc) = makeViewModel()
+        vm.filters.useNearMe = false
+        vm.requestLocationIfNeeded()
+        #expect(loc.requestWhenInUseCallCount == 0)
+    }
+
     @Test("loadInitial - sends discovery window dates to API")
     @MainActor
     func testLoadInitial_PassesDateWindowToAPI() async {
-        let (vm, apiClient) = makeViewModel()
+        let (vm, apiClient, _) = makeViewModel()
         var cal = Calendar(identifier: .gregorian)
         cal.timeZone = TimeZone(secondsFromGMT: 0)!
         let ref = Date(timeIntervalSince1970: 1_720_000_000)
@@ -284,7 +324,7 @@ struct CharterDiscoveryViewModelTests {
     @Test("scheduleDebouncedFilterApply - coalesces to one extra fetch")
     @MainActor
     func testDebouncedFilterApply_Coalesces() async {
-        let (vm, apiClient) = makeViewModel(debounceNs: 25_000_000)
+        let (vm, apiClient, _) = makeViewModel(debounceNs: 25_000_000)
         apiClient.mockDiscoverChartersResponse = makeDiscoveryResponse(items: [])
 
         await vm.loadInitial()
@@ -302,7 +342,7 @@ struct CharterDiscoveryViewModelTests {
     @Test("sort by dateAscending - earliest first")
     @MainActor
     func testSort_DateAscending() async {
-        let (vm, apiClient) = makeViewModel()
+        let (vm, apiClient, _) = makeViewModel()
         vm.filters.sortOrder = .dateAscending
 
         let now = Date()
@@ -326,7 +366,7 @@ struct CharterDiscoveryViewModelTests {
     @Test("sort by distanceAscending - closest first")
     @MainActor
     func testSort_DistanceAscending() async {
-        let (vm, apiClient) = makeViewModel()
+        let (vm, apiClient, _) = makeViewModel()
         vm.filters.sortOrder = .distanceAscending
 
         // Mock returns items already sorted by the backend (distance_asc): closest first
@@ -349,7 +389,7 @@ struct CharterDiscoveryViewModelTests {
     @Test("sort by recentlyPosted - preserves server order")
     @MainActor
     func testSort_RecentlyPosted_PreservesOrder() async {
-        let (vm, apiClient) = makeViewModel()
+        let (vm, apiClient, _) = makeViewModel()
         vm.filters.sortOrder = .recentlyPosted
 
         let item1 = makeDiscoverableCharter()
@@ -369,7 +409,7 @@ struct CharterDiscoveryViewModelTests {
     @Test("cache hit - shows cached charters immediately then refreshes from offset 0")
     @MainActor
     func testCacheHit_BackgroundRefreshUsesOffsetZero() async {
-        let (vm, apiClient) = makeViewModel()
+        let (vm, apiClient, _) = makeViewModel()
 
         // First load: 2 charters cached.
         let firstItems = [makeDiscoverableCharter(), makeDiscoverableCharter()]
@@ -403,7 +443,7 @@ struct CharterDiscoveryViewModelTests {
     @Test("cache hit background refresh - replaces full list, not just delta")
     @MainActor
     func testCacheHit_BackgroundRefreshReplacesFullList() async {
-        let (vm, apiClient) = makeViewModel()
+        let (vm, apiClient, _) = makeViewModel()
 
         // First load: 2 items, cached.
         let firstPage = [makeDiscoverableCharter(), makeDiscoverableCharter()]
@@ -434,7 +474,7 @@ struct CharterDiscoveryViewModelTests {
     @Test("loadMore - offset advances correctly after cache-hit loadInitial")
     @MainActor
     func testLoadMore_OffsetAfterCacheHit() async {
-        let (vm, apiClient) = makeViewModel()
+        let (vm, apiClient, _) = makeViewModel()
 
         // Fill a full first page (20 items), cache it.
         let pageOne = (0..<20).map { _ in makeDiscoverableCharter() }
@@ -462,14 +502,14 @@ struct CharterDiscoveryViewModelTests {
     @Test("isEmpty - true when charters empty and not loading")
     @MainActor
     func testIsEmpty_TrueWhenEmpty() {
-        let (vm, _) = makeViewModel()
+        let (vm, _, _) = makeViewModel()
         #expect(vm.isEmpty == true)
     }
 
     @Test("isEmpty - false when charters present")
     @MainActor
     func testIsEmpty_FalseWhenChartersPresent() async {
-        let (vm, apiClient) = makeViewModel()
+        let (vm, apiClient, _) = makeViewModel()
         apiClient.mockDiscoverChartersResponse = makeDiscoveryResponse(items: [makeDiscoverableCharter()])
 
         await vm.loadInitial()

@@ -63,7 +63,11 @@ struct CharterDeleteDiscoveryIntegrationTests {
         }
         api.deleteCharterSideEffect = { feed.remove(id: $0) }
 
-        let vm = CharterDiscoveryViewModel(apiClient: api, filterDebounceNanoseconds: 0)
+        let vm = CharterDiscoveryViewModel(
+            apiClient: api,
+            locationProvider: SystemLocationProvider(),
+            filterDebounceNanoseconds: 0
+        )
         await vm.loadInitial()
         #expect(vm.charters.contains { $0.id == serverCharterID })
 
