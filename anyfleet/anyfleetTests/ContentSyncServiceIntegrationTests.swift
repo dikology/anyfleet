@@ -1305,6 +1305,10 @@ class MockAPIClient: APIClientProtocol {
     var mockCreateCharterResponse: CharterAPIResponse?
     var mockFetchMyChartersResponse: CharterListAPIResponse?
     var mockDiscoverChartersResponse: CharterDiscoveryAPIResponse?
+    /// When set, `discoverCharters` returns this closure’s value (dynamic feed for integration-style tests).
+    var discoverChartersProvider: (() -> CharterDiscoveryAPIResponse)?
+    /// Invoked after a successful `deleteCharter` (simulates server removing the charter from discovery).
+    var deleteCharterSideEffect: ((UUID) -> Void)?
     var createCharterCallCount = 0
     var updateCharterCallCount = 0
     var deleteCharterCallCount = 0
@@ -1385,6 +1389,7 @@ class MockAPIClient: APIClientProtocol {
         deleteCharterCallCount += 1
         lastDeletedCharterID = id
         if shouldFail { throw APIError.serverError }
+        deleteCharterSideEffect?(id)
     }
 
     func discoverCharters(
@@ -1402,6 +1407,9 @@ class MockAPIClient: APIClientProtocol {
         lastDiscoverDateFrom = dateFrom
         lastDiscoverDateTo = dateTo
         if shouldFail { throw APIError.serverError }
+        if let discoverChartersProvider {
+            return discoverChartersProvider()
+        }
         return mockDiscoverChartersResponse ?? CharterDiscoveryAPIResponse(
             items: [],
             total: 0,

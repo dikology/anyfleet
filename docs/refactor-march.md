@@ -591,7 +591,7 @@ Status reflects **anyfleet** iOS + **anyfleet-backend** as verified after the or
 - [x] **A1 / Step 1** — `CharterStore.updateCharter` writes the returned charter back into `charters` (no cache drift).
 - [x] **C1 / Step 2** — `LocalRepository` sync-queue load: invalid UUID / unknown `SyncOperation` rows are skipped with logging (no force-unwrap).
 - [x] **C2 / Step 2** — `APIClient` uses conditional `EmptyResponse() as? T` instead of force-cast to `T`.
-- [ ] **T1** — Regression test: after `updateCharter`, `store.charters` matches the updated model (see §5 example `testUpdateCharterUpdatesInMemoryCache`).
+- [x] **T1** — Regression test: after `updateCharter`, `store.charters` matches the updated model (see §5 example `testUpdateCharterUpdatesInMemoryCache`).
 
 ### High
 
@@ -603,10 +603,10 @@ Status reflects **anyfleet** iOS + **anyfleet-backend** as verified after the or
 - [x] **A5 / Step 5** — `AuthService` is `@MainActor`.
 - [x] **U1 / U6 / Step 7** — Map: `UserAvatarPin`, selection/callout path, localized empty overlay when there are no located charters.
 - [x] **Backend §6 (partial)** — `CharterWithUser`-style responses include captain `avatar_url` (and related user fields); profile responses include social/community data (wired through auth/profile APIs—paths differ slightly from the table below).
-- [ ] **A7 (full)** — `CharterStore.deleteCharter` should call unpublish when `serverID != nil` and visibility ≠ `.private`, so **every** delete path stays consistent (today unpublish is driven from the list UI, not the store).
+- [x] **A7 (full)** — `CharterStore.deleteCharter` should call unpublish when `serverID != nil` and visibility ≠ `.private`, so **every** delete path stays consistent (today unpublish is driven from the list UI, not the store).
 - [ ] **U5** — Home: “nearby captains” strip when an active charter exists; iOS model + API client; backend `GET /captains/nearby?lat=&lon=&radius_km=`.
-- [ ] **T2** — Integration test: delete public/community charter → no longer discoverable (or equivalent contract test).
-- [ ] **T3** — Unit test: `APIClient` empty-body / `EmptyResponse` path does not crash (e.g. 204-style response).
+- [x] **T2** — Integration test: delete public/community charter → no longer discoverable (or equivalent contract test).
+- [x] **T3** — Unit test: `APIClient` empty-body / `EmptyResponse` path does not crash (e.g. 204-style response).
 
 ### Medium
 

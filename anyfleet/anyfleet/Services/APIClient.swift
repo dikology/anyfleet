@@ -684,6 +684,14 @@ final class APIClient: APIClientProtocol {
             throw APIError.invalidResponse
         }
     }
+
+    // MARK: - Test support
+
+    /// Exercises authenticated `request` handling when `T` is `EmptyResponse` and the server returns 2xx with an empty body (e.g. HTTP 204).
+    /// Used by unit tests with a stubbed `URLSession` (`StubURLProtocol`).
+    internal func testSupport_requestGETReturningEmptyResponse(path: String = "/contract/test-empty-response") async throws {
+        let _: EmptyResponse = try await request(method: "GET", path: path, body: EmptyBody())
+    }
 }
 
 // MARK: - Request/Response Types
