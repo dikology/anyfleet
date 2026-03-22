@@ -87,16 +87,13 @@ struct CharterListView: View {
                 canUnpublish: dependencies.isAuthenticated && charter.serverID != nil,
                 onUnpublishAndDelete: {
                     charterPendingDelete = nil
-                    Task {
-                        if let serverID = charter.serverID {
-                            try? await dependencies.charterSyncService.unpublishCharter(serverID: serverID)
-                        }
-                        try? await viewModel.deleteCharter(charter.id)
-                    }
+                    Task { try? await viewModel.deleteCharter(charter.id) }
                 },
                 onDeleteLocalOnly: {
                     charterPendingDelete = nil
-                    Task { try? await viewModel.deleteCharter(charter.id) }
+                    Task {
+                        try? await viewModel.deleteCharter(charter.id, unpublishFromDiscoveryIfNeeded: false)
+                    }
                 },
                 onCancel: { charterPendingDelete = nil }
             )

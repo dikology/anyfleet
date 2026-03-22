@@ -9,6 +9,12 @@ import Foundation
 import Testing
 @testable import anyfleet
 
+private func makeStubURLSession() -> URLSession {
+    let config = URLSessionConfiguration.ephemeral
+    config.protocolClasses = [StubURLProtocol.self]
+    return URLSession(configuration: config)
+}
+
 @Suite("API Client Tests")
 struct APIClientTests {
 
@@ -313,6 +319,39 @@ struct APIClientTests {
         #expect(jsonString.contains("\"content_type\":\"checklist\""))
         #expect(jsonString.contains("\"public_id\":\"encoder-test-456\""))
         #expect(jsonString.contains("\"can_fork\":true"))
+    }
+
+    // MARK: - Empty body / EmptyResponse (204-style)
+
+    /// Path for `testSupport_requestGETReturningEmptyResponse` on simulator base URL `http://127.0.0.1:8000/api/v1`.
+    private let emptyResponseTestPath = "/api/v1/contract/test-empty-response"
+
+    @Test("EmptyResponse path — HTTP 204 and empty body completes without crash")
+    @MainActor
+    func testEmptyResponsePath_204NoBody_DoesNotCrash() async throws {
+        StubURLProtocol.reset()
+        StubURLProtocol.enqueue(path: emptyResponseTestPath, statusCode: 204, body: Data())
+
+        let auth = MockAuthService()
+        let client = APIClient(authService: auth, session: makeStubURLSession())
+
+        try await client.testSupport_requestGETReturningEmptyResponse(path: "/contract/test-empty-response")
+
+        #expect(auth.getAccessTokenCallCount == 1)
+    }
+
+    @Test("EmptyResponse path — HTTP 200 with zero-length body completes without crash")
+    @MainActor
+    func testEmptyResponsePath_200EmptyBody_DoesNotCrash() async throws {
+        StubURLProtocol.reset()
+        StubURLProtocol.enqueue(path: emptyResponseTestPath, statusCode: 200, body: Data())
+
+        let auth = MockAuthService()
+        let client = APIClient(authService: auth, session: makeStubURLSession())
+
+        try await client.testSupport_requestGETReturningEmptyResponse(path: "/contract/test-empty-response")
+
+        #expect(auth.getAccessTokenCallCount == 1)
     }
 }
 

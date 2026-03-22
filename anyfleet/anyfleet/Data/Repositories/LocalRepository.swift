@@ -10,6 +10,14 @@ import GRDB
 
 /// Repository providing type-safe database operations for all entities.
 /// This is the main interface for stores to interact with the local SQLite database.
+///
+/// ## Sync queue
+///
+/// `LocalRepository` **does not** enqueue `sync_queue` rows from generic CRUD. The queue only
+/// carries `publish`, `unpublish`, and `publish_update` (see `SyncOperation`). Those operations
+/// are built and enqueued by `SyncQueueService` / `LibraryStore` when visibility and payloads
+/// are known—e.g. after the user publishes, updates published content, or deletes with unpublish.
+/// Callers must not expect `createChecklist` / `saveChecklist` / `deleteContent` here to schedule sync.
 final class LocalRepository: Sendable {
     private let database: AppDatabase
     
@@ -360,14 +368,6 @@ final class LocalRepository: Sendable {
                 syncStatus: checklist.syncStatus
             )
             _ = try LibraryModelRecord.saveMetadata(metadata, db: db)
-            
-            // TODO: Enqueue for sync if sync service is available
-            // try SyncQueueRecord.enqueue(
-            //     entityType: SyncEntityType.content.rawValue,
-            //     entityID: checklist.id,
-            //     operation: .create,
-            //     db: db
-            // )
         }
         
         AppLogger.repository.info("Checklist created successfully - ID: \(checklist.id.uuidString)")
@@ -395,14 +395,6 @@ final class LocalRepository: Sendable {
                 syncStatus: guide.syncStatus
             )
             _ = try LibraryModelRecord.saveMetadata(metadata, db: db)
-            
-            // TODO: Enqueue for sync if sync service is available
-            // try SyncQueueRecord.enqueue(
-            //     entityType: SyncEntityType.content.rawValue,
-            //     entityID: guide.id,
-            //     operation: .create,
-            //     db: db
-            // )
         }
         
         AppLogger.repository.info("Guide created successfully - ID: \(guide.id.uuidString)")
@@ -414,20 +406,7 @@ final class LocalRepository: Sendable {
         AppLogger.repository.startOperation("Create Deck")
         defer { AppLogger.repository.completeOperation("Create Deck") }
         
-        // TODO: Implement when FlashcardDeckRecord is created
-        // try await database.dbWriter.write { db in
-        //     var record = FlashcardDeckRecord(from: deck, creatorID: creatorID)
-        //     record.updatedAt = Date()
-        //     try record.save(db)
-        //     
-        //     // Enqueue for sync if sync service is available
-        //     // try SyncQueueRecord.enqueue(
-        //     //     entityType: SyncEntityType.content.rawValue,
-        //     //     entityID: deck.id,
-        //     //     operation: .create,
-        //     //     db: db
-        //     // )
-        // }
+        // TODO: Implement when FlashcardDeckRecord is created (persistence only; sync via LibraryStore / SyncQueueService when publishing).
         
         // Stub implementation - logs until records are implemented
         AppLogger.repository.debug("Creating deck with ID: \(deck.id.uuidString)")
@@ -469,14 +448,6 @@ final class LocalRepository: Sendable {
                 syncStatus: checklist.syncStatus
             )
             _ = try LibraryModelRecord.saveMetadata(metadata, db: db)
-
-            // TODO: Enqueue for sync if sync service is available
-            // try SyncQueueRecord.enqueue(
-            //     entityType: SyncEntityType.content.rawValue,
-            //     entityID: checklist.id,
-            //     operation: .update,
-            //     db: db
-            // )
         }
 
         AppLogger.repository.info("Checklist saved successfully - ID: \(checklist.id.uuidString)")
@@ -515,14 +486,6 @@ final class LocalRepository: Sendable {
                 syncStatus: guide.syncStatus
             )
             _ = try LibraryModelRecord.saveMetadata(metadata, db: db)
-
-            // TODO: Enqueue for sync if sync service is available
-            // try SyncQueueRecord.enqueue(
-            //     entityType: SyncEntityType.content.rawValue,
-            //     entityID: guide.id,
-            //     operation: .update,
-            //     db: db
-            // )
         }
 
         AppLogger.repository.info("Guide saved successfully - ID: \(guide.id.uuidString)")
@@ -530,7 +493,10 @@ final class LocalRepository: Sendable {
     
     // MARK: - Deleting Content
     
-    /// Delete content by ID
+    /// Delete content by ID (local rows only).
+    ///
+    /// Unpublish / remote deletion is **not** handled here. Callers that remove published content
+    /// must enqueue via `SyncQueueService` first (see `LibraryStore.deleteContent`).
     func deleteContent(_ contentID: UUID) async throws {
         AppLogger.repository.startOperation("Delete Content")
         defer { AppLogger.repository.completeOperation("Delete Content") }
@@ -547,14 +513,6 @@ final class LocalRepository: Sendable {
             try? PracticeGuideRecord.delete(contentID, db: db)
             
             // TODO: Delete from decks table when implemented
-            
-            // TODO: Enqueue for sync if sync service is available
-            // try SyncQueueRecord.enqueue(
-            //     entityType: SyncEntityType.content.rawValue,
-            //     entityID: contentID,
-            //     operation: .delete,
-            //     db: db
-            // )
         }
         
         AppLogger.repository.info("Content deleted successfully - ID: \(contentID.uuidString)")

@@ -194,6 +194,8 @@ final class CharterSyncService {
     }
 }
 
+extension CharterSyncService: CharterDiscoveryUnpublishing {}
+
 // MARK: - Logger Extension
 
 extension AppLogger {

@@ -265,7 +265,10 @@ struct DiscoverView: View {
         return NavigationStack {
             DiscoverView(
                 viewModel: viewModel,
-                charterDiscoveryViewModel: CharterDiscoveryViewModel(apiClient: deps.apiClient)
+                charterDiscoveryViewModel: CharterDiscoveryViewModel(
+                    apiClient: deps.apiClient,
+                    locationProvider: deps.locationProvider
+                )
             )
         }
         .environment(\.appDependencies, deps)

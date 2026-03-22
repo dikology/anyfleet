@@ -1,6 +1,15 @@
 import Foundation
 import SwiftUI
 
+/// Removes a charter from discovery on the server when the local copy is deleted.
+///
+/// Implemented by `CharterStore`'s sync layer. The store holds this reference **weakly**
+/// so `CharterSyncService` → `CharterStore` does not create a retain cycle.
+@MainActor
+protocol CharterDiscoveryUnpublishing: AnyObject {
+    func unpublishCharter(serverID: UUID) async throws
+}
+
 /// Store managing charter state and operations across the application.
 ///
 /// `CharterStore` serves as the single source of truth for charter data in the app.
@@ -38,6 +47,9 @@ final class CharterStore {
     /// Local repository for database operations
     // Sendable conformance required for Observable in Swift 6
     private let repository: any CharterRepository
+
+    /// Optional hook used before deleting a non-private synced charter so discovery stays consistent.
+    private weak var discoveryUnpublisher: (any CharterDiscoveryUnpublishing)?
     
     // MARK: - Initialization
     
@@ -49,6 +61,11 @@ final class CharterStore {
     ///              to ensure proper dependency injection throughout the app.
     init(repository: any CharterRepository) {
         self.repository = repository
+    }
+
+    /// Wire the sync service (or a test double) after both objects exist. Uses a weak reference.
+    func setDiscoveryUnpublisher(_ unpublisher: (any CharterDiscoveryUnpublishing)?) {
+        discoveryUnpublisher = unpublisher
     }
     
     // MARK: - Charter Operations
@@ -185,11 +202,35 @@ final class CharterStore {
         }
     }
 
-    func deleteCharter(_ charterID: UUID) async throws {
+    /// Deletes a charter locally. When `unpublishFromDiscoveryIfNeeded` is `true`, also asks the
+    /// server to remove the charter from discovery if it was synced with a `serverID` and non-private visibility.
+    ///
+    /// Unpublish failures are logged and ignored so local deletion still completes. Pass
+    /// `unpublishFromDiscoveryIfNeeded: false` when the user explicitly chooses to drop only the local copy
+    /// while leaving the server record (see `CharterDeleteModal`).
+    func deleteCharter(_ charterID: UUID, unpublishFromDiscoveryIfNeeded: Bool = true) async throws {
         AppLogger.store.startOperation("Delete Charter")
         AppLogger.store.info("Deleting charter with ID: \(charterID.uuidString)")
         
         do {
+            if unpublishFromDiscoveryIfNeeded {
+                let charter = if let cached = charters.first(where: { $0.id == charterID }) {
+                    cached
+                } else {
+                    try? await repository.fetchCharter(id: charterID)
+                }
+                if let charter, let serverID = charter.serverID, charter.visibility != .private,
+                   let unpublisher = discoveryUnpublisher {
+                    do {
+                        try await unpublisher.unpublishCharter(serverID: serverID)
+                    } catch {
+                        AppLogger.store.warning(
+                            "Unpublish before delete failed; continuing with local delete: \(error.localizedDescription)"
+                        )
+                    }
+                }
+            }
+
             try await repository.deleteCharter(charterID)
             
             // Remove from local array

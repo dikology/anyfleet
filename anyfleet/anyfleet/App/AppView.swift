@@ -77,7 +77,10 @@ struct AppView: View {
                         libraryStore: dependencies.libraryStore,
                         coordinator: coordinator
                     ),
-                    charterDiscoveryViewModel: CharterDiscoveryViewModel(apiClient: dependencies.apiClient)
+                    charterDiscoveryViewModel: CharterDiscoveryViewModel(
+                        apiClient: dependencies.apiClient,
+                        locationProvider: dependencies.locationProvider
+                    )
                 )
                     .navigationDestination(for: AppRoute.self) { route in
                         coordinator.destination(for: route)

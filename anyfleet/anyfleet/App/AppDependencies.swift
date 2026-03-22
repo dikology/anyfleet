@@ -102,6 +102,9 @@ final class AppDependencies {
     /// Place search service for destination autocomplete
     let locationSearchService: any LocationSearchService
 
+    /// Device location for charter discovery “near me” (shared `CLLocationManager` via ``SystemLocationProvider``).
+    let locationProvider: LocationProviding
+
     /// Localization service for managing app language
     let localizationService: LocalizationService
     
@@ -158,6 +161,7 @@ final class AppDependencies {
             authService: authService
         )
         self.charterSyncService = charterSync
+        charterStore.setDiscoveryUnpublisher(charterSync)
 
         // Initialize sync coordinator (replaces direct timer in AppCoordinator)
         self.syncCoordinator = SyncCoordinator(
@@ -167,6 +171,7 @@ final class AppDependencies {
 
         // Initialize services
         self.locationSearchService = MKLocationSearchService()
+        self.locationProvider = SystemLocationProvider()
         self.localizationService = LocalizationService()
         self.authStateObserver = AuthStateObserver(authService: authService)
         self.visibilityService = VisibilityService(
@@ -235,6 +240,7 @@ final class AppDependencies {
             authService: authService
         )
         self.charterSyncService = charterSync
+        charterStore.setDiscoveryUnpublisher(charterSync)
         self.syncCoordinator = SyncCoordinator(
             contentSyncService: contentSyncService,
             charterSyncService: charterSync
@@ -242,6 +248,7 @@ final class AppDependencies {
 
         // Initialize services
         self.locationSearchService = MKLocationSearchService()
+        self.locationProvider = SystemLocationProvider()
         self.localizationService = LocalizationService()
         self.authStateObserver = AuthStateObserver(authService: authService)
         self.visibilityService = VisibilityService(

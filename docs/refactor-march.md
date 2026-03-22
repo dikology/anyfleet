@@ -39,8 +39,8 @@
 | C2 | Force-cast crash: `EmptyResponse() as! T` | `APIClient.swift:441` | **Critical** |
 | C3 | Magic content-type strings (`"checklist"`, `"practice_guide"`) in fork logic | `LibraryStore.swift` | Medium |
 | C4 | Hardcoded section titles "Upcoming" / "Past" bypass L10n | `CharterListView.swift:145,172` | Low |
-| C5 | Commented-out sync-enqueue calls throughout `LocalRepository` (TODOs deferred) | `LocalRepository.swift` | Medium |
-| C6 | `CLLocationManager` created inside `CharterDiscoveryViewModel.init()` — not injectable, untestable | `CharterDiscoveryViewModel.swift:46` | Medium |
+| C5 | ~~Commented-out sync-enqueue TODOs in `LocalRepository`~~ **Resolved:** queue ops stay in `SyncQueueService` / `LibraryStore`; repository documents the boundary. | `LocalRepository.swift` | Done |
+| C6 | ~~`CLLocationManager` in `CharterDiscoveryViewModel.init`~~ **Resolved:** `LocationProviding` + `SystemLocationProvider`, injected via `AppDependencies`. | `CharterDiscoveryViewModel.swift`, `LocationProviding.swift` | Done |
 
 ### Swift / SwiftUI
 
@@ -532,7 +532,7 @@ func testAPIClientEmptyResponsePathIsSafe() async throws {
 
 // 4. HIGH — Discovery pagination loads page 2 from offset
 func testDiscoveryViewModelPaginationAppendsResults() async throws {
-    let vm = CharterDiscoveryViewModel(apiClient: MockAPIClient(pages: [page1, page2]))
+    let vm = CharterDiscoveryViewModel(apiClient: MockAPIClient(pages: [page1, page2]), locationProvider: mockLocationProvider)
     await vm.loadInitial()
     await vm.loadMore()
     XCTAssertEqual(vm.charters.count, 40)  // 20 + 20
@@ -582,5 +582,58 @@ These iOS changes require corresponding backend work:
 
 ---
 
-*Document version: 1.0 — March 2026*  
-*Based on codebase snapshot at commit time; re-validate force-unwrap line numbers before each fix.*
+## 8. Implementation checklist (severity order)
+
+Status reflects **anyfleet** iOS + **anyfleet-backend** as verified after the original review. Within each severity, items are ordered: completed first (`[x]`), then remaining work (`[ ]`).
+
+### Critical
+
+- [x] **A1 / Step 1** — `CharterStore.updateCharter` writes the returned charter back into `charters` (no cache drift).
+- [x] **C1 / Step 2** — `LocalRepository` sync-queue load: invalid UUID / unknown `SyncOperation` rows are skipped with logging (no force-unwrap).
+- [x] **C2 / Step 2** — `APIClient` uses conditional `EmptyResponse() as? T` instead of force-cast to `T`.
+- [x] **T1** — Regression test: after `updateCharter`, `store.charters` matches the updated model (see §5 example `testUpdateCharterUpdatesInMemoryCache`).
+
+### High
+
+- [x] **Step 3 / backend** — Owner can remove a charter from the server (`DELETE /charters/{id}` soft delete); discovery excludes deleted charters.
+- [x] **Step 3 / iOS** — Non-private delete flow unpublishes via `CharterSyncService.unpublishCharter` + confirmation UI (`CharterDeleteModal`) from charter list.
+- [x] **A2 / Step 4** — `DiscoverableCharter` domain file slimmed; DTOs in `Core/Models/API/`.
+- [x] **A3 / Step 5** — `ProfileViewModel` in `Features/Profile/ProfileViewModel.swift`.
+- [x] **A4 / Step 6** — `CharterListView` and `DiscoverView` require injected view models (no `AppDependencies()` fallback in those entry points).
+- [x] **A5 / Step 5** — `AuthService` is `@MainActor`.
+- [x] **U1 / U6 / Step 7** — Map: `UserAvatarPin`, selection/callout path, localized empty overlay when there are no located charters.
+- [x] **Backend §6 (partial)** — `CharterWithUser`-style responses include captain `avatar_url` (and related user fields); profile responses include social/community data (wired through auth/profile APIs—paths differ slightly from the table below).
+- [x] **A7 (full)** — `CharterStore.deleteCharter` should call unpublish when `serverID != nil` and visibility ≠ `.private`, so **every** delete path stays consistent (today unpublish is driven from the list UI, not the store).
+- [ ] **U5** — Home: “nearby captains” strip when an active charter exists; iOS model + API client; backend `GET /captains/nearby?lat=&lon=&radius_km=`.
+- [x] **T2** — Integration test: delete public/community charter → no longer discoverable (or equivalent contract test).
+- [x] **T3** — Unit test: `APIClient` empty-body / `EmptyResponse` path does not crash (e.g. 204-style response).
+
+### Medium
+
+- [x] **T4** — `CharterDiscoveryViewModelTests` cover pagination, cache-hit offset behavior, and stale background refresh expectations.
+- [x] **C4** — Charter list section headers use `L10n` (not hardcoded “Upcoming” / “Past”).
+- [ ] **A6** — `AppDependencies.makeForTesting(mockRepository:)` still constructs a discarded `CharterStore` (`_ = …`); fix or document a single supported test pattern.
+- [ ] **C3** — Replace magic fork/publish strings (`"checklist"`, `"practice_guide"`, etc.) in `LibraryStore` with shared typed constants or an enum.
+- [x] **C5** — Resolve or implement `LocalRepository` TODOs around enqueueing sync after local mutations.
+- [x] **C6 / Step 7** — Introduce `LocationProviding` (or equivalent) and inject into `CharterDiscoveryViewModel` instead of owning `CLLocationManager()` inside `init`.
+- [x] **S2 / Step 7** — Remove unstructured `Task { await loadInitial() }` from the filter-apply path (`applyFiltersImmediately` / related); prefer structured concurrency from the caller.
+- [ ] **S5** — `FlashcardDeck` stub: consolidate or remove placeholders across `LibraryStore`, repositories, and discover reader until the feature is real.
+- [ ] **U3** — Onboarding: `OnboardingService` (UserDefaults), first-launch swipe hint on `CharterListView`, optional `AppRoute.onboarding` sheet.
+- [ ] **U7** — Profile “Delete Account”: replace empty button action with real `deleteAccount` flow (client + backend contract).
+- [ ] **Step 8 / profile UI** — Further decompose `ProfileView` toward the ~150-line container + `Components/` split described in §8 (hero, stats, communities, socials, edit form).
+- [ ] **Caching (§ “Caching strategy”)** — Persistent discovery cache in SQLite (`DiscoveryCacheRecord`); optional WiFi-triggered `pullRemoteCharters()` prefetch.
+- [ ] **T5** — Test coverage for delete-while-public / push-queue edge cases called out in §5.
+- [ ] **Step 3 (modal choice)** — Doc suggested `PublishedContentDeleteModal`; app uses `CharterDeleteModal` (functionally fine—align naming/docs if desired).
+- [ ] **Step 6 (remainder)** — `LibraryListView` (and any other views) must not create bare `AppDependencies()` in production `init` paths (duplicate sync coordinator risk).
+
+### Low
+
+- [x] **S1** — `ProfileViewModel` uses class-level `@MainActor` instead of per-method annotations.
+- [ ] **S3** — Move `sorted { … }` for upcoming/past charter rows out of hot `body` paths (e.g. computed properties on the view model).
+- [ ] **S4** — `CharterTimelineRow` / month boundary: avoid allocating `Calendar.current` on every evaluation where possible.
+- [ ] **§6 doc accuracy** — Table still says `PATCH /profile` for communities/socials; implementation uses **auth** `update_profile` with `community_memberships` / `social_links`. Update §6 when editing this doc next.
+
+---
+
+*Document version: 1.1 — March 2026*  
+*§8 checklist added. Re-validate §2 line numbers and §6 endpoint names against the repo before each fix.*
