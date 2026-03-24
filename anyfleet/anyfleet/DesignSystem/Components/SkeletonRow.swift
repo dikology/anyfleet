@@ -73,6 +73,53 @@ extension DesignSystem {
         }
     }
 
+    // MARK: - Skeleton row matching DiscoverContentRow shape
+
+    /// Placeholder that mirrors `DiscoverContentRow` for the discover content tab.
+    struct DiscoverContentSkeletonRow: View {
+        var animating: Bool? = nil
+
+        var body: some View {
+            VStack(alignment: .leading, spacing: 0) {
+                HStack(alignment: .top, spacing: DesignSystem.Spacing.lg) {
+                    SkeletonBlock(width: 48, height: 48, animating: animating)
+                        .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusSmall))
+
+                    VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
+                        HStack(alignment: .top, spacing: DesignSystem.Spacing.sm) {
+                            SkeletonBlock(width: 160, height: 18, animating: animating)
+                            Spacer(minLength: 0)
+                            SkeletonBlock(width: 56, height: 14, animating: animating)
+                        }
+                        SkeletonBlock(height: 14, animating: animating)
+                        SkeletonBlock(width: 200, height: 14, animating: animating)
+                    }
+                }
+                .padding(DesignSystem.Spacing.lg)
+
+                Divider()
+                    .background(DesignSystem.Colors.border.opacity(0.3))
+                    .padding(.horizontal, DesignSystem.Spacing.lg)
+
+                HStack(spacing: DesignSystem.Spacing.sm) {
+                    SkeletonBlock(width: 24, height: 24, animating: animating)
+                        .clipShape(Circle())
+                    SkeletonBlock(width: 72, height: 11, animating: animating)
+                    Spacer()
+                    SkeletonBlock(width: 36, height: 11, animating: animating)
+                }
+                .padding(.horizontal, DesignSystem.Spacing.lg)
+                .padding(.vertical, DesignSystem.Spacing.md)
+            }
+            .background(DesignSystem.Colors.surface)
+            .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Spacing.cardCornerRadius))
+            .overlay(
+                RoundedRectangle(cornerRadius: DesignSystem.Spacing.cardCornerRadius)
+                    .stroke(DesignSystem.Colors.border.opacity(0.3), lineWidth: 1)
+            )
+        }
+    }
+
     // MARK: - Skeleton row matching LibraryItemRow shape
 
     /// Full-width skeleton placeholder that mirrors the shape of `LibraryItemRow`.

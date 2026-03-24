@@ -117,6 +117,12 @@ final class CharterStore {
 
     func loadCharters() async throws {
         AppLogger.store.startOperation("Load Charters")
+        if ProcessInfo.processInfo.environment["UITesting"] == "true" {
+            charters = Self.uiTestingCharters
+            AppLogger.store.info("Loaded \(charters.count) UI-testing charters")
+            AppLogger.store.completeOperation("Load Charters")
+            return
+        }
         do {
             charters = try await repository.fetchAllCharters()
             AppLogger.store.info("Loaded \(charters.count) charters from repository")
@@ -125,6 +131,24 @@ final class CharterStore {
             AppLogger.store.failOperation("Load Charters", error: error)
             throw error
         }
+    }
+
+    /// In-memory charters for UI tests (`UITesting`); one upcoming private charter.
+    private static var uiTestingCharters: [CharterModel] {
+        let start = Date().addingTimeInterval(86400 * 14)
+        let end = Date().addingTimeInterval(86400 * 21)
+        return [
+            CharterModel(
+                id: UUID(),
+                name: "UI Test Charter",
+                boatName: nil,
+                location: nil,
+                startDate: start,
+                endDate: end,
+                createdAt: Date(),
+                visibility: .private
+            )
+        ]
     }
 
     func fetchCharter(_ charterID: UUID) async throws -> CharterModel {
