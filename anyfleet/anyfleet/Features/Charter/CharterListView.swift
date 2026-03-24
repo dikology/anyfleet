@@ -8,6 +8,10 @@ struct CharterListView: View {
     @State private var showPast = false
     @State private var charterPendingDelete: CharterModel?
 
+    @AppStorage("hasSeenCharterSwipeHint") private var hasSeenCharterSwipeHint = false
+    @State private var playSwipeHint = false
+    @State private var showSwipeTip = false
+
     @MainActor
     init(viewModel: CharterListViewModel) {
         _viewModel = State(initialValue: viewModel)
@@ -32,7 +36,8 @@ struct CharterListView: View {
                 VStack {
                     HStack(spacing: DesignSystem.Spacing.sm) {
                         Image(systemName: "icloud.and.arrow.up")
-                            .font(.system(size: 14, weight: .semibold))
+                            .font(DesignSystem.Typography.caption)
+                            .fontWeight(.semibold)
                         Text(L10n.Charter.List.signInToSyncBanner)
                             .font(DesignSystem.Typography.caption)
                             .fixedSize(horizontal: false, vertical: true)
@@ -126,18 +131,33 @@ struct CharterListView: View {
         }
     }
 
+    private var sortedUpcomingCharters: [CharterModel] {
+        viewModel.upcomingCharters.sorted { $0.startDate < $1.startDate }
+    }
+
+    private var charterSwipeTipActions: [SwipeActionTipChip.Action] {
+        [
+            .init(icon: "pencil", label: L10n.Charter.List.actionEdit, tint: .gray),
+            .init(icon: "trash", label: L10n.Charter.List.actionDelete, tint: DesignSystem.Colors.error)
+        ]
+    }
+
     private var charterList: some View {
         List {
             // UPCOMING SECTION
             if !viewModel.upcomingCharters.isEmpty {
                 Section {
-                    ForEach(viewModel.upcomingCharters.sorted { $0.startDate < $1.startDate }) { charter in
+                    ForEach(sortedUpcomingCharters) { charter in
                         CharterTimelineRow(charter: charter) {
                             coordinator.viewCharter(charter.id)
                         }
                         .listRowInsets(EdgeInsets(top: 4, leading: DesignSystem.Spacing.lg, bottom: 4, trailing: DesignSystem.Spacing.lg))
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
+                        .swipeHint(isPlaying: Binding(
+                            get: { playSwipeHint && charter.id == sortedUpcomingCharters.first?.id },
+                            set: { playSwipeHint = $0 }
+                        ))
                         .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                             // Use role: .destructive only when deletion is immediate.
                             // For non-private charters a confirmation modal is shown first;
@@ -163,7 +183,7 @@ struct CharterListView: View {
                         }
                     }
                 } header: {
-                    sectionLabel(L10n.Charter.List.sectionUpcoming)
+                    upcomingSectionHeader
                 }
             }
 
@@ -189,6 +209,13 @@ struct CharterListView: View {
                                         Task { try? await viewModel.deleteCharter(charter.id) }
                                     } label: { Label(L10n.Charter.List.actionDelete, systemImage: "trash") }
                                 }
+
+                                Button {
+                                    coordinator.editCharter(charter.id)
+                                } label: {
+                                    Label(L10n.Charter.List.actionEdit, systemImage: "pencil")
+                                }
+                                .tint(.gray)
                             }
                         }
                     }
@@ -199,12 +226,15 @@ struct CharterListView: View {
                         HStack(spacing: DesignSystem.Spacing.xs) {
                             sectionLabel(L10n.Charter.List.sectionPastWithCount(viewModel.pastCharters.count))
                             Spacer()
-                            Image(systemName: showPast ? "chevron.up" : "chevron.down")
-                                .font(.system(size: 11, weight: .semibold))
+                            Image(systemName: "chevron.right")
+                                .font(DesignSystem.Typography.micro)
+                                .fontWeight(.semibold)
                                 .foregroundColor(DesignSystem.Colors.textSecondary)
+                                .rotationEffect(.degrees(showPast ? 90 : 0))
                         }
                     }
                     .buttonStyle(.plain)
+                    .accessibilityHint(showPast ? "Collapse past charters" : "Expand past charters")
                 }
             }
         }
@@ -214,6 +244,31 @@ struct CharterListView: View {
             DesignSystem.Gradients.subtleBackground
                 .ignoresSafeArea()
         )
+        .overlay(alignment: .top) {
+            if showSwipeTip {
+                SwipeActionTipChip(actions: charterSwipeTipActions)
+                    .padding(.horizontal, DesignSystem.Spacing.lg)
+                    .padding(.top, DesignSystem.Spacing.sm)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+            }
+        }
+        .animation(.easeInOut(duration: 0.35), value: showSwipeTip)
+        .task(id: viewModel.upcomingCharters.isEmpty) {
+            await runCharterSwipeOnboardingIfNeeded()
+        }
+    }
+
+    private func runCharterSwipeOnboardingIfNeeded() async {
+        guard !viewModel.upcomingCharters.isEmpty, !hasSeenCharterSwipeHint else { return }
+        try? await Task.sleep(for: .seconds(0.8))
+        guard !Task.isCancelled else { return }
+        withAnimation(.easeInOut(duration: 0.35)) { showSwipeTip = true }
+        playSwipeHint = true
+        try? await Task.sleep(for: .seconds(2.5))
+        guard !Task.isCancelled else { return }
+        withAnimation(.easeInOut(duration: 0.35)) { showSwipeTip = false }
+        playSwipeHint = false
+        hasSeenCharterSwipeHint = true
     }
 
     private var createButton: some View {
@@ -227,6 +282,22 @@ struct CharterListView: View {
     }
 
     // MARK: - Section label
+
+    private var upcomingSectionHeader: some View {
+        HStack(spacing: DesignSystem.Spacing.xs) {
+            Image(systemName: "sailboat.fill")
+                .font(DesignSystem.Typography.micro)
+                .foregroundColor(DesignSystem.Colors.primary)
+            sectionLabel(L10n.Charter.List.sectionUpcoming)
+        }
+        .padding(.horizontal, DesignSystem.Spacing.sm)
+        .padding(.vertical, DesignSystem.Spacing.xs)
+        .background(
+            Capsule()
+                .fill(DesignSystem.Colors.primary.opacity(0.06))
+        )
+        .padding(.vertical, DesignSystem.Spacing.xs)
+    }
 
     private func sectionLabel(_ text: String) -> some View {
         Text(text)
@@ -274,7 +345,7 @@ struct CharterTimelineRow: View {
     private var dateGutter: some View {
         VStack(spacing: 2) {
             Text(Self.dayFormatter.string(from: charter.startDate))
-                .font(.system(size: 28, weight: .bold, design: .rounded))
+                .font(DesignSystem.Typography.dateDisplay)
                 .foregroundColor(charter.isUpcoming
                     ? DesignSystem.Colors.textPrimary
                     : DesignSystem.Colors.textSecondary)
@@ -324,7 +395,7 @@ struct CharterTimelineRow: View {
     private var nameRow: some View {
         VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
             Text(charter.name)
-                .font(.system(size: 16, weight: .semibold))
+                .font(DesignSystem.Typography.subheader)
                 .foregroundColor(DesignSystem.Colors.textPrimary)
                 .lineLimit(2)
             if returnIsInDifferentMonth {

@@ -10,6 +10,8 @@ extension DesignSystem {
         static let title      = Font.system(size: 20, weight: .semibold)
         static let headline   = Font.system(size: 17, weight: .semibold)
         static let subheader  = Font.system(size: 16, weight: .semibold)
+        /// List date gutter (e.g. charter timeline day numeral) — bold rounded, 28pt.
+        static let dateDisplay = Font.system(size: 28, weight: .bold, design: .rounded)
         static let body       = Font.system(size: 16, weight: .regular)
         static let caption    = Font.system(size: 14, weight: .regular)
         static let micro      = Font.system(size: 11, weight: .medium)

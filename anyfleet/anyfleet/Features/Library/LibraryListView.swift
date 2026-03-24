@@ -114,26 +114,6 @@ struct LibraryListView: View {
 
 // MARK: - Supporting Components
 
-struct ErrorBannerOverlay: View {
-    let error: AppError
-    let onDismiss: () -> Void
-    let onRetry: () -> Void
-
-    var body: some View {
-        VStack {
-            Spacer()
-            ErrorBanner(
-                error: error,
-                onDismiss: onDismiss,
-                onRetry: onRetry
-            )
-            .padding(.horizontal)
-            .padding(.bottom, 20)
-        }
-        .transition(.move(edge: .bottom).combined(with: .opacity))
-    }
-}
-
 struct LibraryModalsModifier: ViewModifier {
     @Bindable var viewModel: LibraryListViewModel
 
@@ -247,13 +227,38 @@ struct ContentFilterPicker: View {
     @Binding var selection: ContentFilter
 
     var body: some View {
-        Picker(L10n.Library.filterAccessibilityLabel, selection: $selection) {
-            ForEach(ContentFilter.allCases) { filter in
-                Text(filter.title).tag(filter)
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: DesignSystem.Spacing.md) {
+                ForEach(ContentFilter.allCases) { filter in
+                    filterChip(filter)
+                }
             }
+            .padding(.horizontal, DesignSystem.Spacing.lg)
+            .padding(.vertical, DesignSystem.Spacing.xs)
         }
-        .pickerStyle(.segmented)
-        .padding(.horizontal, DesignSystem.Spacing.lg)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(L10n.Library.filterAccessibilityLabel)
+    }
+
+    private func filterChip(_ filter: ContentFilter) -> some View {
+        let selected = selection == filter
+        return Button {
+            selection = filter
+        } label: {
+            VStack(spacing: DesignSystem.Spacing.xs) {
+                Text(filter.title)
+                    .font(DesignSystem.Typography.micro)
+                    .fontWeight(selected ? .semibold : .medium)
+                    .foregroundColor(selected ? DesignSystem.Colors.primary : DesignSystem.Colors.textSecondary)
+                Capsule()
+                    .fill(selected ? DesignSystem.Colors.primary : Color.clear)
+                    .frame(height: 2)
+            }
+            .padding(.vertical, DesignSystem.Spacing.xs)
+            .frame(minWidth: 44)
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("library.filterChip.\(filter.rawValue)")
     }
 }
 
@@ -320,8 +325,26 @@ struct LibraryEmptyState: View {
 struct LibraryContentList: View {
     let viewModel: LibraryListViewModel
 
+    @AppStorage("hasSeenLibrarySwipeHint") private var hasSeenLibrarySwipeHint = false
+    @State private var playSwipeHint = false
+    @State private var showSwipeTip = false
+
+    private var librarySwipeTipActions: [SwipeActionTipChip.Action] {
+        [
+            .init(icon: "pin", label: L10n.Library.actionPin, tint: DesignSystem.Colors.primary),
+            .init(icon: "pencil", label: L10n.Library.actionEdit, tint: .gray),
+            .init(icon: "trash", label: L10n.Library.actionDelete, tint: DesignSystem.Colors.error)
+        ]
+    }
+
     var body: some View {
         VStack(spacing: DesignSystem.Spacing.md) {
+            if showSwipeTip {
+                SwipeActionTipChip(actions: librarySwipeTipActions)
+                    .padding(.horizontal, DesignSystem.Spacing.lg)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+            }
+
             ContentFilterPicker(selection: Binding(
                 get: { viewModel.selectedFilter },
                 set: { viewModel.selectedFilter = $0 }
@@ -373,6 +396,10 @@ struct LibraryContentList: View {
                     ))
                     .listRowSeparator(.hidden)
                     .listRowBackground(Color.clear)
+                    .swipeHint(isPlaying: Binding(
+                        get: { playSwipeHint && item.id == viewModel.filteredItems.first?.id },
+                        set: { playSwipeHint = $0 }
+                    ))
                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                         Button(role: .destructive) {
                             viewModel.initiateDelete(item)
@@ -422,6 +449,23 @@ struct LibraryContentList: View {
                 .ignoresSafeArea()
             )
         }
+        .animation(.easeInOut(duration: 0.35), value: showSwipeTip)
+        .task(id: viewModel.filteredItems.isEmpty) {
+            await runLibrarySwipeOnboardingIfNeeded()
+        }
+    }
+
+    private func runLibrarySwipeOnboardingIfNeeded() async {
+        guard !viewModel.filteredItems.isEmpty, !hasSeenLibrarySwipeHint else { return }
+        try? await Task.sleep(for: .seconds(0.8))
+        guard !Task.isCancelled else { return }
+        withAnimation(.easeInOut(duration: 0.35)) { showSwipeTip = true }
+        playSwipeHint = true
+        try? await Task.sleep(for: .seconds(2.5))
+        guard !Task.isCancelled else { return }
+        withAnimation(.easeInOut(duration: 0.35)) { showSwipeTip = false }
+        playSwipeHint = false
+        hasSeenLibrarySwipeHint = true
     }
 }
 

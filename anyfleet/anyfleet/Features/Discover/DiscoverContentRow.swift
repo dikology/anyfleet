@@ -8,8 +8,7 @@ struct DiscoverContentRow: View {
     let onForkTapped: () -> Void
     
     @State private var isPressed = false
-    @State private var showSwipeActions = false
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             // SECTION 1: Icon + Title + Badge + Description (reference: flex gap-4)
@@ -20,7 +19,7 @@ struct DiscoverContentRow: View {
                     // Title row with type badge inline (reference: flex justify-between items-start)
                     HStack(alignment: .top) {
                         Text(content.title)
-                            .font(.system(size: 16, weight: .bold))
+                            .font(DesignSystem.Typography.subheader)
                             .foregroundColor(DesignSystem.Colors.textPrimary)
                             .lineLimit(2)
                             .fixedSize(horizontal: false, vertical: true)
@@ -32,7 +31,7 @@ struct DiscoverContentRow: View {
 
                     if let description = content.description, !description.isEmpty {
                         Text(description)
-                            .font(.system(size: 13, weight: .regular))
+                            .font(DesignSystem.Typography.caption)
                             .foregroundColor(DesignSystem.Colors.textSecondary)
                             .lineLimit(2)
                     }
@@ -54,7 +53,8 @@ struct DiscoverContentRow: View {
                     attributionAvatarStack
 
                     Text(content.createdAt.formatted(.relative(presentation: .named)))
-                        .font(.system(size: 11, weight: .regular))
+                        .font(DesignSystem.Typography.micro)
+                        .fontWeight(.regular)
                         .foregroundColor(DesignSystem.Colors.textSecondary)
                 }
 
@@ -62,21 +62,22 @@ struct DiscoverContentRow: View {
 
                 HStack(spacing: 4) {
                     Image(systemName: "arrow.triangle.branch")
-                        .font(.system(size: 11, weight: .medium))
+                        .font(DesignSystem.Typography.micro)
                         .foregroundColor(DesignSystem.Colors.textSecondary)
 
                     Text("\(content.forkCount)")
-                        .font(.system(size: 11, weight: .medium))
+                        .font(DesignSystem.Typography.micro)
                         .foregroundColor(DesignSystem.Colors.textSecondary)
                 }
+                .fontWeight(.medium)
             }
             .padding(.horizontal, DesignSystem.Spacing.lg)
             .padding(.vertical, DesignSystem.Spacing.md)
         }
         .background(DesignSystem.Colors.surface)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Spacing.cardCornerRadius))
         .overlay(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: DesignSystem.Spacing.cardCornerRadius)
                 .stroke(DesignSystem.Colors.border.opacity(0.3), lineWidth: 1)
         )
         .shadow(color: .black.opacity(0.06), radius: 2, x: 0, y: 1)
@@ -96,7 +97,7 @@ struct DiscoverContentRow: View {
     private var contentTypeIcon: some View {
         let (bgColor, iconColor) = content.contentType.iconColors
         return ZStack {
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusSmall)
                 .fill(bgColor)
 
             Image(systemName: content.contentType.icon)
@@ -115,7 +116,7 @@ struct DiscoverContentRow: View {
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
             .overlay(
-                RoundedRectangle(cornerRadius: 4)
+                RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusSmall)
                     .stroke(borderColor, lineWidth: 1)
             )
     }
@@ -182,13 +183,14 @@ struct DiscoverContentRow: View {
     }
 
     private func avatarCircle(username: String, size: CGFloat) -> some View {
-        ZStack {
+        let tint = DesignSystem.Colors.hashColor(for: username)
+        return ZStack {
             Circle()
                 .fill(
                     LinearGradient(
                         colors: [
-                            hashColor(username).opacity(0.7),
-                            hashColor(username).opacity(0.5)
+                            tint.opacity(0.7),
+                            tint.opacity(0.5)
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
@@ -220,19 +222,6 @@ struct DiscoverContentRow: View {
             Circle()
                 .stroke(DesignSystem.Colors.surface, lineWidth: 2)
         )
-    }
-    
-    /// Generate a consistent color based on username for avatar
-    private func hashColor(_ username: String) -> Color {
-        let colors: [Color] = [
-            DesignSystem.Colors.primary,
-            Color(red: 0.8, green: 0.5, blue: 0.3),
-            Color(red: 0.3, green: 0.7, blue: 0.8),
-            Color(red: 0.7, green: 0.3, blue: 0.6),
-            Color(red: 0.5, green: 0.7, blue: 0.3)
-        ]
-        let hash = username.utf8.reduce(0) { $0 &+ Int($1) }
-        return colors[abs(hash) % colors.count]
     }
 }
 

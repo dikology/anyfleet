@@ -22,6 +22,11 @@ struct DiscoverView: View {
         }
     }
     @State private var selectedTab: ContentTab = .content
+    @State private var discoverSkeletonAnimating = false
+
+    @AppStorage("hasSeenDiscoverSwipeHint") private var hasSeenDiscoverSwipeHint = false
+    @State private var playDiscoverSwipeHint = false
+    @State private var showDiscoverSwipeTip = false
 
     // Modal state
     @State private var selectedAuthor: AuthorProfileWrapper?
@@ -63,7 +68,7 @@ struct DiscoverView: View {
                         onRetry: { Task { await viewModel.loadContent() } }
                     )
                     .padding(.horizontal)
-                    .padding(.bottom, 20)
+                    .padding(.bottom, DesignSystem.Spacing.xl)
                 }
                 .transition(.move(edge: .bottom).combined(with: .opacity))
             }
@@ -125,11 +130,43 @@ struct DiscoverView: View {
     private var contentTabView: some View {
         ZStack {
             Group {
-                if viewModel.isEmpty && !viewModel.isLoading {
+                if viewModel.isLoading && viewModel.content.isEmpty {
+                    discoverContentSkeletonList
+                } else if viewModel.isEmpty {
                     emptyState
                 } else {
                     contentList
                 }
+            }
+        }
+    }
+
+    private var discoverContentSkeletonList: some View {
+        ScrollView {
+            VStack(spacing: DesignSystem.Spacing.sm) {
+                ForEach(0..<5, id: \.self) { _ in
+                    DesignSystem.DiscoverContentSkeletonRow(animating: discoverSkeletonAnimating)
+                }
+            }
+            .padding(.horizontal, DesignSystem.Spacing.lg)
+            .padding(.top, DesignSystem.Spacing.sm)
+        }
+        .scrollContentBackground(.hidden)
+        .background(
+            LinearGradient(
+                colors: [
+                    DesignSystem.Colors.background,
+                    DesignSystem.Colors.oceanDeep.opacity(0.02)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
+        )
+        .allowsHitTesting(false)
+        .onAppear {
+            withAnimation(.linear(duration: 1.2).repeatForever(autoreverses: false)) {
+                discoverSkeletonAnimating = true
             }
         }
     }
@@ -154,6 +191,17 @@ struct DiscoverView: View {
             )
             .ignoresSafeArea()
         )
+    }
+
+    private var discoverSwipeTipActions: [SwipeActionTipChip.Action] {
+        [
+            .init(icon: "arrow.triangle.branch.fill", label: "Fork", tint: DesignSystem.Colors.primary)
+        ]
+    }
+
+    /// Drives swipe onboarding when the content tab list is shown with items.
+    private var discoverSwipeOnboardingTaskActive: Bool {
+        selectedTab == .content && !viewModel.content.isEmpty
     }
 
     // MARK: - Content List
@@ -191,6 +239,10 @@ struct DiscoverView: View {
                 ))
                 .listRowSeparator(.hidden)
                 .listRowBackground(Color.clear)
+                .swipeHint(isPlaying: Binding(
+                    get: { playDiscoverSwipeHint && content.id == viewModel.content.first?.id },
+                    set: { playDiscoverSwipeHint = $0 }
+                ))
             }
         }
         .listStyle(.plain)
@@ -206,6 +258,32 @@ struct DiscoverView: View {
             )
             .ignoresSafeArea()
         )
+        .overlay(alignment: .top) {
+            if showDiscoverSwipeTip {
+                SwipeActionTipChip(actions: discoverSwipeTipActions)
+                    .padding(.horizontal, DesignSystem.Spacing.lg)
+                    .padding(.top, DesignSystem.Spacing.sm)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+            }
+        }
+        .animation(.easeInOut(duration: 0.35), value: showDiscoverSwipeTip)
+        .task(id: discoverSwipeOnboardingTaskActive) {
+            await runDiscoverSwipeOnboardingIfNeeded()
+        }
+    }
+
+    private func runDiscoverSwipeOnboardingIfNeeded() async {
+        guard selectedTab == .content else { return }
+        guard !viewModel.content.isEmpty, !hasSeenDiscoverSwipeHint else { return }
+        try? await Task.sleep(for: .seconds(0.8))
+        guard !Task.isCancelled else { return }
+        withAnimation(.easeInOut(duration: 0.35)) { showDiscoverSwipeTip = true }
+        playDiscoverSwipeHint = true
+        try? await Task.sleep(for: .seconds(2.5))
+        guard !Task.isCancelled else { return }
+        withAnimation(.easeInOut(duration: 0.35)) { showDiscoverSwipeTip = false }
+        playDiscoverSwipeHint = false
+        hasSeenDiscoverSwipeHint = true
     }
 }
 

@@ -169,6 +169,12 @@ final class LibraryStore: LibraryStoreProtocol {
     /// Load all library content metadata
     /// Full content models are loaded on-demand via fetchFullContent()
     func loadLibrary() async {
+        if ProcessInfo.processInfo.environment["UITesting"] == "true" {
+            library = Self.uiTestingLibraryItems
+            checklistCache.clear()
+            guideCache.clear()
+            return
+        }
         do {
             // Load only metadata - single source of truth
             library = try await repository.fetchUserLibrary()
@@ -184,7 +190,21 @@ final class LibraryStore: LibraryStoreProtocol {
             print("[LibraryStore] Failed to load library: \(error.localizedDescription)")
         }
     }
-    
+
+    /// Fixed metadata for UI tests (`UITesting`) so Library list onboarding can run without DB seeding.
+    private static let uiTestingLibraryItems: [LibraryModel] = [
+        LibraryModel(
+            title: "UI Test Checklist",
+            type: .checklist,
+            creatorID: UUID()
+        ),
+        LibraryModel(
+            title: "UI Test Guide",
+            type: .practiceGuide,
+            creatorID: UUID()
+        )
+    ]
+
     // MARK: - Creating Content
     
     /// Create a new checklist

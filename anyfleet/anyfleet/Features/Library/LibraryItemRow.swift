@@ -191,14 +191,15 @@ struct LibraryItemRow: View {
     }
 
     private func originalAuthorAvatarView(username: String) -> some View {
-        ZStack {
+        let tint = DesignSystem.Colors.hashColor(for: username)
+        return ZStack {
             // Avatar circle with gradient background
             Circle()
                 .fill(
                     LinearGradient(
                         colors: [
-                            hashColor(username).opacity(0.7),
-                            hashColor(username).opacity(0.5)
+                            tint.opacity(0.7),
+                            tint.opacity(0.5)
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
@@ -215,19 +216,6 @@ struct LibraryItemRow: View {
             Circle()
                 .stroke(DesignSystem.Colors.border.opacity(0.3), lineWidth: 1)
         )
-    }
-
-    /// Generate a consistent color based on username for avatar
-    private func hashColor(_ username: String) -> Color {
-        let colors: [Color] = [
-            DesignSystem.Colors.primary,
-            Color(red: 0.8, green: 0.5, blue: 0.3),
-            Color(red: 0.3, green: 0.7, blue: 0.8),
-            Color(red: 0.7, green: 0.3, blue: 0.6),
-            Color(red: 0.5, green: 0.7, blue: 0.3)
-        ]
-        let hash = username.utf8.reduce(0) { $0 &+ Int($1) }
-        return colors[abs(hash) % colors.count]
     }
 }
 
