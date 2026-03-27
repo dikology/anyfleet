@@ -107,6 +107,175 @@ Work is organized into 6 incremental sprints. Each sprint is self-contained — 
 
 **Estimated effort:** 2–3 hours (testing + fixing any discovered issues)
 
+### 1.5 Staging vs Production API Endpoints
+
+**Why this belongs in Sprint 1:** Right now every device build — TestFlight *and* App Store — hits the staging server. Staging is where you break things, run migrations, test new endpoints. Real users should never touch it. If you ship to the App Store pointing at staging, a backend migration or experiment will take down real users. This must be wired correctly before any public distribution.
+
+**Current state — three separate hardcoded staging URLs:**
+
+| File | Line | Problem |
+|------|------|---------|
+| `Services/APIClient.swift` | 114 | `URL(string: "https://anyfleet-api-staging.up.railway.app/api/v1")!` |
+| `Services/AuthService.swift` | 144 | Same pattern, independent hardcode |
+| `Features/Discover/AuthorProfileModal.swift` | 352 | `let baseURL = "https://anyfleet-api-staging.up.railway.app"` — completely disconnected from the other two |
+
+The `AuthorProfileModal` URL is the most dangerous: it's not even reading from `APIClient`. If `APIClient` is updated to point at production, image URLs in `AuthorProfileModal` will still silently fetch from staging. This is the kind of bug that's invisible in testing and breaks in production.
+
+**Target state — three environments, one source of truth:**
+
+| Build configuration | Who uses it | API target |
+|--------------------|------------|------------|
+| `Debug` | Simulator / local dev | `http://127.0.0.1:8000/api/v1` |
+| `Staging` | TestFlight device builds | `https://anyfleet-api-staging.up.railway.app/api/v1` |
+| `Release` | App Store builds | `https://anyfleet-api.up.railway.app/api/v1` *(production — see backend section below)* |
+
+---
+
+#### iOS Changes
+
+**Step 1 — Add a `Staging` build configuration in Xcode**
+
+In Xcode: Project → Info → Configurations → `+` → Duplicate "Release" → rename to `Staging`.
+
+Assign the `Staging` configuration to a new "Staging" scheme (Product → Scheme → New Scheme). This scheme is what you archive for TestFlight. The existing "Release" scheme archives for App Store.
+
+**Step 2 — Add `API_BASE_URL` as a User-Defined Build Setting**
+
+In the project's Build Settings (select the project target, not a target):
+- Add → User-Defined Setting → `API_BASE_URL`
+- Set per configuration:
+  - `Debug`: `http://127.0.0.1:8000/api/v1`
+  - `Staging`: `https://anyfleet-api-staging.up.railway.app/api/v1`
+  - `Release`: `https://anyfleet-api.up.railway.app/api/v1`
+
+**Step 3 — Inject into `Info.plist`**
+
+Add a key to `anyfleet/Info.plist`:
+```xml
+<key>API_BASE_URL</key>
+<string>$(API_BASE_URL)</string>
+```
+
+Xcode substitutes `$(API_BASE_URL)` at build time from the User-Defined Setting. The correct URL is now baked into the binary for each configuration.
+
+**Step 4 — Create `AppConfiguration` as the single source of truth**
+
+Create a new file `App/AppConfiguration.swift`:
+
+```swift
+// App/AppConfiguration.swift
+enum AppConfiguration {
+    /// The API base URL for the current build configuration.
+    /// Value is injected via Info.plist from the API_BASE_URL build setting.
+    static let apiBaseURL: URL = {
+        guard
+            let urlString = Bundle.main.object(forInfoDictionaryKey: "API_BASE_URL") as? String,
+            let url = URL(string: urlString)
+        else {
+            // This should never happen — it means Info.plist is misconfigured
+            preconditionFailure("API_BASE_URL not set in Info.plist")
+        }
+        return url
+    }()
+
+    /// Just the host + scheme portion — used for constructing image/asset URLs.
+    static let apiHost: String = {
+        guard let components = URLComponents(url: apiBaseURL, resolvingAgainstBaseURL: false),
+              let scheme = components.scheme,
+              let host = components.host
+        else { return "" }
+        return "\(scheme)://\(host)"
+    }()
+
+    static var isStaging: Bool {
+        apiBaseURL.absoluteString.contains("staging")
+    }
+}
+```
+
+**Step 5 — Update `APIClient` and `AuthService` to use `AppConfiguration`**
+
+```swift
+// APIClient.swift — replace the #if targetEnvironment block
+init(authService: AuthServiceProtocol, session: URLSession = .shared) {
+    self.baseURL = AppConfiguration.apiBaseURL
+    // ... rest unchanged
+}
+```
+
+```swift
+// AuthService.swift — replace the #if targetEnvironment block  
+init(baseURL: String? = nil, session: URLSession = .shared) {
+    self.baseURL = baseURL ?? AppConfiguration.apiBaseURL.absoluteString
+    // ... rest unchanged
+}
+```
+
+**Step 6 — Fix `AuthorProfileModal.createProfileImageURL`**
+
+Replace the hardcoded string with `AppConfiguration.apiHost`:
+
+```swift
+// AuthorProfileModal.swift line ~352 — before
+let baseURL = "https://anyfleet-api-staging.up.railway.app"
+
+// After
+let baseURL = AppConfiguration.apiHost
+```
+
+This means image URLs now automatically follow the same environment as everything else.
+
+**Step 7 — Remove the `#if targetEnvironment(simulator)` logic**
+
+The simulator-vs-device distinction is now handled by the `Debug` build configuration — you only run Debug on the simulator anyway. The compile-time `#if targetEnvironment(simulator)` blocks in `APIClient` and `AuthService` can be deleted entirely.
+
+**Step 8 — Optional: staging banner in UI**
+
+When `AppConfiguration.isStaging` is true, show a small persistent banner at the top of the screen so it's immediately obvious which environment a build is hitting:
+
+```swift
+// AppView.swift — inside the root ZStack, above tab content
+if AppConfiguration.isStaging {
+    VStack {
+        Text("STAGING")
+            .font(.system(size: 11, weight: .bold, design: .monospaced))
+            .foregroundColor(.white)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 2)
+            .background(Color.orange.opacity(0.9))
+        Spacer()
+    }
+    .ignoresSafeArea(edges: .top)
+    .allowsHitTesting(false)
+    .zIndex(999)
+}
+```
+
+This is cheap insurance — when you or a tester opens a TestFlight build alongside the App Store build, there is no confusion about which server you're hitting.
+
+---
+
+#### Backend Changes
+
+You need a production Railway deployment separate from staging. The codebase is identical — only environment variables differ.
+
+**What to set up:**
+- New Railway service: `anyfleet-api` (or `anyfleet-api-production`) using the same repo
+- New Railway PostgreSQL database instance — **separate from staging**. Never share a database between staging and production.
+- Production environment variables:
+  - `DATABASE_URL` → production Postgres
+  - `SECRET_KEY` → new, different key from staging
+  - `APPLE_TEAM_ID`, `APPLE_KEY_ID`, `APPLE_PRIVATE_KEY` → same Apple values (same app bundle)
+  - `ENVIRONMENT` → `production` (disables OpenAPI docs endpoint)
+  - `CORS_ORIGINS` → lock to your production domain only
+- Run `alembic upgrade head` against the production database before first iOS client connects
+
+**What NOT to do:**
+- Don't point the App Store build at staging even temporarily — there's no "I'll fix it later" for data written to the wrong database
+- Don't share the `SECRET_KEY` between environments — staging tokens should not be valid on production
+
+**Estimated effort:** 2–3 hours (Xcode config: 1h, iOS code changes: 30min, Railway prod setup: 1h)
+
 ---
 
 ## Sprint 2: Visual Consistency Pass (3–4 days)
