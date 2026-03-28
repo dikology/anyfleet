@@ -346,6 +346,12 @@ enum L10n {
             comment: "Privacy settings button label"
         )
 
+        static let openPrivacyPolicy = NSLocalizedString(
+            "profile.openPrivacyPolicy",
+            tableName: "Localizable",
+            comment: "Opens the public privacy policy in the browser"
+        )
+
         static let exportData = NSLocalizedString(
             "profile.exportData",
             tableName: "Localizable",

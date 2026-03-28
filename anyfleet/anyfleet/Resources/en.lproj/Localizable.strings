@@ -198,6 +198,7 @@
 "profile.forked" = "Forked";
 "profile.imported" = "Imported";
 "profile.privacySettings" = "Privacy Settings";
+"profile.openPrivacyPolicy" = "Privacy Policy";
 "profile.exportData" = "Export Data";
 "profile.activityLog" = "Activity Log";
 "profile.deleteAccount" = "Delete Account";

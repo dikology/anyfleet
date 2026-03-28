@@ -7,6 +7,7 @@ import PhotosUI
 @MainActor
 struct ProfileView: View {
     @Environment(\.appDependencies) private var dependencies
+    @Environment(\.locale) private var locale
     @State private var viewModel: ProfileViewModel
     @State private var showDeleteAccountSheet = false
 
@@ -235,6 +236,21 @@ struct ProfileView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             VStack(spacing: DesignSystem.Spacing.md) {
+                Link(destination: privacyPolicyURL) {
+                    HStack {
+                        Image(systemName: "doc.text.fill")
+                            .foregroundColor(DesignSystem.Colors.primary)
+                            .frame(width: 20)
+                        Text(L10n.Profile.openPrivacyPolicy)
+                            .font(DesignSystem.Typography.body)
+                            .foregroundColor(DesignSystem.Colors.textPrimary)
+                        Spacer()
+                        profileChevron
+                    }
+                    .cardStyle()
+                }
+                .buttonStyle(.plain)
+
                 accountActionButton(
                     icon: "trash.fill",
                     label: L10n.Profile.deleteAccount,
@@ -289,6 +305,12 @@ struct ProfileView: View {
             .font(DesignSystem.Typography.caption)
             .fontWeight(.semibold)
             .foregroundColor(DesignSystem.Colors.textSecondary)
+    }
+
+    /// Public policy on `anyfleet.dikology.com`, locale from current language (en or ru).
+    private var privacyPolicyURL: URL {
+        let code = locale.language.languageCode?.identifier == "ru" ? "ru" : "en"
+        return URL(string: "https://anyfleet.dikology.com/\(code)/privacy")!
     }
 
     // MARK: - Unauthenticated

@@ -198,6 +198,7 @@
 "profile.forked" = "Форкнуто";
 "profile.imported" = "Импортировано";
 "profile.privacySettings" = "Настройки приватности";
+"profile.openPrivacyPolicy" = "Политика конфиденциальности";
 "profile.exportData" = "Экспорт данных";
 "profile.activityLog" = "Журнал активности";
 "profile.deleteAccount" = "Удалить аккаунт";
