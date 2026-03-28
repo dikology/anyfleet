@@ -81,6 +81,11 @@ final class MockAuthService: AuthServiceProtocol {
         mockCurrentUser = nil
     }
 
+    func deleteAccount() async throws {
+        mockIsAuthenticated = false
+        mockCurrentUser = nil
+    }
+
     func updateProfile(
         username: String?,
         bio: String?,

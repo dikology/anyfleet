@@ -8,6 +8,7 @@ import PhotosUI
 struct ProfileView: View {
     @Environment(\.appDependencies) private var dependencies
     @State private var viewModel: ProfileViewModel
+    @State private var showDeleteAccountSheet = false
 
     @MainActor
     init(viewModel: ProfileViewModel) {
@@ -38,6 +39,13 @@ struct ProfileView: View {
                 async let managed = viewModel.loadManagedCommunities()
                 _ = await (stats, managed)
             }
+            .onChange(of: viewModel.isSignedIn) { _, signedIn in
+                if !signedIn { showDeleteAccountSheet = false }
+            }
+        }
+        .sheet(isPresented: $showDeleteAccountSheet) {
+            deleteAccountConfirmationSheet
+                .interactiveDismissDisabled(viewModel.isDeletingAccount)
         }
         .sheet(isPresented: $viewModel.showCommunitySearch) {
             CommunitySearchSheet(viewModel: viewModel, isPresented: $viewModel.showCommunitySearch)
@@ -175,6 +183,47 @@ struct ProfileView: View {
         }
     }
 
+    // MARK: - Delete account sheet
+
+    private var deleteAccountConfirmationSheet: some View {
+        NavigationStack {
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.lg) {
+                Text(L10n.Profile.deleteAccountSheetBody)
+                    .font(DesignSystem.Typography.body)
+                    .foregroundColor(DesignSystem.Colors.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                Spacer(minLength: 0)
+                if viewModel.isDeletingAccount {
+                    ProgressView()
+                        .frame(maxWidth: .infinity)
+                }
+                Button(role: .destructive) {
+                    Task { await viewModel.deleteAccount() }
+                } label: {
+                    Text(L10n.Profile.deleteAccountSheetConfirm)
+                        .font(DesignSystem.Typography.body)
+                        .fontWeight(.semibold)
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(DesignSystem.Colors.error)
+                .disabled(viewModel.isDeletingAccount)
+            }
+            .padding(DesignSystem.Spacing.screenPadding)
+            .navigationTitle(L10n.Profile.deleteAccountSheetTitle)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(L10n.Profile.deleteAccountSheetCancel) {
+                        showDeleteAccountSheet = false
+                    }
+                    .disabled(viewModel.isDeletingAccount)
+                }
+            }
+        }
+        .presentationDragIndicator(.visible)
+    }
+
     // MARK: - Account Management
 
     private var accountManagementSection: some View {
@@ -190,7 +239,7 @@ struct ProfileView: View {
                     icon: "trash.fill",
                     label: L10n.Profile.deleteAccount,
                     iconColor: DesignSystem.Colors.error,
-                    action: {}
+                    action: { showDeleteAccountSheet = true }
                 )
 
                 Divider().padding(.vertical, DesignSystem.Spacing.md)

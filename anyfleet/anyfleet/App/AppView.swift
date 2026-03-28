@@ -97,7 +97,10 @@ struct AppView: View {
                 ProfileView(viewModel: ProfileViewModel(
                     authService: dependencies.authService,
                     authObserver: dependencies.authStateObserver,
-                    apiClient: dependencies.apiClient
+                    apiClient: dependencies.apiClient,
+                    clearLocalDataAfterAccountDeletion: {
+                        try await dependencies.clearAllLocalUserDataAfterAccountDeletion()
+                    }
                 ))
                     .navigationDestination(for: AppRoute.self) { route in
                         coordinator.destination(for: route)

@@ -56,18 +56,14 @@ Work is organized into 6 incremental sprints. Each sprint is self-contained — 
 
 *Goal: Eliminate every flow that would embarrass you in a review or crash in a reviewer's hands.*
 
-### 1.1 Rebuild `SignInView` — Kill the Car Icon
+### 1.1 Remove dead `SignInView`
 
-**Current state:** `SignInView` uses `Image(systemName: "car.fill")` with `.blue`. It's the most visually broken screen in the app — a copy-paste artifact from a template. App Store reviewers see this first if they're signed out.
+**Finding:** `SignInView` was not referenced anywhere in the app target (no navigation, no sheets). Sign-in already flows through `SignInModalView`, Profile hero, and similar. The file was unused template-style code (`car.fill` icon).
 
 **Action:**
-- Replace `SignInView` with a design that matches the existing `SignInModalView` / `Profile.Hero` pattern
-- Use the ocean gradient background, Onder typeface for the heading, brand logo or a sailing-themed SF Symbol (`sailboat.fill`)
-- Keep Sign in with Apple as the primary CTA using `SignInWithAppleButton` with `.whiteOutline` style on the dark gradient
-- Add a brief tagline: "Plan voyages. Share knowledge. Find crew." — one line, centered, using `Typography.body`
-- Ensure VoiceOver reads the screen logically: heading → tagline → sign-in button
+- Delete `Features/Auth/SignInView.swift`
 
-**Estimated effort:** 1–2 hours
+**Estimated effort:** &lt; 15 minutes
 
 ### 1.2 Wire "Delete Account" to a Real Flow
 
@@ -76,7 +72,7 @@ Work is organized into 6 incremental sprints. Each sprint is self-contained — 
 **Action (iOS):**
 - Add a two-step confirmation: tap → sheet explaining what deletion means ("Your profile, published content, and charter history will be permanently removed. This cannot be undone.") → confirm with destructive button
 - Call `authService.deleteAccount()` which hits `DELETE /auth/me`
-- On success: clear Keychain, clear local DB, navigate to `SignInView`
+- On success: clear Keychain, clear local DB; user lands in the main shell signed out (sign-in via Profile / `SignInModalView` as today)
 - On failure: show error banner
 
 **Action (backend):**
@@ -1300,7 +1296,7 @@ These items from the March checklist are carried forward and assigned to the app
 |---|------------|--------|--------|
 | 1 | Account deletion functional | Missing | Sprint 1 |
 | 2 | Privacy policy URL accessible in-app | Missing | Sprint 1 |
-| 3 | No placeholder text/icons visible to users | `SignInView` car icon | Sprint 1 |
+| 3 | No placeholder text/icons visible to users | Audit other surfaces | Sprint 1 |
 | 4 | All permission usage descriptions accurate | Needs audit | Sprint 1 |
 | 5 | Crash-free cold launch on all supported devices | Needs testing | Sprint 1 |
 | 6 | No broken navigation paths (dead-end screens) | Needs audit | Sprint 1 |
@@ -1323,7 +1319,6 @@ These items from the March checklist are carried forward and assigned to the app
 | Risk | Likelihood | Mitigation |
 |------|-----------|------------|
 | Missing account deletion | **High** — guaranteed rejection | Sprint 1 fix |
-| Car icon in SignInView looks like wrong app category | Medium | Sprint 1 fix |
 | Empty "Delete Account" could be tested by reviewer | **High** | Sprint 1 fix |
 | No privacy policy link | Medium | Sprint 1 fix |
 | Minimal content for reviewer to interact with | Medium | Seed demo content or excellent empty states (Sprint 4) |
