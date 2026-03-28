@@ -672,6 +672,14 @@ final class AuthService: AuthServiceProtocol {
     }
 
     // MARK: - Logout
+
+    private func clearLocalSessionOnly() {
+        keychain.deleteAccessToken()
+        keychain.deleteRefreshToken()
+        isAuthenticated = false
+        currentUser = nil
+        AppLogger.auth.debug("Local session cleared")
+    }
     
     func logout() async {
         AppLogger.auth.info("Logging out user")
@@ -692,15 +700,19 @@ final class AuthService: AuthServiceProtocol {
         } else {
             AppLogger.auth.debug("No access token found, skipping backend logout")
         }
-        
-        // Clear stored tokens
-        keychain.deleteAccessToken()
-        keychain.deleteRefreshToken()
-        AppLogger.auth.debug("Tokens cleared from keychain")
-        
-        // Update state
-        isAuthenticated = false
-        currentUser = nil
+
+        clearLocalSessionOnly()
         AppLogger.auth.info("Logout complete")
+    }
+
+    func deleteAccount() async throws {
+        AppLogger.auth.info("Deleting account on server")
+        let url = URL(string: "\(baseURL)/auth/me")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "DELETE"
+
+        _ = try await makeAuthenticatedRequestWithRetry(request: request)
+        clearLocalSessionOnly()
+        AppLogger.auth.info("Account deleted; local session cleared")
     }
 }

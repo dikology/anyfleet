@@ -210,6 +210,10 @@
 "profile.exportData" = "Export Data";
 "profile.activityLog" = "Activity Log";
 "profile.deleteAccount" = "Delete Account";
+"profile.deleteAccountSheetTitle" = "Delete account?";
+"profile.deleteAccountSheetBody" = "Your profile, published content, and charter history will be permanently removed from AnyFleet and this device. This cannot be undone.";
+"profile.deleteAccountSheetConfirm" = "Delete my account";
+"profile.deleteAccountSheetCancel" = "Cancel";
 
 "error.generic" = "Unknown error: %@";
 "error.notFound" = "%@ with ID %@ not found";

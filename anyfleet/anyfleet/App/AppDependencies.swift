@@ -182,6 +182,13 @@ final class AppDependencies {
 
         AppLogger.dependencies.info("AppDependencies initialized successfully")
     }
+
+    /// Clears local SQLite data and reloads in-memory stores after server account deletion.
+    func clearAllLocalUserDataAfterAccountDeletion() async throws {
+        try database.eraseAllUserContent()
+        try await charterStore.loadCharters()
+        await libraryStore.loadLibrary()
+    }
     
     /// Creates a test dependency container with injectable dependencies.
     ///

@@ -364,6 +364,30 @@ enum L10n {
             comment: "Delete account button label"
         )
 
+        static let deleteAccountSheetTitle = NSLocalizedString(
+            "profile.deleteAccountSheetTitle",
+            tableName: "Localizable",
+            comment: "Title for delete account confirmation sheet"
+        )
+
+        static let deleteAccountSheetBody = NSLocalizedString(
+            "profile.deleteAccountSheetBody",
+            tableName: "Localizable",
+            comment: "Explanation of permanent account deletion"
+        )
+
+        static let deleteAccountSheetConfirm = NSLocalizedString(
+            "profile.deleteAccountSheetConfirm",
+            tableName: "Localizable",
+            comment: "Confirm delete account button"
+        )
+
+        static let deleteAccountSheetCancel = NSLocalizedString(
+            "profile.deleteAccountSheetCancel",
+            tableName: "Localizable",
+            comment: "Cancel delete account"
+        )
+
         static let displayNameTitle = NSLocalizedString(
             "profile.displayNameTitle",
             tableName: "Localizable",

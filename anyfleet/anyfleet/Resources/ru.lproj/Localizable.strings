@@ -201,6 +201,10 @@
 "profile.exportData" = "Экспорт данных";
 "profile.activityLog" = "Журнал активности";
 "profile.deleteAccount" = "Удалить аккаунт";
+"profile.deleteAccountSheetTitle" = "Удалить аккаунт?";
+"profile.deleteAccountSheetBody" = "Ваш профиль, опубликованные материалы и история чартеров будут безвозвратно удалены с серверов AnyFleet и с этого устройства. Это действие нельзя отменить.";
+"profile.deleteAccountSheetConfirm" = "Удалить мой аккаунт";
+"profile.deleteAccountSheetCancel" = "Отмена";
 "profile.displayNameTitle" = "Отображаемое имя";
 "profile.displayNamePlaceholder" = "Введите ваше отображаемое имя";
 

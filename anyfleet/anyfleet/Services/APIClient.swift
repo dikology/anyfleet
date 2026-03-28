@@ -12,6 +12,8 @@ protocol AuthServiceProtocol {
     func ensureCurrentUserLoaded() async throws
     func loadCurrentUser() async
     func logout() async
+    /// Permanently deletes the server account (`DELETE /auth/me`) and clears local session tokens.
+    func deleteAccount() async throws
     func updateProfile(
         username: String?,
         bio: String?,

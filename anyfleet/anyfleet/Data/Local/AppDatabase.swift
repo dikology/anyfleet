@@ -427,6 +427,18 @@ final class AppDatabase: Sendable {
         let dbQueue = try DatabaseQueue(configuration: Configuration())
         return try AppDatabase(dbQueue)
     }
+
+    /// Removes all user-owned rows (charters, library, sync queue, executions). Order respects FKs.
+    nonisolated func eraseAllUserContent() throws {
+        try dbWriter.write { db in
+            try db.execute(sql: "DELETE FROM sync_queue")
+            try db.execute(sql: "DELETE FROM checklistExecutionStates")
+            try db.execute(sql: "DELETE FROM library_content")
+            try db.execute(sql: "DELETE FROM checklists")
+            try db.execute(sql: "DELETE FROM practice_guides")
+            try db.execute(sql: "DELETE FROM charters")
+        }
+    }
 }
 
 // MARK: - Database Access

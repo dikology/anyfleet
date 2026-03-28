@@ -12,10 +12,13 @@ final class ProfileViewModel: ErrorHandling {
     private let apiClient: APIClientProtocol?
     private var imageUploadService: ImageUploadService?
     let authObserver: AuthStateObserverProtocol
+    /// Clears local GRDB data and reloads stores after successful server-side account deletion.
+    private let clearLocalDataAfterAccountDeletion: (@MainActor () async throws -> Void)?
 
     var currentError: AppError?
     var showErrorBanner: Bool = false
     var isLoading = false
+    var isDeletingAccount = false
 
     // Captain stats (Phase 2)
     var captainStats: CaptainStats?
@@ -54,11 +57,13 @@ final class ProfileViewModel: ErrorHandling {
     init(
         authService: AuthServiceProtocol,
         authObserver: AuthStateObserverProtocol? = nil,
-        apiClient: APIClientProtocol? = nil
+        apiClient: APIClientProtocol? = nil,
+        clearLocalDataAfterAccountDeletion: (@MainActor () async throws -> Void)? = nil
     ) {
         self.authService = authService
         self.authObserver = authObserver ?? AuthStateObserver(authService: authService)
         self.apiClient = apiClient
+        self.clearLocalDataAfterAccountDeletion = clearLocalDataAfterAccountDeletion
         self.imageUploadService = ImageUploadService(authService: authService)
     }
 
@@ -80,6 +85,24 @@ final class ProfileViewModel: ErrorHandling {
         isLoading = true
         defer { isLoading = false }
         await authService.logout()
+    }
+
+    func deleteAccount() async {
+        isDeletingAccount = true
+        clearError()
+        defer { isDeletingAccount = false }
+        do {
+            try await authService.deleteAccount()
+            if let clearLocalDataAfterAccountDeletion {
+                try await clearLocalDataAfterAccountDeletion()
+            }
+            managedCommunities = []
+            captainStats = nil
+            contributionMetrics = nil
+            cancelEditingProfile()
+        } catch {
+            handleError(error)
+        }
     }
 
     func handleAppleSignIn(result: Result<ASAuthorization, Error>) async {
