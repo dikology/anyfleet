@@ -28,7 +28,7 @@ struct SignInModalView: View {
                 Spacer()
                 
                 Image(systemName: "person.crop.circle.badge.checkmark")
-                    .font(.system(size: 64, weight: .light))
+                    .font(DesignSystem.Typography.symbolPlateHeroLight)
                     .foregroundColor(DesignSystem.Colors.primary)
                 
                 Text(title)

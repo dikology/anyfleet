@@ -28,7 +28,7 @@ struct VirtualCaptainPickerSheet: View {
                                 .clipShape(Circle())
                             } else {
                                 Image(systemName: "person.crop.circle.fill")
-                                    .font(.system(size: 40))
+                                    .font(DesignSystem.Typography.symbolPlateMD)
                                     .foregroundColor(DesignSystem.Colors.textSecondary)
                             }
                             VStack(alignment: .leading, spacing: 2) {

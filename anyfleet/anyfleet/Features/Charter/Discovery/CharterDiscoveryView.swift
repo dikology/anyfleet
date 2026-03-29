@@ -183,7 +183,7 @@ struct CharterDiscoveryView: View {
         VStack(spacing: DesignSystem.Spacing.xl) {
             Spacer()
             Image(systemName: "sailboat")
-                .font(.system(size: 64))
+                .font(DesignSystem.Typography.symbolPlateHero)
                 .foregroundColor(DesignSystem.Colors.textSecondary.opacity(0.4))
 
             VStack(spacing: DesignSystem.Spacing.sm) {
@@ -251,7 +251,7 @@ struct CharterDiscoveryView: View {
         } label: {
             ZStack(alignment: .topTrailing) {
                 Image(systemName: "slider.horizontal.3")
-                    .font(.system(size: 17))
+                    .font(DesignSystem.Typography.headlineRegular)
                     .foregroundColor(DesignSystem.Colors.textPrimary)
 
                 if viewModel.filters.activeFilterCount > 0 {
@@ -272,7 +272,7 @@ struct CharterDiscoveryView: View {
             }
         } label: {
             Image(systemName: viewModel.showMapView ? "list.bullet" : "map")
-                .font(.system(size: 17))
+                .font(DesignSystem.Typography.headlineRegular)
                 .foregroundColor(DesignSystem.Colors.textPrimary)
         }
     }

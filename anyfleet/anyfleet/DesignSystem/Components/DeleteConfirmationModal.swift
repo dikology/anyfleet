@@ -21,7 +21,7 @@ struct DeleteConfirmationModal: View {
             VStack(spacing: DesignSystem.Spacing.xl) {
                 // Icon
                 Image(systemName: "trash")
-                    .font(.system(size: 64, weight: .light))
+                    .font(DesignSystem.Typography.symbolPlateHeroLight)
                     .foregroundColor(DesignSystem.Colors.error)
                     .padding(.top, DesignSystem.Spacing.xl)
 

@@ -69,7 +69,7 @@ struct CommunitySearchSheet: View {
     private var emptyPrompt: some View {
         VStack(spacing: DesignSystem.Spacing.md) {
             Image(systemName: "person.3")
-                .font(.system(size: 40))
+                .font(DesignSystem.Typography.symbolPlateMD)
                 .foregroundColor(DesignSystem.Colors.textSecondary.opacity(0.5))
             Text(L10n.Profile.CommunitySearch.emptyPrompt)
                 .font(DesignSystem.Typography.body)
@@ -116,7 +116,7 @@ struct CommunitySearchSheet: View {
                         .fill(DesignSystem.Colors.communityAccent.opacity(0.15))
                         .frame(width: 36, height: 36)
                     Image(systemName: "plus")
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(DesignSystem.Typography.subheader)
                         .foregroundColor(DesignSystem.Colors.communityAccent)
                 }
 

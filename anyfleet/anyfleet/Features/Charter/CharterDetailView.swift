@@ -80,7 +80,7 @@ struct CharterDetailView: View {
             // Title & boat
             VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
                 Text(charter.name)
-                    .font(.system(size: 24, weight: .bold))
+                    .font(DesignSystem.Typography.pageTitle)
                     .foregroundColor(DesignSystem.Colors.textPrimary)
                 
                 if let boatName = charter.boatName, !boatName.isEmpty {
@@ -151,13 +151,13 @@ struct CharterDetailView: View {
                                 .frame(width: 44, height: 44)
                             
                             Image(systemName: ChecklistType.checkIn.icon)
-                                .font(.system(size: 20, weight: .semibold))
+                                .font(DesignSystem.Typography.title)
                                 .foregroundColor(DesignSystem.Colors.primary)
                         }
                         
                         VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
                             Text(L10n.Charter.CheckInChecklist.Button.title)
-                                .font(.system(size: 16, weight: .semibold))
+                                .font(DesignSystem.Typography.subheader)
                                 .foregroundColor(DesignSystem.Colors.textPrimary)
                             Text(L10n.Charter.CheckInChecklist.Button.description)
                                 .font(DesignSystem.Typography.caption)
@@ -168,7 +168,7 @@ struct CharterDetailView: View {
                         Spacer()
                         
                         Image(systemName: "chevron.right")
-                            .font(.system(size: 14, weight: .semibold))
+                            .font(DesignSystem.Typography.captionSemibold)
                             .foregroundColor(DesignSystem.Colors.textSecondary)
                     }
                     .padding(DesignSystem.Spacing.md)
@@ -183,7 +183,7 @@ struct CharterDetailView: View {
             } else {
                 VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
                     Text(L10n.Charter.CheckInChecklist.Empty.title)
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(DesignSystem.Typography.subheader)
                         .foregroundColor(DesignSystem.Colors.textPrimary)
                     Text(L10n.Charter.CheckInChecklist.Empty.description)
                         .font(DesignSystem.Typography.caption)

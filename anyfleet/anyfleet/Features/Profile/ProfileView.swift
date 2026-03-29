@@ -153,7 +153,7 @@ struct ProfileView: View {
                                 .fill(DesignSystem.Colors.communityAccent.opacity(0.18))
                                 .frame(width: 40, height: 40)
                             Image(systemName: "person.3.sequence.fill")
-                                .font(.system(size: 18, weight: .medium))
+                                .font(DesignSystem.Typography.leadMedium)
                                 .foregroundColor(DesignSystem.Colors.communityAccent)
                         }
                         VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {

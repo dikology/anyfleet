@@ -288,6 +288,41 @@ You need a production Railway deployment separate from staging. The codebase is 
 - If no existing token fits, add one to `DesignSystemTypography.swift` rather than using a raw size
 - Document the mapping for future reference
 
+**Typography mapping (system UI — `DesignSystem.Typography`):**
+
+| Token | Spec | Typical use |
+|-------|------|-------------|
+| `pageTitle` | 24 bold | Charter detail name, checklist execution title |
+| `title` | 20 semibold | Row / card leading icons (e.g. checklist type in a link row) |
+| `headline` | 17 semibold | Section titles in dense lists |
+| `subheader` | 16 semibold | List row titles, section header icons |
+| `dateDisplay` | 28 bold rounded | Timeline / date gutter numerals |
+| `body` | 16 regular | Primary paragraph text |
+| `bodyMedium` | 16 medium | Secondary icon buttons (notes, etc.) |
+| `caption` | 14 regular | Secondary lines, metadata text |
+| `captionSemibold` | 14 semibold | Chevrons, emphasized stats (e.g. `%` complete) |
+| `captionBold` | 14 bold | Checkmark inside small controls |
+| `footnote` | 12 regular | Small inline icons (warning glyph) |
+| `footnoteSemibold` | 12 semibold | Badge / chip SF Symbol |
+| `micro` | 11 medium | Tiny labels |
+| `microRegular` / `microBold` / `microBoldMonospaced` | 11 | Sync row icons, section labels, staging banner |
+| `nano` … `nanoBold` | 10 | Micro-badges, visibility segments, fork row |
+| `callout` / `calloutSemibold` | 15 | Date fields, home CTAs, nav back row |
+| `compact` / `compactMedium` / `compactSemibold` | 13 | Profile metadata, checklist type chips |
+| `captionMedium` | 14 medium | Stat rows, publish actions |
+| `lead` … `leadBold` | 18 | Library row icons, map pins, verification badge |
+| `titleBold` / `titleRegular` | 20 bold / regular | Library titles, add-section row |
+| `headlineRegular` | 17 regular | Toolbar back label, discovery placeholders |
+| `pageTitleSemibold` / `pageTitleRegular` | 24 | Illustrated empty title vs hero icons |
+| `toolbarGlyphLarge` | 28 regular | Modal trailing dismiss |
+| `emptyStateHeadline` / `emptyStateTitleSemibold` | 26 bold / semibold | Empty states, form hero |
+| `insetHeadline` | 22 regular | Empty library/charter lists, summary emoji |
+| `symbolPlateSM` … `symbolPlateHeroLight` | 32–64 | Modal icons, empty-state circles, sign-in |
+| `symbolPlate*Regular` variants | — | When Figma used `.regular` at 32 / 44 / 48 |
+| `avatarInitial` / `avatarAnonymousGlyph` / `communityBadgeInitial` | scaled | Discover row avatars, community badge |
+
+*Onder custom fonts (`display`, `largeTitle`) stay for marketing-style hero chrome; detail screens above use system tokens for legibility.*
+
 **Estimated effort:** 1–2 hours
 
 ### 2.2 Corner Radius Token Audit

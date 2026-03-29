@@ -83,14 +83,14 @@ struct SectionEditorSheet: View {
                                 HStack {
                                     if let icon = icon {
                                         Image(systemName: icon)
-                                            .font(.system(size: 20))
+                                            .font(DesignSystem.Typography.titleRegular)
                                             .foregroundColor(DesignSystem.Colors.primary)
                                             .frame(width: 32, height: 32)
                                             .background(DesignSystem.Colors.primary.opacity(0.1))
                                             .cornerRadius(8)
                                     } else {
                                         Image(systemName: "photo")
-                                            .font(.system(size: 20))
+                                            .font(DesignSystem.Typography.titleRegular)
                                             .foregroundColor(DesignSystem.Colors.textSecondary)
                                             .frame(width: 32, height: 32)
                                             .background(DesignSystem.Colors.surfaceAlt)
@@ -104,7 +104,7 @@ struct SectionEditorSheet: View {
                                     Spacer()
                                     
                                     Image(systemName: "chevron.right")
-                                        .font(.system(size: 14))
+                                        .font(DesignSystem.Typography.caption)
                                         .foregroundColor(DesignSystem.Colors.textSecondary)
                                 }
                                 .padding(DesignSystem.Spacing.md)
@@ -238,7 +238,7 @@ private struct IconPickerSheet: View {
                     } label: {
                         VStack {
                             Image(systemName: "xmark.circle")
-                                .font(.system(size: 24))
+                                .font(DesignSystem.Typography.pageTitleRegular)
                                 .foregroundColor(DesignSystem.Colors.textSecondary)
                             Text(L10n.SectionEditor.none)
                                 .font(DesignSystem.Typography.caption)
@@ -257,7 +257,7 @@ private struct IconPickerSheet: View {
                         } label: {
                             VStack {
                                 Image(systemName: icon)
-                                    .font(.system(size: 24))
+                                    .font(DesignSystem.Typography.pageTitleRegular)
                                     .foregroundColor(DesignSystem.Colors.primary)
                             }
                             .frame(width: 60, height: 60)

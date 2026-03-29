@@ -26,7 +26,7 @@ struct DateRangeSection: View {
 
                 VStack(spacing: 4) {
                     Text("\(nights)")
-                        .font(.system(size: 26, weight: .bold))
+                        .font(DesignSystem.Typography.emptyStateHeadline)
                         .foregroundColor(DesignSystem.Colors.primary)
                     Text(L10n.charterCreateNights)
                         .font(DesignSystem.Typography.caption)
@@ -65,7 +65,7 @@ struct DateRangeSection: View {
                 .font(DesignSystem.Typography.caption)
                 .foregroundColor(DesignSystem.Colors.textSecondary)
             Text(date, style: .date)
-                .font(.system(size: 16, weight: .semibold))
+                .font(DesignSystem.Typography.subheader)
                 .foregroundColor(DesignSystem.Colors.textPrimary)
         }
         .frame(maxWidth: .infinity, alignment: alignment)

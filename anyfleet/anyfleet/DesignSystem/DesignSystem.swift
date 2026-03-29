@@ -55,7 +55,7 @@ enum DesignSystem {
 
         var body: some View {
             Text(text.uppercased())
-                .font(.system(size: 11, weight: .bold))
+                .font(Typography.microBold)
                 .tracking(1.2)
                 .foregroundColor(Colors.textSecondary)
         }
@@ -90,7 +90,7 @@ enum DesignSystem {
     struct PrimaryButtonStyle: ButtonStyle {
         func makeBody(configuration: Configuration) -> some View {
             configuration.label
-                .font(.system(size: 16, weight: .semibold))
+                .font(Typography.subheader)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, Spacing.sm)
                 .padding(.horizontal, Spacing.md)
@@ -106,7 +106,7 @@ enum DesignSystem {
     struct SecondaryButtonStyle: ButtonStyle {
         func makeBody(configuration: Configuration) -> some View {
             configuration.label
-                .font(.system(size: 16, weight: .semibold))
+                .font(Typography.subheader)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, Spacing.sm)
                 .padding(.horizontal, Spacing.md)
@@ -126,7 +126,7 @@ enum DesignSystem {
     struct OutlineButtonStyle: ButtonStyle {
         func makeBody(configuration: Configuration) -> some View {
             configuration.label
-                .font(.system(size: 16, weight: .semibold))
+                .font(Typography.subheader)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, Spacing.sm)
                 .padding(.horizontal, Spacing.md)
@@ -320,7 +320,7 @@ enum DesignSystem {
                         .frame(width: 120, height: 120)
                     
                     Image(systemName: icon)
-                        .font(.system(size: 56, weight: .light))
+                        .font(Typography.symbolPlateXXL)
                         .foregroundStyle(
                             LinearGradient(
                                 colors: [accentColor, accentColor.opacity(0.7)],
@@ -333,7 +333,7 @@ enum DesignSystem {
                 
                 VStack(spacing: Spacing.sm) {
                     Text(title)
-                        .font(.system(size: 24, weight: .semibold))
+                        .font(Typography.pageTitleSemibold)
                         .foregroundColor(Colors.textPrimary)
                     
                     Text(message)
@@ -390,7 +390,7 @@ enum DesignSystem {
                         .frame(width: 120, height: 120)
 
                     Image(systemName: icon)
-                        .font(.system(size: 48, weight: .medium))
+                        .font(Typography.symbolPlateXL)
                         .foregroundStyle(
                             LinearGradient(
                                 colors: [
@@ -405,7 +405,7 @@ enum DesignSystem {
 
                 VStack(spacing: DesignSystem.Spacing.md) {
                     Text(title)
-                        .font(.system(size: 26, weight: .bold))
+                        .font(Typography.emptyStateHeadline)
                         .foregroundColor(DesignSystem.Colors.textPrimary)
                         .multilineTextAlignment(.center)
 
@@ -422,7 +422,7 @@ enum DesignSystem {
                             Image(systemName: "plus.circle.fill")
                             Text(actionTitle)
                         }
-                        .font(.system(size: 17, weight: .semibold))
+                        .font(Typography.headline)
                         .foregroundColor(.white)
                         .padding(.horizontal, DesignSystem.Spacing.lg)
                         .padding(.vertical, DesignSystem.Spacing.md)

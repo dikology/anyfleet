@@ -23,7 +23,7 @@ struct PublishConfirmationModal: View {
             VStack(spacing: DesignSystem.Spacing.xl) {
                 // Icon
                 Image(systemName: "globe")
-                    .font(.system(size: 64, weight: .light))
+                    .font(DesignSystem.Typography.symbolPlateHeroLight)
                     .foregroundColor(DesignSystem.Colors.primary)
                     .padding(.top, DesignSystem.Spacing.xl)
                 
@@ -47,7 +47,7 @@ struct PublishConfirmationModal: View {
                 // Info box
                 HStack(alignment: .top, spacing: DesignSystem.Spacing.sm) {
                     Image(systemName: "info.circle.fill")
-                        .font(.system(size: 16))
+                        .font(DesignSystem.Typography.body)
                         .foregroundColor(DesignSystem.Colors.primary)
                     
                     Text("This is permanent. Everyone will be able to find your content.")

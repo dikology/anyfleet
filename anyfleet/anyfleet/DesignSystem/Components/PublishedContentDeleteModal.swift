@@ -26,7 +26,7 @@ struct PublishedContentDeleteModal: View {
                         .frame(width: 80, height: 80)
 
                     Image(systemName: "globe")
-                        .font(.system(size: 32, weight: .medium))
+                        .font(DesignSystem.Typography.symbolPlateSM)
                         .foregroundColor(DesignSystem.Colors.primary)
                 }
                 .padding(.top, DesignSystem.Spacing.xl)
@@ -59,7 +59,7 @@ struct PublishedContentDeleteModal: View {
                                     .frame(width: 32, height: 32)
 
                                 Image(systemName: "trash")
-                                    .font(.system(size: 16, weight: .medium))
+                                    .font(DesignSystem.Typography.bodyMedium)
                                     .foregroundColor(DesignSystem.Colors.error)
                             }
 
@@ -91,7 +91,7 @@ struct PublishedContentDeleteModal: View {
                                     .frame(width: 32, height: 32)
 
                                 Image(systemName: "globe")
-                                    .font(.system(size: 16, weight: .medium))
+                                    .font(DesignSystem.Typography.bodyMedium)
                                     .foregroundColor(DesignSystem.Colors.primary)
                             }
 

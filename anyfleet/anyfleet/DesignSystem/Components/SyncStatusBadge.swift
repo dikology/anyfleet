@@ -65,7 +65,7 @@ extension DesignSystem {
                 case .pending:
                     HStack(spacing: DesignSystem.Spacing.xs) {
                         Image(systemName: "clock.fill")
-                            .font(.system(size: 11))
+                            .font(DesignSystem.Typography.microRegular)
                         Text("Pending")
                             .font(DesignSystem.Typography.micro)
                             .fontWeight(.semibold)
@@ -89,7 +89,7 @@ extension DesignSystem {
                     Button(action: retry) {
                         HStack(spacing: DesignSystem.Spacing.xs) {
                             Image(systemName: "exclamationmark.triangle.fill")
-                                .font(.system(size: 11))
+                                .font(DesignSystem.Typography.microRegular)
                             Text("Failed")
                                 .font(DesignSystem.Typography.micro)
                                 .fontWeight(.semibold)
@@ -103,7 +103,7 @@ extension DesignSystem {
                 } else {
                     HStack(spacing: DesignSystem.Spacing.xs) {
                         Image(systemName: "exclamationmark.triangle.fill")
-                            .font(.system(size: 11))
+                            .font(DesignSystem.Typography.microRegular)
                         Text("Failed")
                             .font(DesignSystem.Typography.micro)
                             .fontWeight(.semibold)
@@ -181,7 +181,7 @@ private struct SyncingBadgeContent: View {
     var body: some View {
         HStack(spacing: DesignSystem.Spacing.xs) {
             Image(systemName: "arrow.triangle.2.circlepath")
-                .font(.system(size: 12, weight: .medium))
+                .font(DesignSystem.Typography.footnoteMedium)
                 .foregroundColor(DesignSystem.Colors.gold)
                 .rotationEffect(.degrees(rotation))
             Text("Syncing...")

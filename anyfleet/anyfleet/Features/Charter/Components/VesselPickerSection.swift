@@ -34,7 +34,7 @@ struct VesselPickerSection: View {
                         HStack {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(vessel.name)
-                                    .font(.system(size: 18, weight: .semibold))
+                                    .font(DesignSystem.Typography.leadSemibold)
                                     .foregroundColor(DesignSystem.Colors.textPrimary)
                                 Text("\(vessel.length)ft • \(vessel.berths) berths")
                                     .font(DesignSystem.Typography.caption)
@@ -45,7 +45,7 @@ struct VesselPickerSection: View {
                         }
                         
                         Text(vessel.pricePerNight, format: .currency(code: "USD"))
-                            .font(.system(size: 18, weight: .bold))
+                            .font(DesignSystem.Typography.leadBold)
                             .foregroundColor(DesignSystem.Colors.textPrimary)
                         
                         ForEach(vessel.highlights, id: \.self) { highlight in
@@ -67,7 +67,7 @@ struct VesselPickerSection: View {
         HStack(spacing: 2) {
             ForEach(0..<5, id: \.self) { index in
                 Image(systemName: index < rating ? "star.fill" : "star")
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(DesignSystem.Typography.footnoteSemibold)
                     .foregroundColor(DesignSystem.Colors.gold)
             }
         }

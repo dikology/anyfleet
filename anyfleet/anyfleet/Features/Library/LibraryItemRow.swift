@@ -50,13 +50,13 @@ struct LibraryItemRow: View {
                             .frame(width: 40, height: 40)
                         
                         Image(systemName: contentType.icon)
-                            .font(.system(size: 18, weight: .semibold))
+                            .font(DesignSystem.Typography.leadSemibold)
                             .foregroundColor(DesignSystem.Colors.primary)
                     }
                     
                     VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
                         Text(item.title)
-                            .font(.system(size: 20, weight: .bold))
+                            .font(DesignSystem.Typography.titleBold)
                             .foregroundStyle(
                                 LinearGradient(
                                     colors: [
@@ -73,21 +73,21 @@ struct LibraryItemRow: View {
                         // Type Badge + Fork Attribution
                         HStack(spacing: DesignSystem.Spacing.xs) {
                             Text(contentType.displayName)
-                                .font(.system(size: 12, weight: .medium))
+                                .font(DesignSystem.Typography.footnoteMedium)
                                 .foregroundColor(DesignSystem.Colors.textSecondary)
 
                             // Fork attribution
                             if item.forkedFromID != nil {
                                 Text("•")
-                                    .font(.system(size: 12, weight: .medium))
+                                    .font(DesignSystem.Typography.footnoteMedium)
                                     .foregroundColor(DesignSystem.Colors.textSecondary)
 
                                 Image(systemName: "arrow.triangle.branch")
-                                    .font(.system(size: 10, weight: .medium))
+                                    .font(DesignSystem.Typography.nanoMedium)
                                     .foregroundColor(DesignSystem.Colors.primary)
 
                                 Text("Forked")
-                                    .font(.system(size: 12, weight: .medium))
+                                    .font(DesignSystem.Typography.footnoteMedium)
                                     .foregroundColor(DesignSystem.Colors.primary)
                             }
                         }
@@ -105,7 +105,7 @@ struct LibraryItemRow: View {
                 // Description
                 if let description = item.description, !description.isEmpty {
                     Text(description)
-                        .font(.system(size: 14, weight: .regular))
+                        .font(DesignSystem.Typography.caption)
                         .foregroundColor(DesignSystem.Colors.textSecondary)
                         .lineLimit(2)
                         .padding(.leading, 56) // Align with title
@@ -125,7 +125,7 @@ struct LibraryItemRow: View {
                 HStack(spacing: DesignSystem.Spacing.md) {
                     // Updated Date
                     Text("\(L10n.Library.updatedPrefix) \(item.updatedAt.formatted(.relative(presentation: .named)))")
-                        .font(.system(size: 12, weight: .regular))
+                        .font(DesignSystem.Typography.footnote)
                         .foregroundColor(DesignSystem.Colors.textSecondary)
                     
                     Spacer()
@@ -208,7 +208,7 @@ struct LibraryItemRow: View {
 
             // Initials or icon
             Text(username.prefix(1).uppercased())
-                .font(.system(size: 12, weight: .semibold))
+                .font(DesignSystem.Typography.footnoteSemibold)
                 .foregroundColor(.white)
         }
         .frame(width: 28, height: 28)

@@ -282,7 +282,7 @@ struct CreateContentMenu: View {
             }
         } label: {
             Image(systemName: "plus.circle.fill")
-                .font(.system(size: 22))
+                .font(DesignSystem.Typography.insetHeadline)
                 .foregroundColor(DesignSystem.Colors.primary)
         }
     }

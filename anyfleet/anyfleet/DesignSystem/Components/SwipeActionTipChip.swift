@@ -13,7 +13,7 @@ struct SwipeActionTipChip: View {
     var body: some View {
         HStack(spacing: DesignSystem.Spacing.sm) {
             Image(systemName: "hand.point.left.fill")
-                .font(.system(size: 12, weight: .semibold))
+                .font(DesignSystem.Typography.footnoteSemibold)
                 .foregroundColor(DesignSystem.Colors.textSecondary)
 
             ForEach(actions.indices, id: \.self) { i in
@@ -24,7 +24,7 @@ struct SwipeActionTipChip: View {
                 }
                 HStack(spacing: 3) {
                     Image(systemName: actions[i].icon)
-                        .font(.system(size: 11, weight: .medium))
+                        .font(DesignSystem.Typography.micro)
                         .foregroundColor(actions[i].tint)
                     Text(actions[i].label)
                         .font(DesignSystem.Typography.micro)

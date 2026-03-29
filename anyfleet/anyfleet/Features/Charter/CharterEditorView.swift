@@ -50,9 +50,9 @@ struct CharterEditorView: View {
                 } label: {
                     HStack(spacing: DesignSystem.Spacing.xs) {
                         Image(systemName: "chevron.left")
-                            .font(.system(size: 15, weight: .semibold))
+                            .font(DesignSystem.Typography.calloutSemibold)
                         Text(L10n.Charter.Editor.back)
-                            .font(.system(size: 17, weight: .regular))
+                            .font(DesignSystem.Typography.headlineRegular)
                     }
                     .foregroundColor(DesignSystem.Colors.info)
                 }
@@ -99,7 +99,7 @@ private extension CharterEditorView {
                             .frame(width: 48, height: 48)
 
                         Image(systemName: "sailboat.fill")
-                            .font(.system(size: 24))
+                            .font(DesignSystem.Typography.pageTitleRegular)
                             .foregroundColor(DesignSystem.Colors.gold)
                     }
                     .padding(.top, DesignSystem.Spacing.xl)
@@ -169,7 +169,7 @@ private extension CharterEditorView {
                         .foregroundColor(DesignSystem.Colors.textSecondary)
                     Spacer()
                     Text("\(viewModel.form.nights) \(L10n.charterCreateNights)")
-                        .font(.system(size: 14, weight: .bold))
+                        .font(DesignSystem.Typography.captionBold)
                         .foregroundColor(DesignSystem.Colors.gold)
                         .padding(.horizontal, DesignSystem.Spacing.md)
                         .padding(.vertical, DesignSystem.Spacing.xs)
@@ -202,11 +202,11 @@ private extension CharterEditorView {
             Button(action: action) {
                 HStack {
                     Text(date, style: .date)
-                        .font(.system(size: 15))
+                        .font(DesignSystem.Typography.callout)
                         .foregroundColor(DesignSystem.Colors.textPrimary)
                     Spacer()
                     Image(systemName: "calendar")
-                        .font(.system(size: 14))
+                        .font(DesignSystem.Typography.caption)
                         .foregroundColor(DesignSystem.Colors.gold.opacity(0.6))
                 }
                 .padding(DesignSystem.Spacing.md)
@@ -247,9 +247,9 @@ private extension CharterEditorView {
         } label: {
             VStack(spacing: DesignSystem.Spacing.xs) {
                 Image(systemName: option.systemImage)
-                    .font(.system(size: 14))
+                    .font(DesignSystem.Typography.caption)
                 Text(option.displayName)
-                    .font(.system(size: 10, weight: .medium))
+                    .font(DesignSystem.Typography.nanoMedium)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, DesignSystem.Spacing.md)

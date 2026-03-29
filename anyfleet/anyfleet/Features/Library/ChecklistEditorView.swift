@@ -266,7 +266,7 @@ struct ChecklistEditorView: View {
                     } label: {
                         HStack(spacing: DesignSystem.Spacing.xs) {
                             Image(systemName: type.icon)
-                                .font(.system(size: 13, weight: .semibold))
+                                .font(DesignSystem.Typography.compactSemibold)
                             Text(type.displayName)
                                 .font(DesignSystem.Typography.caption)
                         }
@@ -305,7 +305,7 @@ struct ChecklistEditorView: View {
     private func metadataPill(icon: String, text: String) -> some View {
         HStack(spacing: DesignSystem.Spacing.xs) {
             Image(systemName: icon)
-                .font(.system(size: 12))
+                .font(DesignSystem.Typography.footnote)
             Text(text)
                 .font(DesignSystem.Typography.caption)
         }
@@ -378,7 +378,7 @@ struct ChecklistEditorView: View {
         } label: {
             HStack(spacing: DesignSystem.Spacing.sm) {
                 Image(systemName: "plus.circle.fill")
-                    .font(.system(size: 20))
+                    .font(DesignSystem.Typography.titleRegular)
                 Text(L10n.ChecklistEditor.addSection)
                     .font(DesignSystem.Typography.body)
             }
@@ -432,7 +432,7 @@ private struct SectionCard: View {
                     // Section icon
                     if let icon = section.icon {
                         Image(systemName: icon)
-                            .font(.system(size: 16))
+                            .font(DesignSystem.Typography.body)
                             .foregroundColor(DesignSystem.Colors.primary)
                             .frame(width: 28, height: 28)
                             .background(DesignSystem.Colors.primary.opacity(0.1))
@@ -456,14 +456,14 @@ private struct SectionCard: View {
                         onEditSection()
                     } label: {
                         Image(systemName: "pencil")
-                            .font(.system(size: 14))
+                            .font(DesignSystem.Typography.caption)
                             .foregroundColor(DesignSystem.Colors.textSecondary)
                     }
                     .padding(.trailing, DesignSystem.Spacing.sm)
                     
                     // Expand/collapse chevron
                     Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                        .font(.system(size: 14, weight: .semibold))
+                        .font(DesignSystem.Typography.captionSemibold)
                         .foregroundColor(DesignSystem.Colors.textSecondary)
                 }
                 .padding(DesignSystem.Spacing.lg)
@@ -496,7 +496,7 @@ private struct SectionCard: View {
                     } label: {
                         HStack(spacing: DesignSystem.Spacing.sm) {
                             Image(systemName: "plus.circle")
-                                .font(.system(size: 18))
+                                .font(DesignSystem.Typography.lead)
                             Text(L10n.ChecklistEditor.addItem)
                                 .font(DesignSystem.Typography.caption)
                         }
@@ -543,7 +543,7 @@ private struct ItemRow: View {
                 Spacer()
                 
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(DesignSystem.Typography.footnoteSemibold)
                     .foregroundColor(DesignSystem.Colors.textSecondary)
             }
             .padding(DesignSystem.Spacing.lg)

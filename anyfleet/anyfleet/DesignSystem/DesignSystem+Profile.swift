@@ -33,7 +33,7 @@ extension DesignSystem {
           
           Button(action: onEditTap) {
             Image(systemName: "pencil")
-              .font(.system(size: 14, weight: .semibold))
+              .font(Typography.captionSemibold)
               .foregroundColor(.white)
               .frame(width: 40, height: 40)
               .glassPanel()
@@ -103,7 +103,7 @@ extension DesignSystem {
             .padding(.bottom, Spacing.md)
           
           Text(user.username ?? user.email)
-            .font(.system(size: 28, weight: .bold, design: .rounded))
+            .font(Typography.dateDisplay)
             .tracking(-0.5)
             .foregroundColor(Colors.textPrimary)
             .lineLimit(1)
@@ -171,7 +171,7 @@ extension DesignSystem {
                 ProgressView().tint(Colors.primary).scaleEffect(0.8)
               } else {
                 Image(systemName: "camera.fill")
-                  .font(.system(size: 14, weight: .semibold))
+                  .font(Typography.captionSemibold)
                   .foregroundColor(Colors.primary)
               }
             }
@@ -194,7 +194,7 @@ extension DesignSystem {
             )
             .frame(width: avatarSize - 8, height: avatarSize - 8)
           Image(systemName: "person.fill")
-            .font(.system(size: 44, weight: .medium))
+            .font(Typography.symbolPlateLG)
             .foregroundColor(.white)
         }
       }
@@ -204,20 +204,20 @@ extension DesignSystem {
           if let location = user.location, !location.isEmpty {
             HStack(spacing: 4) {
               Image(systemName: "mappin.circle.fill")
-                .font(.system(size: 13))
+                .font(Typography.compact)
                 .foregroundColor(Colors.primary)
               Text(location)
-                .font(.system(size: 13, weight: .medium))
+                .font(Typography.compactMedium)
                 .foregroundColor(Colors.textSecondary)
             }
           }
           if let date = memberSince {
             HStack(spacing: 4) {
               Image(systemName: "calendar")
-                .font(.system(size: 13))
+                .font(Typography.compact)
                 .foregroundColor(Colors.primary)
               Text(date)
-                .font(.system(size: 13, weight: .medium))
+                .font(Typography.compactMedium)
                 .foregroundColor(Colors.textSecondary)
             }
           }
@@ -290,7 +290,7 @@ extension DesignSystem {
         VStack(alignment: .leading, spacing: Spacing.sm) {
           HStack(spacing: Spacing.xs) {
             Image(systemName: icon)
-              .font(.system(size: 14, weight: .medium))
+              .font(Typography.captionMedium)
               .foregroundColor(color)
               .frame(width: 20)
             
@@ -352,7 +352,7 @@ extension DesignSystem {
             ForEach(metrics, id: \.label) { metric in
               HStack(spacing: Spacing.md) {
                 Image(systemName: metric.icon)
-                  .font(.system(size: 14, weight: .semibold))
+                  .font(Typography.captionSemibold)
                   .foregroundColor(metric.color)
                   .frame(width: 20)
                 

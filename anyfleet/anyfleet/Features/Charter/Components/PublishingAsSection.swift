@@ -27,7 +27,7 @@ struct PublishingAsSection: View {
                         }
                         Spacer()
                         Image(systemName: "chevron.right")
-                            .font(.system(size: 14, weight: .semibold))
+                            .font(DesignSystem.Typography.captionSemibold)
                             .foregroundColor(DesignSystem.Colors.textSecondary)
                     }
                     .contentShape(Rectangle())
@@ -62,7 +62,7 @@ struct PublishingAsSection: View {
             .clipShape(Circle())
         } else {
             Image(systemName: "person.crop.circle.fill")
-                .font(.system(size: 44))
+                .font(DesignSystem.Typography.symbolPlateLGRegular)
                 .foregroundColor(DesignSystem.Colors.textSecondary)
         }
     }

@@ -134,7 +134,7 @@ private struct CaptainAvatarView: View {
             .overlay(
                 Image(systemName: "person.fill")
                     .foregroundColor(DesignSystem.Colors.primary)
-                    .font(.system(size: 18))
+                    .font(DesignSystem.Typography.lead)
             )
     }
 }

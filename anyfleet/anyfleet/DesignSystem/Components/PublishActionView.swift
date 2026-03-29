@@ -22,7 +22,7 @@ struct PublishActionView: View {
                 Button(action: onUnpublish) {
                     HStack(spacing: DesignSystem.Spacing.xs) {
                         Image(systemName: "eye.slash")
-                            .font(.system(size: 14, weight: .medium))
+                            .font(DesignSystem.Typography.captionMedium)
                         Text("Unpublish")
                             .font(DesignSystem.Typography.caption)
                             .fontWeight(.semibold)
@@ -44,7 +44,7 @@ struct PublishActionView: View {
                 Button(action: onSignInRequired) {
                     HStack(spacing: DesignSystem.Spacing.xs) {
                         Image(systemName: "eye.slash")
-                            .font(.system(size: 14, weight: .medium))
+                            .font(DesignSystem.Typography.captionMedium)
                         Text("Sign In to Unpublish")
                             .font(DesignSystem.Typography.caption)
                             .fontWeight(.semibold)
@@ -69,7 +69,7 @@ struct PublishActionView: View {
             }) {
                 HStack(spacing: DesignSystem.Spacing.xs) {
                     Image(systemName: "globe")
-                        .font(.system(size: 14, weight: .medium))
+                        .font(DesignSystem.Typography.captionMedium)
                     Text("Publish")
                         .font(DesignSystem.Typography.caption)
                         .fontWeight(.semibold)

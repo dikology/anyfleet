@@ -276,7 +276,7 @@ struct CharterListView: View {
             viewModel.onCreateCharterTapped()
         } label: {
             Image(systemName: "plus.circle.fill")
-                .font(.system(size: 22))
+                .font(DesignSystem.Typography.insetHeadline)
                 .foregroundColor(DesignSystem.Colors.primary)
         }
     }
@@ -401,7 +401,7 @@ struct CharterTimelineRow: View {
             if returnIsInDifferentMonth {
                 HStack(spacing: DesignSystem.Spacing.xs) {
                     Image(systemName: "arrow.right")
-                        .font(.system(size: 10))
+                        .font(DesignSystem.Typography.nano)
                     Text(Self.returnFormatter.string(from: charter.endDate))
                         .font(DesignSystem.Typography.micro)
                 }
@@ -414,7 +414,7 @@ struct CharterTimelineRow: View {
         HStack(spacing: DesignSystem.Spacing.xs) {
             HStack(spacing: 3) {
                 Image(systemName: "clock")
-                    .font(.system(size: 10))
+                    .font(DesignSystem.Typography.nano)
                 Text("\(charter.durationDays)d")
                     .fontWeight(.semibold)
             }
