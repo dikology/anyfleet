@@ -22,10 +22,10 @@ struct ActionCard: View {
             DesignSystem.Gradients.primary
                 .overlay(DesignSystem.Gradients.subtleOverlay)
         )
-        .cornerRadius(16)
+        .cornerRadius(DesignSystem.Spacing.cardCornerRadius)
         .shadow(color: DesignSystem.Colors.shadowStrong, radius: 12, x: 0, y: 8)
         .overlay(
-            RoundedRectangle(cornerRadius: 16)
+            RoundedRectangle(cornerRadius: DesignSystem.Spacing.cardCornerRadius)
                 .stroke(Color.white.opacity(0.08), lineWidth: 1)
         )
         .contentShape(Rectangle())
@@ -40,7 +40,7 @@ struct ActionCard: View {
                     .fill(Color.white.opacity(0.14))
                     .frame(width: 40, height: 40)
                 Image(systemName: icon)
-                    .font(.system(size: 18, weight: .semibold))
+                    .font(DesignSystem.Typography.leadSemibold)
                     .foregroundColor(DesignSystem.Colors.onPrimary)
             }
             
@@ -53,7 +53,7 @@ struct ActionCard: View {
                     .padding(.vertical, DesignSystem.Spacing.xs)
                     .background(Color.white.opacity(0.14))
                     .foregroundColor(DesignSystem.Colors.onPrimary)
-                    .cornerRadius(10)
+                    .cornerRadius(DesignSystem.Spacing.cornerRadiusSmall)
             }
         }
     }
@@ -61,7 +61,7 @@ struct ActionCard: View {
     private var content: some View {
         VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
             Text(title)
-                .font(.system(size: 20, weight: .semibold))
+                .font(DesignSystem.Typography.title)
                 .foregroundColor(DesignSystem.Colors.onPrimary)
             
             Text(subtitle)
@@ -75,15 +75,15 @@ struct ActionCard: View {
         Button(action: onButtonTap) {
             HStack(spacing: DesignSystem.Spacing.sm) {
                 Text(buttonTitle)
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(DesignSystem.Typography.subheader)
                 Image(systemName: "arrow.right")
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(DesignSystem.Typography.calloutSemibold)
             }
             .padding(.vertical, DesignSystem.Spacing.sm)
             .padding(.horizontal, DesignSystem.Spacing.md)
             .background(Color.white.opacity(0.16))
             .foregroundColor(DesignSystem.Colors.onPrimary)
-            .cornerRadius(12)
+            .cornerRadius(DesignSystem.Spacing.cornerRadiusMedium)
         }
         .buttonStyle(.plain)
     }

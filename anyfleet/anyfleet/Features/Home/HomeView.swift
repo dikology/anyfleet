@@ -122,9 +122,9 @@ struct HomeView: View {
                 Spacer()
                 HStack(spacing: DesignSystem.Spacing.sm) {
                     Text(L10n.homeViewCharter)
-                        .font(.system(size: 15, weight: .semibold))
+                        .font(DesignSystem.Typography.calloutSemibold)
                     Image(systemName: "arrow.right")
-                        .font(.system(size: 14, weight: .semibold))
+                        .font(DesignSystem.Typography.captionSemibold)
                 }
                 .foregroundColor(DesignSystem.Colors.oceanDeep)
                 .padding(.vertical, DesignSystem.Spacing.sm)
@@ -198,10 +198,10 @@ struct HomeView: View {
                 
                 HStack(spacing: DesignSystem.Spacing.xs) {
                     Image(systemName: "sailboat.fill")
-                        .font(.system(size: 12))
+                        .font(DesignSystem.Typography.footnote)
                         .foregroundColor(DesignSystem.Colors.primary)
                     Text(charter.name)
-                        .font(.system(size: 15, weight: .semibold))
+                        .font(DesignSystem.Typography.calloutSemibold)
                         .foregroundColor(DesignSystem.Colors.textPrimary)
                         .lineLimit(1)
                 }
@@ -294,18 +294,18 @@ struct HomeView: View {
                         .frame(width: 32, height: 32)
                     
                     Image(systemName: item.type.icon)
-                        .font(.system(size: 15, weight: .semibold))
+                        .font(DesignSystem.Typography.subheader)
                         .foregroundColor(DesignSystem.Colors.primary)
                 }
                 
                 VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
                     Text(item.title)
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(DesignSystem.Typography.subheader)
                         .foregroundColor(DesignSystem.Colors.textPrimary)
                         .lineLimit(2)
                     
                     Text(item.type.displayName)
-                        .font(.system(size: 11, weight: .medium))
+                        .font(DesignSystem.Typography.micro)
                         .foregroundColor(DesignSystem.Colors.textSecondary)
                         .padding(.horizontal, DesignSystem.Spacing.xs)
                         .padding(.vertical, 4)
@@ -320,7 +320,7 @@ struct HomeView: View {
             
             if let description = item.description, !description.isEmpty {
                 Text(description)
-                    .font(.system(size: 12))
+                    .font(DesignSystem.Typography.footnote)
                     .foregroundColor(DesignSystem.Colors.textSecondary)
                     .lineLimit(3)
                     .padding(.top, DesignSystem.Spacing.xs)
@@ -328,7 +328,7 @@ struct HomeView: View {
         }
         .padding(DesignSystem.Spacing.md)
         .background(
-            RoundedRectangle(cornerRadius: 14)
+            RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusControl)
                 .fill(DesignSystem.Colors.surface)
                 .shadow(
                     color: DesignSystem.Colors.shadowStrong.opacity(0.08),
@@ -338,7 +338,7 @@ struct HomeView: View {
                 )
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 14)
+            RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusControl)
                 .stroke(
                     LinearGradient(
                         colors: [

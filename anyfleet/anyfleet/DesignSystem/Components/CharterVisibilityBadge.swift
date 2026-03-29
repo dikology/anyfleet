@@ -34,7 +34,7 @@ extension DesignSystem {
         var body: some View {
             HStack(spacing: DesignSystem.Spacing.xs) {
                 Image(systemName: visibility.systemImage)
-                    .font(.system(size: 11, weight: .medium))
+                    .font(DesignSystem.Typography.micro)
                 Text(visibility.displayName)
                     .font(DesignSystem.Typography.micro)
                     .fontWeight(.semibold)

@@ -103,6 +103,7 @@ struct CharterListView: View {
                 onCancel: { charterPendingDelete = nil }
             )
         }
+        .animation(DesignSystem.Motion.standard, value: charterPendingDelete?.id)
     }
 
     // MARK: - States
@@ -221,7 +222,7 @@ struct CharterListView: View {
                     }
                 } header: {
                     Button {
-                        withAnimation(.spring(response: 0.3)) { showPast.toggle() }
+                        withAnimation(DesignSystem.Motion.spring) { showPast.toggle() }
                     } label: {
                         HStack(spacing: DesignSystem.Spacing.xs) {
                             sectionLabel(L10n.Charter.List.sectionPastWithCount(viewModel.pastCharters.count))
@@ -231,11 +232,13 @@ struct CharterListView: View {
                                 .fontWeight(.semibold)
                                 .foregroundColor(DesignSystem.Colors.textSecondary)
                                 .rotationEffect(.degrees(showPast ? 90 : 0))
+                                .animation(DesignSystem.Motion.spring, value: showPast)
                         }
                     }
                     .buttonStyle(.plain)
                     .accessibilityHint(showPast ? "Collapse past charters" : "Expand past charters")
                 }
+                .animation(DesignSystem.Motion.spring, value: showPast)
             }
         }
         .listStyle(.plain)
@@ -252,7 +255,7 @@ struct CharterListView: View {
                     .transition(.move(edge: .top).combined(with: .opacity))
             }
         }
-        .animation(.easeInOut(duration: 0.35), value: showSwipeTip)
+        .animation(DesignSystem.Motion.standard, value: showSwipeTip)
         .task(id: viewModel.upcomingCharters.isEmpty) {
             await runCharterSwipeOnboardingIfNeeded()
         }
@@ -262,11 +265,11 @@ struct CharterListView: View {
         guard !viewModel.upcomingCharters.isEmpty, !hasSeenCharterSwipeHint else { return }
         try? await Task.sleep(for: .seconds(0.8))
         guard !Task.isCancelled else { return }
-        withAnimation(.easeInOut(duration: 0.35)) { showSwipeTip = true }
+        withAnimation(DesignSystem.Motion.standard) { showSwipeTip = true }
         playSwipeHint = true
         try? await Task.sleep(for: .seconds(2.5))
         guard !Task.isCancelled else { return }
-        withAnimation(.easeInOut(duration: 0.35)) { showSwipeTip = false }
+        withAnimation(DesignSystem.Motion.standard) { showSwipeTip = false }
         playSwipeHint = false
         hasSeenCharterSwipeHint = true
     }
@@ -276,7 +279,7 @@ struct CharterListView: View {
             viewModel.onCreateCharterTapped()
         } label: {
             Image(systemName: "plus.circle.fill")
-                .font(.system(size: 22))
+                .font(DesignSystem.Typography.insetHeadline)
                 .foregroundColor(DesignSystem.Colors.primary)
         }
     }
@@ -401,7 +404,7 @@ struct CharterTimelineRow: View {
             if returnIsInDifferentMonth {
                 HStack(spacing: DesignSystem.Spacing.xs) {
                     Image(systemName: "arrow.right")
-                        .font(.system(size: 10))
+                        .font(DesignSystem.Typography.nano)
                     Text(Self.returnFormatter.string(from: charter.endDate))
                         .font(DesignSystem.Typography.micro)
                 }
@@ -414,7 +417,7 @@ struct CharterTimelineRow: View {
         HStack(spacing: DesignSystem.Spacing.xs) {
             HStack(spacing: 3) {
                 Image(systemName: "clock")
-                    .font(.system(size: 10))
+                    .font(DesignSystem.Typography.nano)
                 Text("\(charter.durationDays)d")
                     .fontWeight(.semibold)
             }

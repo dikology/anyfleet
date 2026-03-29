@@ -102,6 +102,25 @@ struct ManagedCommunity: Codable, Identifiable, Hashable, Sendable {
         virtualCaptainCount = try c.decode(Int.self, forKey: .virtualCaptainCount)
         assignedAt = try c.decode(Date.self, forKey: .assignedAt)
     }
+
+    /// Memberwise initializer for previews and tests (decoding remains the production path).
+    init(
+        id: UUID,
+        name: String,
+        slug: String,
+        iconURL: URL?,
+        memberCount: Int,
+        virtualCaptainCount: Int,
+        assignedAt: Date
+    ) {
+        self.id = id
+        self.name = name
+        self.slug = slug
+        self.iconURL = iconURL
+        self.memberCount = memberCount
+        self.virtualCaptainCount = virtualCaptainCount
+        self.assignedAt = assignedAt
+    }
 }
 
 struct VirtualCaptainListResponse: Decodable, Sendable {

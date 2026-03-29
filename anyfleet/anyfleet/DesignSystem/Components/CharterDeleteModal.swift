@@ -25,7 +25,7 @@ struct CharterDeleteModal: View {
                         .frame(width: 80, height: 80)
 
                     Image(systemName: "globe")
-                        .font(.system(size: 32, weight: .medium))
+                        .font(DesignSystem.Typography.symbolPlateSM)
                         .foregroundColor(DesignSystem.Colors.primary)
                 }
                 .padding(.top, DesignSystem.Spacing.xl)
@@ -55,7 +55,7 @@ struct CharterDeleteModal: View {
                                     .frame(width: 32, height: 32)
 
                                 Image(systemName: "trash")
-                                    .font(.system(size: 16, weight: .medium))
+                                    .font(DesignSystem.Typography.bodyMedium)
                                     .foregroundColor(canUnpublish
                                         ? DesignSystem.Colors.error
                                         : DesignSystem.Colors.textSecondary)
@@ -80,7 +80,7 @@ struct CharterDeleteModal: View {
                         }
                         .padding(DesignSystem.Spacing.md)
                         .background(DesignSystem.Colors.backgroundSecondary)
-                        .cornerRadius(12)
+                        .cornerRadius(DesignSystem.Spacing.cornerRadiusMedium)
                     }
                     .buttonStyle(PlainButtonStyle())
                     .disabled(!canUnpublish)
@@ -93,7 +93,7 @@ struct CharterDeleteModal: View {
                                     .frame(width: 32, height: 32)
 
                                 Image(systemName: "iphone.slash")
-                                    .font(.system(size: 16, weight: .medium))
+                                    .font(DesignSystem.Typography.bodyMedium)
                                     .foregroundColor(DesignSystem.Colors.primary)
                             }
 
@@ -112,7 +112,7 @@ struct CharterDeleteModal: View {
                         }
                         .padding(DesignSystem.Spacing.md)
                         .background(DesignSystem.Colors.backgroundSecondary)
-                        .cornerRadius(12)
+                        .cornerRadius(DesignSystem.Spacing.cornerRadiusMedium)
                     }
                     .buttonStyle(PlainButtonStyle())
                 }

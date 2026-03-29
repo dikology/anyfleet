@@ -83,18 +83,18 @@ struct SectionEditorSheet: View {
                                 HStack {
                                     if let icon = icon {
                                         Image(systemName: icon)
-                                            .font(.system(size: 20))
+                                            .font(DesignSystem.Typography.titleRegular)
                                             .foregroundColor(DesignSystem.Colors.primary)
                                             .frame(width: 32, height: 32)
                                             .background(DesignSystem.Colors.primary.opacity(0.1))
-                                            .cornerRadius(8)
+                                            .cornerRadius(DesignSystem.Spacing.cornerRadiusCompact)
                                     } else {
                                         Image(systemName: "photo")
-                                            .font(.system(size: 20))
+                                            .font(DesignSystem.Typography.titleRegular)
                                             .foregroundColor(DesignSystem.Colors.textSecondary)
                                             .frame(width: 32, height: 32)
                                             .background(DesignSystem.Colors.surfaceAlt)
-                                            .cornerRadius(8)
+                                            .cornerRadius(DesignSystem.Spacing.cornerRadiusCompact)
                                     }
                                     
                                     Text(icon != nil ? L10n.SectionEditor.changeIcon : L10n.SectionEditor.chooseIcon)
@@ -104,12 +104,12 @@ struct SectionEditorSheet: View {
                                     Spacer()
                                     
                                     Image(systemName: "chevron.right")
-                                        .font(.system(size: 14))
+                                        .font(DesignSystem.Typography.caption)
                                         .foregroundColor(DesignSystem.Colors.textSecondary)
                                 }
                                 .padding(DesignSystem.Spacing.md)
                                 .background(DesignSystem.Colors.surface)
-                                .cornerRadius(10)
+                                .cornerRadius(DesignSystem.Spacing.cornerRadiusSmall)
                             }
                         }
                         
@@ -149,7 +149,7 @@ struct SectionEditorSheet: View {
                             }
                             .padding(DesignSystem.Spacing.md)
                             .background(DesignSystem.Colors.surface)
-                            .cornerRadius(10)
+                            .cornerRadius(DesignSystem.Spacing.cornerRadiusSmall)
                         }
                         
                         // Delete button (if editing existing)
@@ -166,7 +166,7 @@ struct SectionEditorSheet: View {
                                 .frame(maxWidth: .infinity)
                                 .padding(DesignSystem.Spacing.md)
                                 .background(DesignSystem.Colors.surface)
-                                .cornerRadius(10)
+                                .cornerRadius(DesignSystem.Spacing.cornerRadiusSmall)
                             }
                         }
                     }
@@ -238,7 +238,7 @@ private struct IconPickerSheet: View {
                     } label: {
                         VStack {
                             Image(systemName: "xmark.circle")
-                                .font(.system(size: 24))
+                                .font(DesignSystem.Typography.pageTitleRegular)
                                 .foregroundColor(DesignSystem.Colors.textSecondary)
                             Text(L10n.SectionEditor.none)
                                 .font(DesignSystem.Typography.caption)
@@ -246,7 +246,7 @@ private struct IconPickerSheet: View {
                         }
                         .frame(width: 60, height: 60)
                         .background(selectedIcon == nil ? DesignSystem.Colors.primary.opacity(0.1) : DesignSystem.Colors.surface)
-                        .cornerRadius(10)
+                        .cornerRadius(DesignSystem.Spacing.cornerRadiusSmall)
                     }
                     
                     // Icon options
@@ -257,12 +257,12 @@ private struct IconPickerSheet: View {
                         } label: {
                             VStack {
                                 Image(systemName: icon)
-                                    .font(.system(size: 24))
+                                    .font(DesignSystem.Typography.pageTitleRegular)
                                     .foregroundColor(DesignSystem.Colors.primary)
                             }
                             .frame(width: 60, height: 60)
                             .background(selectedIcon == icon ? DesignSystem.Colors.primary.opacity(0.1) : DesignSystem.Colors.surface)
-                            .cornerRadius(10)
+                            .cornerRadius(DesignSystem.Spacing.cornerRadiusSmall)
                         }
                     }
                 }

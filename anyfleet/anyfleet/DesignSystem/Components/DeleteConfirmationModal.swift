@@ -21,7 +21,7 @@ struct DeleteConfirmationModal: View {
             VStack(spacing: DesignSystem.Spacing.xl) {
                 // Icon
                 Image(systemName: "trash")
-                    .font(.system(size: 64, weight: .light))
+                    .font(DesignSystem.Typography.symbolPlateHeroLight)
                     .foregroundColor(DesignSystem.Colors.error)
                     .padding(.top, DesignSystem.Spacing.xl)
 
@@ -54,7 +54,7 @@ struct DeleteConfirmationModal: View {
                             .padding(.vertical, DesignSystem.Spacing.md)
                             .background(DesignSystem.Colors.error)
                             .foregroundColor(.white)
-                            .cornerRadius(12)
+                            .cornerRadius(DesignSystem.Spacing.cornerRadiusMedium)
                     }
                     .buttonStyle(PlainButtonStyle())
 

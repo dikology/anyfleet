@@ -346,12 +346,15 @@
 
 // Common
 "common.ok" = "OK";
+"common.retry" = "Retry";
 
 // Community manager
 "communityManager.title" = "Community Manager";
 "communityManager.sectionTitle" = "Community Manager";
 "communityManager.sectionSubtitle" = "Virtual captains & publishing";
 "communityManager.emptyManaged" = "No managed communities.";
+"communityManager.emptyStateTitle" = "No communities yet";
+"communityManager.emptyStateMessage" = "Create one from your profile.";
 "communityManager.virtualCaptainsSection" = "Virtual captains";
 "communityManager.noVirtualCaptainsYet" = "No virtual captains yet.";
 "communityManager.addVirtualCaptain" = "Add virtual captain";

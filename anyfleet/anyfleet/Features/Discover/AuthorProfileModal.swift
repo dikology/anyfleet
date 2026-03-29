@@ -86,7 +86,7 @@ struct AuthorProfileModal: View {
                                     .frame(width: 32, height: 32)
                                 
                                 Image(systemName: "checkmark.seal.fill")
-                                    .font(.system(size: 18, weight: .bold))
+                                    .font(DesignSystem.Typography.leadBold)
                                     .foregroundColor(DesignSystem.Colors.primary)
                             }
                             .overlay(
@@ -124,7 +124,7 @@ struct AuthorProfileModal: View {
                         if let location = author.location, !location.isEmpty {
                             HStack(spacing: DesignSystem.Spacing.xs) {
                                 Image(systemName: "mappin.circle.fill")
-                                    .font(.system(size: 12, weight: .medium))
+                                    .font(DesignSystem.Typography.footnoteMedium)
                                 Text(location)
                                     .font(DesignSystem.Typography.caption)
                                     .fontWeight(.medium)
@@ -189,10 +189,10 @@ struct AuthorProfileModal: View {
                         .padding(.horizontal, DesignSystem.Spacing.xl)
                         .padding(.vertical, DesignSystem.Spacing.md)
                         .background(
-                            RoundedRectangle(cornerRadius: DesignSystem.Spacing.lg)
+                            RoundedRectangle(cornerRadius: DesignSystem.Spacing.cardCornerRadius)
                                 .fill(.ultraThinMaterial)
                                 .overlay(
-                                    RoundedRectangle(cornerRadius: DesignSystem.Spacing.lg)
+                                    RoundedRectangle(cornerRadius: DesignSystem.Spacing.cardCornerRadius)
                                         .stroke(.white.opacity(0.2), lineWidth: 1)
                                 )
                         )
@@ -229,7 +229,7 @@ struct AuthorProfileModal: View {
 //                            // TODO: Implement bookmark/save functionality
 //                        }) {
 //                            Image(systemName: "bookmark")
-//                                .font(.system(size: 18, weight: .semibold))
+//                                .font(DesignSystem.Typography.leadSemibold)
 //                                .foregroundColor(.white)
 //                                .frame(width: 56, height: 56)
 //                                .background(
@@ -252,7 +252,7 @@ struct AuthorProfileModal: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(action: onDismiss) {
                         Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 28))
+                            .font(DesignSystem.Typography.toolbarGlyphLarge)
                             .foregroundColor(.white.opacity(0.8))
                             .shadow(color: Color.black.opacity(0.3), radius: 4, x: 0, y: 2)
                             .frame(minWidth: 44, minHeight: 44)
@@ -286,7 +286,7 @@ struct AuthorProfileModal: View {
         VStack(spacing: DesignSystem.Spacing.xs) {
             HStack(spacing: 4) {
                 Image(systemName: icon)
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(DesignSystem.Typography.subheader)
                     .foregroundColor(color)
 
                 Text(value)
@@ -318,7 +318,7 @@ struct AuthorProfileModal: View {
                 .frame(width: 100, height: 100)
 
             Image(systemName: "person.fill")
-                .font(.system(size: 40, weight: .medium))
+                .font(DesignSystem.Typography.symbolPlateMDEmphasis)
                 .foregroundColor(.white)
         }
         .overlay(

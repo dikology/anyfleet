@@ -122,6 +122,7 @@ struct LibraryModalsModifier: ViewModifier {
             .sheet(item: $viewModel.activeModal) { modal in
                 modalContent(for: modal)
             }
+            .animation(DesignSystem.Motion.standard, value: viewModel.activeModal?.id)
     }
 
     @ViewBuilder
@@ -282,7 +283,7 @@ struct CreateContentMenu: View {
             }
         } label: {
             Image(systemName: "plus.circle.fill")
-                .font(.system(size: 22))
+                .font(DesignSystem.Typography.insetHeadline)
                 .foregroundColor(DesignSystem.Colors.primary)
         }
     }
@@ -304,7 +305,7 @@ struct LibrarySkeletonListView: View {
         .background(DesignSystem.Colors.background.ignoresSafeArea())
         .allowsHitTesting(false)
         .onAppear {
-            withAnimation(.linear(duration: 1.2).repeatForever(autoreverses: false)) {
+            withAnimation(DesignSystem.Motion.skeleton) {
                 animating = true
             }
         }
@@ -449,7 +450,7 @@ struct LibraryContentList: View {
                 .ignoresSafeArea()
             )
         }
-        .animation(.easeInOut(duration: 0.35), value: showSwipeTip)
+        .animation(DesignSystem.Motion.standard, value: showSwipeTip)
         .task(id: viewModel.filteredItems.isEmpty) {
             await runLibrarySwipeOnboardingIfNeeded()
         }
@@ -459,11 +460,11 @@ struct LibraryContentList: View {
         guard !viewModel.filteredItems.isEmpty, !hasSeenLibrarySwipeHint else { return }
         try? await Task.sleep(for: .seconds(0.8))
         guard !Task.isCancelled else { return }
-        withAnimation(.easeInOut(duration: 0.35)) { showSwipeTip = true }
+        withAnimation(DesignSystem.Motion.standard) { showSwipeTip = true }
         playSwipeHint = true
         try? await Task.sleep(for: .seconds(2.5))
         guard !Task.isCancelled else { return }
-        withAnimation(.easeInOut(duration: 0.35)) { showSwipeTip = false }
+        withAnimation(DesignSystem.Motion.standard) { showSwipeTip = false }
         playSwipeHint = false
         hasSeenLibrarySwipeHint = true
     }

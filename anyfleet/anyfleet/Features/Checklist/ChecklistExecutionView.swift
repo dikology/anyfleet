@@ -77,7 +77,7 @@ struct ChecklistExecutionView: View {
             VStack(spacing: DesignSystem.Spacing.sm) {
                 // Title
                 Text(checklist.title)
-                    .font(.system(size: 24, weight: .bold))
+                    .font(DesignSystem.Typography.pageTitle)
                     .foregroundColor(DesignSystem.Colors.textPrimary)
                     .multilineTextAlignment(.center)
                 
@@ -111,7 +111,7 @@ struct ChecklistExecutionView: View {
     private func metadataBadge(icon: String, text: String) -> some View {
         HStack(spacing: DesignSystem.Spacing.xs) {
             Image(systemName: icon)
-                .font(.system(size: 12, weight: .semibold))
+                .font(DesignSystem.Typography.footnoteSemibold)
             Text(text)
                 .font(DesignSystem.Typography.caption)
         }
@@ -119,7 +119,7 @@ struct ChecklistExecutionView: View {
         .padding(.horizontal, DesignSystem.Spacing.sm)
         .padding(.vertical, DesignSystem.Spacing.xs)
         .background(DesignSystem.Colors.surfaceAlt)
-        .cornerRadius(8)
+        .cornerRadius(DesignSystem.Spacing.cornerRadiusCompact)
     }
     
     private var progressView: some View {
@@ -132,7 +132,7 @@ struct ChecklistExecutionView: View {
                 Spacer()
                 
                 Text("\(Int(viewModel.progressPercentage * 100))%")
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(DesignSystem.Typography.captionSemibold)
                     .foregroundColor(DesignSystem.Colors.primary)
             }
             
@@ -154,7 +154,7 @@ struct ChecklistExecutionView: View {
                             )
                         )
                         .frame(width: geometry.size.width * viewModel.progressPercentage, height: 8)
-                        .animation(.easeInOut(duration: 0.25), value: viewModel.progressPercentage)
+                        .animation(DesignSystem.Motion.standard, value: viewModel.progressPercentage)
                 }
             }
             .frame(height: 8)
@@ -173,11 +173,11 @@ struct ChecklistExecutionView: View {
                     // Section icon
                     if let icon = section.icon {
                         Image(systemName: icon)
-                            .font(.system(size: 16, weight: .semibold))
+                            .font(DesignSystem.Typography.subheader)
                             .foregroundColor(DesignSystem.Colors.primary)
                             .frame(width: 32, height: 32)
                             .background(DesignSystem.Colors.primary.opacity(0.1))
-                            .cornerRadius(8)
+                            .cornerRadius(DesignSystem.Spacing.cornerRadiusCompact)
                     }
                     
                     VStack(alignment: .leading, spacing: 2) {
@@ -194,7 +194,7 @@ struct ChecklistExecutionView: View {
                     Spacer()
                     
                     Image(systemName: viewModel.isSectionExpanded(section.id) ? "chevron.up" : "chevron.down")
-                        .font(.system(size: 14, weight: .semibold))
+                        .font(DesignSystem.Typography.captionSemibold)
                         .foregroundColor(DesignSystem.Colors.textSecondary)
                 }
                 .padding(DesignSystem.Spacing.lg)
@@ -237,7 +237,7 @@ struct ChecklistExecutionView: View {
                             Circle()
                                 .fill(DesignSystem.Colors.primary)
                             Image(systemName: "checkmark")
-                                .font(.system(size: 14, weight: .bold))
+                                .font(DesignSystem.Typography.captionBold)
                                 .foregroundColor(.white)
                         } else {
                             Circle()
@@ -263,7 +263,7 @@ struct ChecklistExecutionView: View {
 
                             if item.isRequired {
                                 Image(systemName: "exclamationmark.triangle.fill")
-                                    .font(.system(size: 12))
+                                    .font(DesignSystem.Typography.footnote)
                                     .foregroundColor(DesignSystem.Colors.error)
                             }
                         }
@@ -292,7 +292,7 @@ struct ChecklistExecutionView: View {
                             startEditingNotes(for: item)
                         } label: {
                             Image(systemName: viewModel.notes(for: item.id) != nil ? "note.text" : "note.text.badge.plus")
-                                .font(.system(size: 16, weight: .medium))
+                                .font(DesignSystem.Typography.bodyMedium)
                                 .foregroundColor(viewModel.notes(for: item.id) != nil ? DesignSystem.Colors.primary : DesignSystem.Colors.textSecondary)
                         }
                         .buttonStyle(.plain)
@@ -338,9 +338,9 @@ struct ChecklistExecutionView: View {
                     .frame(minHeight: 80)
                     .padding(DesignSystem.Spacing.sm)
                     .background(DesignSystem.Colors.surfaceAlt)
-                    .cornerRadius(8)
+                    .cornerRadius(DesignSystem.Spacing.cornerRadiusCompact)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 8)
+                        RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusCompact)
                             .stroke(DesignSystem.Colors.border, lineWidth: 1)
                     )
 

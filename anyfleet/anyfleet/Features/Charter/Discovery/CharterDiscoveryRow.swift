@@ -21,7 +21,7 @@ struct CharterDiscoveryRow: View {
             }
             .padding(DesignSystem.Spacing.md)
             .background(DesignSystem.Colors.surface)
-            .cornerRadius(12)
+            .cornerRadius(DesignSystem.Spacing.cornerRadiusMedium)
             .shadow(color: Color.black.opacity(0.06), radius: 4, x: 0, y: 2)
         }
         .buttonStyle(.plain)
@@ -88,7 +88,7 @@ struct CharterDiscoveryRow: View {
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
             .background(charter.urgencyLevel.color.opacity(0.12))
-            .cornerRadius(4)
+            .cornerRadius(DesignSystem.Spacing.cornerRadiusMini)
     }
 
     // MARK: - Accessibility
@@ -134,7 +134,7 @@ private struct CaptainAvatarView: View {
             .overlay(
                 Image(systemName: "person.fill")
                     .foregroundColor(DesignSystem.Colors.primary)
-                    .font(.system(size: 18))
+                    .font(DesignSystem.Typography.lead)
             )
     }
 }

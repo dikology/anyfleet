@@ -89,7 +89,7 @@ struct ItemEditorSheet: View {
                                 .frame(maxWidth: .infinity)
                                 .padding(DesignSystem.Spacing.md)
                                 .background(DesignSystem.Colors.surface)
-                                .cornerRadius(10)
+                                .cornerRadius(DesignSystem.Spacing.cornerRadiusSmall)
                             }
                         }
                     }

@@ -150,9 +150,9 @@ struct PracticeGuideEditorView: View {
             .padding(.bottom, DesignSystem.Spacing.lg)
         }
         .background(DesignSystem.Colors.surface)
-        .cornerRadius(16)
+        .cornerRadius(DesignSystem.Spacing.cardCornerRadius)
         .overlay(
-            RoundedRectangle(cornerRadius: 16)
+            RoundedRectangle(cornerRadius: DesignSystem.Spacing.cardCornerRadius)
                 .stroke(
                     LinearGradient(
                         colors: [
@@ -182,9 +182,9 @@ struct PracticeGuideEditorView: View {
                 .font(.body.monospaced())
                 .padding(DesignSystem.Spacing.md)
                 .background(DesignSystem.Colors.surface)
-                .cornerRadius(12)
+                .cornerRadius(DesignSystem.Spacing.cornerRadiusMedium)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 12)
+                    RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusMedium)
                         .stroke(DesignSystem.Colors.border.opacity(0.5), lineWidth: 1)
                 )
         }

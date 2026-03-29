@@ -19,7 +19,7 @@ struct SwipeHintModifier: ViewModifier {
                     .offset(x: isPlaying ? -peekOffset : 0)
                     .animation(
                         isPlaying
-                            ? .spring(response: 0.35, dampingFraction: 0.8)
+                            ? DesignSystem.Motion.spring
                                 .delay(0.2)
                                 .repeatCount(1, autoreverses: true)
                             : .default,

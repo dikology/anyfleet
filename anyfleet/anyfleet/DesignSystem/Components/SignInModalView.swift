@@ -28,7 +28,7 @@ struct SignInModalView: View {
                 Spacer()
                 
                 Image(systemName: "person.crop.circle.badge.checkmark")
-                    .font(.system(size: 64, weight: .light))
+                    .font(DesignSystem.Typography.symbolPlateHeroLight)
                     .foregroundColor(DesignSystem.Colors.primary)
                 
                 Text(title)
@@ -70,7 +70,7 @@ struct SignInModalView: View {
                     .frame(height: 50)
                     .frame(maxWidth: 375)
                     .disabled(isLoading)
-                    .cornerRadius(12)
+                    .cornerRadius(DesignSystem.Spacing.cornerRadiusMedium)
                     
                     if isLoading {
                         ProgressView()

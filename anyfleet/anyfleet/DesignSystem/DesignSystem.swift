@@ -2,9 +2,12 @@ import SwiftUI
 
 enum DesignSystem {
 
-    /// Shared motion presets (DESIGN.md — spring for cards, pins, sheets).
+    /// Shared motion presets (DESIGN.md — springs for cards; ease for sheets and state).
     enum Motion {
+        static let standard = SwiftUI.Animation.easeInOut(duration: 0.25)
         static let spring = SwiftUI.Animation.spring(response: 0.35, dampingFraction: 0.8)
+        static let springQuick = SwiftUI.Animation.spring(response: 0.2, dampingFraction: 0.9)
+        static let skeleton = SwiftUI.Animation.easeInOut(duration: 1.0).repeatForever(autoreverses: true)
     }
     struct CardStyle: ViewModifier {
         func body(content: Content) -> some View {
@@ -55,7 +58,7 @@ enum DesignSystem {
 
         var body: some View {
             Text(text.uppercased())
-                .font(.system(size: 11, weight: .bold))
+                .font(Typography.microBold)
                 .tracking(1.2)
                 .foregroundColor(Colors.textSecondary)
         }
@@ -67,7 +70,7 @@ enum DesignSystem {
             content
                 .background(.ultraThinMaterial)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 12)
+                    RoundedRectangle(cornerRadius: Spacing.cornerRadiusMedium)
                         .stroke(Color.white.opacity(0.15), lineWidth: 1)
                 )
         }
@@ -83,20 +86,20 @@ enum DesignSystem {
                 .padding(.horizontal, 10)
                 .background(Colors.border.opacity(0.5))
                 .foregroundColor(Colors.textPrimary)
-                .cornerRadius(20)
+                .cornerRadius(Spacing.cornerRadiusPill)
         }
     }
     
     struct PrimaryButtonStyle: ButtonStyle {
         func makeBody(configuration: Configuration) -> some View {
             configuration.label
-                .font(.system(size: 16, weight: .semibold))
+                .font(Typography.subheader)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, Spacing.sm)
                 .padding(.horizontal, Spacing.md)
                 .background(Colors.primary)
                 .foregroundColor(.white)
-                .cornerRadius(10)
+                .cornerRadius(Spacing.cornerRadiusSmall)
                 .opacity(configuration.isPressed ? 0.9 : 1.0)
                 .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
                 .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
@@ -106,17 +109,17 @@ enum DesignSystem {
     struct SecondaryButtonStyle: ButtonStyle {
         func makeBody(configuration: Configuration) -> some View {
             configuration.label
-                .font(.system(size: 16, weight: .semibold))
+                .font(Typography.subheader)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, Spacing.sm)
                 .padding(.horizontal, Spacing.md)
                 .background(Colors.surface)
                 .foregroundColor(Colors.textPrimary)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 10)
+                    RoundedRectangle(cornerRadius: Spacing.cornerRadiusSmall)
                         .stroke(Colors.border, lineWidth: 1)
                 )
-                .cornerRadius(10)
+                .cornerRadius(Spacing.cornerRadiusSmall)
                 .opacity(configuration.isPressed ? 0.9 : 1.0)
                 .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
                 .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
@@ -126,13 +129,13 @@ enum DesignSystem {
     struct OutlineButtonStyle: ButtonStyle {
         func makeBody(configuration: Configuration) -> some View {
             configuration.label
-                .font(.system(size: 16, weight: .semibold))
+                .font(Typography.subheader)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, Spacing.sm)
                 .padding(.horizontal, Spacing.md)
                 .foregroundColor(Colors.textPrimary)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 10)
+                    RoundedRectangle(cornerRadius: Spacing.cornerRadiusSmall)
                         .stroke(Colors.border, lineWidth: 1)
                 )
                 .opacity(configuration.isPressed ? 0.9 : 1.0)
@@ -148,7 +151,7 @@ enum DesignSystem {
                 .padding(.horizontal, Spacing.md)
                 .padding(.vertical, Spacing.sm)
                 .background(Colors.surfaceAlt)
-                .cornerRadius(10)
+                .cornerRadius(Spacing.cornerRadiusSmall)
         }
     }
     
@@ -167,7 +170,7 @@ enum DesignSystem {
     }
 
     enum SelectableCardStyle {
-        static let cornerRadius: CGFloat = 14
+        static let cornerRadius: CGFloat = Spacing.cornerRadiusControl
         static let borderWidth: CGFloat = 1
         static let selectedBorderWidth: CGFloat = 2
         static let shadowRadius: CGFloat = 4
@@ -242,7 +245,7 @@ enum DesignSystem {
         func body(content: Content) -> some View {
             content
                 .background(
-                    RoundedRectangle(cornerRadius: 16)
+                    RoundedRectangle(cornerRadius: Spacing.cardCornerRadius)
                         .fill(Colors.surface)
                         .shadow(
                             color: Colors.shadowStrong.opacity(elevation.shadowOpacity),
@@ -252,7 +255,7 @@ enum DesignSystem {
                         )
                 )
                 .overlay(
-                    RoundedRectangle(cornerRadius: 16)
+                    RoundedRectangle(cornerRadius: Spacing.cardCornerRadius)
                         .stroke(
                             LinearGradient(
                                 colors: [
@@ -320,7 +323,7 @@ enum DesignSystem {
                         .frame(width: 120, height: 120)
                     
                     Image(systemName: icon)
-                        .font(.system(size: 56, weight: .light))
+                        .font(Typography.symbolPlateXXL)
                         .foregroundStyle(
                             LinearGradient(
                                 colors: [accentColor, accentColor.opacity(0.7)],
@@ -333,7 +336,7 @@ enum DesignSystem {
                 
                 VStack(spacing: Spacing.sm) {
                     Text(title)
-                        .font(.system(size: 24, weight: .semibold))
+                        .font(Typography.pageTitleSemibold)
                         .foregroundColor(Colors.textPrimary)
                     
                     Text(message)
@@ -390,7 +393,7 @@ enum DesignSystem {
                         .frame(width: 120, height: 120)
 
                     Image(systemName: icon)
-                        .font(.system(size: 48, weight: .medium))
+                        .font(Typography.symbolPlateXL)
                         .foregroundStyle(
                             LinearGradient(
                                 colors: [
@@ -405,7 +408,7 @@ enum DesignSystem {
 
                 VStack(spacing: DesignSystem.Spacing.md) {
                     Text(title)
-                        .font(.system(size: 26, weight: .bold))
+                        .font(Typography.emptyStateHeadline)
                         .foregroundColor(DesignSystem.Colors.textPrimary)
                         .multilineTextAlignment(.center)
 
@@ -422,12 +425,12 @@ enum DesignSystem {
                             Image(systemName: "plus.circle.fill")
                             Text(actionTitle)
                         }
-                        .font(.system(size: 17, weight: .semibold))
+                        .font(Typography.headline)
                         .foregroundColor(.white)
                         .padding(.horizontal, DesignSystem.Spacing.lg)
                         .padding(.vertical, DesignSystem.Spacing.md)
                         .background(DesignSystem.Colors.primary)
-                        .cornerRadius(12)
+                        .cornerRadius(Spacing.cornerRadiusMedium)
                         .shadow(color: DesignSystem.Colors.primary.opacity(0.3), radius: 8, y: 4)
                     }
                     .buttonStyle(.plain)

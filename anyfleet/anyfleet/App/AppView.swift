@@ -116,7 +116,7 @@ struct AppView: View {
 
             if AppConfiguration.isStaging {
                 Text("STAGING")
-                    .font(.system(size: 11, weight: .bold, design: .monospaced))
+                    .font(DesignSystem.Typography.microBoldMonospaced)
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 2)

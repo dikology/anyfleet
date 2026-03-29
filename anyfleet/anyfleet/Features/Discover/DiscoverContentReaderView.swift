@@ -79,7 +79,7 @@ struct DiscoverContentReaderView: View {
                         }
                     }) {
                         Image(systemName: "arrow.triangle.branch")
-                            .font(.system(size: 16, weight: .medium))
+                            .font(DesignSystem.Typography.bodyMedium)
                             .foregroundColor(DesignSystem.Colors.primary)
                     }
                 }
@@ -122,7 +122,7 @@ struct DiscoverContentReaderView: View {
     private func attributionView(originalAuthor: String, originalContentID: String?) -> some View {
         HStack(spacing: DesignSystem.Spacing.sm) {
             Image(systemName: "arrow.triangle.branch")
-                .font(.system(size: 14))
+                .font(DesignSystem.Typography.caption)
                 .foregroundColor(DesignSystem.Colors.textSecondary)
 
             Text("Forked from")
@@ -142,7 +142,7 @@ struct DiscoverContentReaderView: View {
         .padding(.horizontal, DesignSystem.Spacing.sm)
         .padding(.vertical, DesignSystem.Spacing.xs)
         .background(
-            RoundedRectangle(cornerRadius: DesignSystem.Spacing.sm)
+            RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusCompact)
                 .fill(DesignSystem.Colors.primary.opacity(0.1))
         )
         .padding(.bottom, DesignSystem.Spacing.sm)
@@ -197,7 +197,7 @@ struct DiscoverContentReaderView: View {
     private func unsupportedContentView() -> some View {
         VStack(spacing: DesignSystem.Spacing.lg) {
             Image(systemName: "exclamationmark.triangle")
-                .font(.system(size: 48))
+                .font(DesignSystem.Typography.symbolPlateXLRegular)
                 .foregroundColor(DesignSystem.Colors.textSecondary)
 
             Text("Content Type Not Supported")
@@ -228,7 +228,7 @@ struct DiscoverContentReaderView: View {
                 // Type badge
                 HStack(spacing: DesignSystem.Spacing.xs) {
                     Image(systemName: checklist.checklistType.icon)
-                        .font(.system(size: 12))
+                        .font(DesignSystem.Typography.footnote)
                     Text(checklist.checklistType.displayName)
                         .font(DesignSystem.Typography.caption)
                 }
@@ -280,7 +280,7 @@ struct DiscoverContentReaderView: View {
         .padding(.vertical, DesignSystem.Spacing.sm)
         .padding(.horizontal, DesignSystem.Spacing.md)
         .background(
-            RoundedRectangle(cornerRadius: DesignSystem.Spacing.md)
+            RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusMedium)
                 .fill(DesignSystem.Colors.surface)
         )
     }
@@ -289,7 +289,7 @@ struct DiscoverContentReaderView: View {
         HStack(alignment: .top, spacing: DesignSystem.Spacing.sm) {
             // Checkbox (read-only)
             Image(systemName: "square")
-                .font(.system(size: 16))
+                .font(DesignSystem.Typography.body)
                 .foregroundColor(DesignSystem.Colors.textSecondary)
 
             VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {

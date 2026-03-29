@@ -74,15 +74,9 @@ struct DiscoverContentRow: View {
             .padding(.horizontal, DesignSystem.Spacing.lg)
             .padding(.vertical, DesignSystem.Spacing.md)
         }
-        .background(DesignSystem.Colors.surface)
-        .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Spacing.cardCornerRadius))
-        .overlay(
-            RoundedRectangle(cornerRadius: DesignSystem.Spacing.cardCornerRadius)
-                .stroke(DesignSystem.Colors.border.opacity(0.3), lineWidth: 1)
-        )
-        .shadow(color: .black.opacity(0.06), radius: 2, x: 0, y: 1)
+        .heroCardStyle(elevation: .medium)
         .scaleEffect(isPressed ? 0.98 : 1.0)
-        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isPressed)
+        .animation(DesignSystem.Motion.spring, value: isPressed)
         // Swipe actions for fork
         .swipeActions(edge: .trailing, allowsFullSwipe: false) {
             Button(action: onForkTapped) {
@@ -101,7 +95,7 @@ struct DiscoverContentRow: View {
                 .fill(bgColor)
 
             Image(systemName: content.contentType.icon)
-                .font(.system(size: 20, weight: .semibold))
+                .font(DesignSystem.Typography.title)
                 .foregroundColor(iconColor)
         }
         .frame(width: 48, height: 48)
@@ -110,7 +104,7 @@ struct DiscoverContentRow: View {
     private var contentTypeBadge: some View {
         let (textColor, borderColor) = content.contentType.badgeColors
         return Text(content.contentType.displayName)
-            .font(.system(size: 10, weight: .bold))
+            .font(DesignSystem.Typography.nanoBold)
             .foregroundColor(textColor)
             .textCase(.uppercase)
             .padding(.horizontal, 6)
@@ -163,7 +157,7 @@ struct DiscoverContentRow: View {
                             .fill(DesignSystem.Colors.textSecondary.opacity(0.8))
 
                         Text("3+")
-                            .font(.system(size: 10, weight: .semibold))
+                            .font(DesignSystem.Typography.nanoSemibold)
                             .foregroundColor(.white)
                     }
                     .frame(width: 24, height: 24)
@@ -198,7 +192,7 @@ struct DiscoverContentRow: View {
                 )
 
             Text(username.prefix(1).uppercased())
-                .font(.system(size: size * 0.5, weight: .semibold))
+                .font(DesignSystem.Typography.avatarInitial(inCircleDiameter: size))
                 .foregroundColor(.white)
         }
         .frame(width: size, height: size)
@@ -214,7 +208,7 @@ struct DiscoverContentRow: View {
                 .fill(DesignSystem.Colors.primary.opacity(0.1))
 
             Image(systemName: "questionmark.circle.fill")
-                .font(.system(size: size * 0.5))
+                .font(DesignSystem.Typography.avatarAnonymousGlyph(inCircleDiameter: size))
                 .foregroundColor(DesignSystem.Colors.textSecondary)
         }
         .frame(width: size, height: size)

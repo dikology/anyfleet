@@ -22,7 +22,7 @@ struct CommunityDetailView: View {
                             .foregroundStyle(.white)
                     }
                     .frame(width: 56, height: 56)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusMedium))
 
                     VStack(alignment: .leading, spacing: 4) {
                         Text(community.name)
@@ -94,6 +94,7 @@ struct CommunityDetailView: View {
                 )
             }
         }
+        .animation(DesignSystem.Motion.standard, value: showCreate)
         .navigationDestination(item: $captainToEdit) { vc in
             VirtualCaptainEditorView(
                 apiClient: apiClient,

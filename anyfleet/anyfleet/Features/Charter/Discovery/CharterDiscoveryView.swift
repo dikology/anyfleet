@@ -38,6 +38,8 @@ struct CharterDiscoveryView: View {
                 }
             }
         }
+        .animation(DesignSystem.Motion.standard, value: viewModel.showFilters)
+        .animation(DesignSystem.Motion.standard, value: viewModel.selectedCharter?.id)
         .task { await viewModel.loadInitial() }
         .refreshable { await viewModel.refresh() }
         .onAppear { viewModel.requestLocationIfNeeded() }
@@ -183,7 +185,7 @@ struct CharterDiscoveryView: View {
         VStack(spacing: DesignSystem.Spacing.xl) {
             Spacer()
             Image(systemName: "sailboat")
-                .font(.system(size: 64))
+                .font(DesignSystem.Typography.symbolPlateHero)
                 .foregroundColor(DesignSystem.Colors.textSecondary.opacity(0.4))
 
             VStack(spacing: DesignSystem.Spacing.sm) {
@@ -251,7 +253,7 @@ struct CharterDiscoveryView: View {
         } label: {
             ZStack(alignment: .topTrailing) {
                 Image(systemName: "slider.horizontal.3")
-                    .font(.system(size: 17))
+                    .font(DesignSystem.Typography.headlineRegular)
                     .foregroundColor(DesignSystem.Colors.textPrimary)
 
                 if viewModel.filters.activeFilterCount > 0 {
@@ -267,12 +269,12 @@ struct CharterDiscoveryView: View {
 
     private var viewToggleButton: some View {
         Button {
-            withAnimation(.easeInOut(duration: 0.25)) {
+            withAnimation(DesignSystem.Motion.standard) {
                 viewModel.showMapView.toggle()
             }
         } label: {
             Image(systemName: viewModel.showMapView ? "list.bullet" : "map")
-                .font(.system(size: 17))
+                .font(DesignSystem.Typography.headlineRegular)
                 .foregroundColor(DesignSystem.Colors.textPrimary)
         }
     }
@@ -308,7 +310,7 @@ private struct DiscoverySkeletonList: View {
         .background(DesignSystem.Colors.background.ignoresSafeArea())
         .allowsHitTesting(false)
         .onAppear {
-            withAnimation(.linear(duration: 1.2).repeatForever(autoreverses: false)) {
+            withAnimation(DesignSystem.Motion.skeleton) {
                 animating = true
             }
         }

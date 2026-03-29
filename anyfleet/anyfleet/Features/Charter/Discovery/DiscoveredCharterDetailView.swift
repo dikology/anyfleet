@@ -56,7 +56,7 @@ struct DiscoveredCharterDetailView: View {
         }
         .padding(DesignSystem.Spacing.md)
         .background(DesignSystem.Colors.surface)
-        .cornerRadius(12)
+        .cornerRadius(DesignSystem.Spacing.cornerRadiusMedium)
     }
 
     private var captainAvatar: some View {
@@ -81,7 +81,7 @@ struct DiscoveredCharterDetailView: View {
             .overlay(
                 Image(systemName: "person.fill")
                     .foregroundColor(DesignSystem.Colors.primary)
-                    .font(.system(size: 24))
+                    .font(DesignSystem.Typography.pageTitleRegular)
             )
     }
 
@@ -119,14 +119,14 @@ struct DiscoveredCharterDetailView: View {
                 }
             }
             .background(DesignSystem.Colors.surface)
-            .cornerRadius(12)
+            .cornerRadius(DesignSystem.Spacing.cornerRadiusMedium)
         }
     }
 
     private func infoRow(icon: String, label: String, value: String) -> some View {
         HStack(spacing: DesignSystem.Spacing.md) {
             Image(systemName: icon)
-                .font(.system(size: 16))
+                .font(DesignSystem.Typography.body)
                 .foregroundColor(DesignSystem.Colors.primary)
                 .frame(width: 28)
 

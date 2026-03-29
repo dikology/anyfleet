@@ -50,9 +50,9 @@ struct CharterEditorView: View {
                 } label: {
                     HStack(spacing: DesignSystem.Spacing.xs) {
                         Image(systemName: "chevron.left")
-                            .font(.system(size: 15, weight: .semibold))
+                            .font(DesignSystem.Typography.calloutSemibold)
                         Text(L10n.Charter.Editor.back)
-                            .font(.system(size: 17, weight: .regular))
+                            .font(DesignSystem.Typography.headlineRegular)
                     }
                     .foregroundColor(DesignSystem.Colors.info)
                 }
@@ -79,6 +79,8 @@ struct CharterEditorView: View {
                 onDismiss: { viewModel.onSignInDismiss() }
             )
         }
+        .animation(DesignSystem.Motion.standard, value: viewModel.showVirtualCaptainPicker)
+        .animation(DesignSystem.Motion.standard, value: viewModel.showSignIn)
     }
 }
 
@@ -99,7 +101,7 @@ private extension CharterEditorView {
                             .frame(width: 48, height: 48)
 
                         Image(systemName: "sailboat.fill")
-                            .font(.system(size: 24))
+                            .font(DesignSystem.Typography.pageTitleRegular)
                             .foregroundColor(DesignSystem.Colors.gold)
                     }
                     .padding(.top, DesignSystem.Spacing.xl)
@@ -169,14 +171,14 @@ private extension CharterEditorView {
                         .foregroundColor(DesignSystem.Colors.textSecondary)
                     Spacer()
                     Text("\(viewModel.form.nights) \(L10n.charterCreateNights)")
-                        .font(.system(size: 14, weight: .bold))
+                        .font(DesignSystem.Typography.captionBold)
                         .foregroundColor(DesignSystem.Colors.gold)
                         .padding(.horizontal, DesignSystem.Spacing.md)
                         .padding(.vertical, DesignSystem.Spacing.xs)
                         .background(DesignSystem.Colors.gold.opacity(0.1))
-                        .cornerRadius(20)
+                        .cornerRadius(DesignSystem.Spacing.cornerRadiusPill)
                         .overlay(
-                            RoundedRectangle(cornerRadius: 20)
+                            RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusPill)
                                 .stroke(DesignSystem.Colors.gold.opacity(0.2), lineWidth: 1)
                         )
                 }
@@ -194,6 +196,8 @@ private extension CharterEditorView {
                 selectedDate: $viewModel.form.endDate
             )
         }
+        .animation(DesignSystem.Motion.standard, value: showStartDatePicker)
+        .animation(DesignSystem.Motion.standard, value: showEndDatePicker)
     }
 
     private func dateBlock(label: String, date: Date, action: @escaping () -> Void) -> some View {
@@ -202,11 +206,11 @@ private extension CharterEditorView {
             Button(action: action) {
                 HStack {
                     Text(date, style: .date)
-                        .font(.system(size: 15))
+                        .font(DesignSystem.Typography.callout)
                         .foregroundColor(DesignSystem.Colors.textPrimary)
                     Spacer()
                     Image(systemName: "calendar")
-                        .font(.system(size: 14))
+                        .font(DesignSystem.Typography.caption)
                         .foregroundColor(DesignSystem.Colors.gold.opacity(0.6))
                 }
                 .padding(DesignSystem.Spacing.md)
@@ -231,7 +235,7 @@ private extension CharterEditorView {
                 }
                 .padding(DesignSystem.Spacing.xs)
                 .background(DesignSystem.Colors.background)
-                .cornerRadius(14)
+                .cornerRadius(DesignSystem.Spacing.cornerRadiusControl)
 
                 Text(viewModel.form.visibility.description)
                     .font(DesignSystem.Typography.micro)
@@ -247,9 +251,9 @@ private extension CharterEditorView {
         } label: {
             VStack(spacing: DesignSystem.Spacing.xs) {
                 Image(systemName: option.systemImage)
-                    .font(.system(size: 14))
+                    .font(DesignSystem.Typography.caption)
                 Text(option.displayName)
-                    .font(.system(size: 10, weight: .medium))
+                    .font(DesignSystem.Typography.nanoMedium)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, DesignSystem.Spacing.md)

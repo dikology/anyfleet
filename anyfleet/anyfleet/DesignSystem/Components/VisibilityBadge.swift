@@ -23,7 +23,7 @@ struct VisibilityBadge: View {
     var body: some View {
         HStack(spacing: DesignSystem.Spacing.xs) {
             Image(systemName: visibility.icon)
-                .font(.system(size: 12, weight: .medium))
+                .font(DesignSystem.Typography.footnoteMedium)
             
             Text(visibility.displayName.lowercased())
                 .font(DesignSystem.Typography.caption)
@@ -37,7 +37,7 @@ struct VisibilityBadge: View {
         .padding(.vertical, DesignSystem.Spacing.xs)
         .background(backgroundColor)
         .foregroundColor(foregroundColor)
-        .cornerRadius(12)
+        .cornerRadius(DesignSystem.Spacing.cornerRadiusMedium)
     }
     
     // MARK: - Styling

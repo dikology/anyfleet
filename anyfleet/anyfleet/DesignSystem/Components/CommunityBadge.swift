@@ -77,7 +77,7 @@ struct CommunityBadge: View {
         ZStack {
             DesignSystem.Colors.communityAccent.opacity(0.2)
             Text(String(name.prefix(1)).uppercased())
-                .font(.system(size: max(10, size * 0.5), weight: .bold, design: .rounded))
+                .font(DesignSystem.Typography.communityBadgeInitial(forDiameter: size))
                 .foregroundColor(DesignSystem.Colors.communityAccent)
         }
         .frame(width: size, height: size)

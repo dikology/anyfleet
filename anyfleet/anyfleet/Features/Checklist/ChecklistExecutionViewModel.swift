@@ -148,7 +148,7 @@ final class ChecklistExecutionViewModel: ErrorHandling {
     ///
     /// - Parameter itemID: The ID of the item to toggle
     func toggleItem(_ itemID: UUID) {
-        withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
+        withAnimation(DesignSystem.Motion.springQuick) {
             if checkedItems.contains(itemID) {
                 checkedItems.remove(itemID)
             } else {
@@ -179,7 +179,7 @@ final class ChecklistExecutionViewModel: ErrorHandling {
     ///
     /// - Parameter sectionID: The ID of the section to toggle
     func toggleSection(_ sectionID: UUID) {
-        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+        withAnimation(DesignSystem.Motion.spring) {
             if expandedSections.contains(sectionID) {
                 expandedSections.remove(sectionID)
             } else {

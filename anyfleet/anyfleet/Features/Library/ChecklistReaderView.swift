@@ -111,7 +111,7 @@ struct ChecklistReaderView: View {
                 // Type badge
                 HStack(spacing: DesignSystem.Spacing.xs) {
                     Image(systemName: checklist.checklistType.icon)
-                        .font(.system(size: 12))
+                        .font(DesignSystem.Typography.footnote)
                     Text(checklist.checklistType.displayName)
                         .font(DesignSystem.Typography.caption)
                 }
@@ -164,11 +164,11 @@ struct ChecklistReaderView: View {
             HStack(spacing: DesignSystem.Spacing.sm) {
                 if let icon = section.icon {
                     Image(systemName: icon)
-                        .font(.system(size: 16))
+                        .font(DesignSystem.Typography.body)
                         .foregroundColor(DesignSystem.Colors.primary)
                         .frame(width: 28, height: 28)
                         .background(DesignSystem.Colors.primary.opacity(0.1))
-                        .cornerRadius(6)
+                        .cornerRadius(DesignSystem.Spacing.cornerRadiusInset)
                 }
                 
                 VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
@@ -199,7 +199,7 @@ struct ChecklistReaderView: View {
         }
         .padding(DesignSystem.Spacing.lg)
         .background(DesignSystem.Colors.surface)
-        .cornerRadius(12)
+        .cornerRadius(DesignSystem.Spacing.cornerRadiusMedium)
         .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
     }
     
@@ -258,7 +258,7 @@ struct ChecklistReaderView: View {
                     if let minutes = item.estimatedMinutes {
                         HStack(spacing: 2) {
                             Image(systemName: "clock")
-                                .font(.system(size: 10))
+                                .font(DesignSystem.Typography.nano)
                             Text("\(minutes) min")
                                 .font(DesignSystem.Typography.caption)
                         }

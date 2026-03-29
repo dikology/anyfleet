@@ -33,7 +33,7 @@ extension DesignSystem {
         private func statGroup(_ item: Item) -> some View {
             HStack(alignment: .firstTextBaseline, spacing: Spacing.xs) {
                 Image(systemName: item.systemImage)
-                    .font(.system(size: 14, weight: .medium))
+                    .font(DesignSystem.Typography.captionMedium)
                     .foregroundColor(item.tint)
                 Text(item.value)
                     .font(Typography.subheader)

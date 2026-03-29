@@ -81,6 +81,7 @@ struct DiscoverView: View {
                 }
             )
         }
+        .animation(DesignSystem.Motion.standard, value: selectedAuthor?.id)
         .toolbar {
             ToolbarItem(placement: .principal) {
                 Text(L10n.Discover)
@@ -165,7 +166,7 @@ struct DiscoverView: View {
         )
         .allowsHitTesting(false)
         .onAppear {
-            withAnimation(.linear(duration: 1.2).repeatForever(autoreverses: false)) {
+            withAnimation(DesignSystem.Motion.skeleton) {
                 discoverSkeletonAnimating = true
             }
         }
@@ -266,7 +267,7 @@ struct DiscoverView: View {
                     .transition(.move(edge: .top).combined(with: .opacity))
             }
         }
-        .animation(.easeInOut(duration: 0.35), value: showDiscoverSwipeTip)
+        .animation(DesignSystem.Motion.standard, value: showDiscoverSwipeTip)
         .task(id: discoverSwipeOnboardingTaskActive) {
             await runDiscoverSwipeOnboardingIfNeeded()
         }
@@ -277,11 +278,11 @@ struct DiscoverView: View {
         guard !viewModel.content.isEmpty, !hasSeenDiscoverSwipeHint else { return }
         try? await Task.sleep(for: .seconds(0.8))
         guard !Task.isCancelled else { return }
-        withAnimation(.easeInOut(duration: 0.35)) { showDiscoverSwipeTip = true }
+        withAnimation(DesignSystem.Motion.standard) { showDiscoverSwipeTip = true }
         playDiscoverSwipeHint = true
         try? await Task.sleep(for: .seconds(2.5))
         guard !Task.isCancelled else { return }
-        withAnimation(.easeInOut(duration: 0.35)) { showDiscoverSwipeTip = false }
+        withAnimation(DesignSystem.Motion.standard) { showDiscoverSwipeTip = false }
         playDiscoverSwipeHint = false
         hasSeenDiscoverSwipeHint = true
     }

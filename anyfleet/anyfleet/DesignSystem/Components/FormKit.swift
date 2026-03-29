@@ -50,18 +50,18 @@ extension DesignSystem {
                 HStack(spacing: DesignSystem.Spacing.sm) {
                     if let icon = leadingIcon {
                         Image(systemName: icon)
-                            .font(.system(size: 14))
+                            .font(DesignSystem.Typography.caption)
                             .foregroundColor(DesignSystem.Colors.textSecondary)
                     }
                     TextField(placeholder, text: $text)
                         .textFieldStyle(.plain)
-                        .font(.system(size: 15))
+                        .font(DesignSystem.Typography.callout)
                         .foregroundColor(DesignSystem.Colors.textPrimary)
                         .autocorrectionDisabled()
                     if let icon = trailingIcon {
                         Button(action: { onTrailingTap?() }) {
                             Image(systemName: icon)
-                                .font(.system(size: 14))
+                                .font(DesignSystem.Typography.caption)
                                 .foregroundColor(DesignSystem.Colors.info)
                         }
                         .buttonStyle(.plain)
@@ -170,7 +170,7 @@ extension DesignSystem {
                             .foregroundColor(DesignSystem.Colors.textSecondary)
                         Spacer()
                         Text("\(Int(progress * 100))%")
-                            .font(.system(size: 12, weight: .semibold))
+                            .font(DesignSystem.Typography.footnoteSemibold)
                             .foregroundColor(DesignSystem.Colors.primary)
                     }
                     
@@ -187,14 +187,14 @@ extension DesignSystem {
                                     )
                                 )
                                 .frame(width: proxy.size.width * min(max(progress, 0), 1))
-                                .animation(.easeInOut(duration: 0.25), value: progress)
+                                .animation(DesignSystem.Motion.standard, value: progress)
                         }
                     }
                     .frame(height: 6)
                 }
                 .padding(DesignSystem.Spacing.lg)
                 .background(DesignSystem.Colors.surface)
-                .cornerRadius(12)
+                .cornerRadius(DesignSystem.Spacing.cornerRadiusMedium)
             }
         }
         
@@ -257,7 +257,7 @@ extension DesignSystem {
                     .overlay(alignment: .bottomLeading) {
                         VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
                             Text(title)
-                                .font(.system(size: 26, weight: .semibold))
+                                .font(DesignSystem.Typography.emptyStateTitleSemibold)
                                 .foregroundColor(.white)
                             Text(subtitle)
                                 .font(DesignSystem.Typography.body)
@@ -265,7 +265,7 @@ extension DesignSystem {
                         }
                         .padding(DesignSystem.Spacing.xl)
                     }
-                    .cornerRadius(16)
+                    .cornerRadius(DesignSystem.Spacing.cardCornerRadius)
                     .shadow(color: Color.black.opacity(0.08), radius: 10, x: 0, y: 6)
             }
         }
@@ -280,14 +280,14 @@ extension DesignSystem {
             var body: some View {
                 HStack(alignment: .top, spacing: DesignSystem.Spacing.md) {
                     Text(icon)
-                        .font(.system(size: 22))
+                        .font(DesignSystem.Typography.insetHeadline)
                     
                     VStack(alignment: .leading, spacing: 4) {
                         Text(title)
                             .font(DesignSystem.Typography.caption)
                             .foregroundColor(DesignSystem.Colors.textSecondary)
                         Text(value)
-                            .font(.system(size: 16, weight: .semibold))
+                            .font(DesignSystem.Typography.subheader)
                             .foregroundColor(DesignSystem.Colors.textPrimary)
                         if let detail, !detail.isEmpty {
                             Text(detail)
@@ -302,7 +302,7 @@ extension DesignSystem {
                 }
                 .padding(DesignSystem.Spacing.md)
                 .background(DesignSystem.Colors.surfaceAlt)
-                .cornerRadius(12)
+                .cornerRadius(DesignSystem.Spacing.cornerRadiusMedium)
             }
         }
     }

@@ -23,7 +23,7 @@ struct RegionPickerSection: View {
                         .frame(height: 120)
                         .overlay(
                             Text(region.icon)
-                                .font(.system(size: 32))
+                                .font(DesignSystem.Typography.symbolPlateSMRegular)
                                 .padding(DesignSystem.Spacing.md),
                             alignment: .topLeading
                         )
@@ -31,7 +31,7 @@ struct RegionPickerSection: View {
                     VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
                         HStack {
                             Text(region.name)
-                                .font(.system(size: 18, weight: .semibold))
+                                .font(DesignSystem.Typography.leadSemibold)
                                 .foregroundColor(DesignSystem.Colors.textPrimary)
                             Spacer()
                             if selectedRegion == region.name {
