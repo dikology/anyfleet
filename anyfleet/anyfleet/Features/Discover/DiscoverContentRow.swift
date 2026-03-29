@@ -74,13 +74,7 @@ struct DiscoverContentRow: View {
             .padding(.horizontal, DesignSystem.Spacing.lg)
             .padding(.vertical, DesignSystem.Spacing.md)
         }
-        .background(DesignSystem.Colors.surface)
-        .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Spacing.cardCornerRadius))
-        .overlay(
-            RoundedRectangle(cornerRadius: DesignSystem.Spacing.cardCornerRadius)
-                .stroke(DesignSystem.Colors.border.opacity(0.3), lineWidth: 1)
-        )
-        .shadow(color: .black.opacity(0.06), radius: 2, x: 0, y: 1)
+        .heroCardStyle(elevation: .medium)
         .scaleEffect(isPressed ? 0.98 : 1.0)
         .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isPressed)
         // Swipe actions for fork
