@@ -37,7 +37,7 @@ struct CommunityManagerView: View {
                                     .foregroundStyle(.white)
                             }
                             .frame(width: 40, height: 40)
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                            .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusCompact))
 
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(community.name)

@@ -58,7 +58,7 @@ struct PublishConfirmationModal: View {
                 .padding(DesignSystem.Spacing.md)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(DesignSystem.Colors.primary.opacity(0.1))
-                .cornerRadius(12)
+                .cornerRadius(DesignSystem.Spacing.cornerRadiusMedium)
                 .padding(.horizontal, DesignSystem.Spacing.lg)
                 
                 Spacer()
@@ -91,7 +91,7 @@ struct PublishConfirmationModal: View {
                         .padding(.vertical, DesignSystem.Spacing.md)
                         .background(DesignSystem.Colors.primary)
                         .foregroundColor(.white)
-                        .cornerRadius(12)
+                        .cornerRadius(DesignSystem.Spacing.cornerRadiusMedium)
                     }
                     .disabled(isLoading)
                     .buttonStyle(PlainButtonStyle())

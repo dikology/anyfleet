@@ -119,7 +119,7 @@ struct ChecklistExecutionView: View {
         .padding(.horizontal, DesignSystem.Spacing.sm)
         .padding(.vertical, DesignSystem.Spacing.xs)
         .background(DesignSystem.Colors.surfaceAlt)
-        .cornerRadius(8)
+        .cornerRadius(DesignSystem.Spacing.cornerRadiusCompact)
     }
     
     private var progressView: some View {
@@ -177,7 +177,7 @@ struct ChecklistExecutionView: View {
                             .foregroundColor(DesignSystem.Colors.primary)
                             .frame(width: 32, height: 32)
                             .background(DesignSystem.Colors.primary.opacity(0.1))
-                            .cornerRadius(8)
+                            .cornerRadius(DesignSystem.Spacing.cornerRadiusCompact)
                     }
                     
                     VStack(alignment: .leading, spacing: 2) {
@@ -338,9 +338,9 @@ struct ChecklistExecutionView: View {
                     .frame(minHeight: 80)
                     .padding(DesignSystem.Spacing.sm)
                     .background(DesignSystem.Colors.surfaceAlt)
-                    .cornerRadius(8)
+                    .cornerRadius(DesignSystem.Spacing.cornerRadiusCompact)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 8)
+                        RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusCompact)
                             .stroke(DesignSystem.Colors.border, lineWidth: 1)
                     )
 

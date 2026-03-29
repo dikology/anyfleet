@@ -32,6 +32,6 @@ struct ErrorBanner: View {
         }
         .padding()
         .background(DesignSystem.Colors.error.opacity(0.1))
-        .cornerRadius(12)
+        .cornerRadius(DesignSystem.Spacing.cornerRadiusMedium)
     }
 }

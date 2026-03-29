@@ -33,10 +33,10 @@ struct PublishActionView: View {
                     .background(DesignSystem.Colors.surface)
                     .foregroundColor(DesignSystem.Colors.textPrimary)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 8)
+                        RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusCompact)
                             .stroke(DesignSystem.Colors.border, lineWidth: 1)
                     )
-                    .cornerRadius(8)
+                    .cornerRadius(DesignSystem.Spacing.cornerRadiusCompact)
                 }
                 .buttonStyle(PlainButtonStyle())
             } else {
@@ -54,7 +54,7 @@ struct PublishActionView: View {
                     .frame(minWidth: 44, minHeight: 44)
                     .background(DesignSystem.Colors.border.opacity(0.3))
                     .foregroundColor(DesignSystem.Colors.textSecondary)
-                    .cornerRadius(8)
+                    .cornerRadius(DesignSystem.Spacing.cornerRadiusCompact)
                 }
                 .buttonStyle(PlainButtonStyle())
             }
@@ -79,7 +79,7 @@ struct PublishActionView: View {
                 .frame(minWidth: 44, minHeight: 44)
                 .background(isSignedIn ? DesignSystem.Colors.primary : DesignSystem.Colors.border.opacity(0.3))
                 .foregroundColor(isSignedIn ? .white : DesignSystem.Colors.textSecondary)
-                .cornerRadius(8)
+                .cornerRadius(DesignSystem.Spacing.cornerRadiusCompact)
             }
             .opacity(isSignedIn ? 1.0 : 0.7)
             .buttonStyle(PlainButtonStyle())

@@ -189,10 +189,10 @@ struct AuthorProfileModal: View {
                         .padding(.horizontal, DesignSystem.Spacing.xl)
                         .padding(.vertical, DesignSystem.Spacing.md)
                         .background(
-                            RoundedRectangle(cornerRadius: DesignSystem.Spacing.lg)
+                            RoundedRectangle(cornerRadius: DesignSystem.Spacing.cardCornerRadius)
                                 .fill(.ultraThinMaterial)
                                 .overlay(
-                                    RoundedRectangle(cornerRadius: DesignSystem.Spacing.lg)
+                                    RoundedRectangle(cornerRadius: DesignSystem.Spacing.cardCornerRadius)
                                         .stroke(.white.opacity(0.2), lineWidth: 1)
                                 )
                         )

@@ -19,12 +19,24 @@ extension DesignSystem {
         static let cardPadding: CGFloat = 16
         static let featuredCardHeight: CGFloat = 180
 
-        // MARK: - Corner radii (three approved values + Capsule)
-        /// Buttons, form fields, chips, small elements
+        // MARK: - Corner radii (use these — not `Spacing.sm` / `.md` for radius)
+        /// Map pins, micro tags (4pt).
+        static let cornerRadiusMini: CGFloat = 4
+        /// Section icon wells, checkbox tiles (6pt).
+        static let cornerRadiusInset: CGFloat = 6
+        /// Metadata strips, small panels, checklist chrome (8pt).
+        static let cornerRadiusCompact: CGFloat = 8
+        /// Buttons, form fields, chips (10pt).
         static let cornerRadiusSmall: CGFloat = 10
-        /// Standard cards, list items, section containers
+        /// Modals, nested cards, visibility shells (12pt).
+        static let cornerRadiusMedium: CGFloat = 12
+        /// Dense grids, selectable tiles (14pt).
+        static let cornerRadiusControl: CGFloat = 14
+        /// Primary cards, hero rows (16pt).
         static let cardCornerRadius: CGFloat = 16
-        /// Sheets, modals, feature surfaces
+        /// KPI / date pills, capsule buttons (20pt).
+        static let cornerRadiusPill: CGFloat = 20
+        /// Sheets, large feature surfaces (24pt).
         static let cardCornerRadiusLarge: CGFloat = 24
     }
 }

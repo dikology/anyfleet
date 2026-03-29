@@ -10,9 +10,9 @@ struct InfoPill: View {
             .padding(.horizontal, 10)
             .background(DesignSystem.Colors.surfaceAlt)
             .foregroundColor(DesignSystem.Colors.textPrimary)
-            .cornerRadius(20)
+            .cornerRadius(DesignSystem.Spacing.cornerRadiusPill)
             .overlay(
-                RoundedRectangle(cornerRadius: 20)
+                RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusPill)
                     .stroke(DesignSystem.Colors.border, lineWidth: 1)
             )
     }

@@ -328,7 +328,7 @@ struct HomeView: View {
         }
         .padding(DesignSystem.Spacing.md)
         .background(
-            RoundedRectangle(cornerRadius: 14)
+            RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusControl)
                 .fill(DesignSystem.Colors.surface)
                 .shadow(
                     color: DesignSystem.Colors.shadowStrong.opacity(0.08),
@@ -338,7 +338,7 @@ struct HomeView: View {
                 )
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 14)
+            RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusControl)
                 .stroke(
                     LinearGradient(
                         colors: [

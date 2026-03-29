@@ -87,14 +87,14 @@ struct SectionEditorSheet: View {
                                             .foregroundColor(DesignSystem.Colors.primary)
                                             .frame(width: 32, height: 32)
                                             .background(DesignSystem.Colors.primary.opacity(0.1))
-                                            .cornerRadius(8)
+                                            .cornerRadius(DesignSystem.Spacing.cornerRadiusCompact)
                                     } else {
                                         Image(systemName: "photo")
                                             .font(DesignSystem.Typography.titleRegular)
                                             .foregroundColor(DesignSystem.Colors.textSecondary)
                                             .frame(width: 32, height: 32)
                                             .background(DesignSystem.Colors.surfaceAlt)
-                                            .cornerRadius(8)
+                                            .cornerRadius(DesignSystem.Spacing.cornerRadiusCompact)
                                     }
                                     
                                     Text(icon != nil ? L10n.SectionEditor.changeIcon : L10n.SectionEditor.chooseIcon)
@@ -109,7 +109,7 @@ struct SectionEditorSheet: View {
                                 }
                                 .padding(DesignSystem.Spacing.md)
                                 .background(DesignSystem.Colors.surface)
-                                .cornerRadius(10)
+                                .cornerRadius(DesignSystem.Spacing.cornerRadiusSmall)
                             }
                         }
                         
@@ -149,7 +149,7 @@ struct SectionEditorSheet: View {
                             }
                             .padding(DesignSystem.Spacing.md)
                             .background(DesignSystem.Colors.surface)
-                            .cornerRadius(10)
+                            .cornerRadius(DesignSystem.Spacing.cornerRadiusSmall)
                         }
                         
                         // Delete button (if editing existing)
@@ -166,7 +166,7 @@ struct SectionEditorSheet: View {
                                 .frame(maxWidth: .infinity)
                                 .padding(DesignSystem.Spacing.md)
                                 .background(DesignSystem.Colors.surface)
-                                .cornerRadius(10)
+                                .cornerRadius(DesignSystem.Spacing.cornerRadiusSmall)
                             }
                         }
                     }
@@ -246,7 +246,7 @@ private struct IconPickerSheet: View {
                         }
                         .frame(width: 60, height: 60)
                         .background(selectedIcon == nil ? DesignSystem.Colors.primary.opacity(0.1) : DesignSystem.Colors.surface)
-                        .cornerRadius(10)
+                        .cornerRadius(DesignSystem.Spacing.cornerRadiusSmall)
                     }
                     
                     // Icon options
@@ -262,7 +262,7 @@ private struct IconPickerSheet: View {
                             }
                             .frame(width: 60, height: 60)
                             .background(selectedIcon == icon ? DesignSystem.Colors.primary.opacity(0.1) : DesignSystem.Colors.surface)
-                            .cornerRadius(10)
+                            .cornerRadius(DesignSystem.Spacing.cornerRadiusSmall)
                         }
                     }
                 }

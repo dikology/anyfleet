@@ -174,9 +174,9 @@ private extension CharterEditorView {
                         .padding(.horizontal, DesignSystem.Spacing.md)
                         .padding(.vertical, DesignSystem.Spacing.xs)
                         .background(DesignSystem.Colors.gold.opacity(0.1))
-                        .cornerRadius(20)
+                        .cornerRadius(DesignSystem.Spacing.cornerRadiusPill)
                         .overlay(
-                            RoundedRectangle(cornerRadius: 20)
+                            RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusPill)
                                 .stroke(DesignSystem.Colors.gold.opacity(0.2), lineWidth: 1)
                         )
                 }
@@ -231,7 +231,7 @@ private extension CharterEditorView {
                 }
                 .padding(DesignSystem.Spacing.xs)
                 .background(DesignSystem.Colors.background)
-                .cornerRadius(14)
+                .cornerRadius(DesignSystem.Spacing.cornerRadiusControl)
 
                 Text(viewModel.form.visibility.description)
                     .font(DesignSystem.Typography.micro)

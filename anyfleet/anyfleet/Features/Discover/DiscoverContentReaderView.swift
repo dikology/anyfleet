@@ -142,7 +142,7 @@ struct DiscoverContentReaderView: View {
         .padding(.horizontal, DesignSystem.Spacing.sm)
         .padding(.vertical, DesignSystem.Spacing.xs)
         .background(
-            RoundedRectangle(cornerRadius: DesignSystem.Spacing.sm)
+            RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusCompact)
                 .fill(DesignSystem.Colors.primary.opacity(0.1))
         )
         .padding(.bottom, DesignSystem.Spacing.sm)
@@ -280,7 +280,7 @@ struct DiscoverContentReaderView: View {
         .padding(.vertical, DesignSystem.Spacing.sm)
         .padding(.horizontal, DesignSystem.Spacing.md)
         .background(
-            RoundedRectangle(cornerRadius: DesignSystem.Spacing.md)
+            RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusMedium)
                 .fill(DesignSystem.Colors.surface)
         )
     }

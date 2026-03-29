@@ -327,12 +327,23 @@ You need a production Railway deployment separate from staging. The codebase is 
 
 ### 2.2 Corner Radius Token Audit
 
-**Current state:** Hardcoded `cornerRadius: 12`, `14`, `8` scattered across views. `DiscoverContentRow` uses `12` instead of the token `cardCornerRadius = 16`.
+**Current state:** All production `cornerRadius` / `RoundedRectangle(cornerRadius:)` values use `DesignSystem.Spacing.*` radius tokens — not raw integers, and not spacing scale (`sm` / `md`) mistaken for radii.
 
-**Action:**
-- Search all `cornerRadius:` calls
-- Replace with `DesignSystem.Spacing.cardCornerRadius`, `.cornerRadiusSm`, or introduce `.cornerRadiusMd` / `.cornerRadiusLg` if needed
-- Fix `Profile` where `DesignSystem.Spacing.md` (a spacing token) is misused as a corner radius
+**Corner radius tokens (`DesignSystem.Spacing`):**
+
+| Token | pt | Use |
+|-------|---:|-----|
+| `cornerRadiusMini` | 4 | Map pins, micro tags |
+| `cornerRadiusInset` | 6 | Icon wells, tight tiles |
+| `cornerRadiusCompact` | 8 | Metadata strips, small panels |
+| `cornerRadiusSmall` | 10 | Buttons, fields, chips |
+| `cornerRadiusMedium` | 12 | Modals, nested cards, badges |
+| `cornerRadiusControl` | 14 | Dense grids, selectable tiles (`SelectableCardStyle`) |
+| `cardCornerRadius` | 16 | Primary cards, hero rows, `heroCardStyle` |
+| `cornerRadiusPill` | 20 | KPI pills, capsule CTAs |
+| `cardCornerRadiusLarge` | 24 | Sheets, large surfaces |
+
+**Profile fix:** `DesignSystem.Profile.EditForm` no longer uses `Spacing.sm` / `Spacing.md` for corners; it uses `cornerRadiusCompact` and `cornerRadiusMedium`.
 
 **Estimated effort:** 1 hour
 

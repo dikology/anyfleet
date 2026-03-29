@@ -54,7 +54,7 @@ struct DeleteConfirmationModal: View {
                             .padding(.vertical, DesignSystem.Spacing.md)
                             .background(DesignSystem.Colors.error)
                             .foregroundColor(.white)
-                            .cornerRadius(12)
+                            .cornerRadius(DesignSystem.Spacing.cornerRadiusMedium)
                     }
                     .buttonStyle(PlainButtonStyle())
 

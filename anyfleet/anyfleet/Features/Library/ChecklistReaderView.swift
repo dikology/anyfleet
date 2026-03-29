@@ -168,7 +168,7 @@ struct ChecklistReaderView: View {
                         .foregroundColor(DesignSystem.Colors.primary)
                         .frame(width: 28, height: 28)
                         .background(DesignSystem.Colors.primary.opacity(0.1))
-                        .cornerRadius(6)
+                        .cornerRadius(DesignSystem.Spacing.cornerRadiusInset)
                 }
                 
                 VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
@@ -199,7 +199,7 @@ struct ChecklistReaderView: View {
         }
         .padding(DesignSystem.Spacing.lg)
         .background(DesignSystem.Colors.surface)
-        .cornerRadius(12)
+        .cornerRadius(DesignSystem.Spacing.cornerRadiusMedium)
         .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
     }
     

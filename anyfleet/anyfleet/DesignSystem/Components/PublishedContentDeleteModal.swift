@@ -78,7 +78,7 @@ struct PublishedContentDeleteModal: View {
                         }
                         .padding(DesignSystem.Spacing.md)
                         .background(DesignSystem.Colors.backgroundSecondary)
-                        .cornerRadius(12)
+                        .cornerRadius(DesignSystem.Spacing.cornerRadiusMedium)
                     }
                     .buttonStyle(PlainButtonStyle())
 
@@ -110,7 +110,7 @@ struct PublishedContentDeleteModal: View {
                         }
                         .padding(DesignSystem.Spacing.md)
                         .background(DesignSystem.Colors.backgroundSecondary)
-                        .cornerRadius(12)
+                        .cornerRadius(DesignSystem.Spacing.cornerRadiusMedium)
                     }
                     .buttonStyle(PlainButtonStyle())
                 }

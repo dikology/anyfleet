@@ -37,7 +37,7 @@ struct VisibilityBadge: View {
         .padding(.vertical, DesignSystem.Spacing.xs)
         .background(backgroundColor)
         .foregroundColor(foregroundColor)
-        .cornerRadius(12)
+        .cornerRadius(DesignSystem.Spacing.cornerRadiusMedium)
     }
     
     // MARK: - Styling

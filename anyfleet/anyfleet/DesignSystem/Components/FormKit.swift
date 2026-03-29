@@ -194,7 +194,7 @@ extension DesignSystem {
                 }
                 .padding(DesignSystem.Spacing.lg)
                 .background(DesignSystem.Colors.surface)
-                .cornerRadius(12)
+                .cornerRadius(DesignSystem.Spacing.cornerRadiusMedium)
             }
         }
         
@@ -265,7 +265,7 @@ extension DesignSystem {
                         }
                         .padding(DesignSystem.Spacing.xl)
                     }
-                    .cornerRadius(16)
+                    .cornerRadius(DesignSystem.Spacing.cardCornerRadius)
                     .shadow(color: Color.black.opacity(0.08), radius: 10, x: 0, y: 6)
             }
         }
@@ -302,7 +302,7 @@ extension DesignSystem {
                 }
                 .padding(DesignSystem.Spacing.md)
                 .background(DesignSystem.Colors.surfaceAlt)
-                .cornerRadius(12)
+                .cornerRadius(DesignSystem.Spacing.cornerRadiusMedium)
             }
         }
     }

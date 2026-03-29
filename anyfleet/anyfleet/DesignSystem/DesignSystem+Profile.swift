@@ -313,10 +313,10 @@ extension DesignSystem {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(Spacing.md)
         .background(
-          RoundedRectangle(cornerRadius: 12)
+          RoundedRectangle(cornerRadius: Spacing.cornerRadiusMedium)
             .fill(color.opacity(0.08))
             .overlay(
-              RoundedRectangle(cornerRadius: 12)
+              RoundedRectangle(cornerRadius: Spacing.cornerRadiusMedium)
                 .stroke(color.opacity(0.2), lineWidth: 1)
             )
         )
@@ -432,9 +432,9 @@ extension DesignSystem {
                 .frame(minHeight: 100)
                 .padding(Spacing.xs)
                 .background(Colors.surfaceAlt)
-                .cornerRadius(Spacing.sm)
+                .cornerRadius(Spacing.cornerRadiusCompact)
                 .overlay(
-                  RoundedRectangle(cornerRadius: Spacing.sm)
+                  RoundedRectangle(cornerRadius: Spacing.cornerRadiusCompact)
                     .stroke(Colors.border, lineWidth: 1)
                 )
             }
@@ -449,9 +449,9 @@ extension DesignSystem {
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, Spacing.md)
                 .background(Colors.surface)
-                .cornerRadius(Spacing.md)
+                .cornerRadius(Spacing.cornerRadiusMedium)
                 .overlay(
-                  RoundedRectangle(cornerRadius: Spacing.md)
+                  RoundedRectangle(cornerRadius: Spacing.cornerRadiusMedium)
                     .stroke(Colors.border, lineWidth: 1)
                 )
             }
@@ -472,7 +472,7 @@ extension DesignSystem {
               }
             }
             .background(DesignSystem.Gradients.primary)
-            .cornerRadius(Spacing.md)
+            .cornerRadius(Spacing.cornerRadiusMedium)
             .disabled(isSaving || bio.count > bioCharacterLimit)
           }
         }

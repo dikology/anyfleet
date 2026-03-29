@@ -173,9 +173,9 @@ struct CharterDetailView: View {
                     }
                     .padding(DesignSystem.Spacing.md)
                     .background(DesignSystem.Colors.surface)
-                    .cornerRadius(12)
+                    .cornerRadius(DesignSystem.Spacing.cornerRadiusMedium)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 12)
+                        RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusMedium)
                             .stroke(DesignSystem.Colors.border, lineWidth: 1)
                     )
                 }
@@ -191,7 +191,7 @@ struct CharterDetailView: View {
                 }
                 .padding(DesignSystem.Spacing.md)
                 .background(DesignSystem.Colors.surfaceAlt)
-                .cornerRadius(12)
+                .cornerRadius(DesignSystem.Spacing.cornerRadiusMedium)
             }
         }
         .padding(.top, DesignSystem.Spacing.lg)

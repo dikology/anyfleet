@@ -70,7 +70,7 @@ struct SignInModalView: View {
                     .frame(height: 50)
                     .frame(maxWidth: 375)
                     .disabled(isLoading)
-                    .cornerRadius(12)
+                    .cornerRadius(DesignSystem.Spacing.cornerRadiusMedium)
                     
                     if isLoading {
                         ProgressView()

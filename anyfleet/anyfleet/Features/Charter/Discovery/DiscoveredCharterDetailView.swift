@@ -56,7 +56,7 @@ struct DiscoveredCharterDetailView: View {
         }
         .padding(DesignSystem.Spacing.md)
         .background(DesignSystem.Colors.surface)
-        .cornerRadius(12)
+        .cornerRadius(DesignSystem.Spacing.cornerRadiusMedium)
     }
 
     private var captainAvatar: some View {
@@ -119,7 +119,7 @@ struct DiscoveredCharterDetailView: View {
                 }
             }
             .background(DesignSystem.Colors.surface)
-            .cornerRadius(12)
+            .cornerRadius(DesignSystem.Spacing.cornerRadiusMedium)
         }
     }
 

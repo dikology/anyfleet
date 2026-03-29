@@ -22,10 +22,10 @@ struct ActionCard: View {
             DesignSystem.Gradients.primary
                 .overlay(DesignSystem.Gradients.subtleOverlay)
         )
-        .cornerRadius(16)
+        .cornerRadius(DesignSystem.Spacing.cardCornerRadius)
         .shadow(color: DesignSystem.Colors.shadowStrong, radius: 12, x: 0, y: 8)
         .overlay(
-            RoundedRectangle(cornerRadius: 16)
+            RoundedRectangle(cornerRadius: DesignSystem.Spacing.cardCornerRadius)
                 .stroke(Color.white.opacity(0.08), lineWidth: 1)
         )
         .contentShape(Rectangle())
@@ -53,7 +53,7 @@ struct ActionCard: View {
                     .padding(.vertical, DesignSystem.Spacing.xs)
                     .background(Color.white.opacity(0.14))
                     .foregroundColor(DesignSystem.Colors.onPrimary)
-                    .cornerRadius(10)
+                    .cornerRadius(DesignSystem.Spacing.cornerRadiusSmall)
             }
         }
     }
@@ -83,7 +83,7 @@ struct ActionCard: View {
             .padding(.horizontal, DesignSystem.Spacing.md)
             .background(Color.white.opacity(0.16))
             .foregroundColor(DesignSystem.Colors.onPrimary)
-            .cornerRadius(12)
+            .cornerRadius(DesignSystem.Spacing.cornerRadiusMedium)
         }
         .buttonStyle(.plain)
     }

@@ -236,9 +236,9 @@ struct ChecklistEditorView: View {
             }
         }
         .background(DesignSystem.Colors.surface)
-        .cornerRadius(16)
+        .cornerRadius(DesignSystem.Spacing.cardCornerRadius)
         .overlay(
-            RoundedRectangle(cornerRadius: 16)
+            RoundedRectangle(cornerRadius: DesignSystem.Spacing.cardCornerRadius)
                 .stroke(
                     LinearGradient(
                         colors: [
@@ -313,7 +313,7 @@ struct ChecklistEditorView: View {
         .padding(.horizontal, DesignSystem.Spacing.sm)
         .padding(.vertical, DesignSystem.Spacing.xs)
         .background(DesignSystem.Colors.surfaceAlt)
-        .cornerRadius(8)
+        .cornerRadius(DesignSystem.Spacing.cornerRadiusCompact)
     }
     
     // MARK: - Stats Row
@@ -386,7 +386,7 @@ struct ChecklistEditorView: View {
             .frame(maxWidth: .infinity)
             .frame(height: 44)
             .background(
-                RoundedRectangle(cornerRadius: 10)
+                RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusSmall)
                     .stroke(DesignSystem.Colors.primary, style: StrokeStyle(lineWidth: 2, dash: [8, 4]))
             )
         }
@@ -436,7 +436,7 @@ private struct SectionCard: View {
                             .foregroundColor(DesignSystem.Colors.primary)
                             .frame(width: 28, height: 28)
                             .background(DesignSystem.Colors.primary.opacity(0.1))
-                            .cornerRadius(6)
+                            .cornerRadius(DesignSystem.Spacing.cornerRadiusInset)
                     }
                     
                     VStack(alignment: .leading, spacing: 2) {
@@ -508,7 +508,7 @@ private struct SectionCard: View {
                 .background(DesignSystem.Colors.surface)
             }
         }
-        .cornerRadius(12)
+        .cornerRadius(DesignSystem.Spacing.cornerRadiusMedium)
         .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
         .onAppear {
             isExpanded = section.isExpandedByDefault

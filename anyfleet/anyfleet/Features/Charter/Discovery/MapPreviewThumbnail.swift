@@ -19,7 +19,7 @@ struct MapPreviewThumbnail: View {
                 .tint(DesignSystem.Colors.primary)
         }
         .frame(height: height)
-        .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Spacing.sm))
+        .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusCompact))
         .disabled(true)
         .allowsHitTesting(false)
         .accessibilityLabel("Map preview: \(annotationTitle)")

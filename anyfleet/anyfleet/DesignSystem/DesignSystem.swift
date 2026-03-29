@@ -67,7 +67,7 @@ enum DesignSystem {
             content
                 .background(.ultraThinMaterial)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 12)
+                    RoundedRectangle(cornerRadius: Spacing.cornerRadiusMedium)
                         .stroke(Color.white.opacity(0.15), lineWidth: 1)
                 )
         }
@@ -83,7 +83,7 @@ enum DesignSystem {
                 .padding(.horizontal, 10)
                 .background(Colors.border.opacity(0.5))
                 .foregroundColor(Colors.textPrimary)
-                .cornerRadius(20)
+                .cornerRadius(Spacing.cornerRadiusPill)
         }
     }
     
@@ -96,7 +96,7 @@ enum DesignSystem {
                 .padding(.horizontal, Spacing.md)
                 .background(Colors.primary)
                 .foregroundColor(.white)
-                .cornerRadius(10)
+                .cornerRadius(Spacing.cornerRadiusSmall)
                 .opacity(configuration.isPressed ? 0.9 : 1.0)
                 .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
                 .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
@@ -113,10 +113,10 @@ enum DesignSystem {
                 .background(Colors.surface)
                 .foregroundColor(Colors.textPrimary)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 10)
+                    RoundedRectangle(cornerRadius: Spacing.cornerRadiusSmall)
                         .stroke(Colors.border, lineWidth: 1)
                 )
-                .cornerRadius(10)
+                .cornerRadius(Spacing.cornerRadiusSmall)
                 .opacity(configuration.isPressed ? 0.9 : 1.0)
                 .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
                 .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
@@ -132,7 +132,7 @@ enum DesignSystem {
                 .padding(.horizontal, Spacing.md)
                 .foregroundColor(Colors.textPrimary)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 10)
+                    RoundedRectangle(cornerRadius: Spacing.cornerRadiusSmall)
                         .stroke(Colors.border, lineWidth: 1)
                 )
                 .opacity(configuration.isPressed ? 0.9 : 1.0)
@@ -148,7 +148,7 @@ enum DesignSystem {
                 .padding(.horizontal, Spacing.md)
                 .padding(.vertical, Spacing.sm)
                 .background(Colors.surfaceAlt)
-                .cornerRadius(10)
+                .cornerRadius(Spacing.cornerRadiusSmall)
         }
     }
     
@@ -167,7 +167,7 @@ enum DesignSystem {
     }
 
     enum SelectableCardStyle {
-        static let cornerRadius: CGFloat = 14
+        static let cornerRadius: CGFloat = Spacing.cornerRadiusControl
         static let borderWidth: CGFloat = 1
         static let selectedBorderWidth: CGFloat = 2
         static let shadowRadius: CGFloat = 4
@@ -242,7 +242,7 @@ enum DesignSystem {
         func body(content: Content) -> some View {
             content
                 .background(
-                    RoundedRectangle(cornerRadius: 16)
+                    RoundedRectangle(cornerRadius: Spacing.cardCornerRadius)
                         .fill(Colors.surface)
                         .shadow(
                             color: Colors.shadowStrong.opacity(elevation.shadowOpacity),
@@ -252,7 +252,7 @@ enum DesignSystem {
                         )
                 )
                 .overlay(
-                    RoundedRectangle(cornerRadius: 16)
+                    RoundedRectangle(cornerRadius: Spacing.cardCornerRadius)
                         .stroke(
                             LinearGradient(
                                 colors: [
@@ -427,7 +427,7 @@ enum DesignSystem {
                         .padding(.horizontal, DesignSystem.Spacing.lg)
                         .padding(.vertical, DesignSystem.Spacing.md)
                         .background(DesignSystem.Colors.primary)
-                        .cornerRadius(12)
+                        .cornerRadius(Spacing.cornerRadiusMedium)
                         .shadow(color: DesignSystem.Colors.primary.opacity(0.3), radius: 8, y: 4)
                     }
                     .buttonStyle(.plain)

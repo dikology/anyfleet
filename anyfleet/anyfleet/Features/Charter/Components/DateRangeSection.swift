@@ -42,7 +42,7 @@ struct DateRangeSection: View {
             }
             .padding(DesignSystem.Spacing.md)
             .background(DesignSystem.Colors.surfaceAlt)
-            .cornerRadius(12)
+            .cornerRadius(DesignSystem.Spacing.cornerRadiusMedium)
 
         }
         .sheet(isPresented: $showingStartPicker) {
