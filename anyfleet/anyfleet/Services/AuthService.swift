@@ -164,13 +164,7 @@ final class AuthService: AuthServiceProtocol {
 
     // Public initializer for DI; `session` is injectable for unit tests.
     init(baseURL: String? = nil, session: URLSession = .shared) {
-        self.baseURL = baseURL ?? {
-            #if targetEnvironment(simulator)
-            return "http://127.0.0.1:8000/api/v1"
-            #else
-            return "https://anyfleet-api-staging.up.railway.app/api/v1"
-            #endif
-        }()
+        self.baseURL = baseURL ?? AppConfiguration.apiBaseURL.absoluteString
         self.session = session
 
         // Check if we have stored tokens

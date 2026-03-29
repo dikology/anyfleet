@@ -348,8 +348,12 @@ struct AuthorProfileModal: View {
             AppLogger.view.debug("AuthorProfileModal createProfileImageURL: added https to domain URL: \(fullURLString)")
             return URL(string: fullURLString)
         } else {
-            // Relative path - prepend base URL
-            let baseURL = "https://anyfleet-api-staging.up.railway.app"
+            // Relative path - prepend API host for current build configuration
+            let baseURL = AppConfiguration.apiHost
+            guard !baseURL.isEmpty else {
+                AppLogger.view.debug("AuthorProfileModal createProfileImageURL: apiHost empty, cannot resolve relative path")
+                return nil
+            }
             let fullURLString = baseURL + (urlString.hasPrefix("/") ? "" : "/") + urlString
             AppLogger.view.debug("AuthorProfileModal createProfileImageURL: constructed relative URL: \(fullURLString)")
             return URL(string: fullURLString)

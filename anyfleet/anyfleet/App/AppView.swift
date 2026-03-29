@@ -13,7 +13,8 @@ struct AppView: View {
     }
     
     var body: some View {
-        TabView(selection: Binding<Tab>(get: { coordinator.selectedTab }, set: { coordinator.selectedTab = $0 })) {
+        ZStack(alignment: .top) {
+            TabView(selection: Binding<Tab>(get: { coordinator.selectedTab }, set: { coordinator.selectedTab = $0 })) {
             // Home Tab
             NavigationStack(path: Binding(get: { coordinator.homePath }, set: { coordinator.homePath = $0 })) {
                 HomeView(
@@ -111,6 +112,19 @@ struct AppView: View {
             }
             .tag(Tab.profile)
             .accessibilityIdentifier("tab.profile")
+            }
+
+            if AppConfiguration.isStaging {
+                Text("STAGING")
+                    .font(.system(size: 11, weight: .bold, design: .monospaced))
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 2)
+                    .background(Color.orange.opacity(0.9))
+                    .allowsHitTesting(false)
+                    .zIndex(999)
+                    .accessibilityIdentifier("staging.environment.banner")
+            }
         }
     }
 }

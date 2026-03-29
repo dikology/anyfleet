@@ -109,15 +109,7 @@ final class APIClient: APIClientProtocol {
     private let encoder: JSONEncoder
 
     init(authService: AuthServiceProtocol, session: URLSession = .shared) {
-        #if targetEnvironment(simulator)
-        let urlString = "http://127.0.0.1:8000/api/v1"
-        #else
-        let urlString = "https://anyfleet-api-staging.up.railway.app/api/v1"
-        #endif
-        guard let base = URL(string: urlString) else {
-            preconditionFailure("Invalid API base URL string: \(urlString)")
-        }
-        self.baseURL = base
+        self.baseURL = AppConfiguration.apiBaseURL
 
         self.authService = authService
         self.session = session
