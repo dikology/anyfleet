@@ -352,6 +352,12 @@ enum L10n {
             comment: "Opens the public privacy policy in the browser"
         )
 
+        static let openTermsOfService = NSLocalizedString(
+            "profile.openTermsOfService",
+            tableName: "Localizable",
+            comment: "Opens the public terms of service in the browser"
+        )
+
         static let exportData = NSLocalizedString(
             "profile.exportData",
             tableName: "Localizable",

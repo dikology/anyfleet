@@ -199,6 +199,7 @@
 "profile.imported" = "Импортировано";
 "profile.privacySettings" = "Настройки приватности";
 "profile.openPrivacyPolicy" = "Политика конфиденциальности";
+"profile.openTermsOfService" = "Условия использования";
 "profile.exportData" = "Экспорт данных";
 "profile.activityLog" = "Журнал активности";
 "profile.deleteAccount" = "Удалить аккаунт";

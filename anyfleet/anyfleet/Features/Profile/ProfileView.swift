@@ -251,6 +251,21 @@ struct ProfileView: View {
                 }
                 .buttonStyle(.plain)
 
+                Link(destination: termsOfServiceURL) {
+                    HStack {
+                        Image(systemName: "doc.plaintext.fill")
+                            .foregroundColor(DesignSystem.Colors.primary)
+                            .frame(width: 20)
+                        Text(L10n.Profile.openTermsOfService)
+                            .font(DesignSystem.Typography.body)
+                            .foregroundColor(DesignSystem.Colors.textPrimary)
+                        Spacer()
+                        profileChevron
+                    }
+                    .cardStyle()
+                }
+                .buttonStyle(.plain)
+
                 accountActionButton(
                     icon: "trash.fill",
                     label: L10n.Profile.deleteAccount,
@@ -307,10 +322,17 @@ struct ProfileView: View {
             .foregroundColor(DesignSystem.Colors.textSecondary)
     }
 
-    /// Public policy on `anyfleet.dikology.com`, locale from current language (en or ru).
+    private var legalSiteLocalePath: String {
+        locale.language.languageCode?.identifier == "ru" ? "ru" : "en"
+    }
+
+    /// Public legal pages on the marketing site (locale en or ru).
     private var privacyPolicyURL: URL {
-        let code = locale.language.languageCode?.identifier == "ru" ? "ru" : "en"
-        return URL(string: "https://anyfleet.dikology.com/\(code)/privacy")!
+        URL(string: "https://anyfleet.dikology.com/\(legalSiteLocalePath)/privacy")!
+    }
+
+    private var termsOfServiceURL: URL {
+        URL(string: "https://anyfleet.dikology.com/\(legalSiteLocalePath)/terms")!
     }
 
     // MARK: - Unauthenticated

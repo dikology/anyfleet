@@ -208,6 +208,7 @@
 "profile.imported" = "Imported";
 "profile.privacySettings" = "Privacy Settings";
 "profile.openPrivacyPolicy" = "Privacy Policy";
+"profile.openTermsOfService" = "Terms of Service";
 "profile.exportData" = "Export Data";
 "profile.activityLog" = "Activity Log";
 "profile.deleteAccount" = "Delete Account";
