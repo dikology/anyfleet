@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>AnyFleet uses your location to show nearby charters and help you search for sailing destinations.</string>
+	<string>AnyFleet uses your location to show nearby charters and sailing destinations on the map.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>ONDER-REGULAR.TTF</string>
