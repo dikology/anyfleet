@@ -122,6 +122,33 @@ struct UpdateProfileBody: Encodable {
     }
 }
 
+extension UserInfo {
+    /// Returns a copy with `https://` prepended when the API sends host-relative image paths.
+    fileprivate func withAbsoluteImageURLsIfNeeded() -> UserInfo {
+        guard let imageUrl = profileImageUrl, !imageUrl.hasPrefix("http") else { return self }
+        let thumbnail: String?
+        if let t = profileImageThumbnailUrl, !t.hasPrefix("http") {
+            thumbnail = "https://\(t)"
+        } else {
+            thumbnail = profileImageThumbnailUrl
+        }
+        return UserInfo(
+            id: id,
+            email: email,
+            username: username,
+            createdAt: createdAt,
+            profileImageUrl: "https://\(imageUrl)",
+            profileImageThumbnailUrl: thumbnail,
+            bio: bio,
+            location: location,
+            nationality: nationality,
+            profileVisibility: profileVisibility,
+            socialLinks: socialLinks,
+            communities: communities
+        )
+    }
+}
+
 @MainActor
 @Observable
 final class AuthService: AuthServiceProtocol {
@@ -156,6 +183,10 @@ final class AuthService: AuthServiceProtocol {
         } else {
             AppLogger.auth.debug("No stored tokens found, user not authenticated")
         }
+    }
+
+    private func apiURL(path: String) -> URL? {
+        URL(string: "\(baseURL)\(path)")
     }
     
     // MARK: - Apple Sign In
@@ -211,7 +242,10 @@ final class AuthService: AuthServiceProtocol {
     
     private func signInWithBackend(identityToken: String, userInfo: [String: AnyCodable]?) async throws {
         AppLogger.auth.debug("Signing in with backend")
-        let url = URL(string: "\(baseURL)/auth/apple-signin")!
+        guard let url = apiURL(path: "/auth/apple-signin") else {
+            AppLogger.auth.error("Invalid apple-signin URL for base \(baseURL)")
+            throw AuthError.invalidResponse
+        }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -257,31 +291,12 @@ final class AuthService: AuthServiceProtocol {
         keychain.saveAccessToken(tokenResponse.accessToken)
         keychain.saveRefreshToken(tokenResponse.refreshToken)
         AppLogger.auth.info("Tokens stored securely in keychain")
-        
-            // Ensure image URLs have proper protocol
-            var user = tokenResponse.user
-            if let imageUrl = user.profileImageUrl, !imageUrl.hasPrefix("http") {
-                user = UserInfo(
-                    id: user.id,
-                    email: user.email,
-                    username: user.username,
-                    createdAt: user.createdAt,
-                    profileImageUrl: "https://\(imageUrl)",
-                    profileImageThumbnailUrl: user.profileImageThumbnailUrl?.hasPrefix("http") == false ? "https://\(user.profileImageThumbnailUrl!)" : user.profileImageThumbnailUrl,
-                    bio: user.bio,
-                    location: user.location,
-                    nationality: user.nationality,
-                    profileVisibility: user.profileVisibility,
-                    socialLinks: user.socialLinks,
-                    communities: user.communities
-                )
-            }
 
-            // Update state
-            currentUser = user
+        let user = tokenResponse.user.withAbsoluteImageURLsIfNeeded()
+        currentUser = user
         isAuthenticated = true
-        let usernameInfo = tokenResponse.user.username != nil ? " (username: \(tokenResponse.user.username!))" : " (no username)"
-        AppLogger.auth.info("Sign-in successful for user: \(tokenResponse.user.email)\(usernameInfo)")
+        let usernameInfo = user.username.map { " (username: \($0))" } ?? " (no username)"
+        AppLogger.auth.info("Sign-in successful for user: \(user.email)\(usernameInfo)")
     }
     
     // MARK: - Token Management
@@ -317,7 +332,9 @@ final class AuthService: AuthServiceProtocol {
             throw AuthError.unauthorized
         }
 
-        let url = URL(string: "\(baseURL)/auth/refresh")!
+        guard let url = apiURL(path: "/auth/refresh") else {
+            throw AuthError.invalidResponse
+        }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -347,25 +364,7 @@ final class AuthService: AuthServiceProtocol {
         }
 
         let tokenResponse = try JSONDecoder().decode(TokenResponse.self, from: data)
-
-        // Ensure image URLs have proper protocol
-        var user = tokenResponse.user
-        if let imageUrl = user.profileImageUrl, !imageUrl.hasPrefix("http") {
-            user = UserInfo(
-                id: user.id,
-                email: user.email,
-                username: user.username,
-                createdAt: user.createdAt,
-                profileImageUrl: "https://\(imageUrl)",
-                profileImageThumbnailUrl: user.profileImageThumbnailUrl?.hasPrefix("http") == false ? "https://\(user.profileImageThumbnailUrl!)" : user.profileImageThumbnailUrl,
-                bio: user.bio,
-                location: user.location,
-                nationality: user.nationality,
-                profileVisibility: user.profileVisibility,
-                socialLinks: user.socialLinks,
-                communities: user.communities
-            )
-        }
+        let user = tokenResponse.user.withAbsoluteImageURLsIfNeeded()
 
         keychain.saveAccessToken(tokenResponse.accessToken)
         keychain.saveRefreshToken(tokenResponse.refreshToken)
@@ -401,7 +400,9 @@ final class AuthService: AuthServiceProtocol {
             throw AuthError.unauthorized
         }
 
-        let url = URL(string: "\(baseURL)\(endpoint)")!
+        guard let url = apiURL(path: endpoint) else {
+            throw AuthError.invalidResponse
+        }
         var request = URLRequest(url: url)
         request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
 
@@ -511,25 +512,7 @@ final class AuthService: AuthServiceProtocol {
         AppLogger.auth.debug("Loading current user info")
         do {
             let data = try await makeAuthenticatedRequest(to: "/auth/me")
-            var user = try JSONDecoder().decode(UserInfo.self, from: data)
-
-            // Ensure image URLs have proper protocol
-            if let imageUrl = user.profileImageUrl, !imageUrl.hasPrefix("http") {
-                user = UserInfo(
-                    id: user.id,
-                    email: user.email,
-                    username: user.username,
-                    createdAt: user.createdAt,
-                    profileImageUrl: "https://\(imageUrl)",
-                    profileImageThumbnailUrl: user.profileImageThumbnailUrl?.hasPrefix("http") == false ? "https://\(user.profileImageThumbnailUrl!)" : user.profileImageThumbnailUrl,
-                    bio: user.bio,
-                    location: user.location,
-                    nationality: user.nationality,
-                    profileVisibility: user.profileVisibility,
-                    socialLinks: user.socialLinks,
-                    communities: user.communities
-                )
-            }
+            let user = try JSONDecoder().decode(UserInfo.self, from: data).withAbsoluteImageURLsIfNeeded()
 
             currentUser = user
             AppLogger.auth.info("Current user loaded: \(currentUser?.email ?? "unknown")")
@@ -552,7 +535,9 @@ final class AuthService: AuthServiceProtocol {
         socialLinks: [SocialLink]? = nil,
         communityMemberships: [CommunityMembership]? = nil
     ) throws -> URLRequest {
-        let url = URL(string: "\(baseURL)/auth/me")!
+        guard let url = URL(string: "\(baseURL)/auth/me") else {
+            throw AuthError.invalidResponse
+        }
         var request = URLRequest(url: url)
         request.httpMethod = "PUT"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -603,7 +588,9 @@ final class AuthService: AuthServiceProtocol {
     func uploadProfileImage(_ imageData: Data) async throws -> UserInfo {
         AppLogger.auth.info("Uploading profile image (\(imageData.count) bytes)")
 
-        let url = URL(string: "\(baseURL)/profile/upload-image")!
+        guard let url = apiURL(path: "/profile/upload-image") else {
+            throw AuthError.invalidResponse
+        }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
 
@@ -612,12 +599,11 @@ final class AuthService: AuthServiceProtocol {
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
 
         var body = Data()
-        // Try different field names that backend might expect
-        body.append("--\(boundary)\r\n".data(using: .utf8)!)
-        body.append("Content-Disposition: form-data; name=\"file\"; filename=\"profile.jpg\"\r\n".data(using: .utf8)!)
-        body.append("Content-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
+        body.append(Data("--\(boundary)\r\n".utf8))
+        body.append(Data("Content-Disposition: form-data; name=\"file\"; filename=\"profile.jpg\"\r\n".utf8))
+        body.append(Data("Content-Type: image/jpeg\r\n\r\n".utf8))
         body.append(imageData)
-        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+        body.append(Data("\r\n--\(boundary)--\r\n".utf8))
 
         request.httpBody = body
 
@@ -686,16 +672,19 @@ final class AuthService: AuthServiceProtocol {
         
         // Call backend logout endpoint
         if let accessToken = keychain.getAccessToken() {
-            let url = URL(string: "\(baseURL)/auth/logout")!
-            var request = URLRequest(url: url)
-            request.httpMethod = "POST"
-            request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-            
-            do {
-                _ = try await URLSession.shared.data(for: request)
-                AppLogger.auth.info("Backend logout successful")
-            } catch {
-                AppLogger.auth.warning("Backend logout failed (non-critical): \(error.localizedDescription)")
+            if let url = apiURL(path: "/auth/logout") {
+                var request = URLRequest(url: url)
+                request.httpMethod = "POST"
+                request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+
+                do {
+                    _ = try await URLSession.shared.data(for: request)
+                    AppLogger.auth.info("Backend logout successful")
+                } catch {
+                    AppLogger.auth.warning("Backend logout failed (non-critical): \(error.localizedDescription)")
+                }
+            } else {
+                AppLogger.auth.warning("Invalid logout URL, skipping backend logout")
             }
         } else {
             AppLogger.auth.debug("No access token found, skipping backend logout")
@@ -707,7 +696,9 @@ final class AuthService: AuthServiceProtocol {
 
     func deleteAccount() async throws {
         AppLogger.auth.info("Deleting account on server")
-        let url = URL(string: "\(baseURL)/auth/me")!
+        guard let url = apiURL(path: "/auth/me") else {
+            throw AuthError.invalidResponse
+        }
         var request = URLRequest(url: url)
         request.httpMethod = "DELETE"
 

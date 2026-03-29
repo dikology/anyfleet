@@ -109,12 +109,15 @@ final class APIClient: APIClientProtocol {
     private let encoder: JSONEncoder
 
     init(authService: AuthServiceProtocol, session: URLSession = .shared) {
-        // Environment-based URL
         #if targetEnvironment(simulator)
-        self.baseURL = URL(string: "http://127.0.0.1:8000/api/v1")!
+        let urlString = "http://127.0.0.1:8000/api/v1"
         #else
-        self.baseURL = URL(string: "https://anyfleet-api-staging.up.railway.app/api/v1")!
+        let urlString = "https://anyfleet-api-staging.up.railway.app/api/v1"
         #endif
+        guard let base = URL(string: urlString) else {
+            preconditionFailure("Invalid API base URL string: \(urlString)")
+        }
+        self.baseURL = base
 
         self.authService = authService
         self.session = session
@@ -513,11 +516,11 @@ final class APIClient: APIClientProtocol {
         urlRequest.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
 
         var body = Data()
-        body.append("--\(boundary)\r\n".data(using: .utf8)!)
-        body.append("Content-Disposition: form-data; name=\"file\"; filename=\"\(filename)\"\r\n".data(using: .utf8)!)
-        body.append("Content-Type: \(mimeType)\r\n\r\n".data(using: .utf8)!)
+        body.append(Data("--\(boundary)\r\n".utf8))
+        body.append(Data("Content-Disposition: form-data; name=\"file\"; filename=\"\(filename)\"\r\n".utf8))
+        body.append(Data("Content-Type: \(mimeType)\r\n\r\n".utf8))
         body.append(fileData)
-        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+        body.append(Data("\r\n--\(boundary)--\r\n".utf8))
         urlRequest.httpBody = body
 
         let (data, response) = try await session.data(for: urlRequest)

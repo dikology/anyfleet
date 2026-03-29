@@ -727,8 +727,12 @@ extension LocalRepository {
                     AppLogger.sync.error("Corrupt sync record: unknown operation '\(record.operation)' — skipping")
                     return nil
                 }
+                guard let rowID = record.id else {
+                    AppLogger.sync.error("Corrupt sync record: missing row id for contentID=\(record.contentID) — skipping")
+                    return nil
+                }
                 return SyncQueueOperation(
-                    id: record.id!,
+                    id: rowID,
                     contentID: contentID,
                     operation: operation,
                     visibility: ContentVisibility(rawValue: record.visibilityState) ?? .unknown,

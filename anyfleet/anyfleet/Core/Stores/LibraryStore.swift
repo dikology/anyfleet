@@ -386,6 +386,10 @@ final class LibraryStore: LibraryStoreProtocol {
 
     /// Trigger automatic sync update for published content
     private func triggerPublishUpdate(for metadata: LibraryModel, checklist: Checklist) async {
+        guard let publicID = metadata.publicID else {
+            AppLogger.store.error("triggerPublishUpdate called without publicID for checklist \(checklist.id)")
+            return
+        }
         do {
             AppLogger.store.info("Creating publish update payload for checklist: \(checklist.id)")
             // Create the full content data payload
@@ -429,7 +433,7 @@ final class LibraryStore: LibraryStoreProtocol {
                 contentData: contentData,
                 tags: checklist.tags,
                 language: metadata.language,
-                publicID: metadata.publicID!,
+                publicID: publicID,
                 forkedFromID: metadata.forkedFromID
             )
 
@@ -456,6 +460,10 @@ final class LibraryStore: LibraryStoreProtocol {
 
     /// Trigger automatic sync update for published practice guide
     private func triggerPublishUpdate(for metadata: LibraryModel, guide: PracticeGuide) async {
+        guard let publicID = metadata.publicID else {
+            AppLogger.store.error("triggerPublishUpdate called without publicID for guide \(guide.id)")
+            return
+        }
         do {
             // Create the full content data payload
             let contentData: [String: Any] = [
@@ -476,7 +484,7 @@ final class LibraryStore: LibraryStoreProtocol {
                 contentData: contentData,
                 tags: guide.tags,
                 language: metadata.language,
-                publicID: metadata.publicID!,
+                publicID: publicID,
                 forkedFromID: metadata.forkedFromID
             )
 
