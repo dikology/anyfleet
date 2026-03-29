@@ -154,7 +154,7 @@ struct ChecklistExecutionView: View {
                             )
                         )
                         .frame(width: geometry.size.width * viewModel.progressPercentage, height: 8)
-                        .animation(.easeInOut(duration: 0.25), value: viewModel.progressPercentage)
+                        .animation(DesignSystem.Motion.standard, value: viewModel.progressPercentage)
                 }
             }
             .frame(height: 8)

@@ -79,6 +79,8 @@ struct CharterEditorView: View {
                 onDismiss: { viewModel.onSignInDismiss() }
             )
         }
+        .animation(DesignSystem.Motion.standard, value: viewModel.showVirtualCaptainPicker)
+        .animation(DesignSystem.Motion.standard, value: viewModel.showSignIn)
     }
 }
 
@@ -194,6 +196,8 @@ private extension CharterEditorView {
                 selectedDate: $viewModel.form.endDate
             )
         }
+        .animation(DesignSystem.Motion.standard, value: showStartDatePicker)
+        .animation(DesignSystem.Motion.standard, value: showEndDatePicker)
     }
 
     private func dateBlock(label: String, date: Date, action: @escaping () -> Void) -> some View {

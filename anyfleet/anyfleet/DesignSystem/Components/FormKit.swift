@@ -187,7 +187,7 @@ extension DesignSystem {
                                     )
                                 )
                                 .frame(width: proxy.size.width * min(max(progress, 0), 1))
-                                .animation(.easeInOut(duration: 0.25), value: progress)
+                                .animation(DesignSystem.Motion.standard, value: progress)
                         }
                     }
                     .frame(height: 6)

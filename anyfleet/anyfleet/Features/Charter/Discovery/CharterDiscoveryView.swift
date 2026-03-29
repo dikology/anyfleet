@@ -38,6 +38,8 @@ struct CharterDiscoveryView: View {
                 }
             }
         }
+        .animation(DesignSystem.Motion.standard, value: viewModel.showFilters)
+        .animation(DesignSystem.Motion.standard, value: viewModel.selectedCharter?.id)
         .task { await viewModel.loadInitial() }
         .refreshable { await viewModel.refresh() }
         .onAppear { viewModel.requestLocationIfNeeded() }
@@ -267,7 +269,7 @@ struct CharterDiscoveryView: View {
 
     private var viewToggleButton: some View {
         Button {
-            withAnimation(.easeInOut(duration: 0.25)) {
+            withAnimation(DesignSystem.Motion.standard) {
                 viewModel.showMapView.toggle()
             }
         } label: {
@@ -308,7 +310,7 @@ private struct DiscoverySkeletonList: View {
         .background(DesignSystem.Colors.background.ignoresSafeArea())
         .allowsHitTesting(false)
         .onAppear {
-            withAnimation(.linear(duration: 1.2).repeatForever(autoreverses: false)) {
+            withAnimation(DesignSystem.Motion.skeleton) {
                 animating = true
             }
         }

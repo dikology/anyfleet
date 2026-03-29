@@ -51,6 +51,8 @@ struct ProfileView: View {
         .sheet(isPresented: $viewModel.showCommunitySearch) {
             CommunitySearchSheet(viewModel: viewModel, isPresented: $viewModel.showCommunitySearch)
         }
+        .animation(DesignSystem.Motion.standard, value: showDeleteAccountSheet)
+        .animation(DesignSystem.Motion.standard, value: viewModel.showCommunitySearch)
     }
 
     // MARK: - Authenticated Content

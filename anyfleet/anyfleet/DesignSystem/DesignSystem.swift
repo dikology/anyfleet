@@ -2,9 +2,12 @@ import SwiftUI
 
 enum DesignSystem {
 
-    /// Shared motion presets (DESIGN.md — spring for cards, pins, sheets).
+    /// Shared motion presets (DESIGN.md — springs for cards; ease for sheets and state).
     enum Motion {
+        static let standard = SwiftUI.Animation.easeInOut(duration: 0.25)
         static let spring = SwiftUI.Animation.spring(response: 0.35, dampingFraction: 0.8)
+        static let springQuick = SwiftUI.Animation.spring(response: 0.2, dampingFraction: 0.9)
+        static let skeleton = SwiftUI.Animation.easeInOut(duration: 1.0).repeatForever(autoreverses: true)
     }
     struct CardStyle: ViewModifier {
         func body(content: Content) -> some View {

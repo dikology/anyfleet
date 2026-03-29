@@ -76,7 +76,7 @@ struct DiscoverContentRow: View {
         }
         .heroCardStyle(elevation: .medium)
         .scaleEffect(isPressed ? 0.98 : 1.0)
-        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isPressed)
+        .animation(DesignSystem.Motion.spring, value: isPressed)
         // Swipe actions for fork
         .swipeActions(edge: .trailing, allowsFullSwipe: false) {
             Button(action: onForkTapped) {

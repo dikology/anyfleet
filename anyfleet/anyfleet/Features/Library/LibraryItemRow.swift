@@ -173,7 +173,7 @@ struct LibraryItemRow: View {
         .heroCardStyle(elevation: .medium)
         .background(backgroundColor)
         .scaleEffect(isPressed ? 0.98 : 1.0)
-        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isPressed)
+        .animation(DesignSystem.Motion.spring, value: isPressed)
         .onTapGesture {
             onTap()
         }

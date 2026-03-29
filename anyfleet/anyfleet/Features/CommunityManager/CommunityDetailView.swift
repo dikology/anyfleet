@@ -94,6 +94,7 @@ struct CommunityDetailView: View {
                 )
             }
         }
+        .animation(DesignSystem.Motion.standard, value: showCreate)
         .navigationDestination(item: $captainToEdit) { vc in
             VirtualCaptainEditorView(
                 apiClient: apiClient,

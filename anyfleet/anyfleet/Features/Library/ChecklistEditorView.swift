@@ -260,7 +260,7 @@ struct ChecklistEditorView: View {
             HStack(spacing: DesignSystem.Spacing.sm) {
                 ForEach(ChecklistType.allCases, id: \.self) { type in
                     Button {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                        withAnimation(DesignSystem.Motion.spring) {
                             viewModel.checklist.checklistType = type
                         }
                     } label: {
@@ -424,7 +424,7 @@ private struct SectionCard: View {
         VStack(spacing: 0) {
             // Section header
             Button {
-                withAnimation(.spring(response: 0.3)) {
+                withAnimation(DesignSystem.Motion.spring) {
                     isExpanded.toggle()
                 }
             } label: {

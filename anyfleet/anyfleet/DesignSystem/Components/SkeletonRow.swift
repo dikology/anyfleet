@@ -33,7 +33,7 @@ extension DesignSystem {
                 .frame(width: width, height: height)
                 .onAppear {
                     guard animating == nil else { return }
-                    withAnimation(.linear(duration: 1.2).repeatForever(autoreverses: false)) {
+                    withAnimation(DesignSystem.Motion.skeleton) {
                         selfAnimating = true
                     }
                 }
