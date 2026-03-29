@@ -326,13 +326,17 @@ struct ProfileView: View {
         locale.language.languageCode?.identifier == "ru" ? "ru" : "en"
     }
 
+    /// Fallback if dynamic URL construction ever fails (`legalSiteLocalePath` is only `en` or `ru`).
+    private static let legalPrivacyFallback = URL(string: "https://anyfleet.dikology.com/en/privacy")!
+    private static let legalTermsFallback = URL(string: "https://anyfleet.dikology.com/en/terms")!
+
     /// Public legal pages on the marketing site (locale en or ru).
     private var privacyPolicyURL: URL {
-        URL(string: "https://anyfleet.dikology.com/\(legalSiteLocalePath)/privacy")!
+        URL(string: "https://anyfleet.dikology.com/\(legalSiteLocalePath)/privacy") ?? Self.legalPrivacyFallback
     }
 
     private var termsOfServiceURL: URL {
-        URL(string: "https://anyfleet.dikology.com/\(legalSiteLocalePath)/terms")!
+        URL(string: "https://anyfleet.dikology.com/\(legalSiteLocalePath)/terms") ?? Self.legalTermsFallback
     }
 
     // MARK: - Unauthenticated
