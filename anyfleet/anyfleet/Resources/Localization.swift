@@ -2245,6 +2245,12 @@ enum L10n {
             tableName: "Localizable",
             comment: "OK button text"
         )
+
+        static let retry = NSLocalizedString(
+            "common.retry",
+            tableName: "Localizable",
+            comment: "Retry button after an error"
+        )
     }
 
     enum CommunityManager {
@@ -2267,6 +2273,16 @@ enum L10n {
             "communityManager.emptyManaged",
             tableName: "Localizable",
             comment: "Empty state when user manages no communities"
+        )
+        static let emptyStateTitle = NSLocalizedString(
+            "communityManager.emptyStateTitle",
+            tableName: "Localizable",
+            comment: "Empty state title on community manager list"
+        )
+        static let emptyStateMessage = NSLocalizedString(
+            "communityManager.emptyStateMessage",
+            tableName: "Localizable",
+            comment: "Empty state message: create community from profile"
         )
         static let virtualCaptainsSection = NSLocalizedString(
             "communityManager.virtualCaptainsSection",

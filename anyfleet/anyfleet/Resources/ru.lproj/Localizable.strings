@@ -328,6 +328,7 @@
 "common.cancel" = "Отмена";
 "common.save" = "Сохранить";
 "common.ok" = "OK";
+"common.retry" = "Повторить";
 
 // Author Profile
 "authorProfile.title" = "Профиль автора";
@@ -409,6 +410,8 @@
 "communityManager.sectionTitle" = "Управление сообществами";
 "communityManager.sectionSubtitle" = "Виртуальные капитаны и публикация";
 "communityManager.emptyManaged" = "Нет сообществ, которыми вы управляете.";
+"communityManager.emptyStateTitle" = "Пока нет сообществ";
+"communityManager.emptyStateMessage" = "Создайте сообщество в профиле.";
 "communityManager.virtualCaptainsSection" = "Виртуальные капитаны";
 "communityManager.noVirtualCaptainsYet" = "Пока нет виртуальных капитанов.";
 "communityManager.addVirtualCaptain" = "Добавить виртуального капитана";

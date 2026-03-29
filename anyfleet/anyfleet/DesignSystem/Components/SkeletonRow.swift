@@ -142,6 +142,28 @@ extension DesignSystem {
             .cornerRadius(DesignSystem.Spacing.cardCornerRadius)
         }
     }
+
+    // MARK: - Skeleton row matching Community Manager list row
+
+    /// Placeholder that mirrors the community manager list row (thumbnail + title + subtitle in `cardStyle`).
+    struct CommunitySkeletonRow: View {
+        var animating: Bool? = nil
+
+        var body: some View {
+            HStack(alignment: .center, spacing: DesignSystem.Spacing.md) {
+                SkeletonBlock(width: 40, height: 40, animating: animating)
+                    .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusCompact, style: .continuous))
+
+                VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
+                    SkeletonBlock(width: 160, height: 20, animating: animating)
+                    SkeletonBlock(width: 120, height: 14, animating: animating)
+                }
+
+                Spacer(minLength: 0)
+            }
+            .cardStyle()
+        }
+    }
 }
 
 // MARK: - Preview
@@ -151,6 +173,15 @@ extension DesignSystem {
         DesignSystem.CharterSkeletonRow()
         DesignSystem.CharterSkeletonRow()
         DesignSystem.CharterSkeletonRow()
+    }
+    .padding(.horizontal, DesignSystem.Spacing.lg)
+    .background(DesignSystem.Colors.background)
+}
+
+#Preview("Community skeleton") {
+    VStack(spacing: DesignSystem.Spacing.md) {
+        DesignSystem.CommunitySkeletonRow()
+        DesignSystem.CommunitySkeletonRow()
     }
     .padding(.horizontal, DesignSystem.Spacing.lg)
     .background(DesignSystem.Colors.background)
