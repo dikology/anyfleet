@@ -485,6 +485,48 @@ enum DesignSystem {
         }
     }
 
+    /// Frosted-glass pill for floating contextual data on hero cards.
+    /// Place inside a ZStack to float over image backgrounds.
+    /// Keep to one or two per card to avoid clutter.
+    struct OverlayChip: View {
+        /// `.photo` — white text over ultraThinMaterial, for chips sitting on dark image backgrounds.
+        /// `.surface` — adaptive label color over regularMaterial, for chips sitting on light/dark card surfaces.
+        enum Style { case photo, surface }
+
+        let icon: String?
+        let text: String
+        let style: Style
+
+        init(icon: String? = nil, text: String, style: Style = .photo) {
+            self.icon = icon
+            self.text = text
+            self.style = style
+        }
+
+        var body: some View {
+            HStack(spacing: 4) {
+                if let icon {
+                    Image(systemName: icon)
+                        .font(Typography.nanoMedium)
+                }
+                Text(text)
+                    .font(Typography.microBold)
+            }
+            .foregroundColor(style == .photo ? .white : Colors.textPrimary)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 5)
+            .background(style == .photo ? AnyShapeStyle(.ultraThinMaterial) : AnyShapeStyle(.regularMaterial))
+            .clipShape(Capsule())
+            .overlay(
+                Capsule()
+                    .stroke(
+                        style == .photo ? Color.white.opacity(0.18) : Colors.border,
+                        lineWidth: 0.5
+                    )
+            )
+        }
+    }
+
     struct TimelineIndicator: View {
         let isActive: Bool
         

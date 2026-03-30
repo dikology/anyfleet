@@ -81,60 +81,64 @@ struct HomeView: View {
     // MARK: - Hero Charter Card (Active or Next)
     
     private func heroCharterCard(charter: CharterModel, badge: String) -> some View {
-        VStack(alignment: .leading, spacing: DesignSystem.Spacing.lg) {
-            // Badge pill
-            Text(badge.uppercased())
-                .font(DesignSystem.Typography.micro)
-                .fontWeight(.semibold)
-                .tracking(0.6)
-                .foregroundColor(.white.opacity(0.9))
-                .padding(.horizontal, DesignSystem.Spacing.sm)
-                .padding(.vertical, DesignSystem.Spacing.xs)
-                .background(DesignSystem.Colors.primary.opacity(0.9))
-                .cornerRadius(DesignSystem.Spacing.cornerRadiusSmall)
-            
-            Spacer(minLength: 0)
-            
-            // Charter name (title)
-            Text(charter.name)
-                .font(DesignSystem.Typography.title)
-                .foregroundColor(.white)
-            
-            // Location with icon
-            if let location = charter.location, !location.isEmpty {
-                HStack(spacing: DesignSystem.Spacing.xs) {
-                    Image(systemName: "mappin.and.ellipse")
-                    Text(location)
-                }
-                .font(DesignSystem.Typography.caption)
-                .foregroundColor(.white.opacity(0.9))
-            }
-            
-            // Time until start (for next charter)
-            if charter.isUpcoming, !charter.timeUntilStartDisplay.isEmpty {
-                Text(charter.timeUntilStartDisplay)
+        ZStack(alignment: .topTrailing) {
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.lg) {
+                // Badge pill
+                Text(badge.uppercased())
+                    .font(DesignSystem.Typography.micro)
+                    .fontWeight(.semibold)
+                    .tracking(0.6)
+                    .foregroundColor(.white.opacity(0.9))
+                    .padding(.horizontal, DesignSystem.Spacing.sm)
+                    .padding(.vertical, DesignSystem.Spacing.xs)
+                    .background(DesignSystem.Colors.primary.opacity(0.9))
+                    .cornerRadius(DesignSystem.Spacing.cornerRadiusSmall)
+
+                Spacer(minLength: 0)
+
+                // Charter name (title)
+                Text(charter.name)
+                    .font(DesignSystem.Typography.title)
+                    .foregroundColor(.white)
+
+                // Location with icon
+                if let location = charter.location, !location.isEmpty {
+                    HStack(spacing: DesignSystem.Spacing.xs) {
+                        Image(systemName: "mappin.and.ellipse")
+                        Text(location)
+                    }
                     .font(DesignSystem.Typography.caption)
-                    .foregroundColor(.white.opacity(0.8))
-            }
-            
-            // View Charter button
-            HStack {
-                Spacer()
-                HStack(spacing: DesignSystem.Spacing.sm) {
-                    Text(L10n.homeViewCharter)
-                        .font(DesignSystem.Typography.calloutSemibold)
-                    Image(systemName: "arrow.right")
-                        .font(DesignSystem.Typography.captionSemibold)
+                    .foregroundColor(.white.opacity(0.9))
                 }
-                .foregroundColor(DesignSystem.Colors.oceanDeep)
-                .padding(.vertical, DesignSystem.Spacing.sm)
-                .padding(.horizontal, DesignSystem.Spacing.md)
-                .background(Color.white)
-                .cornerRadius(DesignSystem.Spacing.cornerRadiusSmall)
+
+                // View Charter button
+                HStack {
+                    Spacer()
+                    HStack(spacing: DesignSystem.Spacing.sm) {
+                        Text(L10n.homeViewCharter)
+                            .font(DesignSystem.Typography.calloutSemibold)
+                        Image(systemName: "arrow.right")
+                            .font(DesignSystem.Typography.captionSemibold)
+                    }
+                    .foregroundColor(DesignSystem.Colors.oceanDeep)
+                    .padding(.vertical, DesignSystem.Spacing.sm)
+                    .padding(.horizontal, DesignSystem.Spacing.md)
+                    .background(Color.white)
+                    .cornerRadius(DesignSystem.Spacing.cornerRadiusSmall)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(minHeight: DesignSystem.Spacing.featuredCardHeight)
+
+            // Countdown chip — top-right, floats over the photo background
+            if charter.isUpcoming, charter.daysUntilStart > 0 {
+                DesignSystem.OverlayChip(
+                    icon: "calendar",
+                    text: charter.timeUntilStartDisplay
+                )
+                .padding(DesignSystem.Spacing.cardPadding)
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .frame(minHeight: DesignSystem.Spacing.featuredCardHeight)
         .padding(DesignSystem.Spacing.cardPadding)
         .background(
             ZStack {
