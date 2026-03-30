@@ -2,13 +2,23 @@ import SwiftUI
 
 extension DesignSystem {
     enum Colors {
-        static let primary = Color(red: 0.126, green: 0.541, blue: 0.552) // #208A8D
+        // Teal primary: slightly more saturated in dark mode to compensate for low-contrast environment
+        static let primary = Color(UIColor { traits in
+            traits.userInterfaceStyle == .dark
+                ? UIColor(red: 0.146, green: 0.621, blue: 0.635, alpha: 1) // #259FA2 — vivid teal
+                : UIColor(red: 0.126, green: 0.541, blue: 0.552, alpha: 1) // #208A8D
+        })
         static let secondary = Color(red: 0.369, green: 0.322, blue: 0.251) // #5E5240
         static let success = Color(red: 0.133, green: 0.773, blue: 0.369) // #22C55E
         static let warning = Color(red: 0.902, green: 0.506, blue: 0.380) // #E68161
         static let error = Color(red: 1.0, green: 0.329, blue: 0.349) // #FF5459
         static let info = Color(red: 0.192, green: 0.463, blue: 0.776) // #3176C6
-        static let gold = Color(red: 0.98, green: 0.82, blue: 0.45)
+        // Gold: more saturated in dark mode to compensate for low-contrast environment
+        static let gold = Color(UIColor { traits in
+            traits.userInterfaceStyle == .dark
+                ? UIColor(red: 1.0, green: 0.855, blue: 0.36, alpha: 1)  // vivid warm gold
+                : UIColor(red: 0.98, green: 0.82, blue: 0.45, alpha: 1)
+        })
         static let oceanDeep = Color(red: 0.02, green: 0.28, blue: 0.36)
 
         // MARK: - Semantic gold aliases
@@ -25,10 +35,28 @@ extension DesignSystem {
         static let visibilityPrivate   = textSecondary
 
         // MARK: - Dynamic surfaces for light/dark
-        static let background = Color(.systemGroupedBackground)
-        static let backgroundSecondary = Color(.secondarySystemGroupedBackground)
-        static let surface = Color(.secondarySystemGroupedBackground)
-        static let surfaceAlt = Color(.tertiarySystemGroupedBackground)
+        // Dark mode surfaces blend systemGroupedBackground with a 10% oceanDeep tint,
+        // giving the app a designed feel rather than flat system gray.
+        static let background = Color(UIColor { traits in
+            traits.userInterfaceStyle == .dark
+                ? UIColor(red: 0.101, green: 0.127, blue: 0.142, alpha: 1) // #1A2024 — oceanDeep-tinted dark
+                : UIColor.systemGroupedBackground
+        })
+        static let backgroundSecondary = Color(UIColor { traits in
+            traits.userInterfaceStyle == .dark
+                ? UIColor(red: 0.157, green: 0.184, blue: 0.198, alpha: 1) // #282F32
+                : UIColor.secondarySystemGroupedBackground
+        })
+        static let surface = Color(UIColor { traits in
+            traits.userInterfaceStyle == .dark
+                ? UIColor(red: 0.157, green: 0.184, blue: 0.198, alpha: 1) // #282F32
+                : UIColor.secondarySystemGroupedBackground
+        })
+        static let surfaceAlt = Color(UIColor { traits in
+            traits.userInterfaceStyle == .dark
+                ? UIColor(red: 0.209, green: 0.232, blue: 0.247, alpha: 1) // #353B3F
+                : UIColor.tertiarySystemGroupedBackground
+        })
 
         // MARK: - Text
         static let textPrimary = Color(.label)
