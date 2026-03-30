@@ -8,6 +8,7 @@
 import Foundation
 import Observation
 import CoreLocation
+import SwiftUI
 
 /// ViewModel managing the charter editing flow.
 ///
@@ -43,6 +44,7 @@ final class CharterEditorViewModel: ErrorHandling {
     let locationSearchService: any LocationSearchService
     private let charterID: UUID?
     private let onDismiss: () -> Void
+    private let presentToast: ((String, ToastVariant) -> Void)?
 
     // MARK: - Community manager (publish on behalf)
 
@@ -105,6 +107,7 @@ final class CharterEditorViewModel: ErrorHandling {
     ///   - locationSearchService: Place search service for destination autocomplete
     ///   - charterID: The ID of the charter to edit
     ///   - onDismiss: Callback to dismiss the view after successful save
+    ///   - presentToast: Optional global toast after a successful save
     ///   - initialForm: Initial form state (if nil, creates empty form)
     init(
         charterStore: CharterStore,
@@ -114,6 +117,7 @@ final class CharterEditorViewModel: ErrorHandling {
         locationSearchService: any LocationSearchService = MKLocationSearchService(),
         charterID: UUID? = nil,
         onDismiss: @escaping () -> Void,
+        presentToast: ((String, ToastVariant) -> Void)? = nil,
         initialForm: CharterFormState? = nil
     ) {
         self.charterStore = charterStore
@@ -123,6 +127,7 @@ final class CharterEditorViewModel: ErrorHandling {
         self.locationSearchService = locationSearchService
         self.charterID = charterID
         self.onDismiss = onDismiss
+        self.presentToast = presentToast
         self.form = initialForm ?? CharterFormState()
     }
     
@@ -244,6 +249,7 @@ final class CharterEditorViewModel: ErrorHandling {
                 AppLogger.view.info("Charter created successfully with ID: \(charter.id.uuidString)")
                 AppLogger.view.completeOperation("Save Charter")
 
+                presentToast?(L10n.Toast.charterSaved, .success)
                 onDismiss()
             } else {
                 guard let charterID = charterID else { return }
@@ -277,6 +283,7 @@ final class CharterEditorViewModel: ErrorHandling {
                 AppLogger.view.info("Charter updated successfully with ID: \(charter.id.uuidString)")
                 AppLogger.view.completeOperation("Save Charter")
 
+                presentToast?(L10n.Toast.charterSaved, .success)
                 onDismiss()
             }
         } catch {

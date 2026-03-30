@@ -457,3 +457,9 @@
 "charter.discovery.mapEmptyTitle" = "На карте нет чартеров";
 "charter.discovery.mapEmptySubtitle" = "Измените период или уменьшите масштаб.";
 "charter.discovery.mapCalloutSwipeHint" = "Проведите вверх, чтобы открыть чартер.";
+
+// Toasts
+"toast.charterSaved" = "Чартер сохранён";
+"toast.publishedToCommunity" = "Опубликовано в библиотеке сообщества";
+"toast.addedToLibrary" = "Добавлено в вашу библиотеку";
+"toast.profileUpdated" = "Профиль обновлён";

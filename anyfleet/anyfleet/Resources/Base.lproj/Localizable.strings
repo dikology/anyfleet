@@ -409,3 +409,9 @@
 "charter.discovery.mapFilter.sheet.dateHintBody" = "Adjust the charter date window on the map — switch to map view and use the Date range chip above the map.";
 "charter.discovery.mapFilter.track.now" = "Now";
 "charter.discovery.mapFilter.track.plusOneYear" = "+1 yr";
+
+// Toasts
+"toast.charterSaved" = "Charter saved";
+"toast.publishedToCommunity" = "Published to community library";
+"toast.addedToLibrary" = "Added to your library";
+"toast.profileUpdated" = "Profile updated";

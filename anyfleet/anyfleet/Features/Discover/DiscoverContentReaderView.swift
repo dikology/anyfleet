@@ -398,6 +398,8 @@ struct DiscoverContentReaderView: View {
 
             AppLogger.view.info("Successfully forked content: \(detail.publicID)")
 
+            dependencies.showToast(L10n.Toast.addedToLibrary, variant: .success)
+
             // Navigate to library tab to show the newly forked content
             coordinator.navigateToLibrary()
 

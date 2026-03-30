@@ -481,3 +481,9 @@
 "charter.discovery.mapEmptyTitle" = "No charters on the map";
 "charter.discovery.mapEmptySubtitle" = "Adjust your date range or zoom out.";
 "charter.discovery.mapCalloutSwipeHint" = "Swipe up to open this charter.";
+
+// Toasts
+"toast.charterSaved" = "Charter saved";
+"toast.publishedToCommunity" = "Published to community library";
+"toast.addedToLibrary" = "Added to your library";
+"toast.profileUpdated" = "Profile updated";

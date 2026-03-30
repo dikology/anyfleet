@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import SwiftUI
 
 /// Represents the different content filters available in the library
 enum ContentFilter: String, CaseIterable, Identifiable {
@@ -49,6 +50,7 @@ final class LibraryListViewModel: ErrorHandling {
     let authObserver: AuthStateObserverProtocol
     let coordinator: AppCoordinatorProtocol
     private let apiClient: APIClientProtocol
+    private let presentToast: ((String, ToastVariant) -> Void)?
 
     // MARK: - State
 
@@ -150,13 +152,15 @@ final class LibraryListViewModel: ErrorHandling {
         visibilityService: VisibilityServiceProtocol,
         authObserver: AuthStateObserverProtocol,
         coordinator: AppCoordinatorProtocol,
-        apiClient: APIClientProtocol
+        apiClient: APIClientProtocol,
+        presentToast: ((String, ToastVariant) -> Void)? = nil
     ) {
         self.libraryStore = libraryStore
         self.visibilityService = visibilityService
         self.authObserver = authObserver
         self.coordinator = coordinator
         self.apiClient = apiClient
+        self.presentToast = presentToast
     }
     
     // MARK: - Actions
@@ -313,6 +317,7 @@ final class LibraryListViewModel: ErrorHandling {
             activeModal = nil
             await loadLibrary()
             AppLogger.view.info("Publish confirmed and completed for item: \(item.id) - \(syncSummary.succeeded) succeeded, \(syncSummary.failed) failed")
+            presentToast?(L10n.Toast.publishedToCommunity, .success)
         } catch {
             AppLogger.view.error("Publish failed", error: error)
             publishError = error

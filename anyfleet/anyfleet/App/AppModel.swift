@@ -210,6 +210,7 @@ final class AppCoordinator: AppCoordinatorProtocol {
                     apiClient: dependencies.apiClient,
                     charterID: nil,
                     onDismiss: { self.pop(from: .charters) },
+                    presentToast: { message, variant in self.dependencies.showToast(message, variant: variant) },
                     initialForm: CharterFormState()
                 )
             )
@@ -230,6 +231,7 @@ final class AppCoordinator: AppCoordinatorProtocol {
                     apiClient: dependencies.apiClient,
                     charterID: id,
                     onDismiss: { self.pop(from: .charters) },
+                    presentToast: { message, variant in self.dependencies.showToast(message, variant: variant) },
                     initialForm: CharterFormState()
                 )
             )

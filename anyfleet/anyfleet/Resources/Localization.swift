@@ -32,6 +32,29 @@ enum L10n {
             comment: "night greeting"
         )
     }
+
+    enum Toast {
+        static let charterSaved = NSLocalizedString(
+            "toast.charterSaved",
+            tableName: "Localizable",
+            comment: "Shown after saving a charter"
+        )
+        static let publishedToCommunity = NSLocalizedString(
+            "toast.publishedToCommunity",
+            tableName: "Localizable",
+            comment: "Shown after publishing library content to the community"
+        )
+        static let addedToLibrary = NSLocalizedString(
+            "toast.addedToLibrary",
+            tableName: "Localizable",
+            comment: "Shown after forking content into the user library"
+        )
+        static let profileUpdated = NSLocalizedString(
+            "toast.profileUpdated",
+            tableName: "Localizable",
+            comment: "Shown after the user profile is saved"
+        )
+    }
     
     enum Library {
         static let myLibrary = NSLocalizedString(

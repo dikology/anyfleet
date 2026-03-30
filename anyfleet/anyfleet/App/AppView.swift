@@ -57,7 +57,8 @@ struct AppView: View {
                         visibilityService: dependencies.visibilityService,
                         authObserver: dependencies.authStateObserver,
                         coordinator: coordinator,
-                        apiClient: dependencies.apiClient
+                        apiClient: dependencies.apiClient,
+                        presentToast: { message, variant in dependencies.showToast(message, variant: variant) }
                     )
                 )
                     .navigationDestination(for: AppRoute.self) { route in
@@ -101,7 +102,8 @@ struct AppView: View {
                     apiClient: dependencies.apiClient,
                     clearLocalDataAfterAccountDeletion: {
                         try await dependencies.clearAllLocalUserDataAfterAccountDeletion()
-                    }
+                    },
+                    presentToast: { message, variant in dependencies.showToast(message, variant: variant) }
                 ))
                     .navigationDestination(for: AppRoute.self) { route in
                         coordinator.destination(for: route)
@@ -125,7 +127,18 @@ struct AppView: View {
                     .zIndex(999)
                     .accessibilityIdentifier("staging.environment.banner")
             }
+
+            if let toast = dependencies.toast {
+                ToastView(message: toast.message, variant: toast.variant)
+                    .padding(.horizontal, DesignSystem.Spacing.screenPadding)
+                    .padding(.top, DesignSystem.Spacing.sm)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                    .allowsHitTesting(false)
+                    .zIndex(1000)
+            }
         }
+        .animation(DesignSystem.Motion.spring, value: dependencies.toast?.id)
     }
 }
 
