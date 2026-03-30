@@ -111,7 +111,7 @@ struct CharterListView: View {
 
     private var emptyState: some View {
         DesignSystem.EmptyStateView(
-            icon: "sailboat",
+            icon: "sailboat.fill",
             title: L10n.Charter.List.EmptyState.title,
             message: L10n.Charter.List.EmptyState.message,
             actionTitle: L10n.Charter.List.EmptyState.action,

@@ -180,7 +180,7 @@ struct DiscoverView: View {
 
     private var emptyState: some View {
         DesignSystem.EmptyStateHero(
-            icon: "globe",
+            icon: "rectangle.stack.badge.plus",
             title: L10n.DiscoverView.emptyStateTitle,
             message: L10n.DiscoverView.emptyStateMessage,
             accentColor: DesignSystem.Colors.primary

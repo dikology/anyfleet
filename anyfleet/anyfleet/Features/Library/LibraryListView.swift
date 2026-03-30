@@ -49,7 +49,7 @@ struct LibraryListView: View {
         if viewModel.isLoading && viewModel.isEmpty {
             LibrarySkeletonListView()
         } else if viewModel.isEmpty {
-            LibraryEmptyState()
+            LibraryEmptyState(viewModel: viewModel)
         } else {
             LibraryContentList(viewModel: viewModel)
         }
@@ -314,13 +314,94 @@ struct LibrarySkeletonListView: View {
 }
 
 struct LibraryEmptyState: View {
+    let viewModel: LibraryListViewModel
+
     var body: some View {
-        DesignSystem.EmptyStateView(
-            icon: "book.fill",
-            title: L10n.Library.emptyStateTitle,
-            message: L10n.Library.emptyStateMessage
+        VStack(spacing: DesignSystem.Spacing.xl) {
+            Spacer()
+
+            ZStack {
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                DesignSystem.Colors.primary.opacity(0.15),
+                                DesignSystem.Colors.primary.opacity(0.05)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 120, height: 120)
+
+                Image(systemName: "books.vertical.fill")
+                    .font(DesignSystem.Typography.symbolPlateXL)
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [
+                                DesignSystem.Colors.primary,
+                                DesignSystem.Colors.primary.opacity(0.7)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+            }
+
+            VStack(spacing: DesignSystem.Spacing.md) {
+                Text(L10n.Library.emptyStateTitle)
+                    .font(DesignSystem.Typography.emptyStateHeadline)
+                    .foregroundColor(DesignSystem.Colors.textPrimary)
+                    .multilineTextAlignment(.center)
+
+                Text(L10n.Library.emptyStateMessage)
+                    .font(DesignSystem.Typography.body)
+                    .foregroundColor(DesignSystem.Colors.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, DesignSystem.Spacing.xl)
+            }
+
+            Menu {
+                Button {
+                    viewModel.onCreateChecklistTapped()
+                } label: {
+                    Label(L10n.Library.newChecklist, systemImage: "checklist")
+                }
+                Button {
+                    viewModel.onCreateGuideTapped()
+                } label: {
+                    Label(L10n.Library.newPracticeGuide, systemImage: "book")
+                }
+            } label: {
+                HStack(spacing: DesignSystem.Spacing.sm) {
+                    Image(systemName: "plus.circle.fill")
+                    Text(L10n.Library.emptyStatePrimaryAction)
+                }
+                .font(DesignSystem.Typography.headline)
+                .foregroundColor(.white)
+                .padding(.horizontal, DesignSystem.Spacing.lg)
+                .padding(.vertical, DesignSystem.Spacing.md)
+                .background(DesignSystem.Colors.primary)
+                .cornerRadius(DesignSystem.Spacing.cornerRadiusMedium)
+                .shadow(color: DesignSystem.Colors.primary.opacity(0.3), radius: 8, y: 4)
+            }
+            .buttonStyle(.plain)
+
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(
+            LinearGradient(
+                colors: [
+                    DesignSystem.Colors.background,
+                    DesignSystem.Colors.oceanDeep.opacity(0.03)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
         )
         .accessibilityElement(children: .combine)
+        .accessibilityLabel(L10n.Library.emptyStateAccessibilityLabel)
     }
 }
 

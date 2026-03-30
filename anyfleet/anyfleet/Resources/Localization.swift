@@ -164,6 +164,26 @@ enum L10n {
             tableName: "Localizable",
             comment: "Accessibility label for the library empty state"
         )
+
+        /// Primary control on the library empty state (opens menu for checklist vs guide).
+        static let emptyStatePrimaryAction = NSLocalizedString(
+            "library.emptyState.primaryAction",
+            tableName: "Localizable",
+            comment: "Button label to add checklist or guide from library empty state"
+        )
+    }
+
+    enum ChecklistExecution {
+        static let emptyTitle = NSLocalizedString(
+            "checklist.execution.empty.title",
+            tableName: "Localizable",
+            comment: "Title when executing a checklist with no items"
+        )
+        static let emptyMessage = NSLocalizedString(
+            "checklist.execution.empty.message",
+            tableName: "Localizable",
+            comment: "Message directing user to add items in the editor"
+        )
     }
     
     static let Discover = NSLocalizedString(

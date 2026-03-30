@@ -1,5 +1,5 @@
-"home.createCharter.title" = "Готовы выйти в море?";
-"home.createCharter.subtitle" = "Начните чартер, чтобы вести журнал и чек-листы.";
+"home.createCharter.title" = "Спланируйте первое путешествие";
+"home.createCharter.subtitle" = "Создайте чартер, чтобы вести даты, судно и пункт назначения — затем открывайте его с Главной или из списка чартеров.";
 "home.createCharter.action" = "Начать чартер";
 
 "charter.create.progress" = "Прогресс";
@@ -61,8 +61,8 @@
 
 "discover.tab.content" = "Контент";
 "discover.tab.charters" = "Чартеры";
-"discover.emptyState.title" = "Откройте Знания о Судоходстве";
-"discover.emptyState.message" = "Просматривайте чек-листы, руководства и карточки, которыми делятся другие моряки со всего мира.";
+"discover.emptyState.title" = "Пока ничего нет";
+"discover.emptyState.message" = "Станьте первым: опубликуйте чек-лист или руководство из библиотеки.";
 
 "charters" = "Чартеры";
 "profile" = "Профиль";
@@ -85,9 +85,13 @@
 
 "library.filter.accessibilityLabel" = "Фильтр содержимого библиотеки";
 "library.updatedPrefix" = "Обновлено";
-"library.emptyState.title" = "Ваша библиотека ждёт";
-"library.emptyState.message" = "Создавайте чек-листы, руководства и колоды карточек, чтобы систематизировать свои знания. Каждый опытный моряк собирает собственную библиотеку материалов.";
-"library.emptyState.accessibilityLabel" = "Библиотека пуста. Создайте чек-листы, руководства и колоды карточек.";
+"library.emptyState.title" = "Библиотека пуста";
+"library.emptyState.message" = "Добавьте чек-лист или практическое руководство. Когда будете готовы, опубликуйте материал в разделе «Открытия».";
+"library.emptyState.accessibilityLabel" = "Библиотека пуста. Добавьте чек-лист или руководство.";
+"library.emptyState.primaryAction" = "Добавить чек-лист или руководство";
+
+"checklist.execution.empty.title" = "В этом чек-листе нет пунктов";
+"checklist.execution.empty.message" = "Добавьте пункты в редакторе, затем вернитесь сюда, чтобы пройти список.";
 
 "greeting.morning" = "Доброе утро";
 "greeting.day" = "Добрый день";
@@ -102,9 +106,9 @@
 "charter.list.signInToSyncBanner" = "Войдите, чтобы синхронизировать чартеры";
 
 "charter.list.emptyState.title" = "Пока нет чартеров";
-"charter.list.emptyState.message" = "Создайте первый чартер, чтобы начать планировать путешествие. Отслеживайте даты, суда и локации в одном месте.";
+"charter.list.emptyState.message" = "Создайте чартер, чтобы спланировать даты, судно и маршрут. Он появится здесь и на главной.";
 "charter.list.emptyState.action" = "Создать чартер";
-"charter.list.emptyState.accessibilityLabel" = "Нет чартеров. Создайте первый чартер для планирования.";
+"charter.list.emptyState.accessibilityLabel" = "Нет чартеров. Создайте чартер, чтобы начать.";
 
 "home.pinnedContent.title" = "Закрепленный контент";
 "home.pinnedContent.subtitle" = "Закрепляйте элементы из библиотеки для быстрого доступа.";
@@ -432,7 +436,7 @@
 "communityManager.sectionTitle" = "Управление сообществами";
 "communityManager.sectionSubtitle" = "Виртуальные капитаны и публикация";
 "communityManager.emptyManaged" = "Нет сообществ, которыми вы управляете.";
-"communityManager.emptyStateTitle" = "Пока нет сообществ";
+"communityManager.emptyStateTitle" = "Нет сообществ";
 "communityManager.emptyStateMessage" = "Создайте сообщество в профиле.";
 "communityManager.virtualCaptainsSection" = "Виртуальные капитаны";
 "communityManager.noVirtualCaptainsYet" = "Пока нет виртуальных капитанов.";
@@ -454,8 +458,8 @@
 // Charter discovery map
 "charter.discovery.virtualCaptainBadge" = "Виртуальный капитан";
 "charter.discovery.mapCommunityFallback" = "Программа сообщества";
-"charter.discovery.mapEmptyTitle" = "На карте нет чартеров";
-"charter.discovery.mapEmptySubtitle" = "Измените период или уменьшите масштаб.";
+"charter.discovery.mapEmptyTitle" = "В этой области нет чартеров";
+"charter.discovery.mapEmptySubtitle" = "Расширьте поиск: измените даты, радиус или масштаб карты.";
 "charter.discovery.mapCalloutSwipeHint" = "Проведите вверх, чтобы открыть чартер.";
 
 // Toasts

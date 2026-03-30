@@ -187,7 +187,7 @@ struct CharterDiscoveryView: View {
     private var emptyState: some View {
         VStack(spacing: DesignSystem.Spacing.xl) {
             Spacer()
-            Image(systemName: "sailboat")
+            Image(systemName: "sailboat.fill")
                 .font(DesignSystem.Typography.symbolPlateHero)
                 .foregroundColor(DesignSystem.Colors.textSecondary.opacity(0.4))
 
