@@ -44,15 +44,27 @@ struct LibraryListView: View {
         .libraryModals(viewModel: viewModel)
     }
 
+    private var libraryListDisplayPhase: Int {
+        if viewModel.isLoading && viewModel.isEmpty { 0 }
+        else if viewModel.isEmpty { 1 }
+        else { 2 }
+    }
+
     @ViewBuilder
     private var contentView: some View {
-        if viewModel.isLoading && viewModel.isEmpty {
-            LibrarySkeletonListView()
-        } else if viewModel.isEmpty {
-            LibraryEmptyState(viewModel: viewModel)
-        } else {
-            LibraryContentList(viewModel: viewModel)
+        Group {
+            if viewModel.isLoading && viewModel.isEmpty {
+                LibrarySkeletonListView()
+                    .transition(.opacity)
+            } else if viewModel.isEmpty {
+                LibraryEmptyState(viewModel: viewModel)
+                    .transition(.opacity)
+            } else {
+                LibraryContentList(viewModel: viewModel)
+                    .transition(.opacity)
+            }
         }
+        .animation(.easeInOut(duration: 0.22), value: libraryListDisplayPhase)
     }
 }
 

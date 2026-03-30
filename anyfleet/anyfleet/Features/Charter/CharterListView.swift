@@ -22,12 +22,16 @@ struct CharterListView: View {
             Group {
                 if viewModel.isLoading && viewModel.isEmpty {
                     skeletonList
+                        .transition(.opacity)
                 } else if viewModel.isEmpty {
                     emptyState
+                        .transition(.opacity)
                 } else {
                     charterList
+                        .transition(.opacity)
                 }
             }
+            .animation(.easeInOut(duration: 0.22), value: charterListDisplayPhase)
             .navigationBarTitleDisplayMode(.inline)
             .background(DesignSystem.Colors.background.ignoresSafeArea())
 
@@ -108,6 +112,12 @@ struct CharterListView: View {
     }
 
     // MARK: - States
+
+    private var charterListDisplayPhase: Int {
+        if viewModel.isLoading && viewModel.isEmpty { 0 }
+        else if viewModel.isEmpty { 1 }
+        else { 2 }
+    }
 
     private var emptyState: some View {
         DesignSystem.EmptyStateView(

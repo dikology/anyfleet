@@ -164,6 +164,100 @@ extension DesignSystem {
             .cardStyle()
         }
     }
+
+    // MARK: - Stats row (profile `StatsRow` mirror)
+
+    /// Horizontal stat groups with icon + value + label placeholders, matching `StatsRow` layout.
+    struct StatsRowSkeleton: View {
+        var groupCount: Int = 4
+        var animating: Bool? = nil
+
+        var body: some View {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 0) {
+                    ForEach(0..<groupCount, id: \.self) { index in
+                        if index > 0 {
+                            Text("|")
+                                .font(Typography.caption)
+                                .foregroundColor(Colors.textSecondary.opacity(0.25))
+                                .padding(.horizontal, Spacing.sm)
+                        }
+                        HStack(alignment: .firstTextBaseline, spacing: Spacing.xs) {
+                            SkeletonBlock(width: 14, height: 14, animating: animating)
+                            SkeletonBlock(width: 28, height: 18, animating: animating)
+                            SkeletonBlock(width: 72, height: 14, animating: animating)
+                        }
+                    }
+                }
+                .padding(.vertical, Spacing.xs)
+            }
+        }
+    }
+
+    // MARK: - Charter detail inline stats card
+
+    /// Placeholder for the hero stats card on charter detail (three stat groups + pipes).
+    struct CharterDetailStatsRowSkeleton: View {
+        var animating: Bool? = nil
+
+        var body: some View {
+            HStack(spacing: 0) {
+                statGroup
+                pipe
+                statGroup
+                pipe
+                statGroup
+            }
+            .padding(.vertical, Spacing.md)
+            .padding(.horizontal, Spacing.md)
+            .background(Colors.surface.opacity(0.7))
+            .clipShape(RoundedRectangle(cornerRadius: Spacing.cardCornerRadius, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: Spacing.cardCornerRadius, style: .continuous)
+                    .stroke(Colors.border, lineWidth: 1)
+            )
+        }
+
+        private var statGroup: some View {
+            HStack(spacing: Spacing.sm) {
+                SkeletonBlock(width: 30, height: 30, animating: animating)
+                    .clipShape(Circle())
+                VStack(alignment: .leading, spacing: 4) {
+                    SkeletonBlock(width: 44, height: 14, animating: animating)
+                    SkeletonBlock(width: 56, height: 10, animating: animating)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+
+        private var pipe: some View {
+            Rectangle()
+                .fill(Colors.border)
+                .frame(width: 1, height: 28)
+                .padding(.horizontal, Spacing.sm)
+        }
+    }
+
+    // MARK: - Virtual captain list row
+
+    /// Circle avatar + title row, matching virtual captain rows in community detail.
+    struct VirtualCaptainSkeletonRow: View {
+        var animating: Bool? = nil
+
+        var body: some View {
+            HStack(spacing: Spacing.md) {
+                SkeletonBlock(width: 36, height: 36, animating: animating)
+                    .clipShape(Circle())
+                VStack(alignment: .leading, spacing: Spacing.xs) {
+                    SkeletonBlock(width: 140, height: 16, animating: animating)
+                    SkeletonBlock(width: 88, height: 12, animating: animating)
+                }
+                Spacer(minLength: 0)
+                SkeletonBlock(width: 10, height: 14, animating: animating)
+            }
+            .padding(.vertical, Spacing.xs)
+        }
+    }
 }
 
 // MARK: - Preview

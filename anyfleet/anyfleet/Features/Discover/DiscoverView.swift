@@ -132,17 +132,27 @@ struct DiscoverView: View {
 
     // MARK: - Content Tab (Library Content Discovery)
 
+    private var discoverContentPhase: Int {
+        if viewModel.isLoading && viewModel.content.isEmpty { 0 }
+        else if viewModel.isEmpty { 1 }
+        else { 2 }
+    }
+
     private var contentTabView: some View {
         ZStack {
             Group {
                 if viewModel.isLoading && viewModel.content.isEmpty {
                     discoverContentSkeletonList
+                        .transition(.opacity)
                 } else if viewModel.isEmpty {
                     emptyState
+                        .transition(.opacity)
                 } else {
                     contentList
+                        .transition(.opacity)
                 }
             }
+            .animation(.easeInOut(duration: 0.22), value: discoverContentPhase)
         }
     }
 

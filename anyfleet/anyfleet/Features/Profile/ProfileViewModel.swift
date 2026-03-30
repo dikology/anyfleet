@@ -24,6 +24,8 @@ final class ProfileViewModel: ErrorHandling {
 
     // Captain stats (Phase 2)
     var captainStats: CaptainStats?
+    /// True while fetching dashboard stats from the API (signed-in + `apiClient` only).
+    var isLoadingCaptainStats = false
 
     // Phase 2: Reputation metrics (kept for existing MetricsCard)
     var contributionMetrics: ContributionMetrics?
@@ -216,6 +218,8 @@ final class ProfileViewModel: ErrorHandling {
 
     func loadProfileStats() async {
         guard let apiClient else { return }
+        isLoadingCaptainStats = true
+        defer { isLoadingCaptainStats = false }
         do {
             let stats = try await apiClient.fetchProfileStats()
             captainStats = buildStats(from: stats, communities: communities)

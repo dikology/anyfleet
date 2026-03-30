@@ -69,10 +69,20 @@ struct CharterDiscoveryView: View {
         }
     }
 
+    private var discoveryListPhase: Int {
+        if viewModel.isLoading && viewModel.charters.isEmpty { 0 }
+        else if viewModel.isEmpty { 1 }
+        else { 2 }
+    }
+
     private var listView: some View {
-        Group {
-            if viewModel.isEmpty {
+        ZStack {
+            if viewModel.isLoading && viewModel.charters.isEmpty {
+                DiscoverySkeletonList()
+                    .transition(.opacity)
+            } else if viewModel.isEmpty {
                 emptyState
+                    .transition(.opacity)
             } else {
                 ScrollView {
                     LazyVStack(spacing: DesignSystem.Spacing.md) {
@@ -84,13 +94,10 @@ struct CharterDiscoveryView: View {
                     .padding(.vertical, DesignSystem.Spacing.md)
                 }
                 .background(DesignSystem.Colors.background.ignoresSafeArea())
+                .transition(.opacity)
             }
         }
-        .overlay {
-            if viewModel.isLoading && viewModel.charters.isEmpty {
-                DiscoverySkeletonList()
-            }
-        }
+        .animation(.easeInOut(duration: 0.22), value: discoveryListPhase)
     }
 
     private var mapView: some View {

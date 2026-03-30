@@ -130,13 +130,27 @@ struct ProfileView: View {
 
     // MARK: - Display Mode
 
+    /// Drives opacity transition between stats skeleton, loaded stats, and hidden (no API / failure).
+    private var profileStatsPhase: String {
+        if viewModel.isLoadingCaptainStats { "loading" }
+        else if viewModel.captainStats != nil { "stats" }
+        else { "none" }
+    }
+
     @ViewBuilder
     private func displayContent(user: UserInfo) -> some View {
         VStack(spacing: DesignSystem.Spacing.xxl) {
             // Stats bar
-            if let stats = viewModel.captainStats {
-                ProfileStatsBar(stats: stats)
+            Group {
+                if viewModel.isLoadingCaptainStats {
+                    ProfileStatsBarSkeleton()
+                        .transition(.opacity)
+                } else if let stats = viewModel.captainStats {
+                    ProfileStatsBar(stats: stats)
+                        .transition(.opacity)
+                }
             }
+            .animation(.easeInOut(duration: 0.22), value: profileStatsPhase)
 
             // Communities
             CommunitiesSection(

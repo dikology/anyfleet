@@ -51,6 +51,25 @@ struct ProfileStatsBar: View {
     }
 }
 
+// MARK: - Loading
+
+/// Shimmer placeholder for `ProfileStatsBar` (section label + stats row).
+struct ProfileStatsBarSkeleton: View {
+    @State private var animating = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
+            DesignSystem.SkeletonBlock(width: 140, height: 12, animating: animating)
+            DesignSystem.StatsRowSkeleton(groupCount: 4, animating: animating)
+        }
+        .onAppear {
+            withAnimation(DesignSystem.Motion.skeleton) {
+                animating = true
+            }
+        }
+    }
+}
+
 // MARK: - Preview
 
 #Preview("With data") {
