@@ -73,6 +73,9 @@ struct DiscoverView: View {
                 .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
+        .onChange(of: selectedTab) { _, _ in
+            HapticEngine.selection()
+        }
         .sheet(item: $selectedAuthor) { item in
             AuthorProfileModal(
                 author: item.profile,
@@ -93,6 +96,7 @@ struct DiscoverView: View {
             await viewModel.loadContent()
         }
         .refreshable {
+            HapticEngine.impact(.light)
             await viewModel.refresh()
         }
     }

@@ -84,6 +84,7 @@ struct CharterListView: View {
             await viewModel.loadCharters()
         }
         .refreshable {
+            HapticEngine.impact(.light)
             await viewModel.refresh()
         }
         .sheet(item: $charterPendingDelete) { charter in
@@ -166,16 +167,19 @@ struct CharterListView: View {
                             // before any data change, making the charter vanish on cancel.
                             if charter.visibility != .private {
                                 Button {
+                                    HapticEngine.impact(.light)
                                     charterPendingDelete = charter
                                 } label: { Label(L10n.Charter.List.actionDelete, systemImage: "trash") }
                                 .tint(.red)
                             } else {
                                 Button(role: .destructive) {
+                                    HapticEngine.impact(.light)
                                     Task { try? await viewModel.deleteCharter(charter.id) }
                                 } label: { Label(L10n.Charter.List.actionDelete, systemImage: "trash") }
                             }
 
                             Button {
+                                HapticEngine.impact(.light)
                                 coordinator.editCharter(charter.id)
                             } label: {
                                 Label(L10n.Charter.List.actionEdit, systemImage: "pencil")
@@ -202,16 +206,19 @@ struct CharterListView: View {
                             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                 if charter.visibility != .private {
                                     Button {
+                                        HapticEngine.impact(.light)
                                         charterPendingDelete = charter
                                     } label: { Label(L10n.Charter.List.actionDelete, systemImage: "trash") }
                                     .tint(.red)
                                 } else {
                                     Button(role: .destructive) {
+                                        HapticEngine.impact(.light)
                                         Task { try? await viewModel.deleteCharter(charter.id) }
                                     } label: { Label(L10n.Charter.List.actionDelete, systemImage: "trash") }
                                 }
 
                                 Button {
+                                    HapticEngine.impact(.light)
                                     coordinator.editCharter(charter.id)
                                 } label: {
                                     Label(L10n.Charter.List.actionEdit, systemImage: "pencil")

@@ -112,7 +112,10 @@ struct CommunityDetailView: View {
             Text(deleteError ?? "")
         }
         .task { await loadCaptains() }
-        .refreshable { await loadCaptains() }
+        .refreshable {
+            HapticEngine.impact(.light)
+            await loadCaptains()
+        }
     }
 
     private func loadCaptains() async {

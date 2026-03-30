@@ -14,7 +14,13 @@ struct AppView: View {
     
     var body: some View {
         ZStack(alignment: .top) {
-            TabView(selection: Binding<Tab>(get: { coordinator.selectedTab }, set: { coordinator.selectedTab = $0 })) {
+            TabView(selection: Binding<Tab>(
+                get: { coordinator.selectedTab },
+                set: { newTab in
+                    HapticEngine.selection()
+                    coordinator.selectedTab = newTab
+                }
+            )) {
             // Home Tab
             NavigationStack(path: Binding(get: { coordinator.homePath }, set: { coordinator.homePath = $0 })) {
                 HomeView(

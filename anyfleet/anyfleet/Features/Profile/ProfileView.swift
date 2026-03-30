@@ -213,6 +213,7 @@ struct ProfileView: View {
                 .disabled(viewModel.isDeletingAccount)
             }
             .padding(DesignSystem.Spacing.screenPadding)
+            .onAppear { HapticEngine.notification(.warning) }
             .navigationTitle(L10n.Profile.deleteAccountSheetTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

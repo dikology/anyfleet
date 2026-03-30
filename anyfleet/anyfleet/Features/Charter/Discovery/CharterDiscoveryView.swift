@@ -41,7 +41,10 @@ struct CharterDiscoveryView: View {
         .animation(DesignSystem.Motion.standard, value: viewModel.showFilters)
         .animation(DesignSystem.Motion.standard, value: viewModel.selectedCharter?.id)
         .task { await viewModel.loadInitial() }
-        .refreshable { await viewModel.refresh() }
+        .refreshable {
+            HapticEngine.impact(.light)
+            await viewModel.refresh()
+        }
         .onAppear { viewModel.requestLocationIfNeeded() }
         .onChange(of: dependencies.charterSyncService.lastSyncDate) {
             Task { await viewModel.refresh() }

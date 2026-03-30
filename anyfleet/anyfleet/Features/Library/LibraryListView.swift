@@ -38,6 +38,7 @@ struct LibraryListView: View {
             await viewModel.loadLibrary()
         }
         .refreshable {
+            HapticEngine.impact(.light)
             await viewModel.refresh()
         }
         .libraryModals(viewModel: viewModel)
@@ -403,12 +404,14 @@ struct LibraryContentList: View {
                     ))
                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                         Button(role: .destructive) {
+                            HapticEngine.impact(.light)
                             viewModel.initiateDelete(item)
                         } label: {
                             Label(L10n.Library.actionDelete, systemImage: "trash")
                         }
 
                         Button {
+                            HapticEngine.impact(.light)
                             switch item.type {
                             case .checklist:
                                 viewModel.onEditChecklistTapped(item.id)
@@ -423,6 +426,7 @@ struct LibraryContentList: View {
                         .tint(.gray)
 
                         Button {
+                            HapticEngine.impact(.light)
                             Task {
                                 await viewModel.togglePin(for: item)
                             }

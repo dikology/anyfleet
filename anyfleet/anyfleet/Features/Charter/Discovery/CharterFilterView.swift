@@ -231,6 +231,9 @@ struct CharterFilterView: View {
                 .frame(maxWidth: .infinity)
                 .background(DesignSystem.Colors.background)
             }
+            .onChange(of: localFilters.useNearMe) { _, _ in
+                HapticEngine.selection()
+            }
         }
     }
 
@@ -294,6 +297,7 @@ struct CharterFilterView: View {
 
             ForEach(CharterDiscoveryFilters.SortOrder.allCases, id: \.self) { sort in
                 Button {
+                    HapticEngine.selection()
                     localFilters.sortOrder = sort
                 } label: {
                     HStack {

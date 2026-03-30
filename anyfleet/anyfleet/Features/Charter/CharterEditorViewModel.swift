@@ -249,6 +249,7 @@ final class CharterEditorViewModel: ErrorHandling {
                 AppLogger.view.info("Charter created successfully with ID: \(charter.id.uuidString)")
                 AppLogger.view.completeOperation("Save Charter")
 
+                HapticEngine.notification(.success)
                 presentToast?(L10n.Toast.charterSaved, .success)
                 onDismiss()
             } else {
@@ -283,6 +284,7 @@ final class CharterEditorViewModel: ErrorHandling {
                 AppLogger.view.info("Charter updated successfully with ID: \(charter.id.uuidString)")
                 AppLogger.view.completeOperation("Save Charter")
 
+                HapticEngine.notification(.success)
                 presentToast?(L10n.Toast.charterSaved, .success)
                 onDismiss()
             }

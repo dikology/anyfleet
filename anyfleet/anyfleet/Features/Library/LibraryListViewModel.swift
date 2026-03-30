@@ -317,6 +317,7 @@ final class LibraryListViewModel: ErrorHandling {
             activeModal = nil
             await loadLibrary()
             AppLogger.view.info("Publish confirmed and completed for item: \(item.id) - \(syncSummary.succeeded) succeeded, \(syncSummary.failed) failed")
+            HapticEngine.notification(.success)
             presentToast?(L10n.Toast.publishedToCommunity, .success)
         } catch {
             AppLogger.view.error("Publish failed", error: error)

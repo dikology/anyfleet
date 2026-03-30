@@ -212,6 +212,12 @@ struct SectionEditorSheet: View {
             } message: {
                 Text(L10n.SectionEditor.deleteSectionMessage)
             }
+            .onChange(of: showingDeleteConfirm) { _, isShowing in
+                if isShowing { HapticEngine.notification(.warning) }
+            }
+            .onChange(of: isExpandedByDefault) { _, _ in
+                HapticEngine.selection()
+            }
         }
     }
 }
