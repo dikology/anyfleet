@@ -87,7 +87,7 @@ struct CharterMapView: View {
 
     private var mapEmptyOverlay: some View {
         VStack(spacing: DesignSystem.Spacing.md) {
-            Image(systemName: "hook.circle")
+            Image(systemName: "map.fill")
                 .font(DesignSystem.Typography.title)
                 .foregroundStyle(DesignSystem.Colors.primary)
 

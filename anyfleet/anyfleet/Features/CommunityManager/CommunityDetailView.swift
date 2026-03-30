@@ -10,6 +10,7 @@ struct CommunityDetailView: View {
     @State private var captainToEdit: VirtualCaptain?
     @State private var deleteError: String?
     @State private var showDeleteError = false
+    @State private var captainSkeletonAnimating = false
 
     var body: some View {
         List {
@@ -37,7 +38,16 @@ struct CommunityDetailView: View {
 
             Section(L10n.CommunityManager.virtualCaptainsSection) {
                 if isLoading {
-                    ProgressView()
+                    Group {
+                        ForEach(0..<4, id: \.self) { _ in
+                            DesignSystem.VirtualCaptainSkeletonRow(animating: captainSkeletonAnimating)
+                        }
+                    }
+                    .onAppear {
+                        withAnimation(DesignSystem.Motion.skeleton) {
+                            captainSkeletonAnimating = true
+                        }
+                    }
                 } else if captains.isEmpty {
                     Text(L10n.CommunityManager.noVirtualCaptainsYet)
                         .font(DesignSystem.Typography.caption)
@@ -112,7 +122,10 @@ struct CommunityDetailView: View {
             Text(deleteError ?? "")
         }
         .task { await loadCaptains() }
-        .refreshable { await loadCaptains() }
+        .refreshable {
+            HapticEngine.impact(.light)
+            await loadCaptains()
+        }
     }
 
     private func loadCaptains() async {

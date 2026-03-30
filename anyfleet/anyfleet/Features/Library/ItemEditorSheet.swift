@@ -133,6 +133,9 @@ struct ItemEditorSheet: View {
             } message: {
                 Text(L10n.ItemEditor.deleteItemMessage)
             }
+            .onChange(of: showingDeleteConfirm) { _, isShowing in
+                if isShowing { HapticEngine.notification(.warning) }
+            }
         }
     }
 }

@@ -79,7 +79,10 @@ struct DiscoverContentRow: View {
         .animation(DesignSystem.Motion.spring, value: isPressed)
         // Swipe actions for fork
         .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-            Button(action: onForkTapped) {
+            Button {
+                HapticEngine.impact(.light)
+                onForkTapped()
+            } label: {
                 Label("Fork", systemImage: "arrow.triangle.branch.fill")
             }
             .tint(DesignSystem.Colors.primary)

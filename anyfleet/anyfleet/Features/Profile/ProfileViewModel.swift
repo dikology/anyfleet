@@ -15,6 +15,8 @@ final class ProfileViewModel: ErrorHandling {
     /// Clears local GRDB data and reloads stores after successful server-side account deletion.
     private let clearLocalDataAfterAccountDeletion: (@MainActor () async throws -> Void)?
 
+    private let presentToast: ((String, ToastVariant) -> Void)?
+
     var currentError: AppError?
     var showErrorBanner: Bool = false
     var isLoading = false
@@ -22,6 +24,8 @@ final class ProfileViewModel: ErrorHandling {
 
     // Captain stats (Phase 2)
     var captainStats: CaptainStats?
+    /// True while fetching dashboard stats from the API (signed-in + `apiClient` only).
+    var isLoadingCaptainStats = false
 
     // Phase 2: Reputation metrics (kept for existing MetricsCard)
     var contributionMetrics: ContributionMetrics?
@@ -58,12 +62,14 @@ final class ProfileViewModel: ErrorHandling {
         authService: AuthServiceProtocol,
         authObserver: AuthStateObserverProtocol? = nil,
         apiClient: APIClientProtocol? = nil,
-        clearLocalDataAfterAccountDeletion: (@MainActor () async throws -> Void)? = nil
+        clearLocalDataAfterAccountDeletion: (@MainActor () async throws -> Void)? = nil,
+        presentToast: ((String, ToastVariant) -> Void)? = nil
     ) {
         self.authService = authService
         self.authObserver = authObserver ?? AuthStateObserver(authService: authService)
         self.apiClient = apiClient
         self.clearLocalDataAfterAccountDeletion = clearLocalDataAfterAccountDeletion
+        self.presentToast = presentToast
         self.imageUploadService = ImageUploadService(authService: authService)
     }
 
@@ -169,6 +175,7 @@ final class ProfileViewModel: ErrorHandling {
                 socialLinks: linksToSend,
                 communityMemberships: editedCommunities
             )
+            presentToast?(L10n.Toast.profileUpdated, .success)
             isEditingProfile = false
             editedUsername = ""
             editedBio = ""
@@ -211,6 +218,8 @@ final class ProfileViewModel: ErrorHandling {
 
     func loadProfileStats() async {
         guard let apiClient else { return }
+        isLoadingCaptainStats = true
+        defer { isLoadingCaptainStats = false }
         do {
             let stats = try await apiClient.fetchProfileStats()
             captainStats = buildStats(from: stats, communities: communities)

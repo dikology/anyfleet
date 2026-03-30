@@ -11,9 +11,16 @@ import SwiftUI
 
 struct CharterDetailView: View {
     @State private var viewModel: CharterDetailViewModel
+    @State private var detailSkeletonAnimating = false
 
     init(viewModel: CharterDetailViewModel) {
         _viewModel = State(initialValue: viewModel)
+    }
+
+    private var charterDetailDisplayKey: String {
+        if viewModel.charter != nil { "content" }
+        else if viewModel.isLoading { "loading" }
+        else { "empty" }
     }
 
     private var dateFormatter: DateFormatter {
@@ -64,12 +71,13 @@ struct CharterDetailView: View {
                             )
                         )
                 }
+                .transition(.opacity)
             } else if viewModel.isLoading {
-                ProgressView()
-                    .progressViewStyle(.circular)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                charterDetailLoadingPlaceholder
+                    .transition(.opacity)
             }
         }
+        .animation(.easeInOut(duration: 0.22), value: charterDetailDisplayKey)
         .navigationTitle(L10n.Charter.detailTitle)
         .navigationBarTitleDisplayMode(.inline)
         .task {
@@ -88,6 +96,70 @@ struct CharterDetailView: View {
             }
         }
         .animation(DesignSystem.Motion.standard, value: viewModel.showErrorBanner)
+    }
+}
+
+// MARK: - Loading skeleton
+
+private extension CharterDetailView {
+    var charterDetailLoadingPlaceholder: some View {
+        ScrollView {
+            VStack(spacing: 0) {
+                charterDetailHeroSkeleton
+                VStack(spacing: DesignSystem.Spacing.md) {
+                    charterDetailDetailsSkeleton
+                    charterDetailChecklistSkeleton
+                }
+                .padding(.horizontal, DesignSystem.Spacing.screenPadding)
+                .padding(.top, DesignSystem.Spacing.lg)
+                .padding(.bottom, DesignSystem.Spacing.xxxl)
+            }
+        }
+        .onAppear {
+            withAnimation(DesignSystem.Motion.skeleton) {
+                detailSkeletonAnimating = true
+            }
+        }
+    }
+
+    var charterDetailHeroSkeleton: some View {
+        ZStack(alignment: .bottom) {
+            DesignSystem.Gradients.focalGoldRadial
+                .frame(maxWidth: .infinity)
+                .frame(height: 210)
+
+            VStack(spacing: DesignSystem.Spacing.sm) {
+                Spacer()
+                DesignSystem.SkeletonBlock(width: 52, height: 52, animating: detailSkeletonAnimating)
+                    .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Spacing.cardCornerRadius))
+                DesignSystem.SkeletonBlock(width: 72, height: 18, animating: detailSkeletonAnimating)
+                DesignSystem.SkeletonBlock(width: 200, height: 28, animating: detailSkeletonAnimating)
+                DesignSystem.SkeletonBlock(width: 120, height: 14, animating: detailSkeletonAnimating)
+                DesignSystem.CharterDetailStatsRowSkeleton(animating: detailSkeletonAnimating)
+                    .padding(.horizontal, DesignSystem.Spacing.screenPadding)
+                    .padding(.top, DesignSystem.Spacing.sm)
+                    .padding(.bottom, DesignSystem.Spacing.xl)
+            }
+        }
+    }
+
+    var charterDetailDetailsSkeleton: some View {
+        DesignSystem.Form.BubbleCard {
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
+                DesignSystem.SkeletonBlock(width: 100, height: 11, animating: detailSkeletonAnimating)
+                DesignSystem.SkeletonBlock(height: 36, animating: detailSkeletonAnimating)
+                DesignSystem.SkeletonBlock(height: 36, animating: detailSkeletonAnimating)
+            }
+        }
+    }
+
+    var charterDetailChecklistSkeleton: some View {
+        DesignSystem.Form.BubbleCard {
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
+                DesignSystem.SkeletonBlock(width: 160, height: 11, animating: detailSkeletonAnimating)
+                DesignSystem.SkeletonBlock(height: 56, animating: detailSkeletonAnimating)
+            }
+        }
     }
 }
 

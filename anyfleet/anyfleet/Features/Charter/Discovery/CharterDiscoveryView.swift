@@ -41,7 +41,10 @@ struct CharterDiscoveryView: View {
         .animation(DesignSystem.Motion.standard, value: viewModel.showFilters)
         .animation(DesignSystem.Motion.standard, value: viewModel.selectedCharter?.id)
         .task { await viewModel.loadInitial() }
-        .refreshable { await viewModel.refresh() }
+        .refreshable {
+            HapticEngine.impact(.light)
+            await viewModel.refresh()
+        }
         .onAppear { viewModel.requestLocationIfNeeded() }
         .onChange(of: dependencies.charterSyncService.lastSyncDate) {
             Task { await viewModel.refresh() }
@@ -66,10 +69,20 @@ struct CharterDiscoveryView: View {
         }
     }
 
+    private var discoveryListPhase: Int {
+        if viewModel.isLoading && viewModel.charters.isEmpty { 0 }
+        else if viewModel.isEmpty { 1 }
+        else { 2 }
+    }
+
     private var listView: some View {
-        Group {
-            if viewModel.isEmpty {
+        ZStack {
+            if viewModel.isLoading && viewModel.charters.isEmpty {
+                DiscoverySkeletonList()
+                    .transition(.opacity)
+            } else if viewModel.isEmpty {
                 emptyState
+                    .transition(.opacity)
             } else {
                 ScrollView {
                     LazyVStack(spacing: DesignSystem.Spacing.md) {
@@ -81,13 +94,10 @@ struct CharterDiscoveryView: View {
                     .padding(.vertical, DesignSystem.Spacing.md)
                 }
                 .background(DesignSystem.Colors.background.ignoresSafeArea())
+                .transition(.opacity)
             }
         }
-        .overlay {
-            if viewModel.isLoading && viewModel.charters.isEmpty {
-                DiscoverySkeletonList()
-            }
-        }
+        .animation(.easeInOut(duration: 0.22), value: discoveryListPhase)
     }
 
     private var mapView: some View {
@@ -184,7 +194,7 @@ struct CharterDiscoveryView: View {
     private var emptyState: some View {
         VStack(spacing: DesignSystem.Spacing.xl) {
             Spacer()
-            Image(systemName: "sailboat")
+            Image(systemName: "sailboat.fill")
                 .font(DesignSystem.Typography.symbolPlateHero)
                 .foregroundColor(DesignSystem.Colors.textSecondary.opacity(0.4))
 

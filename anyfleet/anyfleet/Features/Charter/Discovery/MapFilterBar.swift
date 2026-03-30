@@ -245,6 +245,6 @@ struct MapFilterBar: View {
     }
 
     private func selectionHaptic() {
-        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        HapticEngine.impact(.light)
     }
 }

@@ -35,7 +35,10 @@ struct CommunityManagerView: View {
             }
         }
         .task { await reload() }
-        .refreshable { await reload() }
+        .refreshable {
+            HapticEngine.impact(.light)
+            await reload()
+        }
     }
 
     // MARK: - States

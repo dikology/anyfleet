@@ -113,6 +113,32 @@ final class AppDependencies {
     
     /// Auth state observer for UI consumption
     let authStateObserver: AuthStateObserver
+
+    // MARK: - Toast (global confirmation)
+
+    private var toastDismissTask: Task<Void, Never>?
+
+    /// Current toast shown at the root of the app, if any.
+    var toast: AppToast?
+
+    /// Shows a toast that auto-dismisses after 2.5 seconds. Replaces any visible toast.
+    func showToast(_ message: String, variant: ToastVariant = .success) {
+        toastDismissTask?.cancel()
+        let newToast = AppToast(id: UUID(), message: message, variant: variant)
+        withAnimation(.spring(response: 0.38, dampingFraction: 0.82)) {
+            toast = newToast
+        }
+        let dismissID = newToast.id
+        toastDismissTask = Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 2_500_000_000)
+            guard !Task.isCancelled else { return }
+            withAnimation(.spring(response: 0.38, dampingFraction: 0.82)) {
+                if toast?.id == dismissID {
+                    toast = nil
+                }
+            }
+        }
+    }
     
     // MARK: - Initialization
     

@@ -9,34 +9,37 @@ import SwiftUI
 
 struct ChecklistReaderView: View {
     @State private var viewModel: ChecklistReaderViewModel
-    
+    @State private var readerSkeletonAnimating = false
+
     init(viewModel: ChecklistReaderViewModel) {
         _viewModel = State(initialValue: viewModel)
     }
-    
+
+    private var checklistReaderDisplayKey: String {
+        if viewModel.checklist != nil { "content" }
+        else if viewModel.isLoading { "loading" }
+        else { "empty" }
+    }
+
     var body: some View {
         ZStack {
             DesignSystem.Colors.background
                 .ignoresSafeArea()
-            
+
             Group {
                 if let checklist = viewModel.checklist {
                     contentView(for: checklist)
+                        .transition(.opacity)
                 } else if viewModel.isLoading {
-                    ProgressView()
-                        .tint(DesignSystem.Colors.primary)
+                    checklistReaderSkeletonList
+                        .transition(.opacity)
                 } else {
-                    // Show loading state instead of empty view
-                    VStack(spacing: DesignSystem.Spacing.md) {
-                        ProgressView()
-                            .tint(DesignSystem.Colors.primary)
-                        Text("Loading checklist...")
-                            .font(DesignSystem.Typography.caption)
-                            .foregroundColor(DesignSystem.Colors.textSecondary)
-                    }
-                    .padding()
+                    Color.clear
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .transition(.opacity)
                 }
             }
+            .animation(.easeInOut(duration: 0.22), value: checklistReaderDisplayKey)
 
             // Error Banner
             if viewModel.showErrorBanner, let error = viewModel.currentError {
@@ -74,9 +77,26 @@ struct ChecklistReaderView: View {
             await viewModel.loadChecklist()
         }
     }
-    
+
+    private var checklistReaderSkeletonList: some View {
+        ScrollView {
+            VStack(spacing: DesignSystem.Spacing.sm) {
+                ForEach(0..<5, id: \.self) { _ in
+                    DesignSystem.LibrarySkeletonRow(animating: readerSkeletonAnimating)
+                }
+            }
+            .padding(.horizontal, DesignSystem.Spacing.lg)
+            .padding(.top, DesignSystem.Spacing.md)
+        }
+        .onAppear {
+            withAnimation(DesignSystem.Motion.skeleton) {
+                readerSkeletonAnimating = true
+            }
+        }
+    }
+
     // MARK: - Content
-    
+
     private func contentView(for checklist: Checklist) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: DesignSystem.Spacing.lg) {

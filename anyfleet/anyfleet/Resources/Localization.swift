@@ -32,6 +32,29 @@ enum L10n {
             comment: "night greeting"
         )
     }
+
+    enum Toast {
+        static let charterSaved = NSLocalizedString(
+            "toast.charterSaved",
+            tableName: "Localizable",
+            comment: "Shown after saving a charter"
+        )
+        static let publishedToCommunity = NSLocalizedString(
+            "toast.publishedToCommunity",
+            tableName: "Localizable",
+            comment: "Shown after publishing library content to the community"
+        )
+        static let addedToLibrary = NSLocalizedString(
+            "toast.addedToLibrary",
+            tableName: "Localizable",
+            comment: "Shown after forking content into the user library"
+        )
+        static let profileUpdated = NSLocalizedString(
+            "toast.profileUpdated",
+            tableName: "Localizable",
+            comment: "Shown after the user profile is saved"
+        )
+    }
     
     enum Library {
         static let myLibrary = NSLocalizedString(
@@ -140,6 +163,26 @@ enum L10n {
             "library.emptyState.accessibilityLabel",
             tableName: "Localizable",
             comment: "Accessibility label for the library empty state"
+        )
+
+        /// Primary control on the library empty state (opens menu for checklist vs guide).
+        static let emptyStatePrimaryAction = NSLocalizedString(
+            "library.emptyState.primaryAction",
+            tableName: "Localizable",
+            comment: "Button label to add checklist or guide from library empty state"
+        )
+    }
+
+    enum ChecklistExecution {
+        static let emptyTitle = NSLocalizedString(
+            "checklist.execution.empty.title",
+            tableName: "Localizable",
+            comment: "Title when executing a checklist with no items"
+        )
+        static let emptyMessage = NSLocalizedString(
+            "checklist.execution.empty.message",
+            tableName: "Localizable",
+            comment: "Message directing user to add items in the editor"
         )
     }
     

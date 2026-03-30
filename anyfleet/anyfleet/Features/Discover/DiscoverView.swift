@@ -73,6 +73,9 @@ struct DiscoverView: View {
                 .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
+        .onChange(of: selectedTab) { _, _ in
+            HapticEngine.selection()
+        }
         .sheet(item: $selectedAuthor) { item in
             AuthorProfileModal(
                 author: item.profile,
@@ -93,6 +96,7 @@ struct DiscoverView: View {
             await viewModel.loadContent()
         }
         .refreshable {
+            HapticEngine.impact(.light)
             await viewModel.refresh()
         }
     }
@@ -128,17 +132,27 @@ struct DiscoverView: View {
 
     // MARK: - Content Tab (Library Content Discovery)
 
+    private var discoverContentPhase: Int {
+        if viewModel.isLoading && viewModel.content.isEmpty { 0 }
+        else if viewModel.isEmpty { 1 }
+        else { 2 }
+    }
+
     private var contentTabView: some View {
         ZStack {
             Group {
                 if viewModel.isLoading && viewModel.content.isEmpty {
                     discoverContentSkeletonList
+                        .transition(.opacity)
                 } else if viewModel.isEmpty {
                     emptyState
+                        .transition(.opacity)
                 } else {
                     contentList
+                        .transition(.opacity)
                 }
             }
+            .animation(.easeInOut(duration: 0.22), value: discoverContentPhase)
         }
     }
 
@@ -176,7 +190,7 @@ struct DiscoverView: View {
 
     private var emptyState: some View {
         DesignSystem.EmptyStateHero(
-            icon: "globe",
+            icon: "rectangle.stack.badge.plus",
             title: L10n.DiscoverView.emptyStateTitle,
             message: L10n.DiscoverView.emptyStateMessage,
             accentColor: DesignSystem.Colors.primary

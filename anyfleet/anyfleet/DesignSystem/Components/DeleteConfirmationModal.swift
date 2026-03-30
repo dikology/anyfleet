@@ -71,6 +71,7 @@ struct DeleteConfirmationModal: View {
                 .padding(.bottom, DesignSystem.Spacing.lg)
             }
             .background(DesignSystem.Colors.background)
+            .onAppear { HapticEngine.notification(.warning) }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

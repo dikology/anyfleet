@@ -552,6 +552,7 @@ private struct ItemRow: View {
         .buttonStyle(.plain)
         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
             Button(role: .destructive) {
+                HapticEngine.impact(.light)
                 onDelete()
             } label: {
                 Label(L10n.ChecklistEditor.delete, systemImage: "trash")

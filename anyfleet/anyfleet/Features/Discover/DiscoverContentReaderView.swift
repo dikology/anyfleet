@@ -9,11 +9,18 @@ import SwiftUI
 
 struct DiscoverContentReaderView: View {
     @State private var viewModel: DiscoverContentReaderViewModel
+    @State private var readerSkeletonAnimating = false
     @Environment(\.appDependencies) private var dependencies
     @Environment(\.appCoordinator) private var coordinator
 
     init(viewModel: DiscoverContentReaderViewModel) {
         _viewModel = State(initialValue: viewModel)
+    }
+
+    private var discoverReaderDisplayKey: String {
+        if viewModel.parsedContent != nil, viewModel.contentDetail != nil { "content" }
+        else if viewModel.isLoading { "loading" }
+        else { "empty" }
     }
 
     var body: some View {
@@ -24,21 +31,17 @@ struct DiscoverContentReaderView: View {
             Group {
                 if let content = viewModel.parsedContent, let detail = viewModel.contentDetail {
                     contentView(for: content, detail: detail)
+                        .transition(.opacity)
                 } else if viewModel.isLoading {
-                    ProgressView()
-                        .tint(DesignSystem.Colors.primary)
+                    discoverReaderSkeletonList
+                        .transition(.opacity)
                 } else {
-                    // Show loading state
-                    VStack(spacing: DesignSystem.Spacing.md) {
-                        ProgressView()
-                            .tint(DesignSystem.Colors.primary)
-                        Text("Loading content...")
-                            .font(DesignSystem.Typography.caption)
-                            .foregroundColor(DesignSystem.Colors.textSecondary)
-                    }
-                    .padding()
+                    Color.clear
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .transition(.opacity)
                 }
             }
+            .animation(.easeInOut(duration: 0.22), value: discoverReaderDisplayKey)
 
             // Error Banner
             if viewModel.showErrorBanner, let error = viewModel.currentError {
@@ -87,6 +90,23 @@ struct DiscoverContentReaderView: View {
         }
         .task {
             await viewModel.loadContent()
+        }
+    }
+
+    private var discoverReaderSkeletonList: some View {
+        ScrollView {
+            VStack(spacing: DesignSystem.Spacing.sm) {
+                ForEach(0..<4, id: \.self) { _ in
+                    DesignSystem.DiscoverContentSkeletonRow(animating: readerSkeletonAnimating)
+                }
+            }
+            .padding(.horizontal, DesignSystem.Spacing.lg)
+            .padding(.top, DesignSystem.Spacing.md)
+        }
+        .onAppear {
+            withAnimation(DesignSystem.Motion.skeleton) {
+                readerSkeletonAnimating = true
+            }
         }
     }
 
@@ -397,6 +417,8 @@ struct DiscoverContentReaderView: View {
             }
 
             AppLogger.view.info("Successfully forked content: \(detail.publicID)")
+
+            dependencies.showToast(L10n.Toast.addedToLibrary, variant: .success)
 
             // Navigate to library tab to show the newly forked content
             coordinator.navigateToLibrary()

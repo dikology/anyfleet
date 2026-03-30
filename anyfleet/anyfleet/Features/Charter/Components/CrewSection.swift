@@ -11,6 +11,9 @@ struct CrewSection: View {
             Toggle("Chef", isOn: $chefIncluded)
             Toggle("Deckhand", isOn: $deckhandIncluded)
         }
+        .onChange(of: captainIncluded) { _, _ in HapticEngine.selection() }
+        .onChange(of: chefIncluded) { _, _ in HapticEngine.selection() }
+        .onChange(of: deckhandIncluded) { _, _ in HapticEngine.selection() }
     }
 }
 

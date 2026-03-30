@@ -22,15 +22,19 @@ struct ChecklistExecutionView: View {
             DesignSystem.Colors.background.ignoresSafeArea()
             
             if let checklist = viewModel.checklist {
-                ScrollView {
-                    VStack(spacing: 0) {
-                        headerView(checklist)
-                        
-                        ForEach(checklist.sections) { section in
-                            sectionView(section)
+                if checklist.totalItems == 0 {
+                    checklistExecutionEmptyState
+                } else {
+                    ScrollView {
+                        VStack(spacing: 0) {
+                            headerView(checklist)
+
+                            ForEach(checklist.sections) { section in
+                                sectionView(section)
+                            }
+
+                            Spacer(minLength: 100)
                         }
-                        
-                        Spacer(minLength: 100)
                     }
                 }
             } else if viewModel.isLoading {
@@ -54,7 +58,6 @@ struct ChecklistExecutionView: View {
             await viewModel.load()
         }
 
-        // Error Banner
         if viewModel.showErrorBanner, let error = viewModel.currentError {
             VStack {
                 Spacer()
@@ -69,7 +72,16 @@ struct ChecklistExecutionView: View {
             .transition(.move(edge: .bottom).combined(with: .opacity))
         }
     }
-    
+
+    private var checklistExecutionEmptyState: some View {
+        DesignSystem.EmptyStateHero(
+            icon: "checklist",
+            title: L10n.ChecklistExecution.emptyTitle,
+            message: L10n.ChecklistExecution.emptyMessage,
+            accentColor: DesignSystem.Colors.primary
+        )
+    }
+
     // MARK: - Header View
     
     private func headerView(_ checklist: Checklist) -> some View {

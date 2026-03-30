@@ -22,12 +22,16 @@ struct CharterListView: View {
             Group {
                 if viewModel.isLoading && viewModel.isEmpty {
                     skeletonList
+                        .transition(.opacity)
                 } else if viewModel.isEmpty {
                     emptyState
+                        .transition(.opacity)
                 } else {
                     charterList
+                        .transition(.opacity)
                 }
             }
+            .animation(.easeInOut(duration: 0.22), value: charterListDisplayPhase)
             .navigationBarTitleDisplayMode(.inline)
             .background(DesignSystem.Colors.background.ignoresSafeArea())
 
@@ -84,6 +88,7 @@ struct CharterListView: View {
             await viewModel.loadCharters()
         }
         .refreshable {
+            HapticEngine.impact(.light)
             await viewModel.refresh()
         }
         .sheet(item: $charterPendingDelete) { charter in
@@ -108,9 +113,15 @@ struct CharterListView: View {
 
     // MARK: - States
 
+    private var charterListDisplayPhase: Int {
+        if viewModel.isLoading && viewModel.isEmpty { 0 }
+        else if viewModel.isEmpty { 1 }
+        else { 2 }
+    }
+
     private var emptyState: some View {
         DesignSystem.EmptyStateView(
-            icon: "sailboat",
+            icon: "sailboat.fill",
             title: L10n.Charter.List.EmptyState.title,
             message: L10n.Charter.List.EmptyState.message,
             actionTitle: L10n.Charter.List.EmptyState.action,
@@ -166,16 +177,19 @@ struct CharterListView: View {
                             // before any data change, making the charter vanish on cancel.
                             if charter.visibility != .private {
                                 Button {
+                                    HapticEngine.impact(.light)
                                     charterPendingDelete = charter
                                 } label: { Label(L10n.Charter.List.actionDelete, systemImage: "trash") }
                                 .tint(.red)
                             } else {
                                 Button(role: .destructive) {
+                                    HapticEngine.impact(.light)
                                     Task { try? await viewModel.deleteCharter(charter.id) }
                                 } label: { Label(L10n.Charter.List.actionDelete, systemImage: "trash") }
                             }
 
                             Button {
+                                HapticEngine.impact(.light)
                                 coordinator.editCharter(charter.id)
                             } label: {
                                 Label(L10n.Charter.List.actionEdit, systemImage: "pencil")
@@ -202,16 +216,19 @@ struct CharterListView: View {
                             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                 if charter.visibility != .private {
                                     Button {
+                                        HapticEngine.impact(.light)
                                         charterPendingDelete = charter
                                     } label: { Label(L10n.Charter.List.actionDelete, systemImage: "trash") }
                                     .tint(.red)
                                 } else {
                                     Button(role: .destructive) {
+                                        HapticEngine.impact(.light)
                                         Task { try? await viewModel.deleteCharter(charter.id) }
                                     } label: { Label(L10n.Charter.List.actionDelete, systemImage: "trash") }
                                 }
 
                                 Button {
+                                    HapticEngine.impact(.light)
                                     coordinator.editCharter(charter.id)
                                 } label: {
                                     Label(L10n.Charter.List.actionEdit, systemImage: "pencil")

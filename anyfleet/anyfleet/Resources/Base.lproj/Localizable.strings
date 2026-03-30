@@ -1,5 +1,5 @@
-"home.createCharter.title" = "Ready to sail?";
-"home.createCharter.subtitle" = "Start a charter to track your trip, crew, and checklists.";
+"home.createCharter.title" = "Plan your first voyage";
+"home.createCharter.subtitle" = "Create a charter to track dates, vessel, and destination—then open it anytime from Home or Charters.";
 "home.createCharter.action" = "Start a charter";
 
 "charter.create.progress" = "Progress";
@@ -57,8 +57,8 @@
 
 "discover.tab.content" = "Content";
 "discover.tab.charters" = "Charters";
-"discover.emptyState.title" = "Discover Sailing Knowledge";
-"discover.emptyState.message" = "Browse checklists, guides, and flashcards shared by fellow sailors from around the world.";
+"discover.emptyState.title" = "Nothing here yet";
+"discover.emptyState.message" = "Be the first to share. Publish a checklist or guide from your Library.";
 
 "charters" = "Charters";
 "profile" = "Profile";
@@ -81,9 +81,13 @@
 
 "library.filter.accessibilityLabel" = "Library content filter";
 "library.updatedPrefix" = "Updated";
-"library.emptyState.title" = "Your Library Awaits";
-"library.emptyState.message" = "Create checklists, guides, and flashcard decks to organize your sailing knowledge. Every great sailor builds their own library of resources.";
-"library.emptyState.accessibilityLabel" = "Your library is empty. Create checklists, guides, and flashcard decks.";
+"library.emptyState.title" = "Your library is empty";
+"library.emptyState.message" = "Add a checklist or practice guide to build your personal sailing playbook. You can publish to Discover from here when you’re ready to share.";
+"library.emptyState.accessibilityLabel" = "Your library is empty. Add a checklist or practice guide.";
+"library.emptyState.primaryAction" = "Add checklist or guide";
+
+"checklist.execution.empty.title" = "This checklist is empty";
+"checklist.execution.empty.message" = "Add items in the editor, then come back here to run through them.";
 
 "greeting.morning" = "Good morning";
 "greeting.day" = "Good day";
@@ -97,10 +101,10 @@
 "charter.list.actionEdit" = "Edit";
 "charter.list.signInToSyncBanner" = "Sign in to sync your charters";
 
-"charter.list.emptyState.title" = "No Charters Yet";
-"charter.list.emptyState.message" = "Create your first charter to start planning your sailing adventure. Track dates, vessels, and locations all in one place.";
-"charter.list.emptyState.action" = "Create Charter";
-"charter.list.emptyState.accessibilityLabel" = "No charters. Create your first charter to start planning.";
+"charter.list.emptyState.title" = "No charters yet";
+"charter.list.emptyState.message" = "Create a charter to plan dates, vessel, and destination. You’ll see it here and on Home.";
+"charter.list.emptyState.action" = "Create charter";
+"charter.list.emptyState.accessibilityLabel" = "No charters yet. Create a charter to get started.";
 "charter.editor.newTitle" = "Create Charter";
 "charter.editor.editTitle" = "Edit Charter";
 "charter.editor.draftsSavedNote" = "Drafts are saved automatically";
@@ -375,7 +379,7 @@
 "communityManager.sectionTitle" = "Community Manager";
 "communityManager.sectionSubtitle" = "Virtual captains & publishing";
 "communityManager.emptyManaged" = "No managed communities.";
-"communityManager.emptyStateTitle" = "No communities yet";
+"communityManager.emptyStateTitle" = "No communities";
 "communityManager.emptyStateMessage" = "Create one from your profile.";
 "communityManager.virtualCaptainsSection" = "Virtual captains";
 "communityManager.noVirtualCaptainsYet" = "No virtual captains yet.";
@@ -397,8 +401,8 @@
 // Charter discovery map
 "charter.discovery.virtualCaptainBadge" = "Virtual captain";
 "charter.discovery.mapCommunityFallback" = "Community program";
-"charter.discovery.mapEmptyTitle" = "No charters on the map";
-"charter.discovery.mapEmptySubtitle" = "Adjust your date range or zoom out.";
+"charter.discovery.mapEmptyTitle" = "No charters in this area";
+"charter.discovery.mapEmptySubtitle" = "Try expanding your search—adjust dates, radius, or zoom the map.";
 "charter.discovery.mapCalloutSwipeHint" = "Swipe up to open this charter.";
 "charter.discovery.mapFilter.dateRangeChip" = "Date range";
 "charter.discovery.mapFilter.sortChip" = "Sort";
@@ -409,3 +413,9 @@
 "charter.discovery.mapFilter.sheet.dateHintBody" = "Adjust the charter date window on the map — switch to map view and use the Date range chip above the map.";
 "charter.discovery.mapFilter.track.now" = "Now";
 "charter.discovery.mapFilter.track.plusOneYear" = "+1 yr";
+
+// Toasts
+"toast.charterSaved" = "Charter saved";
+"toast.publishedToCommunity" = "Published to community library";
+"toast.addedToLibrary" = "Added to your library";
+"toast.profileUpdated" = "Profile updated";
