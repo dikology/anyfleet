@@ -233,6 +233,28 @@
 "charter.detail.checkInChecklist.empty.title" = "Чек-лист приёмки еще не создан";
 "charter.detail.checkInChecklist.empty.description" = "Создайте чек-лист приёмки в вашей Библиотеке, и он автоматически появится здесь для этого чартера.";
 
+"charter.detail.status.upcoming" = "СКОРО";
+"charter.detail.status.active" = "ИДЁТ";
+"charter.detail.status.completed" = "ЗАВЕРШЁН";
+"charter.detail.stats.done" = "Готово";
+"charter.detail.stats.voyage" = "плавание";
+"charter.detail.stats.dayNumber" = "День %d";
+"charter.detail.stats.ofDays" = "из %d";
+"charter.detail.stats.today" = "Сегодня";
+"charter.detail.stats.departure" = "отправление";
+"charter.detail.stats.daysAway" = "дн. до старта";
+"charter.detail.stats.day" = "день";
+"charter.detail.stats.days" = "дней";
+"charter.detail.stats.destination" = "пункт";
+"charter.detail.section.voyageDetails" = "Детали плавания";
+"charter.detail.row.dates" = "Даты";
+"charter.detail.row.destination" = "Пункт назначения";
+"charter.detail.duration.oneDay" = "1 день";
+"charter.detail.duration.days" = "%d дн.";
+"charter.detail.fab.viewVoyageLog" = "Журнал плавания";
+"charter.detail.fab.openChecklist" = "Открыть чек-лист";
+"charter.detail.fab.editCharter" = "Изменить чартер";
+
 // Charter Editor - new visibility/discovery strings
 "charter.editor.newTitle" = "Новый чартер";
 "charter.editor.editTitle" = "Редактировать чартер";
