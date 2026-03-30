@@ -264,6 +264,28 @@
 "charter.detail.checkInChecklist.empty.title" = "No check-in checklist yet";
 "charter.detail.checkInChecklist.empty.description" = "Create a checklist of type \"Check-In\" in your Library and it will automatically appear here for this charter.";
 
+"charter.detail.status.upcoming" = "UPCOMING";
+"charter.detail.status.active" = "ACTIVE";
+"charter.detail.status.completed" = "COMPLETED";
+"charter.detail.stats.done" = "Done";
+"charter.detail.stats.voyage" = "voyage";
+"charter.detail.stats.dayNumber" = "Day %d";
+"charter.detail.stats.ofDays" = "of %d";
+"charter.detail.stats.today" = "Today";
+"charter.detail.stats.departure" = "departure";
+"charter.detail.stats.daysAway" = "days away";
+"charter.detail.stats.day" = "day";
+"charter.detail.stats.days" = "days";
+"charter.detail.stats.destination" = "destination";
+"charter.detail.section.voyageDetails" = "Voyage Details";
+"charter.detail.row.dates" = "Dates";
+"charter.detail.row.destination" = "Destination";
+"charter.detail.duration.oneDay" = "1 day";
+"charter.detail.duration.days" = "%d days";
+"charter.detail.fab.viewVoyageLog" = "View Voyage Log";
+"charter.detail.fab.openChecklist" = "Open Checklist";
+"charter.detail.fab.editCharter" = "Edit Charter";
+
 // Common
 "common.close" = "Close";
 "common.cancel" = "Cancel";

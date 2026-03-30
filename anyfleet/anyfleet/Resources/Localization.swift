@@ -1678,6 +1678,132 @@ enum L10n {
             comment: "Navigation title for charter detail view"
         )
 
+        /// Strings for the redesigned charter detail screen (hero, stats row, sections, FAB).
+        enum Detail {
+            enum Status {
+                static let upcoming = NSLocalizedString(
+                    "charter.detail.status.upcoming",
+                    tableName: "Localizable",
+                    comment: "Lifecycle pill: charter has not started"
+                )
+                static let active = NSLocalizedString(
+                    "charter.detail.status.active",
+                    tableName: "Localizable",
+                    comment: "Lifecycle pill: charter in progress"
+                )
+                static let completed = NSLocalizedString(
+                    "charter.detail.status.completed",
+                    tableName: "Localizable",
+                    comment: "Lifecycle pill: charter ended"
+                )
+            }
+
+            enum Stats {
+                static let done = NSLocalizedString(
+                    "charter.detail.stats.done",
+                    tableName: "Localizable",
+                    comment: "Stat value when voyage is completed"
+                )
+                static let voyage = NSLocalizedString(
+                    "charter.detail.stats.voyage",
+                    tableName: "Localizable",
+                    comment: "Stat label under Done for completed voyage"
+                )
+                static func dayNumber(_ day: Int) -> String {
+                    String(format: NSLocalizedString(
+                        "charter.detail.stats.dayNumber",
+                        tableName: "Localizable",
+                        comment: "Stat value: Day N of active charter"
+                    ), day)
+                }
+                static func ofDays(_ total: Int) -> String {
+                    String(format: NSLocalizedString(
+                        "charter.detail.stats.ofDays",
+                        tableName: "Localizable",
+                        comment: "Stat label: of N total days"
+                    ), total)
+                }
+                static let today = NSLocalizedString(
+                    "charter.detail.stats.today",
+                    tableName: "Localizable",
+                    comment: "Stat value when departure is today"
+                )
+                static let departure = NSLocalizedString(
+                    "charter.detail.stats.departure",
+                    tableName: "Localizable",
+                    comment: "Stat label when departure is today"
+                )
+                static let daysAway = NSLocalizedString(
+                    "charter.detail.stats.daysAway",
+                    tableName: "Localizable",
+                    comment: "Stat label: countdown until departure"
+                )
+                static let day = NSLocalizedString(
+                    "charter.detail.stats.day",
+                    tableName: "Localizable",
+                    comment: "Duration stat label singular"
+                )
+                static let days = NSLocalizedString(
+                    "charter.detail.stats.days",
+                    tableName: "Localizable",
+                    comment: "Duration stat label plural"
+                )
+                static let destination = NSLocalizedString(
+                    "charter.detail.stats.destination",
+                    tableName: "Localizable",
+                    comment: "Stat label for destination name in stats row"
+                )
+            }
+
+            static let voyageSectionLabel = NSLocalizedString(
+                "charter.detail.section.voyageDetails",
+                tableName: "Localizable",
+                comment: "BubbleCard section title for dates and destination"
+            )
+            static let rowDates = NSLocalizedString(
+                "charter.detail.row.dates",
+                tableName: "Localizable",
+                comment: "Detail row label for charter dates"
+            )
+            static let rowDestination = NSLocalizedString(
+                "charter.detail.row.destination",
+                tableName: "Localizable",
+                comment: "Detail row label for destination"
+            )
+            static func durationBadge(days: Int) -> String {
+                if days == 1 {
+                    return NSLocalizedString(
+                        "charter.detail.duration.oneDay",
+                        tableName: "Localizable",
+                        comment: "Duration badge for exactly one day"
+                    )
+                }
+                return String(format: NSLocalizedString(
+                    "charter.detail.duration.days",
+                    tableName: "Localizable",
+                    comment: "Duration badge for N days"
+                ), days)
+            }
+
+            enum FAB {
+                static let viewVoyageLog = NSLocalizedString(
+                    "charter.detail.fab.viewVoyageLog",
+                    tableName: "Localizable",
+                    comment: "Primary action when charter is completed"
+                )
+                static let openChecklist = NSLocalizedString(
+                    "charter.detail.fab.openChecklist",
+                    tableName: "Localizable",
+                    comment: "Primary action when charter is active"
+                )
+                static let editCharter = NSLocalizedString(
+                    "charter.detail.fab.editCharter",
+                    tableName: "Localizable",
+                    comment: "Primary action when charter is upcoming or no checklist"
+                )
+            }
+        }
+
         // MARK: - Editor
 
         enum Editor {
