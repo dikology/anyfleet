@@ -11,15 +11,18 @@ struct AppView: View {
         case charters
         case profile
     }
-    
+
+    init() {
+        // Hide the native UIKit tab bar globally so the custom FloatingTabBar takes over.
+        UITabBar.appearance().isHidden = true
+    }
+
     var body: some View {
         ZStack(alignment: .top) {
             TabView(selection: Binding<Tab>(
+                // Haptic is handled in FloatingTabBar; TabView binding is silent.
                 get: { coordinator.selectedTab },
-                set: { newTab in
-                    HapticEngine.selection()
-                    coordinator.selectedTab = newTab
-                }
+                set: { coordinator.selectedTab = $0 }
             )) {
             // Home Tab
             NavigationStack(path: Binding(get: { coordinator.homePath }, set: { coordinator.homePath = $0 })) {
@@ -120,6 +123,21 @@ struct AppView: View {
             }
             .tag(Tab.profile)
             .accessibilityIdentifier("tab.profile")
+            }
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                // Floating tab bar sits above the home-indicator safe area.
+                // .safeAreaInset automatically extends content scroll insets so lists
+                // never hide their last row behind the bar.
+                FloatingTabBar(
+                    selectedTab: Binding(
+                        get: { coordinator.selectedTab },
+                        set: { newTab in
+                            HapticEngine.selection()
+                            coordinator.selectedTab = newTab
+                        }
+                    )
+                )
+                .padding(.bottom, 8)
             }
 
             if AppConfiguration.isStaging {
