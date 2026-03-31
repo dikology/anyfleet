@@ -240,7 +240,7 @@ struct HomeView: View {
         ActionCard(
             icon: "sailboat.fill",
             title: L10n.homeCreateCharterTitle,
-            subtitle: L10n.homeCreateCharterSubtitle,
+            subtitle: "",
             buttonTitle: L10n.homeCreateCharterAction,
             onTap: { viewModel.onCreateCharterTapped() },
             onButtonTap: { viewModel.onCreateCharterTapped() }

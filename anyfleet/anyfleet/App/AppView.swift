@@ -124,21 +124,6 @@ struct AppView: View {
             .tag(Tab.profile)
             .accessibilityIdentifier("tab.profile")
             }
-            .safeAreaInset(edge: .bottom, spacing: 0) {
-                // Floating tab bar sits above the home-indicator safe area.
-                // .safeAreaInset automatically extends content scroll insets so lists
-                // never hide their last row behind the bar.
-                FloatingTabBar(
-                    selectedTab: Binding(
-                        get: { coordinator.selectedTab },
-                        set: { newTab in
-                            HapticEngine.selection()
-                            coordinator.selectedTab = newTab
-                        }
-                    )
-                )
-                .padding(.bottom, 8)
-            }
 
             if AppConfiguration.isStaging {
                 Text("STAGING")
@@ -161,6 +146,22 @@ struct AppView: View {
                     .allowsHitTesting(false)
                     .zIndex(1000)
             }
+        }
+        // Placing .safeAreaInset on the root ZStack (rather than on TabView directly)
+        // ensures the extended bottom safe area propagates through all UIKit-backed
+        // containers (UITabBarController, UINavigationController) to every tab's content,
+        // so non-scrollable views like the sign-in screen or error banners stay above the bar.
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            FloatingTabBar(
+                selectedTab: Binding(
+                    get: { coordinator.selectedTab },
+                    set: { newTab in
+                        HapticEngine.selection()
+                        coordinator.selectedTab = newTab
+                    }
+                )
+            )
+            .padding(.bottom, 8)
         }
         .animation(DesignSystem.Motion.spring, value: dependencies.toast?.id)
     }
