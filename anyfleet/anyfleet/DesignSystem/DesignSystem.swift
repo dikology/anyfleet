@@ -10,6 +10,8 @@ enum DesignSystem {
         static let skeleton = SwiftUI.Animation.easeInOut(duration: 1.0).repeatForever(autoreverses: true)
     }
     struct CardStyle: ViewModifier {
+        @Environment(\.colorScheme) private var colorScheme
+
         func body(content: Content) -> some View {
             content
                 .padding(Spacing.lg)
@@ -18,7 +20,10 @@ enum DesignSystem {
                 .clipShape(RoundedRectangle(cornerRadius: Spacing.cardCornerRadius, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: Spacing.cardCornerRadius, style: .continuous)
-                        .stroke(Colors.border, lineWidth: 1)
+                        .stroke(
+                            colorScheme == .dark ? Color.white.opacity(0.06) : Colors.border,
+                            lineWidth: 1
+                        )
                 )
                 .shadow(color: Colors.shadowStrong.opacity(0.08), radius: 6, x: 0, y: 2)
         }
@@ -156,6 +161,8 @@ enum DesignSystem {
     }
     
     struct SectionContainer: ViewModifier {
+        @Environment(\.colorScheme) private var colorScheme
+
         func body(content: Content) -> some View {
             content
                 .padding(Spacing.lg)
@@ -164,7 +171,10 @@ enum DesignSystem {
                 .clipShape(RoundedRectangle(cornerRadius: Spacing.cardCornerRadius, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: Spacing.cardCornerRadius, style: .continuous)
-                        .stroke(Colors.border, lineWidth: 1)
+                        .stroke(
+                            colorScheme == .dark ? Color.white.opacity(0.06) : Colors.border,
+                            lineWidth: 1
+                        )
                 )
         }
     }
@@ -209,10 +219,11 @@ enum DesignSystem {
     
     struct HeroCardStyle: ViewModifier {
         let elevation: Elevation
-        
+        @Environment(\.colorScheme) private var colorScheme
+
         enum Elevation {
             case low, medium, high
-            
+
             var shadowRadius: CGFloat {
                 switch self {
                 case .low: return 6
@@ -220,7 +231,7 @@ enum DesignSystem {
                 case .high: return 20
                 }
             }
-            
+
             var shadowYOffset: CGFloat {
                 switch self {
                 case .low: return 2
@@ -228,7 +239,7 @@ enum DesignSystem {
                 case .high: return 8
                 }
             }
-            
+
             var shadowOpacity: Double {
                 switch self {
                 case .low: return 0.08
@@ -236,19 +247,32 @@ enum DesignSystem {
                 case .high: return 0.16
                 }
             }
+
+            // Extra shadow depth in dark mode so photo cards pop against the dark canvas
+            var darkModeShadowOpacity: Double {
+                switch self {
+                case .low: return 0.22
+                case .medium: return 0.32
+                case .high: return 0.45
+                }
+            }
         }
-        
+
         init(elevation: Elevation = .medium) {
             self.elevation = elevation
         }
-        
+
         func body(content: Content) -> some View {
-            content
+            let effectiveShadowOpacity = colorScheme == .dark
+                ? elevation.darkModeShadowOpacity
+                : elevation.shadowOpacity
+
+            return content
                 .background(
                     RoundedRectangle(cornerRadius: Spacing.cardCornerRadius)
                         .fill(Colors.surface)
                         .shadow(
-                            color: Colors.shadowStrong.opacity(elevation.shadowOpacity),
+                            color: Colors.shadowStrong.opacity(effectiveShadowOpacity),
                             radius: elevation.shadowRadius,
                             x: 0,
                             y: elevation.shadowYOffset
@@ -257,14 +281,23 @@ enum DesignSystem {
                 .overlay(
                     RoundedRectangle(cornerRadius: Spacing.cardCornerRadius)
                         .stroke(
-                            LinearGradient(
-                                colors: [
-                                    Colors.border.opacity(0.6),
-                                    Colors.border.opacity(0.2)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
+                            colorScheme == .dark
+                                ? LinearGradient(
+                                    colors: [
+                                        Color.white.opacity(0.06),
+                                        Color.white.opacity(0.03)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                                : LinearGradient(
+                                    colors: [
+                                        Colors.border.opacity(0.6),
+                                        Colors.border.opacity(0.2)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
                             lineWidth: 1
                         )
                 )
@@ -448,6 +481,48 @@ enum DesignSystem {
                     startPoint: .top,
                     endPoint: .bottom
                 )
+            )
+        }
+    }
+
+    /// Frosted-glass pill for floating contextual data on hero cards.
+    /// Place inside a ZStack to float over image backgrounds.
+    /// Keep to one or two per card to avoid clutter.
+    struct OverlayChip: View {
+        /// `.photo` — white text over ultraThinMaterial, for chips sitting on dark image backgrounds.
+        /// `.surface` — adaptive label color over regularMaterial, for chips sitting on light/dark card surfaces.
+        enum Style { case photo, surface }
+
+        let icon: String?
+        let text: String
+        let style: Style
+
+        init(icon: String? = nil, text: String, style: Style = .photo) {
+            self.icon = icon
+            self.text = text
+            self.style = style
+        }
+
+        var body: some View {
+            HStack(spacing: 4) {
+                if let icon {
+                    Image(systemName: icon)
+                        .font(Typography.nanoMedium)
+                }
+                Text(text)
+                    .font(Typography.microBold)
+            }
+            .foregroundColor(style == .photo ? .white : Colors.textPrimary)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 5)
+            .background(style == .photo ? AnyShapeStyle(.ultraThinMaterial) : AnyShapeStyle(.regularMaterial))
+            .clipShape(Capsule())
+            .overlay(
+                Capsule()
+                    .stroke(
+                        style == .photo ? Color.white.opacity(0.18) : Colors.border,
+                        lineWidth: 0.5
+                    )
             )
         }
     }

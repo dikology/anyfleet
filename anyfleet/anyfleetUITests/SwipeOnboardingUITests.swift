@@ -32,27 +32,23 @@ final class SwipeOnboardingUITests: XCTestCase {
         app.descendants(matching: .any).matching(identifier: "swipeOnboardingTipChip").firstMatch
     }
 
-    private func tapTab(identifier: String, fallbackBoundBy index: Int) {
-        let byId = app.tabBars.firstMatch.buttons.matching(
-            NSPredicate(format: "identifier == %@", identifier)
-        ).firstMatch
-        if byId.waitForExistence(timeout: 3) {
-            byId.tap()
-        } else {
-            app.tabBars.firstMatch.buttons.element(boundBy: index).tap()
-        }
+    /// Custom `FloatingTabBar` exposes tab buttons with the same identifiers as the hidden `TabView` tabs.
+    private func tapFloatingTab(identifier: String) {
+        let tab = app.buttons.matching(identifier: identifier).firstMatch
+        XCTAssertTrue(tab.waitForExistence(timeout: 5), "Floating tab \(identifier) should exist")
+        tab.tap()
     }
 
     private func openChartersTab() {
-        tapTab(identifier: "tab.charters", fallbackBoundBy: 1)
+        tapFloatingTab(identifier: "tab.charters")
     }
 
     private func openLibraryTab() {
-        tapTab(identifier: "tab.library", fallbackBoundBy: 2)
+        tapFloatingTab(identifier: "tab.library")
     }
 
     private func openDiscoverTab() {
-        tapTab(identifier: "tab.discover", fallbackBoundBy: 3)
+        tapFloatingTab(identifier: "tab.discover")
     }
 
     // MARK: - Tests

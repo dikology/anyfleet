@@ -380,7 +380,7 @@ struct ProfileView: View {
 
                 signInSection
                     .padding(.horizontal, DesignSystem.Spacing.screenPadding)
-                    .padding(.bottom, DesignSystem.Spacing.xxl)
+                    .padding(.bottom, FloatingTabBar.safeAreaInset)
             }
         }
     }

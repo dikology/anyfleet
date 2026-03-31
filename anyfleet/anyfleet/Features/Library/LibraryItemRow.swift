@@ -31,89 +31,110 @@ struct LibraryItemRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Hero Section - Focal Point
-            VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
-                // Content Title - Primary Focal Element
-                HStack(alignment: .top, spacing: DesignSystem.Spacing.md) {
-                    // Type Icon
-                    ZStack {
-                        Circle()
-                            .fill(
-                                LinearGradient(
-                                    colors: [
-                                        DesignSystem.Colors.primary.opacity(0.15),
-                                        DesignSystem.Colors.primary.opacity(0.08)
-                                    ],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
+            ZStack(alignment: .topTrailing) {
+                VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
+                    // Content Title - Primary Focal Element
+                    HStack(alignment: .top, spacing: DesignSystem.Spacing.md) {
+                        // Type Icon
+                        ZStack {
+                            Circle()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [
+                                            DesignSystem.Colors.primary.opacity(0.15),
+                                            DesignSystem.Colors.primary.opacity(0.08)
+                                        ],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
                                 )
-                            )
-                            .frame(width: 40, height: 40)
-                        
-                        Image(systemName: contentType.icon)
-                            .font(DesignSystem.Typography.leadSemibold)
-                            .foregroundColor(DesignSystem.Colors.primary)
-                    }
-                    
-                    VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
-                        Text(item.title)
-                            .font(DesignSystem.Typography.titleBold)
-                            .foregroundStyle(
-                                LinearGradient(
-                                    colors: [
-                                        DesignSystem.Colors.textPrimary,
-                                        DesignSystem.Colors.textPrimary.opacity(0.8)
-                                    ],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            )
-                            .lineLimit(2)
-                            .fixedSize(horizontal: false, vertical: true)
-                        
-                        // Type Badge + Fork Attribution
-                        HStack(spacing: DesignSystem.Spacing.xs) {
-                            Text(contentType.displayName)
-                                .font(DesignSystem.Typography.footnoteMedium)
-                                .foregroundColor(DesignSystem.Colors.textSecondary)
+                                .frame(width: 40, height: 40)
 
-                            // Fork attribution
-                            if item.forkedFromID != nil {
-                                Text("•")
+                            Image(systemName: contentType.icon)
+                                .font(DesignSystem.Typography.leadSemibold)
+                                .foregroundColor(DesignSystem.Colors.primary)
+                        }
+
+                        VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
+                            Text(item.title)
+                                .font(DesignSystem.Typography.titleBold)
+                                .foregroundStyle(
+                                    LinearGradient(
+                                        colors: [
+                                            DesignSystem.Colors.textPrimary,
+                                            DesignSystem.Colors.textPrimary.opacity(0.8)
+                                        ],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+                                .lineLimit(2)
+                                .fixedSize(horizontal: false, vertical: true)
+                                // Leave trailing room so chips never clip the title
+                                .padding(.trailing, 80)
+
+                            // Type Badge + Fork Attribution
+                            HStack(spacing: DesignSystem.Spacing.xs) {
+                                Text(contentType.displayName)
                                     .font(DesignSystem.Typography.footnoteMedium)
                                     .foregroundColor(DesignSystem.Colors.textSecondary)
 
-                                Image(systemName: "arrow.triangle.branch")
-                                    .font(DesignSystem.Typography.nanoMedium)
-                                    .foregroundColor(DesignSystem.Colors.primary)
+                                if item.forkedFromID != nil {
+                                    Text("•")
+                                        .font(DesignSystem.Typography.footnoteMedium)
+                                        .foregroundColor(DesignSystem.Colors.textSecondary)
 
-                                Text("Forked")
-                                    .font(DesignSystem.Typography.footnoteMedium)
-                                    .foregroundColor(DesignSystem.Colors.primary)
+                                    Image(systemName: "arrow.triangle.branch")
+                                        .font(DesignSystem.Typography.nanoMedium)
+                                        .foregroundColor(DesignSystem.Colors.primary)
+
+                                    Text("Forked")
+                                        .font(DesignSystem.Typography.footnoteMedium)
+                                        .foregroundColor(DesignSystem.Colors.primary)
+                                }
                             }
+                            .padding(.horizontal, DesignSystem.Spacing.sm)
+                            .padding(.vertical, DesignSystem.Spacing.xs)
+                            .background(
+                                Capsule()
+                                    .fill(DesignSystem.Colors.primary.opacity(0.1))
+                            )
                         }
-                        .padding(.horizontal, DesignSystem.Spacing.sm)
-                        .padding(.vertical, DesignSystem.Spacing.xs)
-                        .background(
-                            Capsule()
-                                .fill(DesignSystem.Colors.primary.opacity(0.1))
+
+                        Spacer()
+                    }
+
+                    // Description
+                    if let description = item.description, !description.isEmpty {
+                        Text(description)
+                            .font(DesignSystem.Typography.caption)
+                            .foregroundColor(DesignSystem.Colors.textSecondary)
+                            .lineLimit(2)
+                            .padding(.leading, 56) // Align with title
+                    }
+                }
+                .padding(.horizontal, DesignSystem.Spacing.lg)
+                .padding(.top, DesignSystem.Spacing.lg)
+                .padding(.bottom, DesignSystem.Spacing.md)
+
+                // Overlay chips — content type always, fork count only when published
+                VStack(alignment: .trailing, spacing: DesignSystem.Spacing.xs) {
+                    DesignSystem.OverlayChip(
+                        icon: contentType.icon,
+                        text: contentType.displayName,
+                        style: .surface
+                    )
+                    if item.visibility == .public, item.forkCount > 0 {
+                        DesignSystem.OverlayChip(
+                            icon: "arrow.triangle.branch",
+                            text: "\(item.forkCount)",
+                            style: .surface
                         )
                     }
-                    
-                    Spacer()
                 }
-                
-                // Description
-                if let description = item.description, !description.isEmpty {
-                    Text(description)
-                        .font(DesignSystem.Typography.caption)
-                        .foregroundColor(DesignSystem.Colors.textSecondary)
-                        .lineLimit(2)
-                        .padding(.leading, 56) // Align with title
-                }
+                .padding(.top, DesignSystem.Spacing.md)
+                .padding(.trailing, DesignSystem.Spacing.lg)
             }
-            .padding(.horizontal, DesignSystem.Spacing.lg)
-            .padding(.top, DesignSystem.Spacing.lg)
-            .padding(.bottom, DesignSystem.Spacing.md)
             .focalHighlight()
             
             Divider()

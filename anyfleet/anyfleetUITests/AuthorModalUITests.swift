@@ -25,6 +25,27 @@ final class AuthorModalUITests: XCTestCase {
         XCTAssertTrue(app.wait(for: .runningForeground, timeout: 10))
     }
 
+    private func tapDiscoverTab() {
+        let discover = app.buttons.matching(identifier: "tab.discover").firstMatch
+        XCTAssertTrue(discover.waitForExistence(timeout: 5), "Discover tab (floating bar) should exist")
+        discover.tap()
+    }
+
+    /// `DiscoverContentRow` labels current authors as `"Author <username>"`.
+    /// SwiftUI `List` is not always `XCUIElementTypeTable` (often a collection view on newer iOS),
+    /// so we wait for these buttons instead of `tables` / `collectionViews`.
+    private var authorAvatarPredicate: NSPredicate {
+        NSPredicate(format: "label BEGINSWITH %@", "Author ")
+    }
+
+    private func waitForDiscoverAuthorRows(timeout: TimeInterval = 15) {
+        let author = app.buttons.matching(authorAvatarPredicate).firstMatch
+        XCTAssertTrue(
+            author.waitForExistence(timeout: timeout),
+            "Discover should load rows with author avatars"
+        )
+    }
+
     override func tearDownWithError() throws {
         // Clean up any modal state
         let modalXButton = app.buttons.matching(NSPredicate(format: "identifier == 'modal_xmark_button'")).firstMatch
@@ -35,17 +56,10 @@ final class AuthorModalUITests: XCTestCase {
 
     @MainActor
     func testAuthorModalOpensWithUsername() throws {
-        // Navigate to Discover tab (third tab: home=0, library=1, discover=2)
-        let tabBar = app.tabBars.firstMatch
-        XCTAssertTrue(tabBar.waitForExistence(timeout: 5), "Tab bar should exist")
-        tabBar.buttons.element(boundBy: 3).tap()
+        tapDiscoverTab()
+        waitForDiscoverAuthorRows()
 
-        // Wait for discover content to load
-        let discoverList = app.collectionViews.firstMatch
-        XCTAssertTrue(discoverList.waitForExistence(timeout: 10), "Discover content should load")
-
-        // Look for author avatars using accessibility labels
-        let authorAvatar = app.buttons.matching(NSPredicate(format: "label CONTAINS 'Author'")).firstMatch
+        let authorAvatar = app.buttons.matching(authorAvatarPredicate).firstMatch
 
         if authorAvatar.exists {
             // Tap on the first available author avatar
@@ -89,18 +103,10 @@ final class AuthorModalUITests: XCTestCase {
 
     @MainActor
     func testAuthorModalContentPersistence() throws {
-        // Navigate to Discover tab (third tab: home=0, library=1, discover=2)
-        let tabBar = app.tabBars.firstMatch
-        XCTAssertTrue(tabBar.waitForExistence(timeout: 5), "Tab bar should exist")
-        tabBar.buttons.element(boundBy: 3).tap()
+        tapDiscoverTab()
+        waitForDiscoverAuthorRows()
 
-        // Test that modal content persists across multiple opens
-        // This specifically tests for the reported bug where modal opens empty first time
-        let discoverList = app.collectionViews.firstMatch
-        XCTAssertTrue(discoverList.waitForExistence(timeout: 10))
-
-        // Find author avatar
-        let authorAvatar = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Author '")).firstMatch
+        let authorAvatar = app.buttons.matching(authorAvatarPredicate).firstMatch
 
         guard authorAvatar.exists else {
             XCTFail("No author avatars available for testing")
@@ -146,19 +152,10 @@ final class AuthorModalUITests: XCTestCase {
 
     @MainActor
     func testAuthorModalWithDifferentAuthors() throws {
-        // Navigate to Discover tab (third tab: home=0, library=1, discover=2)
-        let tabBar = app.tabBars.firstMatch
-        XCTAssertTrue(tabBar.waitForExistence(timeout: 5), "Tab bar should exist")
-        tabBar.buttons.element(boundBy: 3).tap()
+        tapDiscoverTab()
+        waitForDiscoverAuthorRows()
 
-        // Test that different authors show different modals
-        // This helps catch issues where modal state doesn't update properly
-
-        let discoverList = app.collectionViews.firstMatch
-        XCTAssertTrue(discoverList.waitForExistence(timeout: 10))
-
-        // Find all author avatars
-        let authorAvatars = app.buttons.matching(NSPredicate(format: "label CONTAINS 'Author'"))
+        let authorAvatars = app.buttons.matching(authorAvatarPredicate)
 
         if authorAvatars.count >= 2 {
             // Test first author (SailorMaria)
