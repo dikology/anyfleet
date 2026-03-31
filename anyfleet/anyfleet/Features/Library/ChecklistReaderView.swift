@@ -51,7 +51,7 @@ struct ChecklistReaderView: View {
                         onRetry: { Task { await viewModel.loadChecklist() } }
                     )
                     .padding(.horizontal)
-                    .padding(.bottom, 20)
+                    .padding(.bottom, FloatingTabBar.safeAreaInset)
                 }
             }
         }

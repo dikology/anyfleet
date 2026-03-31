@@ -34,7 +34,7 @@ struct PracticeGuideEditorView: View {
                         onRetry: nil
                     )
                     .padding(.horizontal)
-                    .padding(.bottom, 20)
+                    .padding(.bottom, FloatingTabBar.safeAreaInset)
                 }
                 .transition(.move(edge: .bottom).combined(with: .opacity))
             }

@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Full-screen overlay that pins an `ErrorBanner` above the bottom safe area.
+/// Full-screen overlay that pins an `ErrorBanner` above the floating tab bar.
 struct ErrorBannerOverlay: View {
     let error: AppError
     let onDismiss: () -> Void
@@ -15,7 +15,7 @@ struct ErrorBannerOverlay: View {
                 onRetry: onRetry
             )
             .padding(.horizontal)
-            .padding(.bottom, DesignSystem.Spacing.xl)
+            .padding(.bottom, FloatingTabBar.safeAreaInset)
         }
         .transition(.move(edge: .bottom).combined(with: .opacity))
     }
