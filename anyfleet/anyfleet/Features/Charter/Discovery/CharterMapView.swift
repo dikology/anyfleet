@@ -243,19 +243,6 @@ private func buildClusters(
     return clusters
 }
 
-// MARK: - Pin needle (map anchor)
-
-private struct MapPinNeedle: Shape {
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        path.move(to: CGPoint(x: rect.midX, y: rect.maxY))
-        path.addLine(to: CGPoint(x: rect.minX, y: rect.minY))
-        path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
-        path.closeSubpath()
-        return path
-    }
-}
-
 // MARK: - User avatar pin (discovery map)
 
 struct UserAvatarPin: View {
@@ -263,57 +250,90 @@ struct UserAvatarPin: View {
     let isSelected: Bool
     let onTap: () -> Void
 
-    private var outerRing: CGFloat { isSelected ? 60 : 48 }
-    private var avatarSize: CGFloat { isSelected ? 52 : 40 }
+    /// Fixed layout size; selection uses `scaleEffect` (44 → 52 pt) to avoid layout thrashing.
+    private let outerSize: CGFloat = 44
+    private let avatarSize: CGFloat = 34
+    private let communityBadgeSize: CGFloat = 28
     private var hasCommunity: Bool { charter.communityBadgeURL != nil }
+
+    private var pinBackgroundColor: Color {
+        hasCommunity
+            ? DesignSystem.Colors.communityAccent.opacity(0.2)
+            : DesignSystem.Colors.primary.opacity(0.15)
+    }
+
+    private var selectionScale: CGFloat { isSelected ? 52.0 / 44.0 : 1.0 }
 
     var body: some View {
         Button(action: onTap) {
-            VStack(spacing: 0) {
-                ZStack(alignment: .bottomTrailing) {
-                    if hasCommunity {
-                        Circle()
-                            .stroke(DesignSystem.Colors.communityAccent, lineWidth: 3)
-                            .frame(width: outerRing + 6, height: outerRing + 6)
-                    }
-
+            ZStack(alignment: .bottomTrailing) {
+                ZStack {
                     Circle()
-                        .fill(charter.urgencyLevel.mapPinColor)
-                        .frame(width: outerRing, height: outerRing)
+                        .fill(pinBackgroundColor)
+                        .frame(width: outerSize, height: outerSize)
+                        .overlay {
+                            if hasCommunity {
+                                Circle()
+                                    .stroke(DesignSystem.Colors.communityAccent, lineWidth: 2.5)
+                            }
+                        }
+                        .overlay(alignment: .topTrailing) {
+                            urgencyRingDot
+                                .offset(x: 2, y: -2)
+                        }
 
                     avatarContent
                         .frame(width: avatarSize, height: avatarSize)
                         .clipShape(Circle())
-
-                    if let badgeURL = charter.communityBadgeURL {
-                        CachedAsyncImage(url: badgeURL) { image in
-                            image.resizable().scaledToFill()
-                        } placeholder: {
-                            ZStack {
-                                Circle()
-                                    .fill(DesignSystem.Colors.communityAccent.opacity(0.85))
-                                Image(systemName: "sailboat.fill")
-                                    .font(DesignSystem.Typography.caption)
-                                    .foregroundStyle(.white)
-                            }
-                        }
-                        .frame(width: 22, height: 22)
-                        .clipShape(Circle())
-                        .overlay(Circle().stroke(Color.white, lineWidth: 2))
-                        .offset(x: 5, y: 5)
-                    }
                 }
+                .frame(width: outerSize, height: outerSize)
 
-                MapPinNeedle()
-                    .fill(charter.urgencyLevel.mapPinColor)
-                    .frame(width: 6, height: 8)
+                if let badgeURL = charter.communityBadgeURL {
+                    communityBadge(url: badgeURL)
+                        .offset(x: 6, y: 6)
+                }
             }
-            .shadow(color: .black.opacity(0.18), radius: 4, x: 0, y: 2)
+            .frame(width: outerSize, height: outerSize)
+            .shadow(
+                color: isSelected ? DesignSystem.Colors.primary.opacity(0.35) : .black.opacity(0.22),
+                radius: isSelected ? 10 : 5,
+                x: 0,
+                y: isSelected ? 3 : 2
+            )
+            .scaleEffect(selectionScale)
             .animation(DesignSystem.Motion.spring, value: isSelected)
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("Charter: \(charter.name)")
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(accessibilityLabelText)
         .accessibilityHint("Double tap to select")
+    }
+
+    /// Urgency encoded as a small dot on the outer ring (top-trailing), distinct from the community badge.
+    private var urgencyRingDot: some View {
+        Circle()
+            .fill(charter.urgencyLevel.mapPinColor)
+            .frame(width: 9, height: 9)
+            .overlay(Circle().stroke(Color.white, lineWidth: 2))
+            .accessibilityHidden(true)
+    }
+
+    @ViewBuilder
+    private func communityBadge(url: URL) -> some View {
+        CachedAsyncImage(url: url) { image in
+            image.resizable().scaledToFill()
+        } placeholder: {
+            ZStack {
+                Circle()
+                    .fill(DesignSystem.Colors.communityAccent.opacity(0.85))
+                Image(systemName: "sailboat.fill")
+                    .font(DesignSystem.Typography.caption)
+                    .foregroundStyle(.white)
+            }
+        }
+        .frame(width: communityBadgeSize, height: communityBadgeSize)
+        .clipShape(Circle())
+        .overlay(Circle().stroke(Color.white, lineWidth: 2))
     }
 
     @ViewBuilder
@@ -335,6 +355,10 @@ struct UserAvatarPin: View {
         let name = charter.captain.username?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         guard let first = name.first else { return "?" }
         return String(first).uppercased()
+    }
+
+    private var accessibilityLabelText: String {
+        "Charter: \(charter.name), \(charter.urgencyLevel.mapPinAccessibilityLabel)"
     }
 }
 
@@ -871,6 +895,17 @@ private extension CharterUrgencyLevel {
         case .imminent: return .red
         case .soon: return .orange
         case .future: return DesignSystem.Colors.primary
+        }
+    }
+
+    /// Localized urgency for map pin accessibility (matches discovery row badges).
+    var mapPinAccessibilityLabel: String {
+        switch self {
+        case .past: return L10n.Charter.Discovery.Badge.past
+        case .ongoing: return L10n.Charter.Discovery.Badge.ongoing
+        case .imminent: return L10n.Charter.Discovery.Badge.imminent
+        case .soon: return L10n.Charter.Discovery.Badge.soon
+        case .future: return L10n.Charter.Discovery.Badge.upcoming
         }
     }
 }
