@@ -279,3 +279,20 @@ struct FloatingTabBar: View {
     }
     return Wrapper().preferredColorScheme(.dark)
 }
+
+// MARK: - Per-tab safe area helper
+
+extension View {
+    /// Adds an invisible bottom safe-area inset matching the floating tab bar height.
+    /// Apply to each tab's `NavigationStack` so all content — scrollable or not —
+    /// stays above the bar. This works reliably because `.safeAreaInset` is processed
+    /// within SwiftUI's layout system before UIKit containers get involved.
+    func floatingTabBarPadding() -> some View {
+        safeAreaInset(edge: .bottom, spacing: 0) {
+            Color.clear
+                .frame(height: FloatingTabBar.safeAreaInset)
+                .allowsHitTesting(false)
+                .accessibilityHidden(true)
+        }
+    }
+}

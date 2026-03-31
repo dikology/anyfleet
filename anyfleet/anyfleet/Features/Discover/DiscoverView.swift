@@ -68,7 +68,7 @@ struct DiscoverView: View {
                         onRetry: { Task { await viewModel.loadContent() } }
                     )
                     .padding(.horizontal)
-                    .padding(.bottom, DesignSystem.Spacing.xl)
+                    .padding(.bottom, FloatingTabBar.safeAreaInset)
                 }
                 .transition(.move(edge: .bottom).combined(with: .opacity))
             }
