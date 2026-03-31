@@ -15,8 +15,6 @@ private struct TabBarShape: Shape {
     static let barTopY: CGFloat = 26
     /// Depth of the notch below the bar top (= circle radius, so the curve wraps the circle bottom).
     static let notchDepth: CGFloat = 24
-    /// Corner radius used for all four bar corners.
-    static let cornerRadius: CGFloat = 14
 
     var activePosition: CGFloat   // 0…(tabCount-1)
     let tabCount: Int
@@ -31,7 +29,6 @@ private struct TabBarShape: Shape {
         let w   = rect.width
         let bt  = Self.barTopY
         let dep = Self.notchDepth
-        let cr  = Self.cornerRadius
         let h   = Self.totalHeight
 
         // Notch half-width scales with bar width, derived from the SVG reference proportions.
@@ -87,25 +84,13 @@ private struct TabBarShape: Shape {
         // ── Top-right — flat, no corner arc ──────────────────────────────
         p.addLine(to: CGPoint(x: w, y: bt))
 
-        // ── Right edge down ──────────────────────────────────────────────
-        p.addLine(to: CGPoint(x: w, y: h - cr))
-
-        // ── Bottom-right corner ──────────────────────────────────────────
-        p.addArc(
-            center: CGPoint(x: w - cr, y: h - cr), radius: cr,
-            startAngle: .degrees(0), endAngle: .degrees(90), clockwise: true
-        )
+        // ── Right edge straight down — no bottom corner arc ──────────────
+        p.addLine(to: CGPoint(x: w, y: h))
 
         // ── Bottom edge ──────────────────────────────────────────────────
-        p.addLine(to: CGPoint(x: cr, y: h))
+        p.addLine(to: CGPoint(x: 0, y: h))
 
-        // ── Bottom-left corner ───────────────────────────────────────────
-        p.addArc(
-            center: CGPoint(x: cr, y: h - cr), radius: cr,
-            startAngle: .degrees(90), endAngle: .degrees(180), clockwise: true
-        )
-
-        // ── Left edge up to start ────────────────────────────────────────
+        // ── Left edge up to start ─────────────────────────────────────────
         p.addLine(to: CGPoint(x: 0, y: bt))
         p.closeSubpath()
         return p
@@ -115,6 +100,10 @@ private struct TabBarShape: Shape {
 // MARK: - View
 
 struct FloatingTabBar: View {
+
+    /// Total bottom safe-area inset the floating bar occupies above the home indicator.
+    /// Used by AppView to set UITabBarController.additionalSafeAreaInsets.bottom.
+    static let safeAreaInset: CGFloat = TabBarShape.totalHeight + 8  // 84 + 8 = 92
 
     @Binding var selectedTab: AppView.Tab
     @Environment(\.colorScheme) private var colorScheme

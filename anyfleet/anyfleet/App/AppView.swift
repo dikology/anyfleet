@@ -1,5 +1,55 @@
 import SwiftUI
 
+// MARK: - UIKit safe-area bridge
+
+/// Sets UITabBarController.additionalSafeAreaInsets.bottom so that all tab
+/// content — including non-scrollable views — correctly avoids the floating bar.
+///
+/// SwiftUI's .safeAreaInset does not reliably propagate through UITabBarController
+/// because the controller resets additionalSafeAreaInsets to 0 whenever its own
+/// tab bar is hidden. This representable walks the UIResponder chain to patch the
+/// value directly, which UIKit then propagates to every child NavigationController
+/// and UIHostingController.
+private struct TabBarSafeAreaApplier: UIViewRepresentable {
+    let inset: CGFloat
+
+    func makeUIView(context: Context) -> InsetView { InsetView(inset: inset) }
+    func updateUIView(_ view: InsetView, context: Context) { view.apply(inset: inset) }
+
+    final class InsetView: UIView {
+        private var targetInset: CGFloat
+
+        init(inset: CGFloat) {
+            self.targetInset = inset
+            super.init(frame: .zero)
+            isUserInteractionEnabled = false
+            backgroundColor = .clear
+        }
+        required init?(coder: NSCoder) { fatalError() }
+
+        override func didMoveToWindow() {
+            super.didMoveToWindow()
+            apply(inset: targetInset)
+        }
+
+        func apply(inset: CGFloat) {
+            targetInset = inset
+            var responder: UIResponder? = next
+            while let r = responder {
+                if let tbc = r as? UITabBarController {
+                    if tbc.additionalSafeAreaInsets.bottom != inset {
+                        tbc.additionalSafeAreaInsets.bottom = inset
+                    }
+                    return
+                }
+                responder = r.next
+            }
+        }
+    }
+}
+
+// MARK: - App root
+
 struct AppView: View {
     @Environment(\.appDependencies) private var dependencies
     @Environment(\.appCoordinator) private var coordinator
@@ -124,6 +174,24 @@ struct AppView: View {
             .tag(Tab.profile)
             .accessibilityIdentifier("tab.profile")
             }
+            .background(
+                // Invisible view that injects the bar height into UITabBarController
+                // so UIKit propagates the correct bottom safe area to all tab content.
+                TabBarSafeAreaApplier(inset: FloatingTabBar.safeAreaInset)
+            )
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                // Visual placement of the FloatingTabBar above the home indicator.
+                FloatingTabBar(
+                    selectedTab: Binding(
+                        get: { coordinator.selectedTab },
+                        set: { newTab in
+                            HapticEngine.selection()
+                            coordinator.selectedTab = newTab
+                        }
+                    )
+                )
+                .padding(.bottom, 8)
+            }
 
             if AppConfiguration.isStaging {
                 Text("STAGING")
@@ -146,22 +214,6 @@ struct AppView: View {
                     .allowsHitTesting(false)
                     .zIndex(1000)
             }
-        }
-        // Placing .safeAreaInset on the root ZStack (rather than on TabView directly)
-        // ensures the extended bottom safe area propagates through all UIKit-backed
-        // containers (UITabBarController, UINavigationController) to every tab's content,
-        // so non-scrollable views like the sign-in screen or error banners stay above the bar.
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            FloatingTabBar(
-                selectedTab: Binding(
-                    get: { coordinator.selectedTab },
-                    set: { newTab in
-                        HapticEngine.selection()
-                        coordinator.selectedTab = newTab
-                    }
-                )
-            )
-            .padding(.bottom, 8)
         }
         .animation(DesignSystem.Motion.spring, value: dependencies.toast?.id)
     }
