@@ -127,6 +127,17 @@ struct FloatingTabBar: View {
         TabInfo(id: .profile,  icon: "person.fill",   label: L10n.ProfileTab),
     ]
 
+    /// Matches `AppView` tab `.accessibilityIdentifier` values for UI tests.
+    private static func accessibilityIdentifier(for tab: AppView.Tab) -> String {
+        switch tab {
+        case .home:     return "tab.home"
+        case .charters: return "tab.charters"
+        case .library:  return "tab.library"
+        case .discover: return "tab.discover"
+        case .profile:  return "tab.profile"
+        }
+    }
+
     // MARK: Colors
 
     /// Bar + active bubble color — both use the same fill so they read as one shape.
@@ -168,6 +179,7 @@ struct FloatingTabBar: View {
                 }
                 .buttonStyle(.plain)
                 .frame(maxWidth: .infinity)
+                .accessibilityIdentifier(Self.accessibilityIdentifier(for: item.id))
                 .accessibilityLabel(item.label)
                 .accessibilityAddTraits(isActive ? [.isSelected] : [])
             }
