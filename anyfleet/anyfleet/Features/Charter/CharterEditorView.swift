@@ -35,7 +35,7 @@ struct CharterEditorView: View {
                         destinationCard
                     }
                     .padding(.horizontal, DesignSystem.Spacing.screenPadding)
-                    .padding(.bottom, 140)
+                    .padding(.bottom, FloatingTabBar.safeAreaInset + 80)
                 }
             }
 
@@ -309,7 +309,7 @@ private extension CharterEditorView {
         }
         .padding(.horizontal, DesignSystem.Spacing.screenPadding)
         .padding(.top, DesignSystem.Spacing.xl)
-        .padding(.bottom, DesignSystem.Spacing.xxl)
+        .padding(.bottom, FloatingTabBar.safeAreaInset)
         .background(
             LinearGradient(
                 colors: [
