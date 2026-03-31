@@ -91,7 +91,7 @@ struct CharterDetailView: View {
                     onRetry: { Task { await viewModel.load() } }
                 )
                 .padding(.horizontal)
-                .padding(.bottom, 20)
+                .padding(.bottom, FloatingTabBar.safeAreaInset)
                 .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }

@@ -1,55 +1,134 @@
 import SwiftUI
 import MapKit
 
+// MARK: - Charter Cluster Model
+
+struct CharterCluster: Identifiable {
+    let id: UUID
+    let coordinate: CLLocationCoordinate2D
+    let charters: [DiscoverableCharter]
+    var isSingleton: Bool { charters.count == 1 }
+}
+
 // MARK: - Charter Map View
 
 struct CharterMapView: View {
     let charters: [DiscoverableCharter]
     let onSelectCharter: (DiscoverableCharter) -> Void
 
+    @Environment(\.colorScheme) private var colorScheme
+
     @State private var position: MapCameraPosition = .automatic
-    @State private var selectedCharterID: UUID?
+    @State private var selectedClusterID: UUID?
+    @State private var clusters: [CharterCluster] = []
+    @State private var mapSpan: MKCoordinateSpan = MKCoordinateSpan(latitudeDelta: 10, longitudeDelta: 10)
 
     private var chartersWithLocation: [DiscoverableCharter] {
         charters.filter { $0.hasLocation }
     }
 
+    private var selectedCluster: CharterCluster? {
+        guard let id = selectedClusterID else { return nil }
+        return clusters.first(where: { $0.id == id })
+    }
+
+    /// Standard map tiles follow the app `colorScheme`. `emphasis: .muted` in dark mode
+    /// further subdues POI/road emphasis so teal/gold pins read clearly. (MapKit’s
+    /// `MapStyle.standard` has no separate `colorScheme:` parameter in SwiftUI.)
+    private var discoveryMapStyle: MapStyle {
+        let excludedPOI = PointOfInterestCategories.excluding([.restaurant, .cafe, .hotel])
+        switch colorScheme {
+        case .dark:
+            return .standard(
+                emphasis: .muted,
+                pointsOfInterest: excludedPOI,
+                showsTraffic: false
+            )
+        case .light:
+            return .standard(
+                pointsOfInterest: excludedPOI,
+                showsTraffic: false
+            )
+        @unknown default:
+            return .standard(
+                pointsOfInterest: excludedPOI,
+                showsTraffic: false
+            )
+        }
+    }
+
     var body: some View {
         ZStack {
-            Map(position: $position, selection: $selectedCharterID) {
-                ForEach(chartersWithLocation) { charter in
-                    if let coordinate = charter.coordinate {
-                        Annotation(charter.name, coordinate: coordinate, anchor: .bottom) {
+            Map(position: $position, selection: $selectedClusterID) {
+                ForEach(clusters) { cluster in
+                    Annotation("", coordinate: cluster.coordinate, anchor: .bottom) {
+                        if cluster.isSingleton {
                             UserAvatarPin(
-                                charter: charter,
-                                isSelected: selectedCharterID == charter.id
+                                charter: cluster.charters[0],
+                                isSelected: selectedClusterID == cluster.id
                             ) {
+                                print("[MapCluster] tapped singleton cluster=\(cluster.id.uuidString.prefix(8))")
                                 withAnimation(DesignSystem.Motion.spring) {
-                                    selectedCharterID = charter.id
+                                    selectedClusterID = cluster.id
+                                }
+                            }
+                        } else {
+                            ClusterPin(
+                                cluster: cluster,
+                                isSelected: selectedClusterID == cluster.id
+                            ) {
+                                print("[MapCluster] tapped multi-cluster=\(cluster.id.uuidString.prefix(8)) count=\(cluster.charters.count)")
+                                withAnimation(DesignSystem.Motion.spring) {
+                                    selectedClusterID = cluster.id
                                 }
                             }
                         }
-                        .tag(charter.id)
                     }
+                    .tag(cluster.id)
                 }
             }
-            .mapStyle(
-                .standard(
-                    pointsOfInterest: .excluding([.restaurant, .cafe, .hotel]),
-                    showsTraffic: false
-                )
-            )
+            .mapStyle(discoveryMapStyle)
             .ignoresSafeArea(edges: .top)
-            .onAppear { fitMapToCharters() }
-            .onChange(of: charters.count) { _, _ in fitMapToCharters() }
+            .onMapCameraChange(frequency: .onEnd) { context in
+                let newSpan = context.region.span
+                guard newSpan.latitudeDelta > 0 else { return }
+                // Mirror actual camera into the position binding so re-renders never snap back.
+                position = .region(context.region)
+                let relativeChange = abs(newSpan.latitudeDelta - mapSpan.latitudeDelta) / mapSpan.latitudeDelta
+                print("[MapCluster] cameraChange span=\(String(format: "%.4f", newSpan.latitudeDelta))° relChange=\(String(format: "%.2f", relativeChange))")
+                if relativeChange > 0.1 {
+                    mapSpan = newSpan
+                    rebuildClusters(reason: "cameraChange")
+                }
+            }
+            .onAppear {
+                fitMapToCharters()
+                rebuildClusters(reason: "onAppear")
+            }
+            .onChange(of: charters.count) { _, _ in
+                fitMapToCharters()
+                rebuildClusters(reason: "chartersCountChanged(\(charters.count))")
+            }
+            .onChange(of: selectedClusterID) { old, new in
+                let oldStr = old.map { String($0.uuidString.prefix(8)) } ?? "nil"
+                let newStr = new.map { String($0.uuidString.prefix(8)) } ?? "nil"
+                print("[MapCluster] selection \(oldStr) → \(newStr)")
+            }
             .safeAreaInset(edge: .bottom, spacing: 0) {
-                if let id = selectedCharterID,
-                   let charter = charters.first(where: { $0.id == id }) {
-                    CharterMapCallout(charter: charter) {
-                        onSelectCharter(charter)
-                    } onDismiss: {
-                        withAnimation(DesignSystem.Motion.spring) {
-                            selectedCharterID = nil
+                if let cluster = selectedCluster {
+                    Group {
+                        if cluster.isSingleton {
+                            CharterMapCallout(charter: cluster.charters[0]) {
+                                onSelectCharter(cluster.charters[0])
+                            } onDismiss: {
+                                withAnimation(DesignSystem.Motion.spring) { selectedClusterID = nil }
+                            }
+                        } else {
+                            CharterClusterSheet(cluster: cluster) { charter in
+                                onSelectCharter(charter)
+                            } onDismiss: {
+                                withAnimation(DesignSystem.Motion.spring) { selectedClusterID = nil }
+                            }
                         }
                     }
                     .padding(.horizontal, DesignSystem.Spacing.screenPadding)
@@ -64,6 +143,30 @@ struct CharterMapView: View {
                 mapEmptyOverlay
             }
         }
+    }
+
+    private func rebuildClusters(reason: String = "") {
+        let raw = buildClusters(charters: chartersWithLocation, span: mapSpan)
+
+        // Stabilise IDs: reuse an existing cluster's UUID when its charter membership
+        // is identical to a new cluster. This prevents Map(selection:) from clearing
+        // the selection whenever cluster objects are recreated with fresh UUIDs.
+        let stabilised: [CharterCluster] = raw.map { newCluster in
+            let newIDs = Set(newCluster.charters.map { $0.id })
+            if let match = clusters.first(where: { Set($0.charters.map { $0.id }) == newIDs }) {
+                return CharterCluster(id: match.id, coordinate: newCluster.coordinate, charters: newCluster.charters)
+            }
+            return newCluster
+        }
+
+        let selectionSurvives = selectedClusterID.map { id in stabilised.contains(where: { $0.id == id }) } ?? true
+        print("[MapCluster] rebuildClusters(\(reason)) raw=\(raw.count) stabilised=\(stabilised.count) selectionSurvives=\(selectionSurvives)")
+
+        if !selectionSurvives {
+            print("[MapCluster] ⚠️ selection lost — cluster split or merged after rebuild")
+            withAnimation(DesignSystem.Motion.spring) { selectedClusterID = nil }
+        }
+        clusters = stabilised
     }
 
     /// Fades map content under the navigation header so tiles and POIs read less busy.
@@ -125,17 +228,41 @@ struct CharterMapView: View {
     }
 }
 
-// MARK: - Pin needle (map anchor)
+// MARK: - Client-side clustering
 
-private struct MapPinNeedle: Shape {
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        path.move(to: CGPoint(x: rect.midX, y: rect.maxY))
-        path.addLine(to: CGPoint(x: rect.minX, y: rect.minY))
-        path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
-        path.closeSubpath()
-        return path
+/// Groups charters whose lat/lon are within a dynamic threshold proportional to the
+/// current map span. Clusters split naturally when the user zooms in.
+private func buildClusters(
+    charters: [DiscoverableCharter],
+    span: MKCoordinateSpan
+) -> [CharterCluster] {
+    // Floor at 0.001° (~110 m) so fully-zoomed pins never merge when co-located.
+    let threshold = max(span.latitudeDelta * 0.02, 0.001)
+    var clusters: [CharterCluster] = []
+
+    for charter in charters {
+        guard let coord = charter.coordinate else { continue }
+        if let i = clusters.firstIndex(where: {
+            abs($0.coordinate.latitude - coord.latitude) < threshold &&
+            abs($0.coordinate.longitude - coord.longitude) < threshold
+        }) {
+            // Merge into existing cluster, recomputing centroid incrementally.
+            let existing = clusters[i]
+            let count = Double(existing.charters.count)
+            let centroid = CLLocationCoordinate2D(
+                latitude: (existing.coordinate.latitude * count + coord.latitude) / (count + 1),
+                longitude: (existing.coordinate.longitude * count + coord.longitude) / (count + 1)
+            )
+            clusters[i] = CharterCluster(
+                id: existing.id,
+                coordinate: centroid,
+                charters: existing.charters + [charter]
+            )
+        } else {
+            clusters.append(CharterCluster(id: UUID(), coordinate: coord, charters: [charter]))
+        }
     }
+    return clusters
 }
 
 // MARK: - User avatar pin (discovery map)
@@ -145,57 +272,90 @@ struct UserAvatarPin: View {
     let isSelected: Bool
     let onTap: () -> Void
 
-    private var outerRing: CGFloat { isSelected ? 60 : 48 }
-    private var avatarSize: CGFloat { isSelected ? 52 : 40 }
+    /// Fixed layout size; selection uses `scaleEffect` (44 → 52 pt) to avoid layout thrashing.
+    private let outerSize: CGFloat = 44
+    private let avatarSize: CGFloat = 34
+    private let communityBadgeSize: CGFloat = 28
     private var hasCommunity: Bool { charter.communityBadgeURL != nil }
+
+    private var pinBackgroundColor: Color {
+        hasCommunity
+            ? DesignSystem.Colors.communityAccent.opacity(0.2)
+            : DesignSystem.Colors.primary.opacity(0.15)
+    }
+
+    private var selectionScale: CGFloat { isSelected ? 52.0 / 44.0 : 1.0 }
 
     var body: some View {
         Button(action: onTap) {
-            VStack(spacing: 0) {
-                ZStack(alignment: .bottomTrailing) {
-                    if hasCommunity {
-                        Circle()
-                            .stroke(DesignSystem.Colors.communityAccent, lineWidth: 3)
-                            .frame(width: outerRing + 6, height: outerRing + 6)
-                    }
-
+            ZStack(alignment: .bottomTrailing) {
+                ZStack {
                     Circle()
-                        .fill(charter.urgencyLevel.mapPinColor)
-                        .frame(width: outerRing, height: outerRing)
+                        .fill(pinBackgroundColor)
+                        .frame(width: outerSize, height: outerSize)
+                        .overlay {
+                            if hasCommunity {
+                                Circle()
+                                    .stroke(DesignSystem.Colors.communityAccent, lineWidth: 2.5)
+                            }
+                        }
+                        .overlay(alignment: .topTrailing) {
+                            urgencyRingDot
+                                .offset(x: 2, y: -2)
+                        }
 
                     avatarContent
                         .frame(width: avatarSize, height: avatarSize)
                         .clipShape(Circle())
-
-                    if let badgeURL = charter.communityBadgeURL {
-                        CachedAsyncImage(url: badgeURL) { image in
-                            image.resizable().scaledToFill()
-                        } placeholder: {
-                            ZStack {
-                                Circle()
-                                    .fill(DesignSystem.Colors.communityAccent.opacity(0.85))
-                                Image(systemName: "sailboat.fill")
-                                    .font(DesignSystem.Typography.caption)
-                                    .foregroundStyle(.white)
-                            }
-                        }
-                        .frame(width: 22, height: 22)
-                        .clipShape(Circle())
-                        .overlay(Circle().stroke(Color.white, lineWidth: 2))
-                        .offset(x: 5, y: 5)
-                    }
                 }
+                .frame(width: outerSize, height: outerSize)
 
-                MapPinNeedle()
-                    .fill(charter.urgencyLevel.mapPinColor)
-                    .frame(width: 6, height: 8)
+                if let badgeURL = charter.communityBadgeURL {
+                    communityBadge(url: badgeURL)
+                        .offset(x: 6, y: 6)
+                }
             }
-            .shadow(color: .black.opacity(0.18), radius: 4, x: 0, y: 2)
+            .frame(width: outerSize, height: outerSize)
+            .shadow(
+                color: isSelected ? DesignSystem.Colors.primary.opacity(0.35) : .black.opacity(0.22),
+                radius: isSelected ? 10 : 5,
+                x: 0,
+                y: isSelected ? 3 : 2
+            )
+            .scaleEffect(selectionScale)
             .animation(DesignSystem.Motion.spring, value: isSelected)
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("Charter: \(charter.name)")
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(accessibilityLabelText)
         .accessibilityHint("Double tap to select")
+    }
+
+    /// Urgency encoded as a small dot on the outer ring (top-trailing), distinct from the community badge.
+    private var urgencyRingDot: some View {
+        Circle()
+            .fill(charter.urgencyLevel.mapPinColor)
+            .frame(width: 9, height: 9)
+            .overlay(Circle().stroke(Color.white, lineWidth: 2))
+            .accessibilityHidden(true)
+    }
+
+    @ViewBuilder
+    private func communityBadge(url: URL) -> some View {
+        CachedAsyncImage(url: url) { image in
+            image.resizable().scaledToFill()
+        } placeholder: {
+            ZStack {
+                Circle()
+                    .fill(DesignSystem.Colors.communityAccent.opacity(0.85))
+                Image(systemName: "sailboat.fill")
+                    .font(DesignSystem.Typography.caption)
+                    .foregroundStyle(.white)
+            }
+        }
+        .frame(width: communityBadgeSize, height: communityBadgeSize)
+        .clipShape(Circle())
+        .overlay(Circle().stroke(Color.white, lineWidth: 2))
     }
 
     @ViewBuilder
@@ -215,6 +375,128 @@ struct UserAvatarPin: View {
 
     private var captainMonogram: String {
         let name = charter.captain.username?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        guard let first = name.first else { return "?" }
+        return String(first).uppercased()
+    }
+
+    private var accessibilityLabelText: String {
+        "Charter: \(charter.name), \(charter.urgencyLevel.mapPinAccessibilityLabel)"
+    }
+}
+
+// MARK: - Cluster pin
+
+struct ClusterPin: View {
+    let cluster: CharterCluster
+    let isSelected: Bool
+    let onTap: () -> Void
+
+    private let avatarDiam: CGFloat = 18
+    private let avatarOffset: CGFloat = 11
+    private var outerSize: CGFloat { isSelected ? 64 : 52 }
+
+    /// Show a "+" indicator instead of a 3rd full avatar when there are more than 3 charters.
+    private var showPlusIndicator: Bool { cluster.charters.count > 3 }
+
+    private var visibleCharters: [DiscoverableCharter] {
+        showPlusIndicator
+            ? Array(cluster.charters.prefix(2))
+            : Array(cluster.charters.prefix(3))
+    }
+
+    private var avatarStackWidth: CGFloat {
+        let slots = visibleCharters.count + (showPlusIndicator ? 1 : 0)
+        return avatarDiam + CGFloat(max(0, slots - 1)) * avatarOffset
+    }
+
+    /// Community accent when every charter in the cluster shares the same community; brand primary otherwise.
+    private var ringColor: Color {
+        let communityURLs = cluster.charters.compactMap { $0.communityBadgeURL?.absoluteString }
+        let sharedCommunity = !communityURLs.isEmpty && Set(communityURLs).count == 1
+        return sharedCommunity ? DesignSystem.Colors.communityAccent : DesignSystem.Colors.primary
+    }
+
+    var body: some View {
+        Button(action: onTap) {
+            ZStack(alignment: .topTrailing) {
+                ZStack {
+                    Circle()
+                        .fill(DesignSystem.Colors.surface)
+                    Circle()
+                        .stroke(ringColor, lineWidth: isSelected ? 3 : 2)
+                    ZStack(alignment: .leading) {
+                        ForEach(Array(visibleCharters.enumerated()), id: \.element.id) { idx, charter in
+                            avatarCircle(for: charter)
+                                .offset(x: CGFloat(idx) * avatarOffset)
+                                .zIndex(Double(visibleCharters.count - idx))
+                        }
+                        if showPlusIndicator {
+                            plusIndicator
+                                .offset(x: CGFloat(visibleCharters.count) * avatarOffset)
+                                .zIndex(0)
+                        }
+                    }
+                    .frame(width: avatarStackWidth, height: avatarDiam)
+                }
+                .frame(width: outerSize, height: outerSize)
+
+                countBadge
+                    .offset(x: 5, y: -5)
+            }
+            .shadow(
+                color: .black.opacity(isSelected ? 0.25 : 0.15),
+                radius: isSelected ? 8 : 4,
+                x: 0,
+                y: isSelected ? 4 : 2
+            )
+            .scaleEffect(isSelected ? 1.15 : 1.0)
+            .animation(DesignSystem.Motion.spring, value: isSelected)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("\(cluster.charters.count) charters in this area")
+        .accessibilityHint("Double tap to see all")
+    }
+
+    private func avatarCircle(for charter: DiscoverableCharter) -> some View {
+        CachedAsyncImage(url: charter.captain.profileImageThumbnailURL) { image in
+            image.resizable().scaledToFill()
+        } placeholder: {
+            ZStack {
+                Circle().fill(DesignSystem.Colors.hashColor(for: charter.captain.id.uuidString))
+                Text(avatarMonogram(for: charter.captain))
+                    .font(.system(size: 7, weight: .semibold))
+                    .foregroundStyle(.white)
+            }
+        }
+        .frame(width: avatarDiam, height: avatarDiam)
+        .clipShape(Circle())
+        .overlay(Circle().stroke(Color.white, lineWidth: 1.5))
+    }
+
+    private var plusIndicator: some View {
+        ZStack {
+            Circle().fill(DesignSystem.Colors.surfaceAlt)
+            Image(systemName: "plus")
+                .font(.system(size: 6, weight: .bold))
+                .foregroundStyle(DesignSystem.Colors.textSecondary)
+        }
+        .frame(width: avatarDiam, height: avatarDiam)
+        .overlay(Circle().stroke(Color.white, lineWidth: 1.5))
+    }
+
+    private var countBadge: some View {
+        ZStack {
+            Circle().fill(DesignSystem.Colors.gold)
+            Text("\(cluster.charters.count)")
+                .font(.system(size: 9, weight: .bold, design: .rounded))
+                .foregroundStyle(Color.black.opacity(0.75))
+        }
+        .frame(width: 18, height: 18)
+        .overlay(Circle().stroke(Color.white, lineWidth: 1.5))
+    }
+
+    private func avatarMonogram(for captain: CaptainBasicInfo) -> String {
+        let name = captain.username?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         guard let first = name.first else { return "?" }
         return String(first).uppercased()
     }
@@ -424,6 +706,173 @@ private struct CharterMapCallout: View {
     }
 }
 
+// MARK: - Charter Cluster Sheet
+
+private struct CharterClusterSheet: View {
+    let cluster: CharterCluster
+    let onSelectCharter: (DiscoverableCharter) -> Void
+    let onDismiss: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Capsule()
+                .fill(DesignSystem.Colors.textSecondary.opacity(0.35))
+                .frame(width: 40, height: 4)
+                .frame(maxWidth: .infinity)
+                .padding(.top, DesignSystem.Spacing.xs)
+                .accessibilityHidden(true)
+
+            HStack(alignment: .center) {
+                Text(headerTitle)
+                    .font(DesignSystem.Typography.subheader)
+                    .foregroundStyle(DesignSystem.Colors.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .lineLimit(2)
+                Spacer(minLength: 0)
+                Button { onDismiss() } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .symbolRenderingMode(.hierarchical)
+                        .foregroundStyle(DesignSystem.Colors.textSecondary)
+                        .font(DesignSystem.Typography.title)
+                        .imageScale(.large)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Dismiss")
+            }
+            .padding(.horizontal, DesignSystem.Spacing.md)
+            .padding(.top, DesignSystem.Spacing.sm)
+            .padding(.bottom, DesignSystem.Spacing.xs)
+
+            Divider()
+                .background(DesignSystem.Colors.border)
+
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 0) {
+                    ForEach(cluster.charters) { charter in
+                        CharterClusterSheetRow(charter: charter) {
+                            onSelectCharter(charter)
+                        }
+                        .padding(.horizontal, DesignSystem.Spacing.md)
+
+                        if charter.id != cluster.charters.last?.id {
+                            Divider()
+                                .background(DesignSystem.Colors.border)
+                                // Indent to align with text, past the avatar column.
+                                .padding(.leading, DesignSystem.Spacing.md + 36 + DesignSystem.Spacing.sm)
+                        }
+                    }
+                }
+                .padding(.vertical, DesignSystem.Spacing.xs)
+            }
+            .frame(maxHeight: 260)
+        }
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 28)
+                .onEnded { value in
+                    if value.translation.height > 50 { onDismiss() }
+                }
+        )
+        .background {
+            ZStack {
+                Rectangle().fill(.ultraThinMaterial)
+                DesignSystem.Colors.surface.opacity(0.55)
+            }
+        }
+        .clipShape(
+            UnevenRoundedRectangle(
+                topLeadingRadius: DesignSystem.Spacing.cardCornerRadiusLarge,
+                bottomLeadingRadius: 0,
+                bottomTrailingRadius: 0,
+                topTrailingRadius: DesignSystem.Spacing.cardCornerRadiusLarge,
+                style: .continuous
+            )
+        )
+        .overlay(
+            UnevenRoundedRectangle(
+                topLeadingRadius: DesignSystem.Spacing.cardCornerRadiusLarge,
+                bottomLeadingRadius: 0,
+                bottomTrailingRadius: 0,
+                topTrailingRadius: DesignSystem.Spacing.cardCornerRadiusLarge,
+                style: .continuous
+            )
+            .stroke(DesignSystem.Colors.border.opacity(0.35), lineWidth: 1)
+        )
+        .shadow(color: Color.black.opacity(0.08), radius: 12, y: -4)
+    }
+
+    private var headerTitle: String {
+        let count = cluster.charters.count
+        return "\(count) charter\(count == 1 ? "" : "s") in \(areaName)"
+    }
+
+    /// Most frequently appearing destination among cluster members, or "this area" if none.
+    private var areaName: String {
+        let destinations = cluster.charters
+            .compactMap { $0.destination?.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+        guard !destinations.isEmpty else { return "this area" }
+        let counts = Dictionary(grouping: destinations, by: { $0 }).mapValues { $0.count }
+        return counts.max(by: { $0.value < $1.value })?.key ?? "this area"
+    }
+}
+
+private struct CharterClusterSheetRow: View {
+    let charter: DiscoverableCharter
+    let onTap: () -> Void
+
+    var body: some View {
+        Button(action: onTap) {
+            HStack(spacing: DesignSystem.Spacing.sm) {
+                CharterMapCalloutAvatar(captain: charter.captain, ringColor: ringColor, diameter: 36)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(charter.captain.username ?? L10n.Charter.Discovery.captainFallback)
+                        .font(DesignSystem.Typography.body)
+                        .fontWeight(.medium)
+                        .foregroundStyle(DesignSystem.Colors.textPrimary)
+                        .lineLimit(1)
+
+                    HStack(spacing: DesignSystem.Spacing.xs) {
+                        if let dest = charter.destination, !dest.isEmpty {
+                            Text(dest).lineLimit(1)
+                            Text("·")
+                        }
+                        Text(charter.dateRange).lineLimit(1)
+                    }
+                    .font(DesignSystem.Typography.caption)
+                    .foregroundStyle(DesignSystem.Colors.textSecondary)
+                }
+
+                Spacer(minLength: 0)
+
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(DesignSystem.Colors.textSecondary)
+            }
+            .padding(.vertical, DesignSystem.Spacing.sm)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(rowAccessibilityLabel)
+    }
+
+    private var ringColor: Color {
+        charter.communityBadgeURL != nil
+            ? DesignSystem.Colors.communityAccent
+            : charter.urgencyLevel.mapPinColor
+    }
+
+    private var rowAccessibilityLabel: String {
+        var parts: [String] = []
+        if let name = charter.captain.username { parts.append(name) }
+        parts.append(charter.dateRange)
+        if let dest = charter.destination, !dest.isEmpty { parts.append("in \(dest)") }
+        return parts.joined(separator: ", ")
+    }
+}
+
 // MARK: - Callout avatar
 
 private struct CharterMapCalloutAvatar: View {
@@ -468,6 +917,17 @@ private extension CharterUrgencyLevel {
         case .imminent: return .red
         case .soon: return .orange
         case .future: return DesignSystem.Colors.primary
+        }
+    }
+
+    /// Localized urgency for map pin accessibility (matches discovery row badges).
+    var mapPinAccessibilityLabel: String {
+        switch self {
+        case .past: return L10n.Charter.Discovery.Badge.past
+        case .ongoing: return L10n.Charter.Discovery.Badge.ongoing
+        case .imminent: return L10n.Charter.Discovery.Badge.imminent
+        case .soon: return L10n.Charter.Discovery.Badge.soon
+        case .future: return L10n.Charter.Discovery.Badge.upcoming
         }
     }
 }
@@ -556,12 +1016,71 @@ enum CharterMapPreviewData {
 
         return [marco, alexey, solo]
     }
+
+    /// Two extra charters near Split so the preview map shows a cluster pin.
+    static var mockChartersWithCluster: [DiscoverableCharter] {
+        let now = Date()
+        let maria = DiscoverableCharter(
+            id: uuid("44444444-4444-4444-4444-444444444444"),
+            name: "Adriatic Escape",
+            boatName: "Levantin",
+            destination: "Split · Hvar",
+            startDate: now.addingTimeInterval(86400 * 12),
+            endDate: now.addingTimeInterval(86400 * 19),
+            latitude: 43.515,
+            longitude: 16.443,
+            distanceKm: 46,
+            captain: CaptainBasicInfo(
+                id: uuid("55555555-5555-5555-5555-555555555555"),
+                username: "Maria Kovac",
+                profileImageThumbnailURL: URL(string: "https://picsum.photos/seed/captain-maria/80/80"),
+                isVirtualCaptain: false
+            ),
+            communityBadgeURL: nil,
+            communityName: nil
+        )
+        let tomaz = DiscoverableCharter(
+            id: uuid("66666666-6666-6666-6666-666666666666"),
+            name: "Blue Cave expedition",
+            boatName: "Vjetar",
+            destination: "Split · Hvar",
+            startDate: now.addingTimeInterval(86400 * 16),
+            endDate: now.addingTimeInterval(86400 * 23),
+            latitude: 43.508,
+            longitude: 16.447,
+            distanceKm: 47,
+            captain: CaptainBasicInfo(
+                id: uuid("77777777-7777-7777-7777-777777777777"),
+                username: "Tomaž Novak",
+                profileImageThumbnailURL: nil,
+                isVirtualCaptain: false
+            ),
+            communityBadgeURL: nil,
+            communityName: nil
+        )
+        return mockCharters + [maria, tomaz]
+    }
+
+    /// A pre-built cluster for component previews.
+    static var mockCluster: CharterCluster {
+        let charters = Array(mockChartersWithCluster.filter { $0.destination == "Split · Hvar" })
+        return CharterCluster(
+            id: UUID(),
+            coordinate: CLLocationCoordinate2D(latitude: 43.511, longitude: 16.443),
+            charters: charters
+        )
+    }
 }
 
 // MARK: - Previews
 
-#Preview("Discovery map — mock charters") {
+#Preview("Discovery map — scattered pins") {
     CharterMapView(charters: CharterMapPreviewData.mockCharters) { _ in }
+        .frame(height: 520)
+}
+
+#Preview("Discovery map — with cluster") {
+    CharterMapView(charters: CharterMapPreviewData.mockChartersWithCluster) { _ in }
         .frame(height: 520)
 }
 
@@ -578,4 +1097,27 @@ enum CharterMapPreviewData {
     }
     .padding()
     .background(DesignSystem.Colors.background)
+}
+
+#Preview("ClusterPin states") {
+    let cluster = CharterMapPreviewData.mockCluster
+    HStack(spacing: 32) {
+        ClusterPin(cluster: cluster, isSelected: false) {}
+        ClusterPin(cluster: cluster, isSelected: true) {}
+    }
+    .padding(40)
+    .background(DesignSystem.Colors.background)
+}
+
+#Preview("CharterClusterSheet") {
+    ZStack(alignment: .bottom) {
+        Color.gray.opacity(0.2).ignoresSafeArea()
+        CharterClusterSheet(
+            cluster: CharterMapPreviewData.mockCluster,
+            onSelectCharter: { _ in },
+            onDismiss: {}
+        )
+        .padding(.horizontal, DesignSystem.Spacing.screenPadding)
+        .padding(.bottom, DesignSystem.Spacing.sm)
+    }
 }

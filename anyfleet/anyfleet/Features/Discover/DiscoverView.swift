@@ -58,7 +58,7 @@ struct DiscoverView: View {
             .navigationBarTitleDisplayMode(.inline)
             .background(DesignSystem.Colors.background.ignoresSafeArea())
 
-            // Error Banner (only for content tab)
+            // Error banner for content tab (charters sub-tab uses CharterDiscoveryView's banner).
             if selectedTab == .content, viewModel.showErrorBanner, let error = viewModel.currentError {
                 VStack {
                     Spacer()

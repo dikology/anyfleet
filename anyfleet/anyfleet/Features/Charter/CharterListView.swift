@@ -69,7 +69,7 @@ struct CharterListView: View {
                         onRetry: { Task { await viewModel.loadCharters() } }
                     )
                     .padding(.horizontal)
-                    .padding(.bottom, DesignSystem.Spacing.xl)
+                    .padding(.bottom, FloatingTabBar.safeAreaInset)
                 }
                 .transition(.move(edge: .bottom).combined(with: .opacity))
             }
