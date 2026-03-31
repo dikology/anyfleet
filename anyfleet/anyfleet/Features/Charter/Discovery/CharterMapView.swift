@@ -16,6 +16,8 @@ struct CharterMapView: View {
     let charters: [DiscoverableCharter]
     let onSelectCharter: (DiscoverableCharter) -> Void
 
+    @Environment(\.colorScheme) private var colorScheme
+
     @State private var position: MapCameraPosition = .automatic
     @State private var selectedClusterID: UUID?
     @State private var clusters: [CharterCluster] = []
@@ -28,6 +30,31 @@ struct CharterMapView: View {
     private var selectedCluster: CharterCluster? {
         guard let id = selectedClusterID else { return nil }
         return clusters.first(where: { $0.id == id })
+    }
+
+    /// Standard map tiles follow the app `colorScheme`. `emphasis: .muted` in dark mode
+    /// further subdues POI/road emphasis so teal/gold pins read clearly. (MapKit’s
+    /// `MapStyle.standard` has no separate `colorScheme:` parameter in SwiftUI.)
+    private var discoveryMapStyle: MapStyle {
+        let excludedPOI = PointOfInterestCategories.excluding([.restaurant, .cafe, .hotel])
+        switch colorScheme {
+        case .dark:
+            return .standard(
+                emphasis: .muted,
+                pointsOfInterest: excludedPOI,
+                showsTraffic: false
+            )
+        case .light:
+            return .standard(
+                pointsOfInterest: excludedPOI,
+                showsTraffic: false
+            )
+        @unknown default:
+            return .standard(
+                pointsOfInterest: excludedPOI,
+                showsTraffic: false
+            )
+        }
     }
 
     var body: some View {
@@ -60,12 +87,7 @@ struct CharterMapView: View {
                     .tag(cluster.id)
                 }
             }
-            .mapStyle(
-                .standard(
-                    pointsOfInterest: .excluding([.restaurant, .cafe, .hotel]),
-                    showsTraffic: false
-                )
-            )
+            .mapStyle(discoveryMapStyle)
             .ignoresSafeArea(edges: .top)
             .onMapCameraChange(frequency: .onEnd) { context in
                 let newSpan = context.region.span
