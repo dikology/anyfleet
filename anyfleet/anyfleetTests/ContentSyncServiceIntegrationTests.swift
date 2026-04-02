@@ -1311,6 +1311,7 @@ class MockAPIClient: APIClientProtocol {
     var deleteCharterSideEffect: ((UUID) -> Void)?
     var createCharterCallCount = 0
     var updateCharterCallCount = 0
+    var lastUpdateCharterRequest: CharterUpdateRequest?
     var deleteCharterCallCount = 0
     var lastDeletedCharterID: UUID?
     var discoverChartersCallCount = 0
@@ -1366,6 +1367,7 @@ class MockAPIClient: APIClientProtocol {
 
     func updateCharter(id: UUID, request: CharterUpdateRequest) async throws -> CharterAPIResponse {
         updateCharterCallCount += 1
+        lastUpdateCharterRequest = request
         if shouldFail { throw APIError.serverError }
         return CharterAPIResponse(
             id: id,

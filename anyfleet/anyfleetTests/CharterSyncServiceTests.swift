@@ -41,7 +41,8 @@ struct CharterSyncServiceTests {
     private func makeCharter(
         serverID: UUID? = nil,
         visibility: CharterVisibility = .community,
-        needsSync: Bool = true
+        needsSync: Bool = true,
+        onBehalfOfVirtualCaptainID: UUID? = nil
     ) -> CharterModel {
         var charter = CharterModel(
             id: UUID(),
@@ -56,6 +57,7 @@ struct CharterSyncServiceTests {
         charter.serverID = serverID
         charter.visibility = visibility
         charter.needsSync = needsSync
+        charter.onBehalfOfVirtualCaptainID = onBehalfOfVirtualCaptainID
         return charter
     }
 
@@ -255,6 +257,62 @@ struct CharterSyncServiceTests {
 
         #expect(service.needsAuthForSync == false)
         #expect(apiClient.createCharterCallCount == 0)
+    }
+
+    // MARK: - Regression: virtual captain attribution 403
+
+    @Test("pushPendingCharters - regular charter update must NOT send on_behalf_of_virtual_captain_id (regression: 403 bug)")
+    @MainActor
+    func testPushPendingCharters_RegularCharter_DoesNotSendOnBehalfField() async {
+        // Regression: when a regular user (no virtual captain) updates their own charter
+        // the sync was sending `on_behalf_of_virtual_captain_id: null` in the payload.
+        // The backend treats ANY presence of that field (even null) as a change attempt
+        // and returns 403 for charters without manager attribution, causing sync to get
+        // permanently stuck in pending.
+        let (repository, apiClient, _, _, service) = makeDependencies()
+
+        let serverID = UUID()
+        let charter = makeCharter(
+            serverID: serverID,
+            visibility: .public,
+            onBehalfOfVirtualCaptainID: nil  // regular user — no virtual captain
+        )
+        repository.fetchPendingSyncChartersResult = .success([charter])
+
+        await service.pushPendingCharters()
+
+        #expect(apiClient.updateCharterCallCount == 1)
+        let request = apiClient.lastUpdateCharterRequest
+        #expect(request != nil)
+        // The field must be completely absent from the encoded payload.
+        #expect(request?.shouldEncodeOnBehalfOfVirtualCaptainId == false,
+                "shouldEncodeOnBehalfOfVirtualCaptainId must be false for regular charters to avoid 403")
+    }
+
+    @Test("pushPendingCharters - virtual captain charter update DOES send on_behalf_of_virtual_captain_id")
+    @MainActor
+    func testPushPendingCharters_VirtualCaptainCharter_SendsOnBehalfField() async {
+        // Virtual captain charters (published by managers) must still transmit the field
+        // so managers can update attribution without losing it.
+        let (repository, apiClient, _, _, service) = makeDependencies()
+
+        let serverID = UUID()
+        let vcID = UUID()
+        let charter = makeCharter(
+            serverID: serverID,
+            visibility: .public,
+            onBehalfOfVirtualCaptainID: vcID
+        )
+        repository.fetchPendingSyncChartersResult = .success([charter])
+
+        await service.pushPendingCharters()
+
+        #expect(apiClient.updateCharterCallCount == 1)
+        let request = apiClient.lastUpdateCharterRequest
+        #expect(request != nil)
+        #expect(request?.shouldEncodeOnBehalfOfVirtualCaptainId == true,
+                "shouldEncodeOnBehalfOfVirtualCaptainId must be true when charter has a virtual captain")
+        #expect(request?.onBehalfOfVirtualCaptainId == vcID)
     }
 
     // MARK: - pullMyCharters

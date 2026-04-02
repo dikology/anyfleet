@@ -152,7 +152,12 @@ final class CharterSyncService {
         do {
             if let serverID = charter.serverID {
                 // Update existing server record
-                let shouldEncodeOnBehalf = charter.visibility != .private
+                // Only send on_behalf_of_virtual_captain_id when the charter was
+                // originally published via a virtual captain. Sending it as null for
+                // regular charters triggers a 403 on the backend because the server
+                // interprets any presence of the field as an attempt to change VC
+                // attribution, which is forbidden for non-manager owners.
+                let shouldEncodeOnBehalf = charter.onBehalfOfVirtualCaptainID != nil
                 let request = CharterUpdateRequest(
                     name: charter.name,
                     boatName: charter.boatName,
