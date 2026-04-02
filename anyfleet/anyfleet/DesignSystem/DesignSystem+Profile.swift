@@ -67,7 +67,24 @@ extension DesignSystem {
               }
             }
           } else {
-            gradientBackground
+            Button(action: onEditTap) {
+              ZStack {
+                gradientBackground
+                VStack(spacing: Spacing.xs) {
+                  Image(systemName: "camera.fill")
+                    .font(.system(size: 22, weight: .medium))
+                    .foregroundColor(.white.opacity(0.7))
+                  Text(L10n.Profile.heroAddSailingPhoto)
+                    .font(Typography.caption)
+                    .fontWeight(.medium)
+                    .foregroundColor(.white.opacity(0.6))
+                }
+              }
+            }
+            .buttonStyle(.plain)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(L10n.Profile.heroAddSailingPhoto)
+            .accessibilityHint(L10n.Profile.heroAddSailingPhotoHint)
           }
         }
       }

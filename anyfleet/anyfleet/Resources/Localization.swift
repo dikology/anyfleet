@@ -285,6 +285,18 @@ enum L10n {
             comment: "Prefix text for member since date (e.g., 'Member since')"
         )
 
+        static let heroAddSailingPhoto = NSLocalizedString(
+            "profile.hero.addSailingPhoto",
+            tableName: "Localizable",
+            comment: "Prompt on profile hero when user has no cover image"
+        )
+
+        static let heroAddSailingPhotoHint = NSLocalizedString(
+            "profile.hero.addSailingPhoto.hint",
+            tableName: "Localizable",
+            comment: "VoiceOver hint for tappable empty profile hero"
+        )
+
         // Reputation section
         static let reputationTitle = NSLocalizedString(
             "profile.reputationTitle",

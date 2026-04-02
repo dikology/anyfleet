@@ -186,6 +186,8 @@
 "profile.getStartedTitle" = "Начнем";
 "profile.getStartedSubtitle" = "Войдите, чтобы получить доступ к профилю и контенту";
 "profile.memberSincePrefix" = "Участник с";
+"profile.hero.addSailingPhoto" = "Добавьте фото с яхты";
+"profile.hero.addSailingPhoto.hint" = "Открывает редактирование профиля для загрузки обложки";
 "profile.reputationTitle" = "Репутация";
 "profile.reputationSubtitle" = "Ваша репутация и вклад в сообщество";
 "profile.contentOwnershipTitle" = "Контент";
