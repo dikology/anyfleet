@@ -591,6 +591,16 @@ enum L10n {
                 tableName: "Localizable",
                 comment: "Button to find and join communities"
             )
+            static let roleModerator = NSLocalizedString(
+                "profile.communities.role.moderator",
+                tableName: "Localizable",
+                comment: "Role badge label for community moderator"
+            )
+            static let roleFounder = NSLocalizedString(
+                "profile.communities.role.founder",
+                tableName: "Localizable",
+                comment: "Role badge label for community founder"
+            )
         }
 
         // Community Search
