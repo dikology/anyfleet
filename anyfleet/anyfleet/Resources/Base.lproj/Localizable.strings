@@ -369,6 +369,7 @@
 "profile.stats.nauticalMiles" = "Nautical\nMiles";
 "profile.stats.daysAtSea" = "Days\nat Sea";
 "profile.stats.communitiesJoined" = "Communities\nJoined";
+"profile.stats.contentPublished" = "Content\nPublished";
 
 // Common
 "common.ok" = "OK";

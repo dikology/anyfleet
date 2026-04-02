@@ -755,6 +755,11 @@ enum L10n {
                 tableName: "Localizable",
                 comment: "Communities joined stat label"
             )
+            static let contentPublished = NSLocalizedString(
+                "profile.stats.contentPublished",
+                tableName: "Localizable",
+                comment: "Library or community content published stat label"
+            )
         }
     }
     

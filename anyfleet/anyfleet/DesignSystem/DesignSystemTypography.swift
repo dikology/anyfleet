@@ -19,6 +19,8 @@ extension DesignSystem {
         static let pageTitleRegular = Font.system(size: 24, weight: .regular)
         /// List date gutter (e.g. charter timeline day numeral) — bold rounded, 28pt.
         static let dateDisplay = Font.system(size: 28, weight: .bold, design: .rounded)
+        /// Profile header display name (28pt bold rounded).
+        static let profileName = Font.system(size: 28, weight: .bold, design: .rounded)
         /// Large toolbar / modal dismiss SF Symbol (e.g. 28pt regular).
         static let toolbarGlyphLarge = Font.system(size: 28, weight: .regular)
         static let body       = Font.system(size: 16, weight: .regular)

@@ -430,6 +430,7 @@
 "profile.stats.nauticalMiles" = "Морские\nмили";
 "profile.stats.daysAtSea" = "Дней\nв море";
 "profile.stats.communitiesJoined" = "Сообществ\nприсоединено";
+"profile.stats.contentPublished" = "Контент\nопубликован";
 
 // Community manager
 "communityManager.title" = "Управление сообществами";

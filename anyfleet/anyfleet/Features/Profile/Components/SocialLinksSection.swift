@@ -110,30 +110,23 @@ struct SocialLinksDisplaySection: View {
             VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
                 DesignSystem.SectionLabel(L10n.Profile.SocialLinks.title)
 
-                HStack(spacing: DesignSystem.Spacing.sm) {
+                HStack(spacing: DesignSystem.Spacing.lg) {
                     ForEach(activeLinks) { link in
                         if let url = link.url {
                             Link(destination: url) {
-                                HStack(spacing: 4) {
-                                    Image(systemName: link.platform.icon)
-                                        .font(DesignSystem.Typography.caption)
-                                        .fontWeight(.medium)
-                                    Text(localizedPlatformName(link.platform))
-                                        .font(DesignSystem.Typography.caption)
-                                        .fontWeight(.medium)
-                                }
-                                .foregroundColor(DesignSystem.Colors.info)
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 6)
-                                .background(
-                                    RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusSmall, style: .continuous)
-                                        .fill(DesignSystem.Colors.info.opacity(0.1))
+                                ZStack {
+                                    Circle()
+                                        .fill(link.platform.brandColor.opacity(0.12))
+                                        .frame(width: 48, height: 48)
                                         .overlay(
-                                            RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusSmall, style: .continuous)
-                                                .stroke(DesignSystem.Colors.info.opacity(0.3), lineWidth: 1)
+                                            Circle().stroke(link.platform.brandColor.opacity(0.25), lineWidth: 1)
                                         )
-                                )
+                                    Image(systemName: link.platform.icon)
+                                        .font(.system(size: 20, weight: .medium))
+                                        .foregroundColor(link.platform.brandColor)
+                                }
                             }
+                            .accessibilityLabel(localizedPlatformName(link.platform))
                         }
                     }
                     Spacer()

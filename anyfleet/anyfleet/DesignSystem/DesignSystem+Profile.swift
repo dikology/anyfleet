@@ -103,7 +103,7 @@ extension DesignSystem {
             .padding(.bottom, Spacing.md)
           
           Text(user.username ?? user.email)
-            .font(Typography.dateDisplay)
+            .font(Typography.profileName)
             .tracking(-0.5)
             .foregroundColor(Colors.textPrimary)
             .lineLimit(1)
@@ -313,10 +313,10 @@ extension DesignSystem {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(Spacing.md)
         .background(
-          RoundedRectangle(cornerRadius: Spacing.cornerRadiusMedium)
+          RoundedRectangle(cornerRadius: Spacing.cardCornerRadius)
             .fill(color.opacity(0.08))
             .overlay(
-              RoundedRectangle(cornerRadius: Spacing.cornerRadiusMedium)
+              RoundedRectangle(cornerRadius: Spacing.cardCornerRadius)
                 .stroke(color.opacity(0.2), lineWidth: 1)
             )
         )
