@@ -53,6 +53,18 @@ enum SocialPlatform: String, Codable, CaseIterable {
     }
 }
 
+import SwiftUI
+
+extension SocialPlatform {
+    var brandColor: Color {
+        switch self {
+        case .instagram: Color(red: 0.83, green: 0.18, blue: 0.57)
+        case .telegram:  Color(red: 0.18, green: 0.55, blue: 0.84)
+        case .other:     DesignSystem.Colors.info
+        }
+    }
+}
+
 // MARK: - Community
 
 struct CommunityMembership: Codable, Identifiable {

@@ -195,6 +195,8 @@
 "profile.getStartedTitle" = "Get Started";
 "profile.getStartedSubtitle" = "Sign in to access your profile and content";
 "profile.memberSincePrefix" = "Member since";
+"profile.hero.addSailingPhoto" = "Add a sailing photo";
+"profile.hero.addSailingPhoto.hint" = "Opens profile editing to add your cover photo";
 "profile.reputationTitle" = "Reputation";
 "profile.reputationSubtitle" = "Your community standing and contributions";
 "profile.contentOwnershipTitle" = "Content";
@@ -301,6 +303,7 @@
 "authorProfile.comingSoonMessage" = "Author profiles with detailed information, content listings, and more features are coming in a future update.";
 "authorProfile.verified" = "Verified";
 "authorProfile.getInTouch" = "Get In Touch";
+"authorProfile.viewCharters" = "View Charters";
 
 // Profile Image
 "profile.image.upload" = "Upload Profile Photo";
@@ -369,6 +372,7 @@
 "profile.stats.nauticalMiles" = "Nautical\nMiles";
 "profile.stats.daysAtSea" = "Days\nat Sea";
 "profile.stats.communitiesJoined" = "Communities\nJoined";
+"profile.stats.contentPublished" = "Content\nPublished";
 
 // Common
 "common.ok" = "OK";

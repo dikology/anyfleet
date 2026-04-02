@@ -67,7 +67,10 @@ struct AuthorModalIntegrationTests {
             location: nil,
             nationality: nil,
             isVerified: false,
-            stats: nil
+            stats: nil,
+            userId: nil,
+            socialLinks: nil,
+            primaryCommunityName: nil
         )
 
         // Create modal with author profile
@@ -151,7 +154,10 @@ struct AuthorModalIntegrationTests {
                 location: nil,
                 nationality: nil,
                 isVerified: false,
-                stats: nil
+                stats: nil,
+                userId: nil,
+                socialLinks: nil,
+                primaryCommunityName: nil
             )
             let modal = AuthorProfileModal(author: author) {}
 
@@ -173,7 +179,10 @@ struct AuthorModalIntegrationTests {
             location: nil,
             nationality: nil,
             isVerified: false,
-            stats: nil
+            stats: nil,
+            userId: nil,
+            socialLinks: nil,
+            primaryCommunityName: nil
         )
 
         // This tests that the view hierarchy can be constructed

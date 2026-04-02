@@ -285,6 +285,18 @@ enum L10n {
             comment: "Prefix text for member since date (e.g., 'Member since')"
         )
 
+        static let heroAddSailingPhoto = NSLocalizedString(
+            "profile.hero.addSailingPhoto",
+            tableName: "Localizable",
+            comment: "Prompt on profile hero when user has no cover image"
+        )
+
+        static let heroAddSailingPhotoHint = NSLocalizedString(
+            "profile.hero.addSailingPhoto.hint",
+            tableName: "Localizable",
+            comment: "VoiceOver hint for tappable empty profile hero"
+        )
+
         // Reputation section
         static let reputationTitle = NSLocalizedString(
             "profile.reputationTitle",
@@ -591,6 +603,16 @@ enum L10n {
                 tableName: "Localizable",
                 comment: "Button to find and join communities"
             )
+            static let roleModerator = NSLocalizedString(
+                "profile.communities.role.moderator",
+                tableName: "Localizable",
+                comment: "Role badge label for community moderator"
+            )
+            static let roleFounder = NSLocalizedString(
+                "profile.communities.role.founder",
+                tableName: "Localizable",
+                comment: "Role badge label for community founder"
+            )
         }
 
         // Community Search
@@ -744,6 +766,11 @@ enum L10n {
                 "profile.stats.communitiesJoined",
                 tableName: "Localizable",
                 comment: "Communities joined stat label"
+            )
+            static let contentPublished = NSLocalizedString(
+                "profile.stats.contentPublished",
+                tableName: "Localizable",
+                comment: "Library or community content published stat label"
             )
         }
     }
@@ -2540,6 +2567,12 @@ enum L10n {
             "authorProfile.getInTouch",
             tableName: "Localizable",
             comment: "Get in touch button text"
+        )
+
+        static let viewCharters = NSLocalizedString(
+            "authorProfile.viewCharters",
+            tableName: "Localizable",
+            comment: "Primary CTA on author profile modal to open charter discovery"
         )
     }
 }

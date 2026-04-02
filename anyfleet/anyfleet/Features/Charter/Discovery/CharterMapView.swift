@@ -132,7 +132,8 @@ struct CharterMapView: View {
                         }
                     }
                     .padding(.horizontal, DesignSystem.Spacing.screenPadding)
-                    .padding(.bottom, DesignSystem.Spacing.sm)
+                    // Clear the app-level FloatingTabBar overlay (Map inset may not inherit floatingTabBarPadding).
+                    .padding(.bottom, FloatingTabBar.safeAreaInset + DesignSystem.Spacing.sm)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }

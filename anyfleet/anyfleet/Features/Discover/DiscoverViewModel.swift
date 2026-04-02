@@ -241,7 +241,13 @@ final class DiscoverViewModel: ErrorHandling {
                 averageRating: 4.8,
                 totalContributions: 15,
                 totalForks: 23
-            )
+            ),
+            userId: nil,
+            socialLinks: [
+                SocialLink(platform: .instagram, handle: "anyfleet_demo"),
+                SocialLink(platform: .telegram, handle: "anyfleet")
+            ],
+            primaryCommunityName: "Demo Cruisers"
         )
     }
 }

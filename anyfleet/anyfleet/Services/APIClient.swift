@@ -895,7 +895,10 @@ struct PublicProfileResponse: Codable {
                 averageRating: stats.averageRating,
                 totalContributions: stats.totalContributions,
                 totalForks: stats.totalForks
-            )
+            ),
+            userId: id,
+            socialLinks: socialLinks,
+            primaryCommunityName: primaryCommunity?.name
         )
     }
 }

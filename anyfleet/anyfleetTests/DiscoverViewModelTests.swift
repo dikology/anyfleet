@@ -345,4 +345,6 @@ class MockAppCoordinator: AppCoordinatorProtocol {
     func navigateToLibrary() {
         // Mock implementation - do nothing
     }
+
+    func navigateToCharterDiscovery() {}
 }
