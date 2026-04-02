@@ -24,7 +24,10 @@ struct AuthorProfileModalTests {
             location: nil,
             nationality: nil,
             isVerified: isVerified,
-            stats: nil
+            stats: nil,
+            userId: nil,
+            socialLinks: nil,
+            primaryCommunityName: nil
         )
     }
 

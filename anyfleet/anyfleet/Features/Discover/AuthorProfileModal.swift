@@ -1,12 +1,10 @@
 import SwiftUI
-import MessageUI
 
 struct AuthorProfileModal: View {
     let author: AuthorProfile
     let onDismiss: () -> Void
-    
-    @State private var showMailComposer = false
-    @State private var mailResult: Result<MFMailComposeResult, Error>?
+
+    @Environment(\.appCoordinator) private var coordinator
 
     var body: some View {
         NavigationStack {
@@ -142,6 +140,28 @@ struct AuthorProfileModal: View {
                             )
                             .shadow(color: Color.black.opacity(0.2), radius: 4, x: 0, y: 2)
                         }
+
+                        if let community = author.primaryCommunityName, !community.isEmpty {
+                            HStack(spacing: DesignSystem.Spacing.xs) {
+                                Image(systemName: "person.3.fill")
+                                    .font(DesignSystem.Typography.footnoteMedium)
+                                Text(community)
+                                    .font(DesignSystem.Typography.caption)
+                                    .fontWeight(.medium)
+                            }
+                            .foregroundColor(.white.opacity(0.85))
+                            .padding(.horizontal, DesignSystem.Spacing.md)
+                            .padding(.vertical, DesignSystem.Spacing.xs)
+                            .background(
+                                Capsule()
+                                    .fill(.ultraThinMaterial)
+                                    .overlay(
+                                        Capsule()
+                                            .stroke(.white.opacity(0.2), lineWidth: 1)
+                                    )
+                            )
+                            .shadow(color: Color.black.opacity(0.2), radius: 4, x: 0, y: 2)
+                        }
                     }
                     .padding(.horizontal, DesignSystem.Spacing.lg)
 
@@ -199,51 +219,34 @@ struct AuthorProfileModal: View {
                         .padding(.horizontal, DesignSystem.Spacing.lg)
                     }
 
-                    // Action buttons
-//                    HStack(spacing: DesignSystem.Spacing.md) {
-//                        // Primary CTA: Get In Touch
-//                        Button(action: {
-//                            if MFMailComposeViewController.canSendMail() {
-//                                showMailComposer = true
-//                            }
-//                        }) {
-//                            HStack(spacing: DesignSystem.Spacing.sm) {
-//                                Image(systemName: "envelope.fill")
-//                                Text(L10n.AuthorProfile.getInTouch)
-//                                    .fontWeight(.semibold)
-//                            }
-//                            .font(DesignSystem.Typography.body)
-//                            .foregroundColor(DesignSystem.Colors.onPrimary)
-//                            .frame(maxWidth: .infinity)
-//                            .padding(.vertical, DesignSystem.Spacing.md)
-//                            .background(
-//                                RoundedRectangle(cornerRadius: DesignSystem.Spacing.xl)
-//                                    .fill(DesignSystem.Gradients.primary)
-//                            )
-//                            .shadow(color: DesignSystem.Colors.primary.opacity(0.4), radius: 12, x: 0, y: 6)
-//                        }
-//                        .disabled(!MFMailComposeViewController.canSendMail())
-//
-//                        // Bookmark button
-//                        Button(action: {
-//                            // TODO: Implement bookmark/save functionality
-//                        }) {
-//                            Image(systemName: "bookmark")
-//                                .font(DesignSystem.Typography.leadSemibold)
-//                                .foregroundColor(.white)
-//                                .frame(width: 56, height: 56)
-//                                .background(
-//                                    RoundedRectangle(cornerRadius: DesignSystem.Spacing.xl)
-//                                        .fill(.ultraThinMaterial)
-//                                        .overlay(
-//                                            RoundedRectangle(cornerRadius: DesignSystem.Spacing.xl)
-//                                                .stroke(.white.opacity(0.3), lineWidth: 1)
-//                                        )
-//                                )
-//                                .shadow(color: Color.black.opacity(0.3), radius: 8, x: 0, y: 4)
-//                        }
-//                    }
-//                    .padding(.horizontal, DesignSystem.Spacing.lg)
+                    HStack(spacing: DesignSystem.Spacing.md) {
+                        if let links = author.socialLinks, !links.isEmpty {
+                            socialIconsRow(links: links)
+                        }
+                        Spacer(minLength: 0)
+                        Button {
+                            onDismiss()
+                            coordinator.navigateToCharterDiscovery()
+                        } label: {
+                            HStack(spacing: DesignSystem.Spacing.sm) {
+                                Image(systemName: "map.fill")
+                                Text(L10n.AuthorProfile.viewCharters)
+                                    .fontWeight(.semibold)
+                            }
+                            .font(DesignSystem.Typography.body)
+                            .foregroundColor(DesignSystem.Colors.onPrimary)
+                            .padding(.vertical, DesignSystem.Spacing.md)
+                            .padding(.horizontal, DesignSystem.Spacing.lg)
+                            .background(
+                                RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusSmall, style: .continuous)
+                                    .fill(DesignSystem.Gradients.primary)
+                            )
+                            .shadow(color: DesignSystem.Colors.primary.opacity(0.35), radius: 10, y: 4)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityIdentifier("author_profile_view_charters")
+                    }
+                    .padding(.horizontal, DesignSystem.Spacing.lg)
                 }
                 .padding(.bottom, DesignSystem.Spacing.xxl)
             }
@@ -263,13 +266,36 @@ struct AuthorProfileModal: View {
             }
             .toolbarBackground(.hidden, for: .navigationBar)
         }
-        .sheet(isPresented: $showMailComposer) {
-            MailComposeView(
-                recipients: [author.email],
-                subject: "Contact from AnyFleet",
-                body: "",
-                result: $mailResult
-            )
+    }
+
+    @ViewBuilder
+    private func socialIconsRow(links: [SocialLink]) -> some View {
+        let active = links.filter { !$0.handle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+        if active.isEmpty {
+            EmptyView()
+        } else {
+            HStack(spacing: DesignSystem.Spacing.md) {
+                ForEach(active) { link in
+                    if let url = link.url {
+                        Link(destination: url) {
+                            ZStack {
+                                Circle()
+                                    .fill(link.platform.brandColor.opacity(0.12))
+                                    .frame(width: 44, height: 44)
+                                    .overlay(
+                                        Circle()
+                                            .stroke(link.platform.brandColor.opacity(0.25), lineWidth: 1)
+                                    )
+                                Image(systemName: link.platform.icon)
+                                    .font(.system(size: 18, weight: .medium))
+                                    .foregroundColor(link.platform.brandColor)
+                            }
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(link.platform.displayName)
+                    }
+                }
+            }
         }
     }
     
@@ -373,6 +399,10 @@ struct AuthorProfile {
     let nationality: String?
     let isVerified: Bool
     let stats: AuthorStats?
+    /// Public profile user id (for future discovery filters such as captain_id).
+    let userId: UUID?
+    let socialLinks: [SocialLink]?
+    let primaryCommunityName: String?
 
     /// Create from UserInfo (e.g. when showing current user's profile from library)
     static func fromUserInfo(_ user: UserInfo) -> AuthorProfile {
@@ -385,7 +415,10 @@ struct AuthorProfile {
             location: user.location,
             nationality: user.nationality,
             isVerified: false,
-            stats: nil
+            stats: nil,
+            userId: UUID(uuidString: user.id),
+            socialLinks: user.socialLinks,
+            primaryCommunityName: user.communities?.first(where: \.isPrimary)?.name
         )
     }
 }
@@ -396,67 +429,36 @@ struct AuthorStats {
     let totalForks: Int?
 }
 
-// MARK: - Mail Compose View
-
-struct MailComposeView: UIViewControllerRepresentable {
-    let recipients: [String]
-    let subject: String
-    let body: String
-    @Binding var result: Result<MFMailComposeResult, Error>?
-    @Environment(\.dismiss) var dismiss
-    
-    func makeUIViewController(context: Context) -> MFMailComposeViewController {
-        let vc = MFMailComposeViewController()
-        vc.mailComposeDelegate = context.coordinator
-        vc.setToRecipients(recipients)
-        vc.setSubject(subject)
-        vc.setMessageBody(body, isHTML: false)
-        return vc
-    }
-    
-    func updateUIViewController(_ uiViewController: MFMailComposeViewController, context: Context) {}
-    
-    func makeCoordinator() -> Coordinator {
-        Coordinator(self)
-    }
-    
-    class Coordinator: NSObject, MFMailComposeViewControllerDelegate {
-        let parent: MailComposeView
-        
-        init(_ parent: MailComposeView) {
-            self.parent = parent
-        }
-        
-        func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
-            if let error = error {
-                parent.result = .failure(error)
-            } else {
-                parent.result = .success(result)
-            }
-            parent.dismiss()
-        }
-    }
-}
-
 // MARK: - Preview
 
 #Preview {
-    AuthorProfileModal(
-        author: AuthorProfile(
-            username: "Captain Sarah",
-            email: "sarah@example.com",
-            profileImageUrl: nil,
-            profileImageThumbnailUrl: nil,
-            bio: "Professional skipper with 20+ years experience. Specializing in yacht charters and sailing instruction across the Mediterranean.",
-            location: "Mediterranean",
-            nationality: "Italian",
-            isVerified: true,
-            stats: AuthorStats(
-                averageRating: 4.9,
-                totalContributions: 127,
-                totalForks: 89
-            )
-        ),
-        onDismiss: {}
-    )
+    MainActor.assumeIsolated {
+        let deps = try! AppDependencies.makeForTesting()
+        let coordinator = AppCoordinator(dependencies: deps)
+        return AuthorProfileModal(
+            author: AuthorProfile(
+                username: "Captain Sarah",
+                email: "sarah@example.com",
+                profileImageUrl: nil,
+                profileImageThumbnailUrl: nil,
+                bio: "Professional skipper with 20+ years experience. Specializing in yacht charters and sailing instruction across the Mediterranean.",
+                location: "Mediterranean",
+                nationality: "Italian",
+                isVerified: true,
+                stats: AuthorStats(
+                    averageRating: 4.9,
+                    totalContributions: 127,
+                    totalForks: 89
+                ),
+                userId: UUID(),
+                socialLinks: [
+                    SocialLink(platform: .instagram, handle: "captain_sarah"),
+                    SocialLink(platform: .telegram, handle: "sarah_sails")
+                ],
+                primaryCommunityName: "Med Sailors"
+            ),
+            onDismiss: {}
+        )
+        .environment(\.appCoordinator, coordinator)
+    }
 }

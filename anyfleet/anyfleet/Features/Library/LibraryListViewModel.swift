@@ -431,7 +431,10 @@ final class LibraryListViewModel: ErrorHandling {
                 averageRating: 4.8,
                 totalContributions: 15,
                 totalForks: 23
-            )
+            ),
+            userId: nil,
+            socialLinks: nil,
+            primaryCommunityName: nil
         )
     }
 }

@@ -384,6 +384,7 @@
 "authorProfile.comingSoonMessage" = "Author profiles with detailed information, content listings, and more features are coming in a future update.";
 "authorProfile.verified" = "Verified";
 "authorProfile.getInTouch" = "Get In Touch";
+"authorProfile.viewCharters" = "View Charters";
 
 // Profile Image
 "profile.image.upload" = "Upload Profile Photo";

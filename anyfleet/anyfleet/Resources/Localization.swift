@@ -2568,5 +2568,11 @@ enum L10n {
             tableName: "Localizable",
             comment: "Get in touch button text"
         )
+
+        static let viewCharters = NSLocalizedString(
+            "authorProfile.viewCharters",
+            tableName: "Localizable",
+            comment: "Primary CTA on author profile modal to open charter discovery"
+        )
     }
 }

@@ -364,6 +364,7 @@
 "authorProfile.comingSoonMessage" = "Профили авторов с подробной информацией, списком контента и другими функциями появятся в будущем обновлении.";
 "authorProfile.verified" = "Подтверждён";
 "authorProfile.getInTouch" = "Связаться";
+"authorProfile.viewCharters" = "Чартеры";
 
 // Profile Image
 "profile.image.upload" = "Загрузить фото профиля";

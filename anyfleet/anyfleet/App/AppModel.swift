@@ -12,6 +12,8 @@ protocol AppCoordinatorProtocol: AnyObject {
 
     func push(_ route: AppRoute, to tab: AppView.Tab)
     func navigateToLibrary()
+    /// Switches to the Discover tab and pushes charter discovery (map/list).
+    func navigateToCharterDiscovery()
 }
 
 enum AppRoute: Hashable {

@@ -223,7 +223,10 @@ struct LibraryAuthorProfileTests {
             location: nil,
             nationality: nil,
             isVerified: false,
-            stats: nil
+            stats: nil,
+            userId: nil,
+            socialLinks: nil,
+            primaryCommunityName: nil
         )
         let modal = LibraryModal.authorProfile(author)
         #expect(modal.id == "author-TestSailor")
@@ -240,7 +243,10 @@ struct LibraryAuthorProfileTests {
             location: nil,
             nationality: nil,
             isVerified: false,
-            stats: nil
+            stats: nil,
+            userId: nil,
+            socialLinks: nil,
+            primaryCommunityName: nil
         )
         let authorModal = LibraryModal.authorProfile(author)
         let signInModal = LibraryModal.signIn
@@ -294,4 +300,5 @@ private class MockMinimalCoordinator: AppCoordinatorProtocol {
     func viewGuide(_ id: UUID) {}
     func push(_ route: AppRoute, to tab: AppView.Tab) {}
     func navigateToLibrary() {}
+    func navigateToCharterDiscovery() {}
 }
