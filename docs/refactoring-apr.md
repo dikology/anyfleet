@@ -93,7 +93,7 @@
 |---|-------|----------|
 | D1 | **No Dynamic Type support** — all 50+ typography definitions use fixed `Font.system(size:)` instead of `Font.system(.body)` or `@ScaledMetric`. Users who increase text size see no change. | `DesignSystemTypography.swift` |
 | D2 | **`onTapGesture` instead of `Button`** — `HomeView` hero card (line 155) uses `.onTapGesture`, losing visual press state, `.isButton` accessibility trait, and standard hit testing. | `HomeView.swift` |
-| D3 | **No-op "View Voyage Log" button** — `CharterDetailView` line 531 has `Button { }` for completed charters. Users tap and nothing happens — should be disabled with a "coming soon" label or hidden. | `CharterDetailView.swift` |
+| D3 | **~~No-op "View Voyage Log" button~~** — **Done (S2):** completed-charter FAB is now **Edit** with real navigation. | `CharterDetailView.swift` |
 | D4 | **No validation feedback on charter editor** — Save button is disabled when `!viewModel.isValid` (line 307) with reduced opacity, but no inline messages tell the user *what* to fix. | `CharterEditorView.swift` |
 | D5 | **`Spacer()` in `ScrollView`** — `HomeView` line 34 uses a `Spacer()` inside a `ScrollView`'s `VStack`, which has undefined behavior (spacers expand infinitely in the scroll axis). | `HomeView.swift` |
 | D6 | **Load more requires explicit button tap** — Charter discovery list (line 144) needs a "Load More" button. Infinite scroll with `.onAppear` on the last item would be more natural. | `CharterDiscoveryView.swift` |
@@ -785,16 +785,16 @@ func pullMyChartersSkipsWhenUnauthenticated() async throws {
 
 These are items that will likely cause **App Review rejection** or **production crashes** if shipped as-is.
 
-| # | Issue | Risk | Location | Effort |
-|---|-------|------|----------|--------|
-| S1 | **`fatalError` on database init failure** — `AppDatabase` line 421 crashes the app if the SQLite database can't be initialized (e.g. disk full, sandboxing issue). App Review often tests edge cases that trigger these. Must be replaced with a recoverable error UI (e.g. "Something went wrong — tap to retry" screen). | Crash → Rejection | `Data/Local/AppDatabase.swift` | Medium |
-| S2 | **No-op "View Voyage Log" button** — `CharterDetailView` shows a prominent FAB that does nothing when tapped on completed charters. Apple rejects apps with buttons that don't function. Either hide it, disable with "Coming soon" label, or wire it to a placeholder screen. | Broken UI → Rejection | `Features/Charter/CharterDetailView.swift` | Small |
-| S3 | **Flashcard deck route renders placeholder text** — `AppCoordinator.destination(for: .deckEditor)` returns `Text("Deck Editor - Coming Soon")`. If any UI path reaches this (and it can via the library create menu), it looks unfinished. Remove the route entirely or gate behind a feature flag. | Incomplete feature → Rejection | `App/AppModel.swift` line 263 | Small |
-| S4 | **Test/mock data ships in production binary** — ~140 lines of mock charter data in `CharterMapView`, `PreviewLibraryRepository` in `LibraryListView`, `mockAuthorProfile` in `LibraryListViewModel`. Apple's review may flag this as test content visible to users, and it increases binary size needlessly. Wrap all preview code in `#if DEBUG`. | Test content → Possible rejection | Multiple files | Small |
-| S5 | **`print()` statements in production** — 6 `print()` calls in `CharterMapView` and 1 in `LibraryStore`. These output user data to the console, which Apple views as a privacy concern during review. Replace with `AppLogger` or remove. | Privacy concern | `CharterMapView`, `LibraryStore` | Tiny |
-| S6 | **ViewModel lifecycle bug** — ViewModels created in `body` (see section 3.1) cause visible state loss when the user switches tabs and returns. A reviewer trying the app for 5 minutes will notice list positions resetting and loading indicators re-appearing. | Poor UX during review | `App/AppView.swift` | Small |
-| S7 | **Missing `NSPhotoLibraryUsageDescription`** — The app uses `PhotosUI` (`PhotosPicker`) for profile image upload. While `PHPickerViewController` (used by `PhotosPicker`) does not require a usage description on iOS 14+, the App Review team has historically flagged apps that access photos without one. Adding a description to `Info.plist` is a safety net. | Possible rejection | `Info.plist` | Tiny |
-| S8 | **App Privacy "nutrition label"** — App Store Connect requires you to declare what data your app collects (location, user content, identifiers, etc.) before submission. Prepare the declaration based on: location (when in use), user content (charters, checklists), authentication (Apple ID, tokens), profile data (name, bio, photo). Not a code change, but blocks submission if not done. | Blocks submission | App Store Connect | Small |
+| # | Issue | Risk | Location | Effort | Status |
+|---|-------|------|----------|--------|--------|
+| S1 | **`fatalError` on database init failure** — `AppDatabase` crashed the app if SQLite could not be initialized (e.g. disk full, sandboxing issue). **Fix:** recoverable error UI (`DatabaseUnavailableView`, in-memory fallback, `AppDatabase.reset()` + retry). | Crash → Rejection | `Data/Local/AppDatabase.swift`, `App/DatabaseUnavailableView.swift`, `anyfleetApp.swift` | Medium | **Done** |
+| S2 | **No-op "View Voyage Log" button** — `CharterDetailView` showed a prominent FAB that did nothing on completed charters. **Fix:** replaced with an **Edit** FAB that opens the real editor flow. | Broken UI → Rejection | `Features/Charter/CharterDetailView.swift` | Small | **Done** |
+| S3 | **Flashcard deck route renders placeholder text** — `AppCoordinator.destination(for: .deckEditor)` returns `Text("Deck Editor - Coming Soon")`. If any UI path reaches this (and it can via the library create menu), it looks unfinished. Remove the route entirely or gate behind a feature flag. | Incomplete feature → Rejection | `App/AppModel.swift` line 263 | Small | Open |
+| S4 | **Test/mock data ships in production binary** — ~140 lines of mock charter data in `CharterMapView`, `PreviewLibraryRepository` in `LibraryListView`, `mockAuthorProfile` in `LibraryListViewModel`. Apple's review may flag this as test content visible to users, and it increases binary size needlessly. Wrap all preview code in `#if DEBUG`. | Test content → Possible rejection | Multiple files | Small | Open |
+| S5 | **`print()` statements in production** — 6 `print()` calls in `CharterMapView` and 1 in `LibraryStore`. These output user data to the console, which Apple views as a privacy concern during review. Replace with `AppLogger` or remove. | Privacy concern | `CharterMapView`, `LibraryStore` | Tiny | Open |
+| S6 | **ViewModel lifecycle bug** — ViewModels created in `body` (see section 3.1) cause visible state loss when the user switches tabs and returns. A reviewer trying the app for 5 minutes will notice list positions resetting and loading indicators re-appearing. | Poor UX during review | `App/AppView.swift` | Small | Open |
+| S7 | **Missing `NSPhotoLibraryUsageDescription`** — The app uses `PhotosUI` (`PhotosPicker`) for profile image upload. While `PHPickerViewController` (used by `PhotosPicker`) does not require a usage description on iOS 14+, the App Review team has historically flagged apps that access photos without one. Adding a description to `Info.plist` is a safety net. | Possible rejection | `Info.plist` | Tiny | Open |
+| S8 | **App Privacy "nutrition label"** — App Store Connect requires you to declare what data your app collects (location, user content, identifiers, etc.) before submission. Prepare the declaration based on: location (when in use), user content (charters, checklists), authentication (Apple ID, tokens), profile data (name, bio, photo). Not a code change, but blocks submission if not done. | Blocks submission | App Store Connect | Small | Open |
 
 ### 5.B — Strongly Recommended Before v1.0
 
@@ -849,7 +849,7 @@ Items that can be deferred to subsequent releases, organized by recommended rele
 
 | Item | Description |
 |------|-------------|
-| **Voyage Log** | Wire the "View Voyage Log" button to actual functionality (photo timeline, notes, route tracking). |
+| **Voyage Log** | The completed-charter FAB is now **Edit** (S2). Future product work: a dedicated voyage log (photo timeline, notes, route tracking). |
 | **Flashcard Decks** | Either implement the full feature (editor, reader, spaced repetition) or permanently remove all traces. The current half-state is technical debt. |
 | **Deep Linking** | Implement `handleDeepLink` for shared charters, published content, and author profiles. Register Universal Links in Associated Domains. |
 | **Export Data / Activity Log** | The `L10n` strings exist but the UI doesn't expose them. Implement GDPR-compliant data export and activity history. |
@@ -864,8 +864,8 @@ Pre-submission blockers first, then code quality, then post-launch improvements.
 
 | Priority | Change | Effort | Impact |
 |----------|--------|--------|--------|
-| **P0 — Blocks submission** | Fix `fatalError` in AppDatabase (S1) | Medium | Prevents production crash |
-| **P0 — Blocks submission** | Remove/disable no-op Voyage Log button (S2) | Small | Eliminates dead UI |
+| **P0 — Done** | AppDatabase: recoverable error UI instead of `fatalError` (S1) | Medium | Prevents production crash |
+| **P0 — Done** | Charter detail: **Edit** FAB replaces no-op "View Voyage Log" (S2) | Small | Eliminates dead UI |
 | **P0 — Blocks submission** | Remove flashcard deck placeholder route (S3) | Small | Eliminates unfinished feature |
 | **P0 — Blocks submission** | `#if DEBUG` gates for mock data (S4, 3.8) | Small | Stops shipping test content |
 | **P0 — Blocks submission** | Replace `print()` with `AppLogger` (S5) | Tiny | Privacy compliance |
