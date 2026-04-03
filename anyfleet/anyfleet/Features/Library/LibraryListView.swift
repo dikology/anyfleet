@@ -287,8 +287,6 @@ struct CreateContentMenu: View {
                 Label(L10n.Library.newChecklist, systemImage: "checklist")
             }
 
-            // Flashcard deck item removed until feature ships
-
             Button {
                 viewModel.onCreateGuideTapped()
             } label: {
@@ -457,8 +455,6 @@ struct LibraryContentList: View {
                                 viewModel.onReadChecklistTapped(item.id)
                             case .practiceGuide:
                                 viewModel.onReadGuideTapped(item.id)
-                            // TODO: Implement deck reader when ready
-
                             }
                         },
                         onAuthorTapped: { username, authorUserId in
@@ -510,8 +506,6 @@ struct LibraryContentList: View {
                                 viewModel.onEditChecklistTapped(item.id)
                             case .practiceGuide:
                                 viewModel.onEditGuideTapped(item.id)
-//                            case .flashcardDeck:
-//                                viewModel.onEditDeckTapped(item.id)
                             }
                         } label: {
                             Label(L10n.Library.actionEdit, systemImage: "pencil")

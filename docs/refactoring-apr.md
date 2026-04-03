@@ -789,7 +789,7 @@ These are items that will likely cause **App Review rejection** or **production 
 |---|-------|------|----------|--------|--------|
 | S1 | **`fatalError` on database init failure** — `AppDatabase` crashed the app if SQLite could not be initialized (e.g. disk full, sandboxing issue). **Fix:** recoverable error UI (`DatabaseUnavailableView`, in-memory fallback, `AppDatabase.reset()` + retry). | Crash → Rejection | `Data/Local/AppDatabase.swift`, `App/DatabaseUnavailableView.swift`, `anyfleetApp.swift` | Medium | **Done** |
 | S2 | **No-op "View Voyage Log" button** — `CharterDetailView` showed a prominent FAB that did nothing on completed charters. **Fix:** replaced with an **Edit** FAB that opens the real editor flow. | Broken UI → Rejection | `Features/Charter/CharterDetailView.swift` | Small | **Done** |
-| S3 | **Flashcard deck route renders placeholder text** — `AppCoordinator.destination(for: .deckEditor)` returns `Text("Deck Editor - Coming Soon")`. If any UI path reaches this (and it can via the library create menu), it looks unfinished. Remove the route entirely or gate behind a feature flag. | Incomplete feature → Rejection | `App/AppModel.swift` line 263 | Small | Open |
+| S3 | **Flashcard deck route rendered placeholder text** — `AppRoute.deckEditor` and `destination(for:)` showed a stub. **Fix:** removed `deckEditor` from `AppRoute`, dropped `editDeck` from `AppCoordinatorProtocol`, and removed dead `onCreateDeckTapped` / `onEditDeckTapped` from `LibraryListViewModel`. Library create menu already had no deck entry. | Incomplete feature → Rejection | `App/AppModel.swift`, `Features/Library/LibraryListViewModel.swift` | Small | **Done** |
 | S4 | **Test/mock data ships in production binary** — ~140 lines of mock charter data in `CharterMapView`, `PreviewLibraryRepository` in `LibraryListView`, `mockAuthorProfile` in `LibraryListViewModel`. Apple's review may flag this as test content visible to users, and it increases binary size needlessly. Wrap all preview code in `#if DEBUG`. | Test content → Possible rejection | Multiple files | Small | Open |
 | S5 | **`print()` statements in production** — 6 `print()` calls in `CharterMapView` and 1 in `LibraryStore`. These output user data to the console, which Apple views as a privacy concern during review. Replace with `AppLogger` or remove. | Privacy concern | `CharterMapView`, `LibraryStore` | Tiny | Open |
 | S6 | **ViewModel lifecycle bug** — ViewModels created in `body` (see section 3.1) cause visible state loss when the user switches tabs and returns. A reviewer trying the app for 5 minutes will notice list positions resetting and loading indicators re-appearing. | Poor UX during review | `App/AppView.swift` | Small | Open |
@@ -850,7 +850,7 @@ Items that can be deferred to subsequent releases, organized by recommended rele
 | Item | Description |
 |------|-------------|
 | **Voyage Log** | The completed-charter FAB is now **Edit** (S2). Future product work: a dedicated voyage log (photo timeline, notes, route tracking). |
-| **Flashcard Decks** | Either implement the full feature (editor, reader, spaced repetition) or permanently remove all traces. The current half-state is technical debt. |
+| **Flashcard Decks** | Navigation stub removed (S3). Remaining work: data model, persistence, editor/reader UX, and optional Discover support — or keep decks out of product scope until then. |
 | **Deep Linking** | Implement `handleDeepLink` for shared charters, published content, and author profiles. Register Universal Links in Associated Domains. |
 | **Export Data / Activity Log** | The `L10n` strings exist but the UI doesn't expose them. Implement GDPR-compliant data export and activity history. |
 | **Nautical miles & regions** | `CaptainStats.nauticalMiles` and `regionsVisited` are placeholder Phase 3 fields. Implement GPS tracking during active charters. |
@@ -866,7 +866,7 @@ Pre-submission blockers first, then code quality, then post-launch improvements.
 |----------|--------|--------|--------|
 | **P0 — Done** | AppDatabase: recoverable error UI instead of `fatalError` (S1) | Medium | Prevents production crash |
 | **P0 — Done** | Charter detail: **Edit** FAB replaces no-op "View Voyage Log" (S2) | Small | Eliminates dead UI |
-| **P0 — Blocks submission** | Remove flashcard deck placeholder route (S3) | Small | Eliminates unfinished feature |
+| **P0 — Done** | Flashcard deck: removed `AppRoute.deckEditor` and coordinator stub (S3) | Small | Eliminates unfinished feature |
 | **P0 — Blocks submission** | `#if DEBUG` gates for mock data (S4, 3.8) | Small | Stops shipping test content |
 | **P0 — Blocks submission** | Replace `print()` with `AppLogger` (S5) | Tiny | Privacy compliance |
 | **P0 — Blocks submission** | Fix ViewModel lifecycle in AppView (S6, 3.1) | Small | Eliminates state loss reviewers will notice |

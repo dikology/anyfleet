@@ -177,12 +177,6 @@ final class LibraryListViewModel: ErrorHandling {
         coordinator.editGuide(nil)
     }
     
-    /// Handles the create deck action by navigating to the deck editor.
-    func onCreateDeckTapped() {
-        AppLogger.view.info("Create deck tapped from library")
-        coordinator.editDeck(nil)
-    }
-    
     // MARK: - Read Actions
     
     /// Handles tapping a checklist to read/view it.
@@ -209,13 +203,6 @@ final class LibraryListViewModel: ErrorHandling {
     func onEditGuideTapped(_ guideID: UUID) {
         AppLogger.view.info("Edit guide tapped: \(guideID.uuidString)")
         coordinator.editGuide(guideID)
-    }
-    
-    /// Handles editing an existing deck.
-    /// - Parameter deckID: The ID of the deck to edit
-    func onEditDeckTapped(_ deckID: UUID) {
-        AppLogger.view.info("Edit deck tapped: \(deckID.uuidString)")
-        coordinator.editDeck(deckID)
     }
     
     // MARK: - Data Loading

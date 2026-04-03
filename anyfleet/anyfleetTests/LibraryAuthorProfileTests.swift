@@ -295,7 +295,6 @@ private class MockMinimalAuthObserver: AuthStateObserverProtocol {
 private class MockMinimalCoordinator: AppCoordinatorProtocol {
     func editChecklist(_ id: UUID?) {}
     func editGuide(_ id: UUID?) {}
-    func editDeck(_ id: UUID?) {}
     func viewChecklist(_ id: UUID) {}
     func viewGuide(_ id: UUID) {}
     func push(_ route: AppRoute, to tab: AppView.Tab) {}

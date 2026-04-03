@@ -228,13 +228,11 @@ class MockAuthStateObserver: AuthStateObserverProtocol {
 class MockAppCoordinator: AppCoordinatorProtocol {
         private var editChecklistCalls: [UUID?] = []
         private var editGuideCalls: [UUID?] = []
-        private var editDeckCalls: [UUID?] = []
         private var viewChecklistCalls: [UUID] = []
         private var viewGuideCalls: [UUID] = []
 
         func getEditChecklistCalls() -> [UUID?] { editChecklistCalls }
         func getEditGuideCalls() -> [UUID?] { editGuideCalls }
-        func getEditDeckCalls() -> [UUID?] { editDeckCalls }
         func getViewChecklistCalls() -> [UUID] { viewChecklistCalls }
         func getViewGuideCalls() -> [UUID] { viewGuideCalls }
 
@@ -244,10 +242,6 @@ class MockAppCoordinator: AppCoordinatorProtocol {
 
         func editGuide(_ guideID: UUID?) {
             editGuideCalls.append(guideID)
-        }
-
-        func editDeck(_ deckID: UUID?) {
-            editDeckCalls.append(deckID)
         }
 
         func viewChecklist(_ checklistID: UUID) {

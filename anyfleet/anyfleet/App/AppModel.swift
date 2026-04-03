@@ -6,7 +6,6 @@ import UIKit
 protocol AppCoordinatorProtocol: AnyObject {
     func editChecklist(_ checklistID: UUID?)
     func editGuide(_ guideID: UUID?)
-    func editDeck(_ deckID: UUID?)
     func viewChecklist(_ checklistID: UUID)
     func viewGuide(_ guideID: UUID)
 
@@ -30,7 +29,6 @@ enum AppRoute: Hashable {
     // Library Content
     case checklistEditor(UUID?)
     case guideEditor(UUID?)
-    case deckEditor(UUID?)
     case checklistDetail(UUID)
     case guideDetail(UUID)
 
@@ -149,12 +147,6 @@ final class AppCoordinator: AppCoordinatorProtocol {
         libraryPath.append(.guideEditor(guideID))
     }
     
-    /// Navigate to deck editor (create new or edit existing)
-    /// - Parameter deckID: Optional deck ID. If nil, creates new deck.
-    func editDeck(_ deckID: UUID? = nil) {
-        libraryPath.append(.deckEditor(deckID))
-    }
-    
     /// Navigate to checklist reader view.
     /// - Parameter checklistID: The ID of the checklist to view.
     func viewChecklist(_ checklistID: UUID) {
@@ -260,17 +252,6 @@ final class AppCoordinator: AppCoordinatorProtocol {
                     onDismiss: { self.pop(from: .library) }
                 )
             )
-        case .deckEditor(let deckID):
-            // TODO: Implement DeckEditorView when ready
-            // DeckEditorView(
-            //     viewModel: DeckEditorViewModel(
-            //         libraryStore: dependencies.libraryStore,
-            //         deckID: deckID,
-            //         onDismiss: { self.pop(from: .library) }
-            //     )
-            // )
-            Text("Deck Editor: \(deckID?.uuidString ?? "New")")
-                .navigationTitle("Deck")
         case .guideDetail(let guideID):
             PracticeGuideReaderView(
                 viewModel: PracticeGuideReaderViewModel(
