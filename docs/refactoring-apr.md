@@ -65,7 +65,7 @@
 | B6 | **Inconsistent logger categories** — `ContentSyncService` logs to `AppLogger.auth` instead of `.sync`. | `ContentSyncService` |
 | B7 | **`isNetworkReachable()` always returns `true`** — dead code that provides no actual network check. | `SyncQueueService` line 451 |
 | B8 | **`ChecklistItem.isOptional` and `.isRequired` can both be true** — no validation prevents contradictory state. | `Checklist.swift` |
-| B9 | **Mock data ships in production binary** — `CharterMapView` has ~140 lines of mock data not gated behind `#if DEBUG`. `LibraryListView` and `LibraryListViewModel` include `PreviewLibraryRepository` and `mockAuthorProfile` unconditionally. | Multiple files |
+| B9 | **~~Mock data ships in production binary~~** — **Done (S4):** preview fixtures and UI-testing mocks are `#if DEBUG`-gated. | Multiple files |
 | B10 | **Unused computed property** — `CharterListViewModel.sortedByDate` (line 119) is never called; the view sorts its own copy. | `CharterListViewModel` |
 
 ---
@@ -550,9 +550,9 @@ struct PaginatedResponse<Item: Decodable>: Decodable {
 
 ---
 
-### 3.8 — #if DEBUG Gate for Preview/Mock Data (B9)
+### 3.8 — #if DEBUG Gate for Preview/Mock Data (B9) — **Done**
 
-Wrap all preview-only code in conditional compilation:
+Wrap all preview-only code in conditional compilation (implemented for the files called out in S4; other `#Preview` blocks in the app still compile in Debug only via Xcode):
 
 ```swift
 // CharterMapView.swift — wrap mock data section
@@ -790,7 +790,7 @@ These are items that will likely cause **App Review rejection** or **production 
 | S1 | **`fatalError` on database init failure** — `AppDatabase` crashed the app if SQLite could not be initialized (e.g. disk full, sandboxing issue). **Fix:** recoverable error UI (`DatabaseUnavailableView`, in-memory fallback, `AppDatabase.reset()` + retry). | Crash → Rejection | `Data/Local/AppDatabase.swift`, `App/DatabaseUnavailableView.swift`, `anyfleetApp.swift` | Medium | **Done** |
 | S2 | **No-op "View Voyage Log" button** — `CharterDetailView` showed a prominent FAB that did nothing on completed charters. **Fix:** replaced with an **Edit** FAB that opens the real editor flow. | Broken UI → Rejection | `Features/Charter/CharterDetailView.swift` | Small | **Done** |
 | S3 | **Flashcard deck route rendered placeholder text** — `AppRoute.deckEditor` and `destination(for:)` showed a stub. **Fix:** removed `deckEditor` from `AppRoute`, dropped `editDeck` from `AppCoordinatorProtocol`, and removed dead `onCreateDeckTapped` / `onEditDeckTapped` from `LibraryListViewModel`. Library create menu already had no deck entry. | Incomplete feature → Rejection | `App/AppModel.swift`, `Features/Library/LibraryListViewModel.swift` | Small | **Done** |
-| S4 | **Test/mock data ships in production binary** — ~140 lines of mock charter data in `CharterMapView`, `PreviewLibraryRepository` in `LibraryListView`, `mockAuthorProfile` in `LibraryListViewModel`. Apple's review may flag this as test content visible to users, and it increases binary size needlessly. Wrap all preview code in `#if DEBUG`. | Test content → Possible rejection | Multiple files | Small | Open |
+| S4 | **Test/mock data ships in production binary** — **Fix:** wrapped in `#if DEBUG`: `CharterMapPreviewData` + map previews (`CharterMapView`), library list `#Preview` + `PreviewLibraryRepository` (`LibraryListView`), `mockAuthorProfile` + `UITesting` shortcut (`LibraryListViewModel`), Discover `UITesting` mocks + helpers (`DiscoverViewModel`), `LibraryItemRow` preview. Release builds no longer embed those literals; UI tests keep mocks when run as Debug. | Test content → Possible rejection | Multiple files | Small | **Done** |
 | S5 | **`print()` statements in production** — 6 `print()` calls in `CharterMapView` and 1 in `LibraryStore`. These output user data to the console, which Apple views as a privacy concern during review. Replace with `AppLogger` or remove. | Privacy concern | `CharterMapView`, `LibraryStore` | Tiny | Open |
 | S6 | **ViewModel lifecycle bug** — ViewModels created in `body` (see section 3.1) cause visible state loss when the user switches tabs and returns. A reviewer trying the app for 5 minutes will notice list positions resetting and loading indicators re-appearing. | Poor UX during review | `App/AppView.swift` | Small | Open |
 | S7 | **Missing `NSPhotoLibraryUsageDescription`** — The app uses `PhotosUI` (`PhotosPicker`) for profile image upload. While `PHPickerViewController` (used by `PhotosPicker`) does not require a usage description on iOS 14+, the App Review team has historically flagged apps that access photos without one. Adding a description to `Info.plist` is a safety net. | Possible rejection | `Info.plist` | Tiny | Open |
@@ -867,7 +867,7 @@ Pre-submission blockers first, then code quality, then post-launch improvements.
 | **P0 — Done** | AppDatabase: recoverable error UI instead of `fatalError` (S1) | Medium | Prevents production crash |
 | **P0 — Done** | Charter detail: **Edit** FAB replaces no-op "View Voyage Log" (S2) | Small | Eliminates dead UI |
 | **P0 — Done** | Flashcard deck: removed `AppRoute.deckEditor` and coordinator stub (S3) | Small | Eliminates unfinished feature |
-| **P0 — Blocks submission** | `#if DEBUG` gates for mock data (S4, 3.8) | Small | Stops shipping test content |
+| **P0 — Done** | `#if DEBUG` for preview/UI-test mocks (S4, 3.8, B9) | Small | Stops shipping test content in Release |
 | **P0 — Blocks submission** | Replace `print()` with `AppLogger` (S5) | Tiny | Privacy compliance |
 | **P0 — Blocks submission** | Fix ViewModel lifecycle in AppView (S6, 3.1) | Small | Eliminates state loss reviewers will notice |
 | **P0 — Blocks submission** | Prepare App Privacy nutrition label (S8) | Small | Required in App Store Connect |

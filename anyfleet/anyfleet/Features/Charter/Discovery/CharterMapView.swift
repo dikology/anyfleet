@@ -933,6 +933,7 @@ private extension CharterUrgencyLevel {
     }
 }
 
+#if DEBUG
 // MARK: - Mock data (previews & design review)
 
 enum CharterMapPreviewData {
@@ -1122,3 +1123,4 @@ enum CharterMapPreviewData {
         .padding(.bottom, DesignSystem.Spacing.sm)
     }
 }
+#endif

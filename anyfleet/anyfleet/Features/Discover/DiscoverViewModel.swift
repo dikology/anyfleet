@@ -45,7 +45,7 @@ final class DiscoverViewModel: ErrorHandling {
         isLoading = true
         clearError()
 
-        // Check if we're in UI testing mode and return mock data
+        #if DEBUG
         if ProcessInfo.processInfo.environment["UITesting"] == "true" {
             content = mockDiscoverContent()
             AppLogger.view.completeOperation("Load Discover Content")
@@ -53,6 +53,7 @@ final class DiscoverViewModel: ErrorHandling {
             isLoading = false
             return
         }
+        #endif
 
         do {
             let response = try await apiClient.fetchPublicContent()
@@ -99,7 +100,7 @@ final class DiscoverViewModel: ErrorHandling {
         AppLogger.view.startOperation("Fetch Author Profile")
         AppLogger.view.info("Fetching profile for: \(username)")
 
-        // Check if we're in UI testing mode and return mock data
+        #if DEBUG
         if ProcessInfo.processInfo.environment["UITesting"] == "true" {
             let mockProfile = mockAuthorProfile(username: username)
             AppLogger.view.completeOperation("Fetch Author Profile")
@@ -107,6 +108,7 @@ final class DiscoverViewModel: ErrorHandling {
             onProfileFetched(mockProfile)
             return
         }
+        #endif
 
         do {
             let response = try await apiClient.fetchPublicProfile(username: username)
@@ -182,6 +184,7 @@ final class DiscoverViewModel: ErrorHandling {
         }
     }
 
+    #if DEBUG
     // MARK: - UI Testing Support
 
     /// Returns mock discover content for UI testing
@@ -250,4 +253,5 @@ final class DiscoverViewModel: ErrorHandling {
             primaryCommunityName: "Demo Cruisers"
         )
     }
+    #endif
 }

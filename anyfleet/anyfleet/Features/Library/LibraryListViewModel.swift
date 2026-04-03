@@ -372,10 +372,12 @@ final class LibraryListViewModel: ErrorHandling {
         AppLogger.view.startOperation("Fetch Author Profile")
         AppLogger.view.info("Fetching library author profile for: \(username)")
 
+        #if DEBUG
         if ProcessInfo.processInfo.environment["UITesting"] == "true" {
             activeModal = .authorProfile(mockAuthorProfile(username: username))
             return
         }
+        #endif
 
         do {
             // Use current user when author is self (handles username change after profile update)
@@ -404,6 +406,7 @@ final class LibraryListViewModel: ErrorHandling {
         }
     }
 
+    #if DEBUG
     private func mockAuthorProfile(username: String) -> AuthorProfile {
         AuthorProfile(
             username: username,
@@ -424,4 +427,5 @@ final class LibraryListViewModel: ErrorHandling {
             primaryCommunityName: nil
         )
     }
+    #endif
 }
