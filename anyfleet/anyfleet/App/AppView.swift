@@ -12,111 +12,32 @@ struct AppView: View {
         case profile
     }
 
+    // ViewModels are stored in @State so they are created once and survive every
+    // body re-evaluation. Optionals allow lazy init after environment values are
+    // available; in practice they are filled during the first .task execution,
+    // which runs before the first user-visible frame.
+    @State private var homeVM: HomeViewModel?
+    @State private var charterListVM: CharterListViewModel?
+    @State private var libraryListVM: LibraryListViewModel?
+    @State private var discoverVM: DiscoverViewModel?
+    @State private var charterDiscoveryVM: CharterDiscoveryViewModel?
+    @State private var profileVM: ProfileViewModel?
+
     init() {
         // Hide the native UIKit tab bar globally so the custom FloatingTabBar takes over.
         UITabBar.appearance().isHidden = true
     }
 
     var body: some View {
+        @Bindable var coord = coordinator
+
         ZStack(alignment: .top) {
-            TabView(selection: Binding<Tab>(
-                get: { coordinator.selectedTab },
-                set: { coordinator.selectedTab = $0 }
-            )) {
-                // Home Tab
-                NavigationStack(path: Binding(get: { coordinator.homePath }, set: { coordinator.homePath = $0 })) {
-                    HomeView(
-                        viewModel: HomeViewModel(
-                            coordinator: coordinator,
-                            charterStore: dependencies.charterStore,
-                            libraryStore: dependencies.libraryStore
-                        )
-                    )
-                    .navigationDestination(for: AppRoute.self) { route in
-                        coordinator.destination(for: route)
-                    }
-                }
-                .floatingTabBarPadding()
-                .tabItem { Label(L10n.Home, systemImage: "house.fill") }
-                .tag(Tab.home)
-                .accessibilityIdentifier("tab.home")
-
-                // Charters Tab
-                NavigationStack(path: Binding(get: { coordinator.chartersPath }, set: { coordinator.chartersPath = $0 })) {
-                    CharterListView(
-                        viewModel: CharterListViewModel(charterStore: dependencies.charterStore, coordinator: coordinator)
-                    )
-                    .navigationDestination(for: AppRoute.self) { route in
-                        coordinator.destination(for: route)
-                    }
-                }
-                .floatingTabBarPadding()
-                .tabItem { Label(L10n.Charters, systemImage: "sailboat.fill") }
-                .tag(Tab.charters)
-                .accessibilityIdentifier("tab.charters")
-
-                // Library Tab
-                NavigationStack(path: Binding(get: { coordinator.libraryPath }, set: { coordinator.libraryPath = $0 })) {
-                    LibraryListView(
-                        viewModel: LibraryListViewModel(
-                            libraryStore: dependencies.libraryStore,
-                            visibilityService: dependencies.visibilityService,
-                            authObserver: dependencies.authStateObserver,
-                            coordinator: coordinator,
-                            apiClient: dependencies.apiClient,
-                            presentToast: { message, variant in dependencies.showToast(message, variant: variant) }
-                        )
-                    )
-                    .navigationDestination(for: AppRoute.self) { route in
-                        coordinator.destination(for: route)
-                    }
-                }
-                .floatingTabBarPadding()
-                .tabItem { Label(L10n.Library.myLibrary, systemImage: "book.fill") }
-                .tag(Tab.library)
-                .accessibilityIdentifier("tab.library")
-
-                // Discover Tab
-                NavigationStack(path: Binding(get: { coordinator.discoverPath }, set: { coordinator.discoverPath = $0 })) {
-                    DiscoverView(
-                        viewModel: DiscoverViewModel(
-                            apiClient: dependencies.apiClient,
-                            libraryStore: dependencies.libraryStore,
-                            coordinator: coordinator
-                        ),
-                        charterDiscoveryViewModel: CharterDiscoveryViewModel(
-                            apiClient: dependencies.apiClient,
-                            locationProvider: dependencies.locationProvider
-                        )
-                    )
-                    .navigationDestination(for: AppRoute.self) { route in
-                        coordinator.destination(for: route)
-                    }
-                }
-                .floatingTabBarPadding()
-                .tabItem { Label(L10n.Discover, systemImage: "globe") }
-                .tag(Tab.discover)
-                .accessibilityIdentifier("tab.discover")
-
-                // Profile Tab
-                NavigationStack(path: Binding(get: { coordinator.profilePath }, set: { coordinator.profilePath = $0 })) {
-                    ProfileView(viewModel: ProfileViewModel(
-                        authService: dependencies.authService,
-                        authObserver: dependencies.authStateObserver,
-                        apiClient: dependencies.apiClient,
-                        clearLocalDataAfterAccountDeletion: {
-                            try await dependencies.clearAllLocalUserDataAfterAccountDeletion()
-                        },
-                        presentToast: { message, variant in dependencies.showToast(message, variant: variant) }
-                    ))
-                    .navigationDestination(for: AppRoute.self) { route in
-                        coordinator.destination(for: route)
-                    }
-                }
-                .floatingTabBarPadding()
-                .tabItem { Label(L10n.ProfileTab, systemImage: "person.fill") }
-                .tag(Tab.profile)
-                .accessibilityIdentifier("tab.profile")
+            TabView(selection: $coord.selectedTab) {
+                homeTab
+                chartersTab
+                libraryTab
+                discoverTab
+                profileTab
             }
 
             if let toast = dependencies.toast {
@@ -143,9 +64,134 @@ struct AppView: View {
             .ignoresSafeArea(.keyboard)
         }
         .animation(DesignSystem.Motion.spring, value: dependencies.toast?.id)
+        // Re-run when the coordinator identity changes (e.g. DB retry rebuilds deps).
+        .task(id: ObjectIdentifier(coordinator)) {
+            createViewModels()
+        }
+    }
+
+    // MARK: - Tab Views
+
+    @ViewBuilder
+    private var homeTab: some View {
+        @Bindable var coord = coordinator
+        NavigationStack(path: $coord.homePath) {
+            if let vm = homeVM {
+                HomeView(viewModel: vm)
+                    .navigationDestination(for: AppRoute.self) { coordinator.destination(for: $0) }
+            }
+        }
+        .floatingTabBarPadding()
+        .tabItem { Label(L10n.Home, systemImage: "house.fill") }
+        .tag(Tab.home)
+        .accessibilityIdentifier("tab.home")
+    }
+
+    @ViewBuilder
+    private var chartersTab: some View {
+        @Bindable var coord = coordinator
+        NavigationStack(path: $coord.chartersPath) {
+            if let vm = charterListVM {
+                CharterListView(viewModel: vm)
+                    .navigationDestination(for: AppRoute.self) { coordinator.destination(for: $0) }
+            }
+        }
+        .floatingTabBarPadding()
+        .tabItem { Label(L10n.Charters, systemImage: "sailboat.fill") }
+        .tag(Tab.charters)
+        .accessibilityIdentifier("tab.charters")
+    }
+
+    @ViewBuilder
+    private var libraryTab: some View {
+        @Bindable var coord = coordinator
+        NavigationStack(path: $coord.libraryPath) {
+            if let vm = libraryListVM {
+                LibraryListView(viewModel: vm)
+                    .navigationDestination(for: AppRoute.self) { coordinator.destination(for: $0) }
+            }
+        }
+        .floatingTabBarPadding()
+        .tabItem { Label(L10n.Library.myLibrary, systemImage: "book.fill") }
+        .tag(Tab.library)
+        .accessibilityIdentifier("tab.library")
+    }
+
+    @ViewBuilder
+    private var discoverTab: some View {
+        @Bindable var coord = coordinator
+        NavigationStack(path: $coord.discoverPath) {
+            if let dvm = discoverVM, let cdvm = charterDiscoveryVM {
+                DiscoverView(viewModel: dvm, charterDiscoveryViewModel: cdvm)
+                    .navigationDestination(for: AppRoute.self) { coordinator.destination(for: $0) }
+            }
+        }
+        .floatingTabBarPadding()
+        .tabItem { Label(L10n.Discover, systemImage: "globe") }
+        .tag(Tab.discover)
+        .accessibilityIdentifier("tab.discover")
+    }
+
+    @ViewBuilder
+    private var profileTab: some View {
+        @Bindable var coord = coordinator
+        NavigationStack(path: $coord.profilePath) {
+            if let vm = profileVM {
+                ProfileView(viewModel: vm)
+                    .navigationDestination(for: AppRoute.self) { coordinator.destination(for: $0) }
+            }
+        }
+        .floatingTabBarPadding()
+        .tabItem { Label(L10n.ProfileTab, systemImage: "person.fill") }
+        .tag(Tab.profile)
+        .accessibilityIdentifier("tab.profile")
+    }
+
+    // MARK: - ViewModel Factory
+
+    /// Creates (or replaces) all per-tab view models from the current environment.
+    /// Called once on first appearance and again whenever the coordinator identity
+    /// changes (coordinator is recreated on DB-init retry).
+    private func createViewModels() {
+        homeVM = HomeViewModel(
+            coordinator: coordinator,
+            charterStore: dependencies.charterStore,
+            libraryStore: dependencies.libraryStore
+        )
+        charterListVM = CharterListViewModel(
+            charterStore: dependencies.charterStore,
+            coordinator: coordinator
+        )
+        libraryListVM = LibraryListViewModel(
+            libraryStore: dependencies.libraryStore,
+            visibilityService: dependencies.visibilityService,
+            authObserver: dependencies.authStateObserver,
+            coordinator: coordinator,
+            apiClient: dependencies.apiClient,
+            presentToast: { message, variant in dependencies.showToast(message, variant: variant) }
+        )
+        discoverVM = DiscoverViewModel(
+            apiClient: dependencies.apiClient,
+            libraryStore: dependencies.libraryStore,
+            coordinator: coordinator
+        )
+        charterDiscoveryVM = CharterDiscoveryViewModel(
+            apiClient: dependencies.apiClient,
+            locationProvider: dependencies.locationProvider
+        )
+        profileVM = ProfileViewModel(
+            authService: dependencies.authService,
+            authObserver: dependencies.authStateObserver,
+            apiClient: dependencies.apiClient,
+            clearLocalDataAfterAccountDeletion: {
+                try await dependencies.clearAllLocalUserDataAfterAccountDeletion()
+            },
+            presentToast: { message, variant in dependencies.showToast(message, variant: variant) }
+        )
     }
 }
 
+#if DEBUG
 #Preview {
     MainActor.assumeIsolated {
         let deps = try! AppDependencies.makeForTesting()
@@ -155,3 +201,4 @@ struct AppView: View {
             .environment(\.appCoordinator, coordinator)
     }
 }
+#endif

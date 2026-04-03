@@ -351,3 +351,171 @@ struct NavigationTests {
         #expect(true) // Placeholder assertion
     }
 }
+
+// MARK: - AppView ViewModel Lifecycle Tests
+
+/// These tests validate the coordinator state invariants that underpin the S6 fix:
+/// AppView stores ViewModels in @State so they survive body re-evaluations.
+/// The coordinator paths are the observable projection of that state — if paths
+/// survive tab switches (and they do, as these tests confirm), so do the VMs.
+@Suite("AppView ViewModel Lifecycle Tests")
+struct AppViewViewModelLifecycleTests {
+
+    @MainActor
+    private func makeTestCoordinator() -> AppCoordinator {
+        let dependencies = AppDependencies()
+        return AppCoordinator(dependencies: dependencies)
+    }
+
+    // MARK: - Initial State
+
+    @Test("Coordinator initial state — home tab selected")
+    @MainActor
+    func testInitialTabIsHome() {
+        let coordinator = makeTestCoordinator()
+        #expect(coordinator.selectedTab == .home)
+    }
+
+    @Test("Coordinator initial state — all tab paths are empty")
+    @MainActor
+    func testAllTabPathsStartEmpty() {
+        let coordinator = makeTestCoordinator()
+        #expect(coordinator.homePath.isEmpty)
+        #expect(coordinator.chartersPath.isEmpty)
+        #expect(coordinator.libraryPath.isEmpty)
+        #expect(coordinator.discoverPath.isEmpty)
+        #expect(coordinator.profilePath.isEmpty)
+    }
+
+    // MARK: - Tab-switch State Preservation
+
+    @Test("Switching tabs preserves all five independent paths")
+    @MainActor
+    func testAllTabPathsPreservedAcrossSwitches() {
+        let coordinator = makeTestCoordinator()
+        let charterID = UUID()
+        let checklistID = UUID()
+
+        // Set state on two tabs
+        coordinator.viewCharter(charterID)
+        coordinator.editChecklist(checklistID)
+
+        // Switch through all tabs and back
+        coordinator.selectedTab = .home
+        coordinator.selectedTab = .discover
+        coordinator.selectedTab = .profile
+        coordinator.selectedTab = .charters
+
+        // Both paths must be intact after all switches
+        #expect(coordinator.chartersPath.count == 1)
+        #expect(coordinator.chartersPath[0] == .charterDetail(charterID))
+        #expect(coordinator.libraryPath.count == 1)
+        #expect(coordinator.libraryPath[0] == .checklistEditor(checklistID))
+    }
+
+    @Test("Switching tabs does not reset other tabs to root")
+    @MainActor
+    func testTabSwitchDoesNotResetOtherTabs() {
+        let coordinator = makeTestCoordinator()
+        let charterID = UUID()
+
+        coordinator.viewCharter(charterID)
+
+        // Simulate the scenario that triggers the S6 bug:
+        // tab switch triggers an AppView body re-evaluation.
+        // The coordinator path must not be cleared.
+        for _ in 0..<5 {
+            coordinator.selectedTab = .home
+            coordinator.selectedTab = .charters
+        }
+
+        #expect(coordinator.chartersPath.count == 1)
+        #expect(coordinator.chartersPath[0] == .charterDetail(charterID))
+    }
+
+    // MARK: - Library Tab Navigation
+
+    @Test("Library tab — editChecklist pushes checklistEditor route")
+    @MainActor
+    func testEditChecklistNavigatesToLibrary() {
+        let coordinator = makeTestCoordinator()
+        let checklistID = UUID()
+
+        coordinator.editChecklist(checklistID)
+
+        #expect(coordinator.libraryPath.count == 1)
+        #expect(coordinator.libraryPath[0] == .checklistEditor(checklistID))
+        #expect(coordinator.homePath.isEmpty)
+    }
+
+    @Test("Library tab — editGuide pushes guideEditor route")
+    @MainActor
+    func testEditGuideNavigatesToLibrary() {
+        let coordinator = makeTestCoordinator()
+        let guideID = UUID()
+
+        coordinator.editGuide(guideID)
+
+        #expect(coordinator.libraryPath.count == 1)
+        #expect(coordinator.libraryPath[0] == .guideEditor(guideID))
+    }
+
+    @Test("Library tab — create new checklist uses nil ID")
+    @MainActor
+    func testCreateChecklistUsesNilID() {
+        let coordinator = makeTestCoordinator()
+
+        coordinator.editChecklist(nil)
+
+        #expect(coordinator.libraryPath.count == 1)
+        #expect(coordinator.libraryPath[0] == .checklistEditor(nil))
+    }
+
+    @Test("Library tab — stacked navigation pops correctly")
+    @MainActor
+    func testLibraryStackedNavigationPops() {
+        let coordinator = makeTestCoordinator()
+        let checklistID = UUID()
+        let guideID = UUID()
+
+        coordinator.editChecklist(checklistID)
+        coordinator.editGuide(guideID)
+        #expect(coordinator.libraryPath.count == 2)
+
+        coordinator.pop(from: .library)
+        #expect(coordinator.libraryPath.count == 1)
+        #expect(coordinator.libraryPath[0] == .checklistEditor(checklistID))
+
+        coordinator.popToRoot(from: .library)
+        #expect(coordinator.libraryPath.isEmpty)
+    }
+
+    // MARK: - Discover Tab
+
+    @Test("Discover tab — navigateToCharterDiscovery pushes discoverCharters route")
+    @MainActor
+    func testNavigateToCharterDiscovery() {
+        let coordinator = makeTestCoordinator()
+
+        coordinator.navigateToCharterDiscovery()
+
+        #expect(coordinator.selectedTab == .discover)
+        #expect(coordinator.discoverPath.count == 1)
+        #expect(coordinator.discoverPath[0] == .discoverCharters)
+    }
+
+    @Test("Discover tab path is independent of charters tab path")
+    @MainActor
+    func testDiscoverAndChartersTabsAreIndependent() {
+        let coordinator = makeTestCoordinator()
+        let charterID = UUID()
+
+        coordinator.viewCharter(charterID)
+        coordinator.navigateToCharterDiscovery()
+
+        #expect(coordinator.chartersPath.count == 1)
+        #expect(coordinator.chartersPath[0] == .charterDetail(charterID))
+        #expect(coordinator.discoverPath.count == 1)
+        #expect(coordinator.discoverPath[0] == .discoverCharters)
+    }
+}

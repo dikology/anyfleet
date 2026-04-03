@@ -6,6 +6,8 @@
 	<string>$(API_BASE_URL)</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>AnyFleet uses your location to show nearby charters and sailing destinations on the map.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>AnyFleet needs access to your photo library so you can choose a profile picture.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>ONDER-REGULAR.TTF</string>

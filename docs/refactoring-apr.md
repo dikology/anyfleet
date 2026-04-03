@@ -60,12 +60,12 @@
 | B1 | **`DateFormatter` re-allocated on every render** — `CharterDetailView.dateFormatter` (line 26), `DiscoverableCharter.dateRange`, `HomeView.dateText`, `ProfileView.formatDate` all create new formatters per call. | Multiple files |
 | B2 | **`Date()` in computed properties** — `daysUntilStart`, `isUpcoming`, `timeUntilStartDisplay` use `Date()` inline, making them non-deterministic and untestable. | `CharterModel`, `DiscoverableCharter` |
 | B3 | **Manual `[String: Any]` JSON construction** — `LibraryStore.triggerPublishUpdate` and `ContentPublishPayload.contentData` build dictionaries by hand via `AnyCodable`, losing type safety. | `LibraryStore`, `SyncPayloads` |
-| B4 | **`print()` in production code** — `CharterMapView` has 6 `print()` calls; `LibraryStore` has 1. Should use `AppLogger`. | `CharterMapView`, `LibraryStore` |
+| B4 | **~~`print()` in production code~~** — **Done (S5):** `CharterMapView` → `AppLogger.view`; `LibraryStore` → `AppLogger.store`. | `CharterMapView`, `LibraryStore` |
 | B5 | **`try?` swallowing errors** — `CharterListView` line 100 silently discards deletion errors. `LocalRepository.deleteContent` ignores content table deletion failures at lines 510-511. | Multiple files |
 | B6 | **Inconsistent logger categories** — `ContentSyncService` logs to `AppLogger.auth` instead of `.sync`. | `ContentSyncService` |
 | B7 | **`isNetworkReachable()` always returns `true`** — dead code that provides no actual network check. | `SyncQueueService` line 451 |
 | B8 | **`ChecklistItem.isOptional` and `.isRequired` can both be true** — no validation prevents contradictory state. | `Checklist.swift` |
-| B9 | **Mock data ships in production binary** — `CharterMapView` has ~140 lines of mock data not gated behind `#if DEBUG`. `LibraryListView` and `LibraryListViewModel` include `PreviewLibraryRepository` and `mockAuthorProfile` unconditionally. | Multiple files |
+| B9 | **~~Mock data ships in production binary~~** — **Done (S4):** preview fixtures and UI-testing mocks are `#if DEBUG`-gated. | Multiple files |
 | B10 | **Unused computed property** — `CharterListViewModel.sortedByDate` (line 119) is never called; the view sorts its own copy. | `CharterListViewModel` |
 
 ---
@@ -93,7 +93,7 @@
 |---|-------|----------|
 | D1 | **No Dynamic Type support** — all 50+ typography definitions use fixed `Font.system(size:)` instead of `Font.system(.body)` or `@ScaledMetric`. Users who increase text size see no change. | `DesignSystemTypography.swift` |
 | D2 | **`onTapGesture` instead of `Button`** — `HomeView` hero card (line 155) uses `.onTapGesture`, losing visual press state, `.isButton` accessibility trait, and standard hit testing. | `HomeView.swift` |
-| D3 | **No-op "View Voyage Log" button** — `CharterDetailView` line 531 has `Button { }` for completed charters. Users tap and nothing happens — should be disabled with a "coming soon" label or hidden. | `CharterDetailView.swift` |
+| D3 | **~~No-op "View Voyage Log" button~~** — **Done (S2):** completed-charter FAB is now **Edit** with real navigation. | `CharterDetailView.swift` |
 | D4 | **No validation feedback on charter editor** — Save button is disabled when `!viewModel.isValid` (line 307) with reduced opacity, but no inline messages tell the user *what* to fix. | `CharterEditorView.swift` |
 | D5 | **`Spacer()` in `ScrollView`** — `HomeView` line 34 uses a `Spacer()` inside a `ScrollView`'s `VStack`, which has undefined behavior (spacers expand infinitely in the scroll axis). | `HomeView.swift` |
 | D6 | **Load more requires explicit button tap** — Charter discovery list (line 144) needs a "Load More" button. Infinite scroll with `.onAppear` on the last item would be more natural. | `CharterDiscoveryView.swift` |
@@ -550,9 +550,9 @@ struct PaginatedResponse<Item: Decodable>: Decodable {
 
 ---
 
-### 3.8 — #if DEBUG Gate for Preview/Mock Data (B9)
+### 3.8 — #if DEBUG Gate for Preview/Mock Data (B9) — **Done**
 
-Wrap all preview-only code in conditional compilation:
+Wrap all preview-only code in conditional compilation (implemented for the files called out in S4; other `#Preview` blocks in the app still compile in Debug only via Xcode):
 
 ```swift
 // CharterMapView.swift — wrap mock data section
@@ -785,16 +785,16 @@ func pullMyChartersSkipsWhenUnauthenticated() async throws {
 
 These are items that will likely cause **App Review rejection** or **production crashes** if shipped as-is.
 
-| # | Issue | Risk | Location | Effort |
-|---|-------|------|----------|--------|
-| S1 | **`fatalError` on database init failure** — `AppDatabase` line 421 crashes the app if the SQLite database can't be initialized (e.g. disk full, sandboxing issue). App Review often tests edge cases that trigger these. Must be replaced with a recoverable error UI (e.g. "Something went wrong — tap to retry" screen). | Crash → Rejection | `Data/Local/AppDatabase.swift` | Medium |
-| S2 | **No-op "View Voyage Log" button** — `CharterDetailView` shows a prominent FAB that does nothing when tapped on completed charters. Apple rejects apps with buttons that don't function. Either hide it, disable with "Coming soon" label, or wire it to a placeholder screen. | Broken UI → Rejection | `Features/Charter/CharterDetailView.swift` | Small |
-| S3 | **Flashcard deck route renders placeholder text** — `AppCoordinator.destination(for: .deckEditor)` returns `Text("Deck Editor - Coming Soon")`. If any UI path reaches this (and it can via the library create menu), it looks unfinished. Remove the route entirely or gate behind a feature flag. | Incomplete feature → Rejection | `App/AppModel.swift` line 263 | Small |
-| S4 | **Test/mock data ships in production binary** — ~140 lines of mock charter data in `CharterMapView`, `PreviewLibraryRepository` in `LibraryListView`, `mockAuthorProfile` in `LibraryListViewModel`. Apple's review may flag this as test content visible to users, and it increases binary size needlessly. Wrap all preview code in `#if DEBUG`. | Test content → Possible rejection | Multiple files | Small |
-| S5 | **`print()` statements in production** — 6 `print()` calls in `CharterMapView` and 1 in `LibraryStore`. These output user data to the console, which Apple views as a privacy concern during review. Replace with `AppLogger` or remove. | Privacy concern | `CharterMapView`, `LibraryStore` | Tiny |
-| S6 | **ViewModel lifecycle bug** — ViewModels created in `body` (see section 3.1) cause visible state loss when the user switches tabs and returns. A reviewer trying the app for 5 minutes will notice list positions resetting and loading indicators re-appearing. | Poor UX during review | `App/AppView.swift` | Small |
-| S7 | **Missing `NSPhotoLibraryUsageDescription`** — The app uses `PhotosUI` (`PhotosPicker`) for profile image upload. While `PHPickerViewController` (used by `PhotosPicker`) does not require a usage description on iOS 14+, the App Review team has historically flagged apps that access photos without one. Adding a description to `Info.plist` is a safety net. | Possible rejection | `Info.plist` | Tiny |
-| S8 | **App Privacy "nutrition label"** — App Store Connect requires you to declare what data your app collects (location, user content, identifiers, etc.) before submission. Prepare the declaration based on: location (when in use), user content (charters, checklists), authentication (Apple ID, tokens), profile data (name, bio, photo). Not a code change, but blocks submission if not done. | Blocks submission | App Store Connect | Small |
+| # | Issue | Risk | Location | Effort | Status |
+|---|-------|------|----------|--------|--------|
+| S1 | **`fatalError` on database init failure** — `AppDatabase` crashed the app if SQLite could not be initialized (e.g. disk full, sandboxing issue). **Fix:** recoverable error UI (`DatabaseUnavailableView`, in-memory fallback, `AppDatabase.reset()` + retry). | Crash → Rejection | `Data/Local/AppDatabase.swift`, `App/DatabaseUnavailableView.swift`, `anyfleetApp.swift` | Medium | **Done** |
+| S2 | **No-op "View Voyage Log" button** — `CharterDetailView` showed a prominent FAB that did nothing on completed charters. **Fix:** replaced with an **Edit** FAB that opens the real editor flow. | Broken UI → Rejection | `Features/Charter/CharterDetailView.swift` | Small | **Done** |
+| S3 | **Flashcard deck route rendered placeholder text** — `AppRoute.deckEditor` and `destination(for:)` showed a stub. **Fix:** removed `deckEditor` from `AppRoute`, dropped `editDeck` from `AppCoordinatorProtocol`, and removed dead `onCreateDeckTapped` / `onEditDeckTapped` from `LibraryListViewModel`. Library create menu already had no deck entry. | Incomplete feature → Rejection | `App/AppModel.swift`, `Features/Library/LibraryListViewModel.swift` | Small | **Done** |
+| S4 | **Test/mock data ships in production binary** — **Fix:** wrapped in `#if DEBUG`: `CharterMapPreviewData` + map previews (`CharterMapView`), library list `#Preview` + `PreviewLibraryRepository` (`LibraryListView`), `mockAuthorProfile` + `UITesting` shortcut (`LibraryListViewModel`), Discover `UITesting` mocks + helpers (`DiscoverViewModel`), `LibraryItemRow` preview. Release builds no longer embed those literals; UI tests keep mocks when run as Debug. | Test content → Possible rejection | Multiple files | Small | **Done** |
+| S5 | **`print()` statements in production** — **Fix:** map clustering diagnostics use `AppLogger.view.debug` / `.warning`; library load failure uses `AppLogger.store.error`. | Privacy concern | `CharterMapView`, `LibraryStore` | Tiny | **Done** |
+| S6 | **ViewModel lifecycle bug** — ViewModels created in `body` (see section 3.1) cause visible state loss when the user switches tabs and returns. A reviewer trying the app for 5 minutes will notice list positions resetting and loading indicators re-appearing. **Fix:** moved all six VMs (`HomeViewModel`, `CharterListViewModel`, `LibraryListViewModel`, `DiscoverViewModel`, `CharterDiscoveryViewModel`, `ProfileViewModel`) to `@State private var … ?` properties; created lazily via `.task(id: ObjectIdentifier(coordinator))` so they survive every `body` re-evaluation and are transparently replaced on DB-retry. Replaced manual `Binding(get:set:)` path bindings with `@Bindable var coord = coordinator` inside each `@ViewBuilder` tab property. Added 10 tests in `AppViewViewModelLifecycleTests` covering initial state, all-tab path preservation across switches, library and discover tab navigation. | Poor UX during review | `App/AppView.swift`, `anyfleetTests/NavigationTests.swift` | Small | **Done** |
+| S7 | **Missing `NSPhotoLibraryUsageDescription`** — The app uses `PhotosUI` (`PhotosPicker`) for profile image upload. While `PHPickerViewController` (used by `PhotosPicker`) does not require a usage description on iOS 14+, the App Review team has historically flagged apps that access photos without one. **Fix:** added `NSPhotoLibraryUsageDescription` to `Info.plist` with a short user-facing explanation for profile picture selection. | Possible rejection | `anyfleet/Info.plist` | Tiny | **Done** |
+| S8 | **App Privacy "nutrition label"** — App Store Connect requires you to declare what data your app collects (location, user content, identifiers, etc.) before submission. Prepare the declaration based on: location (when in use), user content (charters, checklists), authentication (Apple ID, tokens), profile data (name, bio, photo). Not a code change, but blocks submission if not done. | Blocks submission | App Store Connect | Small | Open |
 
 ### 5.B — Strongly Recommended Before v1.0
 
@@ -823,7 +823,7 @@ Items that can be deferred to subsequent releases, organized by recommended rele
 | **Split `LibraryStore`** | Extract `ContentCacheService`, `PublishPayloadBuilder`, and `ForkService`. The 703-line store becomes 3-4 focused classes under 200 lines each. |
 | **Split `APIClient`** | Move into `APIClient+Charters.swift`, `APIClient+Content.swift`, `APIClient+Profile.swift`. Eliminate duplicated request methods by extracting a shared `performRequest` core. |
 | **Dead code cleanup** | Remove all commented-out flashcard deck code (~15 files), unused `CharterFormState` fields, `sortedByDate` in `CharterListViewModel`, and `FlashcardDeck` stub type. |
-| **Consistent logging** | Fix `ContentSyncService` using `AppLogger.auth` instead of `.sync`. Remove `print()` remnants. Audit that every service uses the correct category. |
+| **Consistent logging** | Fix `ContentSyncService` using `AppLogger.auth` instead of `.sync`. Audit that every service uses the correct category (S5 cleared `CharterMapView` / `LibraryStore` prints). |
 
 #### v1.2 — UX Polish (4-8 weeks)
 
@@ -849,8 +849,8 @@ Items that can be deferred to subsequent releases, organized by recommended rele
 
 | Item | Description |
 |------|-------------|
-| **Voyage Log** | Wire the "View Voyage Log" button to actual functionality (photo timeline, notes, route tracking). |
-| **Flashcard Decks** | Either implement the full feature (editor, reader, spaced repetition) or permanently remove all traces. The current half-state is technical debt. |
+| **Voyage Log** | The completed-charter FAB is now **Edit** (S2). Future product work: a dedicated voyage log (photo timeline, notes, route tracking). |
+| **Flashcard Decks** | Navigation stub removed (S3). Remaining work: data model, persistence, editor/reader UX, and optional Discover support — or keep decks out of product scope until then. |
 | **Deep Linking** | Implement `handleDeepLink` for shared charters, published content, and author profiles. Register Universal Links in Associated Domains. |
 | **Export Data / Activity Log** | The `L10n` strings exist but the UI doesn't expose them. Implement GDPR-compliant data export and activity history. |
 | **Nautical miles & regions** | `CaptainStats.nauticalMiles` and `regionsVisited` are placeholder Phase 3 fields. Implement GPS tracking during active charters. |
@@ -864,12 +864,12 @@ Pre-submission blockers first, then code quality, then post-launch improvements.
 
 | Priority | Change | Effort | Impact |
 |----------|--------|--------|--------|
-| **P0 — Blocks submission** | Fix `fatalError` in AppDatabase (S1) | Medium | Prevents production crash |
-| **P0 — Blocks submission** | Remove/disable no-op Voyage Log button (S2) | Small | Eliminates dead UI |
-| **P0 — Blocks submission** | Remove flashcard deck placeholder route (S3) | Small | Eliminates unfinished feature |
-| **P0 — Blocks submission** | `#if DEBUG` gates for mock data (S4, 3.8) | Small | Stops shipping test content |
-| **P0 — Blocks submission** | Replace `print()` with `AppLogger` (S5) | Tiny | Privacy compliance |
-| **P0 — Blocks submission** | Fix ViewModel lifecycle in AppView (S6, 3.1) | Small | Eliminates state loss reviewers will notice |
+| **P0 — Done** | AppDatabase: recoverable error UI instead of `fatalError` (S1) | Medium | Prevents production crash |
+| **P0 — Done** | Charter detail: **Edit** FAB replaces no-op "View Voyage Log" (S2) | Small | Eliminates dead UI |
+| **P0 — Done** | Flashcard deck: removed `AppRoute.deckEditor` and coordinator stub (S3) | Small | Eliminates unfinished feature |
+| **P0 — Done** | `#if DEBUG` for preview/UI-test mocks (S4, 3.8, B9) | Small | Stops shipping test content in Release |
+| **P0 — Done** | Replaced `print()` with `AppLogger` in map + library store (S5) | Tiny | Privacy compliance |
+| **P0 — Done** | Fix ViewModel lifecycle in AppView (S6, 3.1) | Small | Eliminates state loss reviewers will notice |
 | **P0 — Blocks submission** | Prepare App Privacy nutrition label (S8) | Small | Required in App Store Connect |
 | P1 | Static DateFormatters (3.4) | Small | Removes ~4 allocation-per-frame performance issues |
 | P1 | Charter date protocol (3.3) | Small | Fixes the divergent urgency-level bug |

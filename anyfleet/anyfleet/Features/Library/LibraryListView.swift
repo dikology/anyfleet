@@ -68,6 +68,7 @@ struct LibraryListView: View {
     }
 }
 
+#if DEBUG
 // MARK: - Preview
 
 #Preview {
@@ -124,6 +125,7 @@ struct LibraryListView: View {
         .environment(\.appCoordinator, coordinator)
     }
 }
+#endif
 
 // MARK: - Supporting Components
 
@@ -286,8 +288,6 @@ struct CreateContentMenu: View {
             } label: {
                 Label(L10n.Library.newChecklist, systemImage: "checklist")
             }
-
-            // Flashcard deck item removed until feature ships
 
             Button {
                 viewModel.onCreateGuideTapped()
@@ -457,8 +457,6 @@ struct LibraryContentList: View {
                                 viewModel.onReadChecklistTapped(item.id)
                             case .practiceGuide:
                                 viewModel.onReadGuideTapped(item.id)
-                            // TODO: Implement deck reader when ready
-
                             }
                         },
                         onAuthorTapped: { username, authorUserId in
@@ -510,8 +508,6 @@ struct LibraryContentList: View {
                                 viewModel.onEditChecklistTapped(item.id)
                             case .practiceGuide:
                                 viewModel.onEditGuideTapped(item.id)
-//                            case .flashcardDeck:
-//                                viewModel.onEditDeckTapped(item.id)
                             }
                         } label: {
                             Label(L10n.Library.actionEdit, systemImage: "pencil")
@@ -567,6 +563,7 @@ struct LibraryContentList: View {
     }
 }
 
+#if DEBUG
 private struct PreviewLibraryRepository: LibraryRepository {
     let sampleLibrary: [LibraryModel]
 
@@ -600,4 +597,5 @@ private struct PreviewLibraryRepository: LibraryRepository {
 
     func deleteContent(_ contentID: UUID) async throws {}
 }
+#endif
 

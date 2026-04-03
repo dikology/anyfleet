@@ -528,20 +528,38 @@ private extension CharterDetailView {
 
         if isCompleted {
             // Completed — ghost pill, no gradient pressure
-            Button { } label: {
+//            Button { } label: {
+//                HStack(spacing: DesignSystem.Spacing.sm) {
+//                    Image(systemName: "book.pages.fill")
+//                    Text(L10n.Charter.Detail.FAB.viewVoyageLog)
+//                        .font(DesignSystem.Typography.subheader)
+//                }
+//                .foregroundColor(DesignSystem.Colors.textPrimary)
+//                .frame(maxWidth: .infinity)
+//                .frame(height: 56)
+//                .background(.regularMaterial)
+//                .clipShape(Capsule())
+//                .overlay(Capsule().stroke(DesignSystem.Colors.border, lineWidth: 1))
+//                .shadow(
+//                    color: DesignSystem.Colors.shadowStrong.opacity(0.12),
+//                    radius: 12, y: 4
+//                )
+//            }
+//            .buttonStyle(.plain)
+            
+            NavigationLink(value: AppRoute.editCharter(charter.id)) {
                 HStack(spacing: DesignSystem.Spacing.sm) {
-                    Image(systemName: "book.pages.fill")
-                    Text(L10n.Charter.Detail.FAB.viewVoyageLog)
+                    Image(systemName: "pencil")
+                    Text(L10n.Charter.Detail.FAB.editCharter)
                         .font(DesignSystem.Typography.subheader)
                 }
-                .foregroundColor(DesignSystem.Colors.textPrimary)
+                .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
                 .frame(height: 56)
-                .background(.regularMaterial)
+                .background(DesignSystem.Gradients.primaryButton)
                 .clipShape(Capsule())
-                .overlay(Capsule().stroke(DesignSystem.Colors.border, lineWidth: 1))
                 .shadow(
-                    color: DesignSystem.Colors.shadowStrong.opacity(0.12),
+                    color: DesignSystem.Colors.primary.opacity(0.35),
                     radius: 12, y: 4
                 )
             }

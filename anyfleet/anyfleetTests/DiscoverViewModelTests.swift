@@ -326,10 +326,6 @@ class MockAppCoordinator: AppCoordinatorProtocol {
         // Mock implementation - do nothing
     }
 
-    func editDeck(_ deckID: UUID?) {
-        // Mock implementation - do nothing
-    }
-
     func viewChecklist(_ checklistID: UUID) {
         // Mock implementation - do nothing
     }

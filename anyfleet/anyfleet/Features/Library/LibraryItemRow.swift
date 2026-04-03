@@ -240,6 +240,7 @@ struct LibraryItemRow: View {
     }
 }
 
+#if DEBUG
 // MARK: - Preview
 
 #Preview("Library Item Row") {
@@ -397,4 +398,4 @@ struct LibraryItemRow: View {
     .padding()
     .background(DesignSystem.Colors.background)
 }
-
+#endif

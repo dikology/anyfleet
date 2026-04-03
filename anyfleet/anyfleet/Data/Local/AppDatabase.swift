@@ -18,7 +18,14 @@ final class AppDatabase: Sendable {
     // and we need to access lock from nonisolated shared property. NSLock is Sendable, so unsafe is not needed.
     private nonisolated static let lock = NSLock()
     private nonisolated(unsafe) static var _shared: AppDatabase?
-    
+
+    /// Non-nil when the most recent `makeShared()` attempt failed.
+    /// Written only from within `makeShared()` (called under `lock`); safe to read after `shared` returns.
+    nonisolated(unsafe) private static var _initializationError: Error?
+
+    /// The error captured during the last database initialization attempt, if any.
+    nonisolated static var initializationError: Error? { _initializationError }
+
     nonisolated static var shared: AppDatabase {
         if let existing = _shared { return existing }
         
@@ -29,6 +36,16 @@ final class AppDatabase: Sendable {
         let new = makeShared()
         _shared = new
         return new
+    }
+
+    /// Resets the shared instance and any stored initialization error so the next
+    /// access to `shared` will reattempt opening the on-disk database.
+    /// Call this before recreating `AppDependencies` during a user-initiated retry.
+    nonisolated static func reset() {
+        lock.lock()
+        defer { lock.unlock() }
+        _shared = nil
+        _initializationError = nil
     }
     
     // MARK: - Initialization
@@ -386,7 +403,13 @@ final class AppDatabase: Sendable {
     
     // MARK: - Factory Methods
     
-    /// Creates the shared database instance
+    /// Creates the shared database instance.
+    ///
+    /// On failure (e.g. disk full, sandboxing issue, migration error) the error is stored in
+    /// `_initializationError` and a transient in-memory database is returned as a fallback.
+    /// The fallback keeps the process alive long enough to render the recoverable error UI;
+    /// no data is persisted in this state. If even the in-memory fallback fails the method
+    /// traps — that indicates a programmer error or a completely broken runtime.
     nonisolated private static func makeShared() -> AppDatabase {
         do {
             let fileManager = FileManager.default
@@ -402,8 +425,6 @@ final class AppDatabase: Sendable {
             
             let databaseURL = directoryURL.appendingPathComponent("anyfleet.sqlite")
             
-            
-            // Configure the database
             let config = Configuration()
             
             #if DEBUG
@@ -413,12 +434,17 @@ final class AppDatabase: Sendable {
             // }
             #endif
             
-            // AppLogger.database.debug("Creating DatabaseQueue")
             let dbQueue = try DatabaseQueue(path: databaseURL.path, configuration: config)
             return try AppDatabase(dbQueue)
             
         } catch {
-            fatalError("Failed to initialize database: \(error)")
+            AppLogger.database.error("Database initialization failed — falling back to in-memory DB", error: error)
+            _initializationError = error
+            // Use a transient in-memory database so the app can render the error UI without crashing.
+            guard let fallback = try? AppDatabase(DatabaseQueue(configuration: Configuration())) else {
+                fatalError("Cannot create even an in-memory fallback database: \(error)")
+            }
+            return fallback
         }
     }
     

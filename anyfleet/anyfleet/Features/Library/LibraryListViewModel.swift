@@ -177,12 +177,6 @@ final class LibraryListViewModel: ErrorHandling {
         coordinator.editGuide(nil)
     }
     
-    /// Handles the create deck action by navigating to the deck editor.
-    func onCreateDeckTapped() {
-        AppLogger.view.info("Create deck tapped from library")
-        coordinator.editDeck(nil)
-    }
-    
     // MARK: - Read Actions
     
     /// Handles tapping a checklist to read/view it.
@@ -209,13 +203,6 @@ final class LibraryListViewModel: ErrorHandling {
     func onEditGuideTapped(_ guideID: UUID) {
         AppLogger.view.info("Edit guide tapped: \(guideID.uuidString)")
         coordinator.editGuide(guideID)
-    }
-    
-    /// Handles editing an existing deck.
-    /// - Parameter deckID: The ID of the deck to edit
-    func onEditDeckTapped(_ deckID: UUID) {
-        AppLogger.view.info("Edit deck tapped: \(deckID.uuidString)")
-        coordinator.editDeck(deckID)
     }
     
     // MARK: - Data Loading
@@ -385,10 +372,12 @@ final class LibraryListViewModel: ErrorHandling {
         AppLogger.view.startOperation("Fetch Author Profile")
         AppLogger.view.info("Fetching library author profile for: \(username)")
 
+        #if DEBUG
         if ProcessInfo.processInfo.environment["UITesting"] == "true" {
             activeModal = .authorProfile(mockAuthorProfile(username: username))
             return
         }
+        #endif
 
         do {
             // Use current user when author is self (handles username change after profile update)
@@ -417,6 +406,7 @@ final class LibraryListViewModel: ErrorHandling {
         }
     }
 
+    #if DEBUG
     private func mockAuthorProfile(username: String) -> AuthorProfile {
         AuthorProfile(
             username: username,
@@ -437,4 +427,5 @@ final class LibraryListViewModel: ErrorHandling {
             primaryCommunityName: nil
         )
     }
+    #endif
 }
