@@ -187,7 +187,7 @@ final class LibraryStore: LibraryStoreProtocol {
             library = []
             checklistCache.clear()
             guideCache.clear()
-            print("[LibraryStore] Failed to load library: \(error.localizedDescription)")
+            AppLogger.store.error("Failed to load library", error: error)
         }
     }
 

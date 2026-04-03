@@ -67,7 +67,7 @@ struct CharterMapView: View {
                                 charter: cluster.charters[0],
                                 isSelected: selectedClusterID == cluster.id
                             ) {
-                                print("[MapCluster] tapped singleton cluster=\(cluster.id.uuidString.prefix(8))")
+                                AppLogger.view.debug("[MapCluster] tapped singleton cluster=\(cluster.id.uuidString.prefix(8))")
                                 withAnimation(DesignSystem.Motion.spring) {
                                     selectedClusterID = cluster.id
                                 }
@@ -77,7 +77,7 @@ struct CharterMapView: View {
                                 cluster: cluster,
                                 isSelected: selectedClusterID == cluster.id
                             ) {
-                                print("[MapCluster] tapped multi-cluster=\(cluster.id.uuidString.prefix(8)) count=\(cluster.charters.count)")
+                                AppLogger.view.debug("[MapCluster] tapped multi-cluster=\(cluster.id.uuidString.prefix(8)) count=\(cluster.charters.count)")
                                 withAnimation(DesignSystem.Motion.spring) {
                                     selectedClusterID = cluster.id
                                 }
@@ -95,7 +95,7 @@ struct CharterMapView: View {
                 // Mirror actual camera into the position binding so re-renders never snap back.
                 position = .region(context.region)
                 let relativeChange = abs(newSpan.latitudeDelta - mapSpan.latitudeDelta) / mapSpan.latitudeDelta
-                print("[MapCluster] cameraChange span=\(String(format: "%.4f", newSpan.latitudeDelta))° relChange=\(String(format: "%.2f", relativeChange))")
+                AppLogger.view.debug("[MapCluster] cameraChange span=\(String(format: "%.4f", newSpan.latitudeDelta))° relChange=\(String(format: "%.2f", relativeChange))")
                 if relativeChange > 0.1 {
                     mapSpan = newSpan
                     rebuildClusters(reason: "cameraChange")
@@ -112,7 +112,7 @@ struct CharterMapView: View {
             .onChange(of: selectedClusterID) { old, new in
                 let oldStr = old.map { String($0.uuidString.prefix(8)) } ?? "nil"
                 let newStr = new.map { String($0.uuidString.prefix(8)) } ?? "nil"
-                print("[MapCluster] selection \(oldStr) → \(newStr)")
+                AppLogger.view.debug("[MapCluster] selection \(oldStr) → \(newStr)")
             }
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 if let cluster = selectedCluster {
@@ -161,10 +161,10 @@ struct CharterMapView: View {
         }
 
         let selectionSurvives = selectedClusterID.map { id in stabilised.contains(where: { $0.id == id }) } ?? true
-        print("[MapCluster] rebuildClusters(\(reason)) raw=\(raw.count) stabilised=\(stabilised.count) selectionSurvives=\(selectionSurvives)")
+        AppLogger.view.debug("[MapCluster] rebuildClusters(\(reason)) raw=\(raw.count) stabilised=\(stabilised.count) selectionSurvives=\(selectionSurvives)")
 
         if !selectionSurvives {
-            print("[MapCluster] ⚠️ selection lost — cluster split or merged after rebuild")
+            AppLogger.view.warning("[MapCluster] selection lost — cluster split or merged after rebuild")
             withAnimation(DesignSystem.Motion.spring) { selectedClusterID = nil }
         }
         clusters = stabilised

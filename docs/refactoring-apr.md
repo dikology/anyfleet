@@ -60,7 +60,7 @@
 | B1 | **`DateFormatter` re-allocated on every render** — `CharterDetailView.dateFormatter` (line 26), `DiscoverableCharter.dateRange`, `HomeView.dateText`, `ProfileView.formatDate` all create new formatters per call. | Multiple files |
 | B2 | **`Date()` in computed properties** — `daysUntilStart`, `isUpcoming`, `timeUntilStartDisplay` use `Date()` inline, making them non-deterministic and untestable. | `CharterModel`, `DiscoverableCharter` |
 | B3 | **Manual `[String: Any]` JSON construction** — `LibraryStore.triggerPublishUpdate` and `ContentPublishPayload.contentData` build dictionaries by hand via `AnyCodable`, losing type safety. | `LibraryStore`, `SyncPayloads` |
-| B4 | **`print()` in production code** — `CharterMapView` has 6 `print()` calls; `LibraryStore` has 1. Should use `AppLogger`. | `CharterMapView`, `LibraryStore` |
+| B4 | **~~`print()` in production code~~** — **Done (S5):** `CharterMapView` → `AppLogger.view`; `LibraryStore` → `AppLogger.store`. | `CharterMapView`, `LibraryStore` |
 | B5 | **`try?` swallowing errors** — `CharterListView` line 100 silently discards deletion errors. `LocalRepository.deleteContent` ignores content table deletion failures at lines 510-511. | Multiple files |
 | B6 | **Inconsistent logger categories** — `ContentSyncService` logs to `AppLogger.auth` instead of `.sync`. | `ContentSyncService` |
 | B7 | **`isNetworkReachable()` always returns `true`** — dead code that provides no actual network check. | `SyncQueueService` line 451 |
@@ -791,7 +791,7 @@ These are items that will likely cause **App Review rejection** or **production 
 | S2 | **No-op "View Voyage Log" button** — `CharterDetailView` showed a prominent FAB that did nothing on completed charters. **Fix:** replaced with an **Edit** FAB that opens the real editor flow. | Broken UI → Rejection | `Features/Charter/CharterDetailView.swift` | Small | **Done** |
 | S3 | **Flashcard deck route rendered placeholder text** — `AppRoute.deckEditor` and `destination(for:)` showed a stub. **Fix:** removed `deckEditor` from `AppRoute`, dropped `editDeck` from `AppCoordinatorProtocol`, and removed dead `onCreateDeckTapped` / `onEditDeckTapped` from `LibraryListViewModel`. Library create menu already had no deck entry. | Incomplete feature → Rejection | `App/AppModel.swift`, `Features/Library/LibraryListViewModel.swift` | Small | **Done** |
 | S4 | **Test/mock data ships in production binary** — **Fix:** wrapped in `#if DEBUG`: `CharterMapPreviewData` + map previews (`CharterMapView`), library list `#Preview` + `PreviewLibraryRepository` (`LibraryListView`), `mockAuthorProfile` + `UITesting` shortcut (`LibraryListViewModel`), Discover `UITesting` mocks + helpers (`DiscoverViewModel`), `LibraryItemRow` preview. Release builds no longer embed those literals; UI tests keep mocks when run as Debug. | Test content → Possible rejection | Multiple files | Small | **Done** |
-| S5 | **`print()` statements in production** — 6 `print()` calls in `CharterMapView` and 1 in `LibraryStore`. These output user data to the console, which Apple views as a privacy concern during review. Replace with `AppLogger` or remove. | Privacy concern | `CharterMapView`, `LibraryStore` | Tiny | Open |
+| S5 | **`print()` statements in production** — **Fix:** map clustering diagnostics use `AppLogger.view.debug` / `.warning`; library load failure uses `AppLogger.store.error`. | Privacy concern | `CharterMapView`, `LibraryStore` | Tiny | **Done** |
 | S6 | **ViewModel lifecycle bug** — ViewModels created in `body` (see section 3.1) cause visible state loss when the user switches tabs and returns. A reviewer trying the app for 5 minutes will notice list positions resetting and loading indicators re-appearing. | Poor UX during review | `App/AppView.swift` | Small | Open |
 | S7 | **Missing `NSPhotoLibraryUsageDescription`** — The app uses `PhotosUI` (`PhotosPicker`) for profile image upload. While `PHPickerViewController` (used by `PhotosPicker`) does not require a usage description on iOS 14+, the App Review team has historically flagged apps that access photos without one. Adding a description to `Info.plist` is a safety net. | Possible rejection | `Info.plist` | Tiny | Open |
 | S8 | **App Privacy "nutrition label"** — App Store Connect requires you to declare what data your app collects (location, user content, identifiers, etc.) before submission. Prepare the declaration based on: location (when in use), user content (charters, checklists), authentication (Apple ID, tokens), profile data (name, bio, photo). Not a code change, but blocks submission if not done. | Blocks submission | App Store Connect | Small | Open |
@@ -823,7 +823,7 @@ Items that can be deferred to subsequent releases, organized by recommended rele
 | **Split `LibraryStore`** | Extract `ContentCacheService`, `PublishPayloadBuilder`, and `ForkService`. The 703-line store becomes 3-4 focused classes under 200 lines each. |
 | **Split `APIClient`** | Move into `APIClient+Charters.swift`, `APIClient+Content.swift`, `APIClient+Profile.swift`. Eliminate duplicated request methods by extracting a shared `performRequest` core. |
 | **Dead code cleanup** | Remove all commented-out flashcard deck code (~15 files), unused `CharterFormState` fields, `sortedByDate` in `CharterListViewModel`, and `FlashcardDeck` stub type. |
-| **Consistent logging** | Fix `ContentSyncService` using `AppLogger.auth` instead of `.sync`. Remove `print()` remnants. Audit that every service uses the correct category. |
+| **Consistent logging** | Fix `ContentSyncService` using `AppLogger.auth` instead of `.sync`. Audit that every service uses the correct category (S5 cleared `CharterMapView` / `LibraryStore` prints). |
 
 #### v1.2 — UX Polish (4-8 weeks)
 
@@ -868,7 +868,7 @@ Pre-submission blockers first, then code quality, then post-launch improvements.
 | **P0 — Done** | Charter detail: **Edit** FAB replaces no-op "View Voyage Log" (S2) | Small | Eliminates dead UI |
 | **P0 — Done** | Flashcard deck: removed `AppRoute.deckEditor` and coordinator stub (S3) | Small | Eliminates unfinished feature |
 | **P0 — Done** | `#if DEBUG` for preview/UI-test mocks (S4, 3.8, B9) | Small | Stops shipping test content in Release |
-| **P0 — Blocks submission** | Replace `print()` with `AppLogger` (S5) | Tiny | Privacy compliance |
+| **P0 — Done** | Replaced `print()` with `AppLogger` in map + library store (S5) | Tiny | Privacy compliance |
 | **P0 — Blocks submission** | Fix ViewModel lifecycle in AppView (S6, 3.1) | Small | Eliminates state loss reviewers will notice |
 | **P0 — Blocks submission** | Prepare App Privacy nutrition label (S8) | Small | Required in App Store Connect |
 | P1 | Static DateFormatters (3.4) | Small | Removes ~4 allocation-per-frame performance issues |
