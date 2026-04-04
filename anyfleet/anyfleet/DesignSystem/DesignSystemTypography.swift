@@ -23,8 +23,9 @@ extension DesignSystem {
         static let profileName = Font.system(size: 28, weight: .bold, design: .rounded)
         /// Large toolbar / modal dismiss SF Symbol (e.g. 28pt regular).
         static let toolbarGlyphLarge = Font.system(size: 28, weight: .regular)
-        static let body       = Font.system(size: 16, weight: .regular)
-        static let bodyMedium = Font.system(size: 16, weight: .medium)
+        static let body          = Font.system(size: 16, weight: .regular)
+        static let bodyMedium    = Font.system(size: 16, weight: .medium)
+        static let bodySemibold  = Font.system(size: 16, weight: .semibold)
         static let callout    = Font.system(size: 15, weight: .regular)
         static let calloutSemibold = Font.system(size: 15, weight: .semibold)
         static let caption    = Font.system(size: 14, weight: .regular)

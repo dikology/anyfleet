@@ -15,49 +15,74 @@ final class OnboardingUITests: XCTestCase {
         ]
     }
 
+    // MARK: - Helpers
+
+    private func cta() -> XCUIElement {
+        app.buttons.matching(identifier: "onboarding.cta").firstMatch
+    }
+
+    private func skipButton() -> XCUIElement {
+        app.buttons.matching(identifier: "onboarding.skip").firstMatch
+    }
+
+    // MARK: - Tests
+
     func testOnboardingAppearsOnFirstLaunch() {
         app.launch()
-        XCTAssertTrue(app.otherElements["onboardingView"].waitForExistence(timeout: 3))
+        XCTAssertTrue(
+            app.otherElements.matching(identifier: "onboardingView").firstMatch
+                .waitForExistence(timeout: 5)
+        )
     }
 
     func testContinueThroughAllPages() {
         app.launch()
-        let cta = app.buttons["onboarding.cta"]
-        XCTAssertTrue(cta.waitForExistence(timeout: 3))
+        let cta = cta()
+        XCTAssertTrue(cta.waitForExistence(timeout: 5))
 
         cta.tap() // Page 1 → 2
         cta.tap() // Page 2 → 3
         cta.tap() // Page 3 → dismiss ("Get Started")
 
-        XCTAssertTrue(app.otherElements["tab.home"].waitForExistence(timeout: 3))
-        XCTAssertFalse(app.otherElements["onboardingView"].exists)
+        XCTAssertTrue(
+            app.buttons.matching(identifier: "tab.home").firstMatch
+                .waitForExistence(timeout: 5)
+        )
+        XCTAssertFalse(
+            app.otherElements.matching(identifier: "onboardingView").firstMatch.exists
+        )
     }
 
     func testSkipDismissesOnboarding() {
         app.launch()
-        let skip = app.buttons["onboarding.skip"]
-        XCTAssertTrue(skip.waitForExistence(timeout: 3))
+        let skip = skipButton()
+        XCTAssertTrue(skip.waitForExistence(timeout: 5))
         skip.tap()
 
-        XCTAssertTrue(app.otherElements["tab.home"].waitForExistence(timeout: 3))
-        XCTAssertFalse(app.otherElements["onboardingView"].exists)
+        XCTAssertTrue(
+            app.buttons.matching(identifier: "tab.home").firstMatch
+                .waitForExistence(timeout: 5)
+        )
+        XCTAssertFalse(
+            app.otherElements.matching(identifier: "onboardingView").firstMatch.exists
+        )
     }
 
     func testSkipButtonHiddenOnLastPage() {
         app.launch()
-        let cta = app.buttons["onboarding.cta"]
-        XCTAssertTrue(cta.waitForExistence(timeout: 3))
+        let cta = cta()
+        XCTAssertTrue(cta.waitForExistence(timeout: 5))
 
         cta.tap() // → page 2
         cta.tap() // → page 3
 
-        XCTAssertFalse(app.buttons["onboarding.skip"].exists)
+        XCTAssertFalse(skipButton().exists)
     }
 
     func testOnboardingDoesNotReappearAfterCompletion() {
         app.launch()
-        let cta = app.buttons["onboarding.cta"]
-        XCTAssertTrue(cta.waitForExistence(timeout: 3))
+        let cta = cta()
+        XCTAssertTrue(cta.waitForExistence(timeout: 5))
         cta.tap(); cta.tap(); cta.tap()
 
         // Relaunch without RESET_FTUE_ONBOARDING — onboarding should not show.
@@ -65,6 +90,9 @@ final class OnboardingUITests: XCTestCase {
         app.launchEnvironment = ["UITesting": "true"]
         app.launch()
 
-        XCTAssertFalse(app.otherElements["onboardingView"].waitForExistence(timeout: 2))
+        XCTAssertFalse(
+            app.otherElements.matching(identifier: "onboardingView").firstMatch
+                .waitForExistence(timeout: 3)
+        )
     }
 }

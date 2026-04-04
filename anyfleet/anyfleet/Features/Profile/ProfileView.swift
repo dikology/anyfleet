@@ -69,7 +69,7 @@ struct ProfileView: View {
                         .padding(.horizontal, DesignSystem.Spacing.screenPadding)
                         .padding(.top, DesignSystem.Spacing.lg)
                 }
-                .padding(.bottom, DesignSystem.Spacing.xxl)
+                .padding(.bottom, DesignSystem.Spacing.xxl + FloatingTabBar.safeAreaInset)
             }
         }
     }

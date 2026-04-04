@@ -28,6 +28,9 @@ struct OnboardingView: View {
                 ctaButton
             }
         }
+        // .contain keeps the ZStack identifiable for UI tests while
+        // leaving all child buttons individually queryable by XCTest.
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("onboardingView")
     }
 
@@ -78,7 +81,7 @@ struct OnboardingView: View {
             Text(currentPage < pages.count - 1
                  ? L10n.Onboarding.continueButton
                  : L10n.Onboarding.getStarted)
-            .font(DesignSystem.Typography.bodyMedium)
+            .font(DesignSystem.Typography.bodySemibold)
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, DesignSystem.Spacing.md)
