@@ -18,7 +18,8 @@ struct anyfleetApp: App {
             [
                 "hasSeenCharterSwipeHint",
                 "hasSeenLibrarySwipeHint",
-                "hasSeenDiscoverSwipeHint"
+                "hasSeenDiscoverSwipeHint",
+                "hasCompletedOnboarding"
             ].forEach { UserDefaults.standard.removeObject(forKey: $0) }
         }
         let deps = AppDependencies.shared

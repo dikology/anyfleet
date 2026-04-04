@@ -2575,4 +2575,52 @@ enum L10n {
             comment: "Primary CTA on author profile modal to open charter discovery"
         )
     }
+
+    enum Onboarding {
+        static let charterHeadline = NSLocalizedString(
+            "onboarding.charter.headline",
+            tableName: "Localizable",
+            comment: "Onboarding page 1 headline: charter planning"
+        )
+        static let charterBody = NSLocalizedString(
+            "onboarding.charter.body",
+            tableName: "Localizable",
+            comment: "Onboarding page 1 body text"
+        )
+        static let libraryHeadline = NSLocalizedString(
+            "onboarding.library.headline",
+            tableName: "Localizable",
+            comment: "Onboarding page 2 headline: library"
+        )
+        static let libraryBody = NSLocalizedString(
+            "onboarding.library.body",
+            tableName: "Localizable",
+            comment: "Onboarding page 2 body text"
+        )
+        static let discoverHeadline = NSLocalizedString(
+            "onboarding.discover.headline",
+            tableName: "Localizable",
+            comment: "Onboarding page 3 headline: community discovery"
+        )
+        static let discoverBody = NSLocalizedString(
+            "onboarding.discover.body",
+            tableName: "Localizable",
+            comment: "Onboarding page 3 body text"
+        )
+        static let skip = NSLocalizedString(
+            "onboarding.skip",
+            tableName: "Localizable",
+            comment: "Onboarding skip button"
+        )
+        static let continueButton = NSLocalizedString(
+            "onboarding.continue",
+            tableName: "Localizable",
+            comment: "Onboarding continue button"
+        )
+        static let getStarted = NSLocalizedString(
+            "onboarding.getStarted",
+            tableName: "Localizable",
+            comment: "Onboarding final page CTA"
+        )
+    }
 }
