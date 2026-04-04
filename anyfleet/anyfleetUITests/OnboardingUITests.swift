@@ -6,7 +6,13 @@ final class OnboardingUITests: XCTestCase {
     override func setUpWithError() throws {
         continueAfterFailure = false
         app = XCUIApplication()
-        app.launchEnvironment["RESET_SWIPE_ONBOARDING"] = "true"
+        app.launchArguments = ["-ui-testing"]
+        // UITesting=true triggers the default onboarding skip; RESET_FTUE_ONBOARDING
+        // overrides that, clearing hasCompletedOnboarding so the cover appears.
+        app.launchEnvironment = [
+            "UITesting": "true",
+            "RESET_FTUE_ONBOARDING": "true"
+        ]
     }
 
     func testOnboardingAppearsOnFirstLaunch() {
@@ -54,8 +60,9 @@ final class OnboardingUITests: XCTestCase {
         XCTAssertTrue(cta.waitForExistence(timeout: 3))
         cta.tap(); cta.tap(); cta.tap()
 
+        // Relaunch without RESET_FTUE_ONBOARDING — onboarding should not show.
         app.terminate()
-        app.launchEnvironment.removeValue(forKey: "RESET_SWIPE_ONBOARDING")
+        app.launchEnvironment = ["UITesting": "true"]
         app.launch()
 
         XCTAssertFalse(app.otherElements["onboardingView"].waitForExistence(timeout: 2))
