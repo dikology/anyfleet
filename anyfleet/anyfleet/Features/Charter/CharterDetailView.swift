@@ -59,7 +59,8 @@ struct CharterDetailView: View {
                 .safeAreaInset(edge: .bottom) {
                     floatingActionButton(for: charter)
                         .padding(.horizontal, DesignSystem.Spacing.screenPadding)
-                        .padding(.vertical, DesignSystem.Spacing.md)
+                        .padding(.top, DesignSystem.Spacing.md)
+                        .padding(.bottom, DesignSystem.Spacing.md + FloatingTabBar.safeAreaInset)
                         .background(
                             LinearGradient(
                                 colors: [
