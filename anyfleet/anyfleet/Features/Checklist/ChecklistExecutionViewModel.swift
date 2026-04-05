@@ -21,6 +21,7 @@ final class ChecklistExecutionViewModel: ErrorHandling {
     private let executionRepository: ChecklistExecutionRepository
     private let charterID: UUID
     private let checklistID: UUID
+    private let storeReviewPrompt: (any StoreReviewPrompting)?
     
     // MARK: - State
     
@@ -74,16 +75,19 @@ final class ChecklistExecutionViewModel: ErrorHandling {
     ///   - executionRepository: The repository for persisting execution state
     ///   - charterID: The ID of the charter this checklist is scoped to
     ///   - checklistID: The ID of the checklist to execute
+    ///   - storeReviewPrompt: Optional App Store review prompt after first full checklist completion
     init(
         libraryStore: LibraryStore,
         executionRepository: ChecklistExecutionRepository,
         charterID: UUID,
-        checklistID: UUID
+        checklistID: UUID,
+        storeReviewPrompt: (any StoreReviewPrompting)? = nil
     ) {
         self.libraryStore = libraryStore
         self.executionRepository = executionRepository
         self.charterID = charterID
         self.checklistID = checklistID
+        self.storeReviewPrompt = storeReviewPrompt
     }
     
     // MARK: - Actions
@@ -148,12 +152,17 @@ final class ChecklistExecutionViewModel: ErrorHandling {
     ///
     /// - Parameter itemID: The ID of the item to toggle
     func toggleItem(_ itemID: UUID) {
+        let wasComplete = isComplete
         withAnimation(DesignSystem.Motion.springQuick) {
             if checkedItems.contains(itemID) {
                 checkedItems.remove(itemID)
             } else {
                 checkedItems.insert(itemID)
             }
+        }
+
+        if !wasComplete, isComplete {
+            scheduleReviewPromptAfterChecklistComplete()
         }
         
         // Save to database on every toggle
@@ -249,6 +258,14 @@ final class ChecklistExecutionViewModel: ErrorHandling {
     /// - Returns: The notes text, or nil if no notes exist
     func notes(for itemID: UUID) -> String? {
         itemNotes[itemID]
+    }
+
+    private func scheduleReviewPromptAfterChecklistComplete() {
+        guard storeReviewPrompt != nil else { return }
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 500_000_000)
+            storeReviewPrompt?.considerPrompt(after: .checklistFullyCompletedFirstTime)
+        }
     }
 }
 

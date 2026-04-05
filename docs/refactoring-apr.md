@@ -63,7 +63,7 @@
 | B4 | **~~`print()` in production code~~** — **Done (S5):** `CharterMapView` → `AppLogger.view`; `LibraryStore` → `AppLogger.store`. | `CharterMapView`, `LibraryStore` |
 | B5 | **`try?` swallowing errors** — `CharterListView` line 100 silently discards deletion errors. `LocalRepository.deleteContent` ignores content table deletion failures at lines 510-511. | Multiple files |
 | B6 | **Inconsistent logger categories** — `ContentSyncService` logs to `AppLogger.auth` instead of `.sync`. | `ContentSyncService` |
-| B7 | **`isNetworkReachable()` always returns `true`** — dead code that provides no actual network check. | `SyncQueueService` line 451 |
+| B7 | **~~`isNetworkReachable()` always returns `true`~~** — **Done (R3):** `NWPathReachabilityMonitor` + `NetworkReachabilityProviding` injected into `SyncQueueService`. | `SyncQueueService`, `NetworkReachability.swift` |
 | B8 | **`ChecklistItem.isOptional` and `.isRequired` can both be true** — no validation prevents contradictory state. | `Checklist.swift` |
 | B9 | **~~Mock data ships in production binary~~** — **Done (S4):** preview fixtures and UI-testing mocks are `#if DEBUG`-gated. | Multiple files |
 | B10 | **Unused computed property** — `CharterListViewModel.sortedByDate` (line 119) is never called; the view sorts its own copy. | `CharterListViewModel` |
@@ -800,16 +800,16 @@ These are items that will likely cause **App Review rejection** or **production 
 
 These won't cause rejection but significantly affect perceived quality during review and first user impressions.
 
-| # | Issue | Why It Matters | Effort |
-|---|-------|----------------|--------|
-| R1 | **No first-time user experience (FTUE)** — The app drops users onto an empty Home screen with no guidance. Only swipe-action hints exist. A brief onboarding flow (2-3 screens explaining charter planning, library, and community discovery) would dramatically improve first-session retention and give reviewers context. | Review teams are more favorable to apps that explain their value proposition upfront. | Medium |
-| R2 | **No crash reporting** — No Crashlytics, Sentry, or even `MXMetricManager` integration. Post-launch, you'll have zero visibility into crashes beyond TestFlight feedback. Add at minimum Apple's native `MetricKit` for crash diagnostics. | You can't fix what you can't see. Day-1 crashes with no telemetry lead to bad ratings. | Small |
-| R3 | **No network reachability check** — `SyncQueueService.isNetworkReachable()` always returns `true`. The app silently fails when offline instead of showing a meaningful offline banner. Use `NWPathMonitor` for real connectivity awareness. | Offline-first apps that pretend to be online confuse users. | Medium |
-| R4 | **No app rating prompt** — No `SKStoreReviewController.requestReview()` integration. Best practice is to prompt after a positive moment (e.g. first charter saved, checklist completed). | Early ratings heavily influence App Store ranking. Without prompts, only frustrated users leave reviews. | Tiny |
-| R5 | **Hardcoded English strings** — `CharterEditorView` has "Sign In to Share" and "Sign in to share your charter..." outside `L10n`. Since the app supports Russian, these will appear in English on `ru` locale. | Broken localization looks unprofessional. | Tiny |
-| R6 | **Dynamic Type** — No text in the app responds to the system text size setting. This is an Apple Human Interface Guidelines expectation and increasingly checked in review. See section 3.5 for the fix. | Accessibility compliance; Apple highlights this in HIG. | Medium |
-| R7 | **Deep linking is stubbed** — `handleDeepLink` is a TODO. While not required for v1.0, if you add Universal Links or custom URL schemes to your entitlements, the handler must actually work. If you don't claim any URL schemes, this is safe to defer. | Only matters if you've configured Associated Domains. | Medium |
-| R8 | **iPad layout** — No evidence of iPad-specific layout handling. If the app runs on iPad (default for iPhone apps via compatibility mode), verify it doesn't break. If you don't want iPad v1.0, set "Requires iPhone" in build settings. | Reviewers may test on iPad. A broken iPad layout leads to rejection. | Small–Large |
+| # | Issue | Why It Matters | Effort | Status |
+|---|-------|----------------|--------|--------|
+| R1 | **No first-time user experience (FTUE)** — The app drops users onto an empty Home screen with no guidance. Only swipe-action hints exist. A brief onboarding flow (2-3 screens explaining charter planning, library, and community discovery) would dramatically improve first-session retention and give reviewers context. | Review teams are more favorable to apps that explain their value proposition upfront. | Medium | Open |
+| R2 | **No crash reporting** — No Crashlytics, Sentry, or even `MXMetricManager` integration. Post-launch, you'll have zero visibility into crashes beyond TestFlight feedback. Add at minimum Apple's native `MetricKit` for crash diagnostics. | You can't fix what you can't see. Day-1 crashes with no telemetry lead to bad ratings. | Small | Open |
+| R3 | **~~No network reachability check~~** — **Done:** `NWPathReachabilityMonitor` + `NetworkReachabilityProviding` injected into `SyncQueueService`; global offline banner in `AppView`; reconnect calls `SyncCoordinator.triggerImmediateSync()`. | Offline-first apps that pretend to be online confuse users. | Medium | **Done** |
+| R4 | **~~No app rating prompt~~** — **Done:** `StoreReviewPromptController` (`AppStore.requestReview` on iOS 18+, else `SKStoreReviewController`) after the first successful charter save and the first full checklist execution; one-shot `UserDefaults` flags per milestone. | Early ratings heavily influence App Store ranking. Without prompts, only frustrated users leave reviews. | Tiny | **Done** |
+| R5 | **Hardcoded English strings** — `CharterEditorView` has "Sign In to Share" and "Sign in to share your charter..." outside `L10n`. Since the app supports Russian, these will appear in English on `ru` locale. | Broken localization looks unprofessional. | Tiny | Open |
+| R6 | **Dynamic Type** — No text in the app responds to the system text size setting. This is an Apple Human Interface Guidelines expectation and increasingly checked in review. See section 3.5 for the fix. | Accessibility compliance; Apple highlights this in HIG. | Medium | Open |
+| R7 | **Deep linking is stubbed** — `handleDeepLink` is a TODO. While not required for v1.0, if you add Universal Links or custom URL schemes to your entitlements, the handler must actually work. If you don't claim any URL schemes, this is safe to defer. | Only matters if you've configured Associated Domains. | Medium | Open |
+| R8 | **iPad layout** — No evidence of iPad-specific layout handling. If the app runs on iPad (default for iPhone apps via compatibility mode), verify it doesn't break. If you don't want iPad v1.0, set "Requires iPhone" in build settings. | Reviewers may test on iPad. A broken iPad layout leads to rejection. | Small–Large | Open |
 
 ### 5.C — Post-Launch Improvement Roadmap
 
@@ -854,7 +854,7 @@ Items that can be deferred to subsequent releases, organized by recommended rele
 | **Deep Linking** | Implement `handleDeepLink` for shared charters, published content, and author profiles. Register Universal Links in Associated Domains. |
 | **Export Data / Activity Log** | The `L10n` strings exist but the UI doesn't expose them. Implement GDPR-compliant data export and activity history. |
 | **Nautical miles & regions** | `CaptainStats.nauticalMiles` and `regionsVisited` are placeholder Phase 3 fields. Implement GPS tracking during active charters. |
-| **Offline sync resilience** | Replace the always-`true` `isNetworkReachable()` with `NWPathMonitor`. Show sync queue status when offline. Auto-retry on reconnection. |
+| **Offline sync resilience** | **Shipped (v1.0):** `NWPathMonitor` via `NWPathReachabilityMonitor`, global offline banner, reconnect triggers `SyncCoordinator.triggerImmediateSync()`. |
 
 ---
 
@@ -876,8 +876,8 @@ Pre-submission blockers first, then code quality, then post-launch improvements.
 | P1 | Fix progress calculation bug (3.9) | Tiny | Fixes always-true comparison |
 | P1 | Hardcoded English strings (R5) | Tiny | Fixes broken ru localization |
 | P2 | Crash reporting integration (R2) | Small | Post-launch visibility into issues |
-| P2 | Network reachability (R3) | Medium | Honest offline experience |
-| P2 | App rating prompt (R4) | Tiny | Drives early App Store ratings |
+| **P2 — Done** | Network reachability (R3) | Medium | Honest offline experience |
+| **P2 — Done** | App rating prompt (R4) — `StoreReviewPromptController` after first charter save / first checklist completion | Tiny | Drives early App Store ratings |
 | P2 | Dynamic Type support (3.5) | Medium | Accessibility compliance |
 | P2 | Button semantics (3.6, 3.11) | Small | Fixes VoiceOver and interaction feedback |
 | P3 | Extract ToastManager (3.2) | Medium | Improves SRP of AppDependencies |

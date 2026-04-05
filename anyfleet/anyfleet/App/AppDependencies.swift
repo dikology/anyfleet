@@ -63,6 +63,9 @@ final class AppDependencies {
     /// Live network path from `NWPathMonitor`; drives sync gating and the offline banner.
     let networkReachability: NWPathReachabilityMonitor
 
+    /// Milestone-based App Store review prompts (`SKStoreReviewController`).
+    let storeReviewPrompt: StoreReviewPromptController
+
     // MARK: - Data Layer
     
     /// Shared database instance for the application
@@ -166,6 +169,7 @@ final class AppDependencies {
         self.diagnosticsService = DiagnosticsService()
 
         self.networkReachability = NWPathReachabilityMonitor()
+        self.storeReviewPrompt = StoreReviewPromptController()
 
         // Initialize data layer
         self.database = .shared
@@ -266,6 +270,7 @@ final class AppDependencies {
 
         self.diagnosticsService = DiagnosticsService()
         self.networkReachability = NWPathReachabilityMonitor()
+        self.storeReviewPrompt = StoreReviewPromptController()
         self.database = database
         self.repository = repository
 

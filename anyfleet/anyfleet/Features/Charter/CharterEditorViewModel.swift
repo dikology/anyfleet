@@ -45,6 +45,7 @@ final class CharterEditorViewModel: ErrorHandling {
     private let charterID: UUID?
     private let onDismiss: () -> Void
     private let presentToast: ((String, ToastVariant) -> Void)?
+    private let storeReviewPrompt: (any StoreReviewPrompting)?
 
     // MARK: - Community manager (publish on behalf)
 
@@ -108,6 +109,7 @@ final class CharterEditorViewModel: ErrorHandling {
     ///   - charterID: The ID of the charter to edit
     ///   - onDismiss: Callback to dismiss the view after successful save
     ///   - presentToast: Optional global toast after a successful save
+    ///   - storeReviewPrompt: Optional handler for App Store review prompts after a successful save
     ///   - initialForm: Initial form state (if nil, creates empty form)
     init(
         charterStore: CharterStore,
@@ -118,6 +120,7 @@ final class CharterEditorViewModel: ErrorHandling {
         charterID: UUID? = nil,
         onDismiss: @escaping () -> Void,
         presentToast: ((String, ToastVariant) -> Void)? = nil,
+        storeReviewPrompt: (any StoreReviewPrompting)? = nil,
         initialForm: CharterFormState? = nil
     ) {
         self.charterStore = charterStore
@@ -128,6 +131,7 @@ final class CharterEditorViewModel: ErrorHandling {
         self.charterID = charterID
         self.onDismiss = onDismiss
         self.presentToast = presentToast
+        self.storeReviewPrompt = storeReviewPrompt
         self.form = initialForm ?? CharterFormState()
     }
     
@@ -251,6 +255,7 @@ final class CharterEditorViewModel: ErrorHandling {
 
                 HapticEngine.notification(.success)
                 presentToast?(L10n.Toast.charterSaved, .success)
+                scheduleReviewPromptAfterCharterSave()
                 onDismiss()
             } else {
                 guard let charterID = charterID else { return }
@@ -286,6 +291,7 @@ final class CharterEditorViewModel: ErrorHandling {
 
                 HapticEngine.notification(.success)
                 presentToast?(L10n.Toast.charterSaved, .success)
+                scheduleReviewPromptAfterCharterSave()
                 onDismiss()
             }
         } catch {
@@ -329,6 +335,15 @@ final class CharterEditorViewModel: ErrorHandling {
     func onSignInDismiss() {
         showSignIn = false
         pendingVisibility = nil
+    }
+
+    /// Defers the system review sheet slightly so the success toast and dismiss animation register first.
+    private func scheduleReviewPromptAfterCharterSave() {
+        guard storeReviewPrompt != nil else { return }
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 400_000_000)
+            storeReviewPrompt?.considerPrompt(after: .charterSavedSuccessfully)
+        }
     }
 
     // MARK: - Private Helpers
