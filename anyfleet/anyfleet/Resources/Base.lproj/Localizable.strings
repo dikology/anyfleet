@@ -423,3 +423,5 @@
 "toast.publishedToCommunity" = "Published to community library";
 "toast.addedToLibrary" = "Added to your library";
 "toast.profileUpdated" = "Profile updated";
+
+"network.offlineBanner" = "You're offline. Changes will sync when you're back online.";

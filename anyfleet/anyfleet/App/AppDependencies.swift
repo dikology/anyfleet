@@ -60,6 +60,9 @@ final class AppDependencies {
     /// service that could crash during initialization.
     let diagnosticsService: DiagnosticsService
 
+    /// Live network path from `NWPathMonitor`; drives sync gating and the offline banner.
+    let networkReachability: NWPathReachabilityMonitor
+
     // MARK: - Data Layer
     
     /// Shared database instance for the application
@@ -162,6 +165,8 @@ final class AppDependencies {
         // Register MetricKit subscriber before anything else can crash
         self.diagnosticsService = DiagnosticsService()
 
+        self.networkReachability = NWPathReachabilityMonitor()
+
         // Initialize data layer
         self.database = .shared
         self.repository = LocalRepository(database: database)
@@ -177,7 +182,8 @@ final class AppDependencies {
             repository: repository,
             apiClient: apiClient,
             authService: authService,
-            diagnosticsService: diagnosticsService
+            diagnosticsService: diagnosticsService,
+            networkReachability: networkReachability
         )
 
         // Initialize stores
@@ -205,6 +211,10 @@ final class AppDependencies {
             contentSyncService: contentSyncService,
             charterSyncService: charterSync
         )
+
+        networkReachability.onPathBecameSatisfied = { [weak syncCoordinator = self.syncCoordinator] in
+            syncCoordinator?.triggerImmediateSync()
+        }
 
         // Initialize services
         self.locationSearchService = MKLocationSearchService()
@@ -255,6 +265,7 @@ final class AppDependencies {
         AppLogger.dependencies.info("Initializing test AppDependencies")
 
         self.diagnosticsService = DiagnosticsService()
+        self.networkReachability = NWPathReachabilityMonitor()
         self.database = database
         self.repository = repository
 
@@ -269,7 +280,8 @@ final class AppDependencies {
             repository: repository,
             apiClient: apiClient,
             authService: authService,
-            diagnosticsService: diagnosticsService
+            diagnosticsService: diagnosticsService,
+            networkReachability: networkReachability
         )
 
         self.charterStore = CharterStore(repository: repository, diagnosticsService: diagnosticsService)
@@ -291,6 +303,10 @@ final class AppDependencies {
             contentSyncService: contentSyncService,
             charterSyncService: charterSync
         )
+
+        networkReachability.onPathBecameSatisfied = { [weak syncCoordinator = self.syncCoordinator] in
+            syncCoordinator?.triggerImmediateSync()
+        }
 
         // Initialize services
         self.locationSearchService = MKLocationSearchService()

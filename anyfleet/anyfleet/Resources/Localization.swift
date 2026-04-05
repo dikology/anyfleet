@@ -2623,4 +2623,12 @@ enum L10n {
             comment: "Onboarding final page CTA"
         )
     }
+
+    enum NetworkStatus {
+        static let offlineBanner = NSLocalizedString(
+            "network.offlineBanner",
+            tableName: "Localizable",
+            comment: "Banner when the device has no network route; sync is deferred"
+        )
+    }
 }

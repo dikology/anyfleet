@@ -482,3 +482,5 @@
 "onboarding.skip" = "Пропустить";
 "onboarding.continue" = "Далее";
 "onboarding.getStarted" = "Начать";
+
+"network.offlineBanner" = "Нет сети. Синхронизация возобновится при подключении.";

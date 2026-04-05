@@ -506,3 +506,5 @@
 "onboarding.skip" = "Skip";
 "onboarding.continue" = "Continue";
 "onboarding.getStarted" = "Get Started";
+
+"network.offlineBanner" = "You're offline. Changes will sync when you're back online.";
