@@ -427,156 +427,52 @@ struct AuthServiceTests {
      * - Image URL protocol handling
      */
 
-    // MARK: - Image URL Handling Tests
+    // MARK: - Profile media URL resolution
 
-    @Test("AuthService adds https protocol to image URLs without protocol")
-    @MainActor
-    func testImageUrlProtocolAddition() async {
-        // Given
-        let authService = AuthService(baseURL: "https://test.example.com/api/v1")
-
-        // Mock current user
-        authService.currentUser = UserInfo(
-            id: "test-id",
-            email: "test@example.com",
-            username: "Test User",
-            createdAt: "2024-01-01T00:00:00Z",
-            profileImageUrl: "example.com/uploads/image.jpg", // No protocol
-            profileImageThumbnailUrl: "example.com/uploads/thumb.jpg", // No protocol
-            bio: nil,
-            location: nil,
-            nationality: nil,
-            profileVisibility: "public"
+    @Test("Resolves host-relative /uploads paths against API origin")
+    func testProfileMediaURLUploadsPath() {
+        let base = "http://127.0.0.1:8000/api/v1"
+        #expect(
+            ProfileMediaURLResolver.absoluteURLString("/uploads/p.jpg", apiBaseURLString: base)
+                == "http://127.0.0.1:8000/uploads/p.jpg"
         )
-
-        // Mock successful upload response
-        let mockResponse = ProfileImageUploadResponse(
-            profileImageUrl: "example.com/uploads/new-image.jpg",
-            profileImageThumbnailUrl: "example.com/uploads/new-thumb.jpg",
-            message: "Upload successful"
+        #expect(
+            ProfileMediaURLResolver.absoluteURLString("/uploads/p_thumb.jpg", apiBaseURLString: base)
+                == "http://127.0.0.1:8000/uploads/p_thumb.jpg"
         )
-
-        // When - simulating uploadProfileImage logic
-        if let currentUser = authService.currentUser {
-            let imageUrl = mockResponse.profileImageUrl.hasPrefix("http") ? mockResponse.profileImageUrl : "https://\(mockResponse.profileImageUrl)"
-            let thumbnailUrl = mockResponse.profileImageThumbnailUrl.hasPrefix("http") ? mockResponse.profileImageThumbnailUrl : "https://\(mockResponse.profileImageThumbnailUrl)"
-
-            let updatedUser = UserInfo(
-                id: currentUser.id,
-                email: currentUser.email,
-                username: currentUser.username,
-                createdAt: currentUser.createdAt,
-                profileImageUrl: imageUrl,
-                profileImageThumbnailUrl: thumbnailUrl,
-                bio: currentUser.bio,
-                location: currentUser.location,
-                nationality: currentUser.nationality,
-                profileVisibility: currentUser.profileVisibility
-            )
-
-            // Update auth service
-            authService.currentUser = updatedUser
-        }
-
-        // Then
-        #expect(authService.currentUser?.profileImageUrl == "https://example.com/uploads/new-image.jpg")
-        #expect(authService.currentUser?.profileImageThumbnailUrl == "https://example.com/uploads/new-thumb.jpg")
     }
 
-    @Test("AuthService preserves https protocol for URLs that already have it")
-    @MainActor
-    func testHttpsUrlPreservation() async {
-        // Given
-        let authService = AuthService(baseURL: "https://test.example.com/api/v1")
-
-        // Mock current user with URLs that already have https
-        authService.currentUser = UserInfo(
-            id: "test-id",
-            email: "test@example.com",
-            username: "Test User",
-            createdAt: "2024-01-01T00:00:00Z",
-            profileImageUrl: "https://example.com/uploads/image.jpg",
-            profileImageThumbnailUrl: "https://example.com/uploads/thumb.jpg",
-            bio: nil,
-            location: nil,
-            nationality: nil,
-            profileVisibility: "public"
+    @Test("Prepends https for legacy host/path without leading slash")
+    func testProfileMediaURLHostPathLegacy() {
+        let base = "https://test.example.com/api/v1"
+        #expect(
+            ProfileMediaURLResolver.absoluteURLString("cdn.example.com/x.jpg", apiBaseURLString: base)
+                == "https://cdn.example.com/x.jpg"
         )
-
-        // Mock successful upload response with https URLs
-        let mockResponse = ProfileImageUploadResponse(
-            profileImageUrl: "https://example.com/uploads/new-image.jpg",
-            profileImageThumbnailUrl: "https://example.com/uploads/new-thumb.jpg",
-            message: "Upload successful"
-        )
-
-        // When - simulating uploadProfileImage logic
-        if let currentUser = authService.currentUser {
-            let imageUrl = mockResponse.profileImageUrl.hasPrefix("http") ? mockResponse.profileImageUrl : "https://\(mockResponse.profileImageUrl)"
-            let thumbnailUrl = mockResponse.profileImageThumbnailUrl.hasPrefix("http") ? mockResponse.profileImageThumbnailUrl : "https://\(mockResponse.profileImageThumbnailUrl)"
-
-            let updatedUser = UserInfo(
-                id: currentUser.id,
-                email: currentUser.email,
-                username: currentUser.username,
-                createdAt: currentUser.createdAt,
-                profileImageUrl: imageUrl,
-                profileImageThumbnailUrl: thumbnailUrl,
-                bio: currentUser.bio,
-                location: currentUser.location,
-                nationality: currentUser.nationality,
-                profileVisibility: currentUser.profileVisibility
-            )
-
-            // Update auth service
-            authService.currentUser = updatedUser
-        }
-
-        // Then - URLs should remain unchanged
-        #expect(authService.currentUser?.profileImageUrl == "https://example.com/uploads/new-image.jpg")
-        #expect(authService.currentUser?.profileImageThumbnailUrl == "https://example.com/uploads/new-thumb.jpg")
     }
 
-    @Test("AuthService handles loadCurrentUser URL protocol addition")
-    @MainActor
-    func testLoadCurrentUserUrlProtocolAddition() async {
-        // Given
-        let authService = AuthService(baseURL: "https://test.example.com/api/v1")
+    @Test("Leaves full https URLs unchanged")
+    func testProfileMediaURLPreservesAbsolute() {
+        let base = "https://api.example.com/api/v1"
+        let url = "https://cdn.example.com/a.jpg"
+        #expect(ProfileMediaURLResolver.absoluteURLString(url, apiBaseURLString: base) == url)
+    }
 
-        // Mock user data from backend without https protocol
-        let mockUserFromBackend = UserInfo(
-            id: "test-id",
-            email: "test@example.com",
-            username: "Test User",
-            createdAt: "2024-01-01T00:00:00Z",
-            profileImageUrl: "example.com/uploads/image.jpg", // No protocol
-            profileImageThumbnailUrl: "example.com/uploads/thumb.jpg", // No protocol
-            bio: nil,
-            location: nil,
-            nationality: nil,
-            profileVisibility: "public"
+    @Test("Does not prepend https to garbage strings (spaces or #)")
+    func testProfileMediaURLSkipsInvalidStrings() {
+        let base = "http://localhost:8000/api/v1"
+        let bad = "# Empty for local dev/profile_x.jpg"
+        #expect(ProfileMediaURLResolver.absoluteURLString(bad, apiBaseURLString: base) == bad)
+        let spaced = "note profile x.jpg"
+        #expect(ProfileMediaURLResolver.absoluteURLString(spaced, apiBaseURLString: base) == spaced)
+    }
+
+    @Test("apiOrigin strips path from API base URL")
+    func testProfileMediaURLApiOrigin() {
+        #expect(
+            ProfileMediaURLResolver.apiOrigin(fromAPIBaseURLString: "https://host:8443/api/v1")
+                == "https://host:8443"
         )
-
-        // When - simulating loadCurrentUser logic
-        var user = mockUserFromBackend
-        if let imageUrl = user.profileImageUrl, !imageUrl.hasPrefix("http") {
-            user = UserInfo(
-                id: user.id,
-                email: user.email,
-                username: user.username,
-                createdAt: user.createdAt,
-                profileImageUrl: "https://\(imageUrl)",
-                profileImageThumbnailUrl: user.profileImageThumbnailUrl?.hasPrefix("http") == false ? "https://\(user.profileImageThumbnailUrl!)" : user.profileImageThumbnailUrl,
-                bio: user.bio,
-                location: user.location,
-                nationality: user.nationality,
-                profileVisibility: user.profileVisibility
-            )
-        }
-
-        // Then
-        #expect(user.profileImageUrl == "https://example.com/uploads/image.jpg")
-        #expect(user.profileImageThumbnailUrl == "https://example.com/uploads/thumb.jpg")
     }
 }
 

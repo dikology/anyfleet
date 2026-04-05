@@ -93,6 +93,43 @@ struct ProfileImageUploadResponse: Codable {
     }
 }
 
+/// Resolves profile media URLs from the API using the same origin as the REST `baseURL`.
+enum ProfileMediaURLResolver {
+    static func apiOrigin(fromAPIBaseURLString baseURLString: String) -> String {
+        guard let url = URL(string: baseURLString),
+              let scheme = url.scheme,
+              let host = url.host
+        else {
+            return AppConfiguration.apiHost
+        }
+        let port = url.port.map { ":\($0)" } ?? ""
+        return "\(scheme)://\(host)\(port)"
+    }
+
+    /// - Paths starting with `/` resolve against the API origin (e.g. `/uploads/photo.jpg`).
+    /// - `http://` / `https://` are returned unchanged.
+    /// - Other non-empty strings without a scheme get `https://` prepended (legacy host/path form).
+    static func absoluteURLString(_ raw: String, apiBaseURLString: String) -> String {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return trimmed }
+        let lower = trimmed.lowercased()
+        if lower.hasPrefix("http://") || lower.hasPrefix("https://") {
+            return trimmed
+        }
+        if trimmed.hasPrefix("#") || trimmed.contains(" ") {
+            return trimmed
+        }
+        if trimmed.hasPrefix("/") {
+            let origin = apiOrigin(fromAPIBaseURLString: apiBaseURLString)
+            guard let originURL = URL(string: origin),
+                  let resolved = URL(string: trimmed, relativeTo: originURL)
+            else { return trimmed }
+            return resolved.absoluteString
+        }
+        return "https://\(trimmed)"
+    }
+}
+
 /// Request body for `PUT /auth/me`. Only non-nil fields are sent to the backend.
 struct UpdateProfileBody: Encodable {
     var username: String?
@@ -123,21 +160,23 @@ struct UpdateProfileBody: Encodable {
 }
 
 extension UserInfo {
-    /// Returns a copy with `https://` prepended when the API sends host-relative image paths.
-    fileprivate func withAbsoluteImageURLsIfNeeded() -> UserInfo {
-        guard let imageUrl = profileImageUrl, !imageUrl.hasPrefix("http") else { return self }
-        let thumbnail: String?
-        if let t = profileImageThumbnailUrl, !t.hasPrefix("http") {
-            thumbnail = "https://\(t)"
-        } else {
-            thumbnail = profileImageThumbnailUrl
+    /// Returns a copy with profile image URLs made absolute (see `ProfileMediaURLResolver`).
+    fileprivate func withAbsoluteImageURLsIfNeeded(apiBaseURLString: String) -> UserInfo {
+        let image = profileImageUrl.map {
+            ProfileMediaURLResolver.absoluteURLString($0, apiBaseURLString: apiBaseURLString)
+        }
+        let thumbnail = profileImageThumbnailUrl.map {
+            ProfileMediaURLResolver.absoluteURLString($0, apiBaseURLString: apiBaseURLString)
+        }
+        if image == profileImageUrl && thumbnail == profileImageThumbnailUrl {
+            return self
         }
         return UserInfo(
             id: id,
             email: email,
             username: username,
             createdAt: createdAt,
-            profileImageUrl: "https://\(imageUrl)",
+            profileImageUrl: image,
             profileImageThumbnailUrl: thumbnail,
             bio: bio,
             location: location,
@@ -290,7 +329,7 @@ final class AuthService: AuthServiceProtocol {
         keychain.saveRefreshToken(tokenResponse.refreshToken)
         AppLogger.auth.info("Tokens stored securely in keychain")
 
-        let user = tokenResponse.user.withAbsoluteImageURLsIfNeeded()
+        let user = tokenResponse.user.withAbsoluteImageURLsIfNeeded(apiBaseURLString: baseURL)
         currentUser = user
         isAuthenticated = true
         let usernameInfo = user.username.map { " (username: \($0))" } ?? " (no username)"
@@ -362,7 +401,7 @@ final class AuthService: AuthServiceProtocol {
         }
 
         let tokenResponse = try JSONDecoder().decode(TokenResponse.self, from: data)
-        let user = tokenResponse.user.withAbsoluteImageURLsIfNeeded()
+        let user = tokenResponse.user.withAbsoluteImageURLsIfNeeded(apiBaseURLString: baseURL)
 
         keychain.saveAccessToken(tokenResponse.accessToken)
         keychain.saveRefreshToken(tokenResponse.refreshToken)
@@ -510,7 +549,7 @@ final class AuthService: AuthServiceProtocol {
         AppLogger.auth.debug("Loading current user info")
         do {
             let data = try await makeAuthenticatedRequest(to: "/auth/me")
-            let user = try JSONDecoder().decode(UserInfo.self, from: data).withAbsoluteImageURLsIfNeeded()
+            let user = try JSONDecoder().decode(UserInfo.self, from: data).withAbsoluteImageURLsIfNeeded(apiBaseURLString: baseURL)
 
             currentUser = user
             AppLogger.auth.info("Current user loaded: \(currentUser?.email ?? "unknown")")
@@ -621,9 +660,14 @@ final class AuthService: AuthServiceProtocol {
         if let currentUser = currentUser {
             let oldImageUrl = currentUser.profileImageUrl
 
-            // Ensure URLs have proper protocol
-            let imageUrl = uploadResponse.profileImageUrl.hasPrefix("http") ? uploadResponse.profileImageUrl : "https://\(uploadResponse.profileImageUrl)"
-            let thumbnailUrl = uploadResponse.profileImageThumbnailUrl.hasPrefix("http") ? uploadResponse.profileImageThumbnailUrl : "https://\(uploadResponse.profileImageThumbnailUrl)"
+            let imageUrl = ProfileMediaURLResolver.absoluteURLString(
+                uploadResponse.profileImageUrl,
+                apiBaseURLString: baseURL
+            )
+            let thumbnailUrl = ProfileMediaURLResolver.absoluteURLString(
+                uploadResponse.profileImageThumbnailUrl,
+                apiBaseURLString: baseURL
+            )
 
             let updatedUser = UserInfo(
                 id: currentUser.id,
