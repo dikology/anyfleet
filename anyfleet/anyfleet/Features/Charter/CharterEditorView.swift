@@ -73,8 +73,8 @@ struct CharterEditorView: View {
         }
         .sheet(isPresented: $viewModel.showSignIn) {
             SignInModalView(
-                title: "Sign In to Share",
-                message: "Sign in to share your charter with the sailing community.",
+                title: L10n.Charter.Editor.SignInToShare.title,
+                message: L10n.Charter.Editor.SignInToShare.message,
                 onSuccess: { viewModel.onSignInSuccess() },
                 onDismiss: { viewModel.onSignInDismiss() }
             )

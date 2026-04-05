@@ -1925,6 +1925,19 @@ enum L10n {
                 comment: "Save button when editing charter"
             )
 
+            enum SignInToShare {
+                static let title = NSLocalizedString(
+                    "charter.editor.signInToShare.title",
+                    tableName: "Localizable",
+                    comment: "Title for sign-in sheet when sharing a charter"
+                )
+                static let message = NSLocalizedString(
+                    "charter.editor.signInToShare.message",
+                    tableName: "Localizable",
+                    comment: "Message explaining sign-in is required to share a charter"
+                )
+            }
+
             enum PublishingAs {
                 static let title = NSLocalizedString(
                     "charter.editor.publishingAs.title",

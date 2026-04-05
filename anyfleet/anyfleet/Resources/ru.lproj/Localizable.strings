@@ -270,6 +270,8 @@
 "charter.editor.draftsSavedNote" = "Черновики сохраняются автоматически";
 "charter.editor.back" = "Назад";
 "charter.editor.saveTitle" = "Сохранить чартер";
+"charter.editor.signInToShare.title" = "Войдите, чтобы поделиться";
+"charter.editor.signInToShare.message" = "Войдите, чтобы поделиться чартером с сообществом яхтсменов.";
 
 // Charter delete modal (when charter is in discovery)
 "charter.deleteModal.title" = "Этот чартер отображается в ленте";
