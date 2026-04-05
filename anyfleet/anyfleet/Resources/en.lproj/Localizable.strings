@@ -495,3 +495,14 @@
 "toast.publishedToCommunity" = "Published to community library";
 "toast.addedToLibrary" = "Added to your library";
 "toast.profileUpdated" = "Profile updated";
+
+// MARK: - Onboarding
+"onboarding.charter.headline" = "Plan Your Charter";
+"onboarding.charter.body" = "Create and manage your sailing trips — set dates, locations, crew, and track preparation progress all in one place.";
+"onboarding.library.headline" = "Build Your Library";
+"onboarding.library.body" = "Organize checklists, practice guides, and reference material. Pin your essentials to Home for quick access before departure.";
+"onboarding.discover.headline" = "Discover the Community";
+"onboarding.discover.body" = "Explore published charters on the map, find sailing content from other captains, and share your own when you're ready.";
+"onboarding.skip" = "Skip";
+"onboarding.continue" = "Continue";
+"onboarding.getStarted" = "Get Started";

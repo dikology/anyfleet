@@ -471,3 +471,14 @@
 "toast.publishedToCommunity" = "Опубликовано в библиотеке сообщества";
 "toast.addedToLibrary" = "Добавлено в вашу библиотеку";
 "toast.profileUpdated" = "Профиль обновлён";
+
+// MARK: - Onboarding
+"onboarding.charter.headline" = "Спланируйте чартер";
+"onboarding.charter.body" = "Создавайте и управляйте парусными поездками — даты, маршруты, экипаж и подготовка в одном месте.";
+"onboarding.library.headline" = "Соберите библиотеку";
+"onboarding.library.body" = "Чек-листы, справочники и руководства. Закрепите важное на главном экране для быстрого доступа перед выходом.";
+"onboarding.discover.headline" = "Откройте сообщество";
+"onboarding.discover.body" = "Исследуйте чартеры на карте, находите материалы других капитанов и делитесь своими, когда будете готовы.";
+"onboarding.skip" = "Пропустить";
+"onboarding.continue" = "Далее";
+"onboarding.getStarted" = "Начать";

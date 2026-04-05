@@ -16,6 +16,8 @@ struct AppView: View {
     // body re-evaluation. Optionals allow lazy init after environment values are
     // available; in practice they are filled during the first .task execution,
     // which runs before the first user-visible frame.
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+
     @State private var homeVM: HomeViewModel?
     @State private var charterListVM: CharterListViewModel?
     @State private var libraryListVM: LibraryListViewModel?
@@ -67,6 +69,9 @@ struct AppView: View {
         // Re-run when the coordinator identity changes (e.g. DB retry rebuilds deps).
         .task(id: ObjectIdentifier(coordinator)) {
             createViewModels()
+        }
+        .fullScreenCover(isPresented: showOnboarding) {
+            OnboardingView(hasCompletedOnboarding: $hasCompletedOnboarding)
         }
     }
 
@@ -145,6 +150,17 @@ struct AppView: View {
         .tabItem { Label(L10n.ProfileTab, systemImage: "person.fill") }
         .tag(Tab.profile)
         .accessibilityIdentifier("tab.profile")
+    }
+
+    // MARK: - Onboarding
+
+    private var showOnboarding: Binding<Bool> {
+        Binding(
+            get: { !hasCompletedOnboarding },
+            set: { newValue in
+                if !newValue { hasCompletedOnboarding = true }
+            }
+        )
     }
 
     // MARK: - ViewModel Factory

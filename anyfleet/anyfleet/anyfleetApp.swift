@@ -14,12 +14,24 @@ struct anyfleetApp: App {
     @State private var databaseInitError: Error?
 
     init() {
+        // Skip FTUE onboarding for all UI test runs so it doesn't block other flows.
+        // OnboardingUITests opts back in by also setting RESET_FTUE_ONBOARDING.
+        let isUITest = ProcessInfo.processInfo.arguments.contains("-ui-testing")
+            || ProcessInfo.processInfo.environment["UITesting"] == "true"
+        if isUITest {
+            UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
+        }
+
         if ProcessInfo.processInfo.environment["RESET_SWIPE_ONBOARDING"] == "true" {
             [
                 "hasSeenCharterSwipeHint",
                 "hasSeenLibrarySwipeHint",
                 "hasSeenDiscoverSwipeHint"
             ].forEach { UserDefaults.standard.removeObject(forKey: $0) }
+        }
+
+        if ProcessInfo.processInfo.environment["RESET_FTUE_ONBOARDING"] == "true" {
+            UserDefaults.standard.removeObject(forKey: "hasCompletedOnboarding")
         }
         let deps = AppDependencies.shared
         _dependencies = State(initialValue: deps)
