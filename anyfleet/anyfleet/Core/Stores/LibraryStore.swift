@@ -86,6 +86,8 @@ final class LibraryStore: LibraryStoreProtocol {
 
     // Sync queue service for handling content synchronization
     private let syncQueue: SyncQueueService
+
+    private var diagnosticsService: DiagnosticsService?
     
     // MARK: - Computed Properties
     
@@ -106,9 +108,14 @@ final class LibraryStore: LibraryStoreProtocol {
     
     // MARK: - Initialization
 
-    init(repository: any LibraryRepository, syncQueue: SyncQueueService) {
+    init(
+        repository: any LibraryRepository,
+        syncQueue: SyncQueueService,
+        diagnosticsService: DiagnosticsService? = nil
+    ) {
         self.repository = repository
         self.syncQueue = syncQueue
+        self.diagnosticsService = diagnosticsService
     }
     
     // MARK: - Loading Content
@@ -218,6 +225,7 @@ final class LibraryStore: LibraryStoreProtocol {
             // Cache the full content
             checklistCache.set(checklist.id, value: checklist)
         }
+        diagnosticsService?.recordAction("Create library content: checklist")
     }
     
     /// Create a new practice guide
@@ -231,6 +239,7 @@ final class LibraryStore: LibraryStoreProtocol {
             // Cache the full content
             guideCache.set(guide.id, value: guide)
         }
+        diagnosticsService?.recordAction("Create library content: guide")
     }
 
     /// Create a new flashcard deck
@@ -453,8 +462,10 @@ final class LibraryStore: LibraryStoreProtocol {
             )
 
             AppLogger.store.info("Publish update sync completed for checklist: \(checklist.id) - \(summary.succeeded) succeeded, \(summary.failed) failed")
+            diagnosticsService?.recordAction("Publish update: \(checklist.id)")
         } catch {
             AppLogger.store.error("Failed to trigger publish_update sync for checklist: \(checklist.id)", error: error)
+            diagnosticsService?.recordError("Publish update failed for checklist: \(checklist.id)", category: "LibraryStore")
         }
     }
 
@@ -554,6 +565,7 @@ final class LibraryStore: LibraryStoreProtocol {
 
         // Remove from cache
         invalidateCache(for: item.id)
+        diagnosticsService?.recordAction("Delete library content: \(item.id)")
     }
     
     // MARK: - Metadata Updates

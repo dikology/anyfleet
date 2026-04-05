@@ -162,10 +162,13 @@ final class AuthService: AuthServiceProtocol {
     /// instead of firing a duplicate network request (which would burn the single-use refresh token).
     private var tokenRefreshTask: Task<Void, Error>?
 
-    // Public initializer for DI; `session` is injectable for unit tests.
-    init(baseURL: String? = nil, session: URLSession = .shared) {
+    private var diagnosticsService: DiagnosticsService?
+
+    // Public initializer for DI; `session` and `diagnosticsService` are injectable for unit tests.
+    init(baseURL: String? = nil, session: URLSession = .shared, diagnosticsService: DiagnosticsService? = nil) {
         self.baseURL = baseURL ?? AppConfiguration.apiBaseURL.absoluteString
         self.session = session
+        self.diagnosticsService = diagnosticsService
 
         // Check if we have stored tokens
         if let _ = keychain.getAccessToken() {
@@ -187,6 +190,7 @@ final class AuthService: AuthServiceProtocol {
     
     func handleAppleSignIn(result: Result<ASAuthorization, Error>) async throws {
         AppLogger.auth.startOperation("Apple Sign In")
+        diagnosticsService?.recordAction("Sign in attempt")
         
         switch result {
         case .success(let authorization):
@@ -686,6 +690,7 @@ final class AuthService: AuthServiceProtocol {
 
         clearLocalSessionOnly()
         AppLogger.auth.info("Logout complete")
+        diagnosticsService?.recordAction("Sign out")
     }
 
     func deleteAccount() async throws {

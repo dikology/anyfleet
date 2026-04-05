@@ -53,6 +53,13 @@ final class AppDependencies {
         authService.currentUser
     }
 
+    // MARK: - Diagnostics
+
+    /// Crash reporting and performance diagnostics service (MetricKit subscriber).
+    /// Created first in the init sequence so MetricKit is registered before any other
+    /// service that could crash during initialization.
+    let diagnosticsService: DiagnosticsService
+
     // MARK: - Data Layer
     
     /// Shared database instance for the application
@@ -151,13 +158,16 @@ final class AppDependencies {
     /// 4. Services (independent)
     init() {
         AppLogger.dependencies.info("Initializing AppDependencies")
-        
+
+        // Register MetricKit subscriber before anything else can crash
+        self.diagnosticsService = DiagnosticsService()
+
         // Initialize data layer
         self.database = .shared
         self.repository = LocalRepository(database: database)
 
         // Initialize auth service ONCE
-        self.authService = AuthService()
+        self.authService = AuthService(diagnosticsService: diagnosticsService)
 
         // API client (needed by sync services)
         self.apiClient = APIClient(authService: authService)
@@ -166,12 +176,13 @@ final class AppDependencies {
         self.syncQueueService = SyncQueueService(
             repository: repository,
             apiClient: apiClient,
-            authService: authService
+            authService: authService,
+            diagnosticsService: diagnosticsService
         )
 
         // Initialize stores
-        self.charterStore = CharterStore(repository: repository)
-        self.libraryStore = LibraryStore(repository: repository, syncQueue: syncQueueService)
+        self.charterStore = CharterStore(repository: repository, diagnosticsService: diagnosticsService)
+        self.libraryStore = LibraryStore(repository: repository, syncQueue: syncQueueService, diagnosticsService: diagnosticsService)
 
         // Initialize content sync service (orchestrator)
         self.contentSyncService = ContentSyncService(
@@ -243,11 +254,12 @@ final class AppDependencies {
     ) {
         AppLogger.dependencies.info("Initializing test AppDependencies")
 
+        self.diagnosticsService = DiagnosticsService()
         self.database = database
         self.repository = repository
 
         // Initialize auth service ONCE
-        self.authService = AuthService()
+        self.authService = AuthService(diagnosticsService: diagnosticsService)
 
         // API client (needed by sync services)
         self.apiClient = APIClient(authService: authService)
@@ -256,11 +268,12 @@ final class AppDependencies {
         self.syncQueueService = SyncQueueService(
             repository: repository,
             apiClient: apiClient,
-            authService: authService
+            authService: authService,
+            diagnosticsService: diagnosticsService
         )
 
-        self.charterStore = CharterStore(repository: repository)
-        self.libraryStore = LibraryStore(repository: repository, syncQueue: syncQueueService)
+        self.charterStore = CharterStore(repository: repository, diagnosticsService: diagnosticsService)
+        self.libraryStore = LibraryStore(repository: repository, syncQueue: syncQueueService, diagnosticsService: diagnosticsService)
         self.contentSyncService = ContentSyncService(
             syncQueue: syncQueueService,
             repository: repository

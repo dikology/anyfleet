@@ -176,35 +176,45 @@ enum LibraryError: LocalizedError, Equatable {
 // MARK: - Error Conversion Helpers
 
 extension Error {
-    /// Converts any Error to AppError for consistent error handling
-    func toAppError() -> AppError {
+    /// Converts any Error to AppError for consistent error handling.
+    ///
+    /// Pass `diagnostics` to automatically record a breadcrumb for every error
+    /// that reaches the UI layer, providing post-crash context without duplicating
+    /// the existing os_log calls.
+    func toAppError(diagnostics: DiagnosticsService? = nil) -> AppError {
+        let appError: AppError
+
         if let authError = self as? AuthError {
-            return .authenticationError(authError)
-        }
-
-        if let libraryError = self as? LibraryError {
-            return .unknown(libraryError)
-        }
-
-        // Check for URLSession/network errors
-        let nsError = self as NSError
-        if nsError.domain == NSURLErrorDomain {
-            let networkError: NetworkError
-            switch nsError.code {
-            case NSURLErrorNotConnectedToInternet, NSURLErrorNetworkConnectionLost:
-                networkError = .offline
-            case NSURLErrorTimedOut:
-                networkError = .timedOut
-            case NSURLErrorCannotConnectToHost, NSURLErrorCannotFindHost:
-                networkError = .connectionRefused
-            case NSURLErrorDNSLookupFailed:
-                networkError = .unreachableHost
-            default:
-                networkError = .unknown(self)
+            appError = .authenticationError(authError)
+        } else if let libraryError = self as? LibraryError {
+            appError = .unknown(libraryError)
+        } else {
+            let nsError = self as NSError
+            if nsError.domain == NSURLErrorDomain {
+                let networkError: NetworkError
+                switch nsError.code {
+                case NSURLErrorNotConnectedToInternet, NSURLErrorNetworkConnectionLost:
+                    networkError = .offline
+                case NSURLErrorTimedOut:
+                    networkError = .timedOut
+                case NSURLErrorCannotConnectToHost, NSURLErrorCannotFindHost:
+                    networkError = .connectionRefused
+                case NSURLErrorDNSLookupFailed:
+                    networkError = .unreachableHost
+                default:
+                    networkError = .unknown(self)
+                }
+                appError = .networkError(networkError)
+            } else {
+                appError = .unknown(self)
             }
-            return .networkError(networkError)
         }
 
-        return .unknown(self)
+        diagnostics?.recordError(
+            "\(type(of: self)): \(self.localizedDescription)",
+            category: "AppError"
+        )
+
+        return appError
     }
 }
