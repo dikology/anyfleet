@@ -76,6 +76,11 @@ final class LRUCache<Key: Hashable, Value> {
         }
     }
 
+    deinit {
+        // Explicit deinit works around a Swift compiler crash (EarlyPerfInliner on
+        // synthesized deinits of generic classes) when building for distribution.
+    }
+
     private func evictLeastRecentlyUsed() {
         guard let oldest = storage.min(by: { $0.value.lastAccessed < $1.value.lastAccessed }) else {
             return

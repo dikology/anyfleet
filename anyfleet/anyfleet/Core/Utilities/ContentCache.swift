@@ -36,4 +36,6 @@ final class ContentCache<Key: Hashable, Value> {
     var count: Int {
         cache.count
     }
+
+    deinit {}
 }
