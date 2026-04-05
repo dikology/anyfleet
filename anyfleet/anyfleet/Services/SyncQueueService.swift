@@ -28,14 +28,18 @@ final class SyncQueueService {
     /// Observe in the UI to prompt sign-in; clears automatically once auth passes.
     private(set) var needsAuthForSync = false
 
+    private var diagnosticsService: DiagnosticsService?
+
     init(
         repository: LocalRepository,
         apiClient: APIClientProtocol,
-        authService: (any AuthServiceProtocol)? = nil
+        authService: (any AuthServiceProtocol)? = nil,
+        diagnosticsService: DiagnosticsService? = nil
     ) {
         self.repository = repository
         self.apiClient = apiClient
         self.authService = authService
+        self.diagnosticsService = diagnosticsService
         AppLogger.services.info("SyncQueueService initialized")
     }
 
@@ -173,6 +177,7 @@ final class SyncQueueService {
         defer { isProcessing = false }
 
         let operations = await fetchPendingOperations()
+        diagnosticsService?.recordAction("Sync queue: \(operations.count) ops")
         return await processOperations(operations)
     }
 

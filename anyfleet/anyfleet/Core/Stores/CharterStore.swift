@@ -50,17 +50,19 @@ final class CharterStore {
 
     /// Optional hook used before deleting a non-private synced charter so discovery stays consistent.
     private weak var discoveryUnpublisher: (any CharterDiscoveryUnpublishing)?
+
+    private var diagnosticsService: DiagnosticsService?
     
     // MARK: - Initialization
     
     /// Creates a new CharterStore with the specified repository.
     ///
-    /// - Parameter repository: The charter repository to use for data operations
-    ///
-    /// - Important: The repository must be injected; there is no default implementation
-    ///              to ensure proper dependency injection throughout the app.
-    init(repository: any CharterRepository) {
+    /// - Parameters:
+    ///   - repository: The charter repository to use for data operations.
+    ///   - diagnosticsService: Optional diagnostics service for breadcrumb recording.
+    init(repository: any CharterRepository, diagnosticsService: DiagnosticsService? = nil) {
         self.repository = repository
+        self.diagnosticsService = diagnosticsService
     }
 
     /// Wire the sync service (or a test double) after both objects exist. Uses a weak reference.
@@ -107,10 +109,12 @@ final class CharterStore {
             charters.append(charter)
             AppLogger.store.info("Charter added to store, total charters: \(charters.count)")
             AppLogger.store.completeOperation("Create Charter")
-            
+            diagnosticsService?.recordAction("Create charter: \(name)")
+
         return charter
         } catch {
             AppLogger.store.failOperation("Create Charter", error: error)
+            diagnosticsService?.recordError("Create charter failed: \(error.localizedDescription)", category: "CharterStore")
             throw error
         }
     }
@@ -262,8 +266,10 @@ final class CharterStore {
             
             AppLogger.store.info("Charter deleted successfully, remaining charters: \(charters.count)")
             AppLogger.store.completeOperation("Delete Charter")
+            diagnosticsService?.recordAction("Delete charter: \(charterID)")
         } catch {
             AppLogger.store.failOperation("Delete Charter", error: error)
+            diagnosticsService?.recordError("Delete charter failed: \(error.localizedDescription)", category: "CharterStore")
             throw error
         }
     }

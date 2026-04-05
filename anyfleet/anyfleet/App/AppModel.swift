@@ -52,7 +52,11 @@ final class AppCoordinator: AppCoordinatorProtocol {
     var profilePath: [AppRoute] = []
 
     // Tab selection state
-    var selectedTab: AppView.Tab = .home
+    var selectedTab: AppView.Tab = .home {
+        didSet {
+            dependencies.diagnosticsService.recordNavigation("Tab: \(selectedTab)")
+        }
+    }
 
     // MARK: - Initialization
 
@@ -70,6 +74,7 @@ final class AppCoordinator: AppCoordinatorProtocol {
     }
 
     func push(_ route: AppRoute, to tab: AppView.Tab) {
+        dependencies.diagnosticsService.recordNavigation("Push: \(route)")
         switch tab {
         case .home:
             homePath.append(route)
