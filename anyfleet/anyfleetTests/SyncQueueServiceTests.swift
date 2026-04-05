@@ -50,6 +50,12 @@ private func makeRepository() throws -> LocalRepository {
     LocalRepository(database: try AppDatabase.makeEmpty())
 }
 
+@MainActor
+private final class MockNetworkReachability: NetworkReachabilityProviding {
+    var isPathSatisfied: Bool
+    init(isPathSatisfied: Bool) { self.isPathSatisfied = isPathSatisfied }
+}
+
 // MARK: - Suite
 
 @Suite("SyncQueueService — sync-bug fixes")
@@ -277,5 +283,45 @@ struct SyncQueueServiceTests {
         #expect(service.failedCount == 0)
         #expect(service.pendingCount == 1,
                 "After reset, previously-failed operation must be pending again")
+    }
+
+    // MARK: - Network reachability
+
+    @Test("unsatisfied network path skips sync; pending operations unchanged")
+    @MainActor
+    func testOffline_SkipsSync_LeavesOpsPending() async throws {
+        let repository = try makeRepository()
+        let apiClient = MockAPIClient()
+        let authService = MockAuthService()
+        authService.mockIsAuthenticated = true
+        let reachability = MockNetworkReachability(isPathSatisfied: false)
+
+        let service = SyncQueueService(
+            repository: repository,
+            apiClient: apiClient,
+            authService: authService,
+            networkReachability: reachability
+        )
+
+        let contentID = UUID()
+        try await repository.updateLibraryMetadata(makeLibraryItem(contentID: contentID))
+        let payload = try makePayload(contentID: contentID)
+
+        try await repository.enqueueSyncOperation(
+            contentID: contentID,
+            operation: .publish,
+            visibility: .public,
+            payload: payload
+        )
+
+        let summary = await service.processQueue()
+
+        #expect(summary.attempted == 0)
+        #expect(summary.succeeded == 0)
+        #expect(summary.failed == 0)
+        #expect(apiClient.publishCallCount == 0)
+
+        let pending = try await repository.getPendingSyncOperations(maxRetries: 3)
+        #expect(pending.count == 1)
     }
 }

@@ -42,6 +42,15 @@ struct AppView: View {
                 profileTab
             }
 
+            if !dependencies.networkReachability.isPathSatisfied {
+                offlineReachabilityBanner
+                    .padding(.horizontal, DesignSystem.Spacing.lg)
+                    .padding(.top, DesignSystem.Spacing.sm)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                    .zIndex(999)
+            }
+
             if let toast = dependencies.toast {
                 ToastView(message: toast.message, variant: toast.variant)
                     .padding(.horizontal, DesignSystem.Spacing.screenPadding)
@@ -66,6 +75,7 @@ struct AppView: View {
             .ignoresSafeArea(.keyboard)
         }
         .animation(DesignSystem.Motion.spring, value: dependencies.toast?.id)
+        .animation(DesignSystem.Motion.standard, value: dependencies.networkReachability.isPathSatisfied)
         // Re-run when the coordinator identity changes (e.g. DB retry rebuilds deps).
         .task(id: ObjectIdentifier(coordinator)) {
             createViewModels()
@@ -73,6 +83,24 @@ struct AppView: View {
         .fullScreenCover(isPresented: showOnboarding) {
             OnboardingView(hasCompletedOnboarding: $hasCompletedOnboarding)
         }
+    }
+
+    private var offlineReachabilityBanner: some View {
+        HStack(spacing: DesignSystem.Spacing.sm) {
+            Image(systemName: "wifi.slash")
+                .font(DesignSystem.Typography.caption)
+                .fontWeight(.semibold)
+            Text(L10n.NetworkStatus.offlineBanner)
+                .font(DesignSystem.Typography.caption)
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, DesignSystem.Spacing.md)
+        .padding(.vertical, DesignSystem.Spacing.sm)
+        .background(DesignSystem.Colors.textSecondary.opacity(0.12))
+        .foregroundColor(DesignSystem.Colors.textPrimary)
+        .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Spacing.cornerRadiusSmall))
+        .accessibilityIdentifier("banner.offline")
     }
 
     // MARK: - Tab Views

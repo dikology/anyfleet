@@ -110,6 +110,8 @@
 "charter.editor.draftsSavedNote" = "Drafts are saved automatically";
 "charter.editor.back" = "Back";
 "charter.editor.saveTitle" = "Save Charter";
+"charter.editor.signInToShare.title" = "Sign In to Share";
+"charter.editor.signInToShare.message" = "Sign in to share your charter with the sailing community.";
 
 "charter.deleteModal.title" = "This charter is visible in discovery";
 "charter.deleteModal.explanation" = "\"%@\" can be found by other sailors. Choose how you'd like to handle it:";
@@ -423,3 +425,5 @@
 "toast.publishedToCommunity" = "Published to community library";
 "toast.addedToLibrary" = "Added to your library";
 "toast.profileUpdated" = "Profile updated";
+
+"network.offlineBanner" = "You're offline. Changes will sync when you're back online.";

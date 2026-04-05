@@ -210,6 +210,7 @@ final class AppCoordinator: AppCoordinatorProtocol {
                     charterID: nil,
                     onDismiss: { self.pop(from: .charters) },
                     presentToast: { message, variant in self.dependencies.showToast(message, variant: variant) },
+                    storeReviewPrompt: dependencies.storeReviewPrompt,
                     initialForm: CharterFormState()
                 )
             )
@@ -231,6 +232,7 @@ final class AppCoordinator: AppCoordinatorProtocol {
                     charterID: id,
                     onDismiss: { self.pop(from: .charters) },
                     presentToast: { message, variant in self.dependencies.showToast(message, variant: variant) },
+                    storeReviewPrompt: dependencies.storeReviewPrompt,
                     initialForm: CharterFormState()
                 )
             )
@@ -270,7 +272,8 @@ final class AppCoordinator: AppCoordinatorProtocol {
                     libraryStore: dependencies.libraryStore,
                     executionRepository: dependencies.executionRepository,
                     charterID: charterID,
-                    checklistID: checklistID
+                    checklistID: checklistID,
+                    storeReviewPrompt: dependencies.storeReviewPrompt
                 )
             )
         case .discoverContent(let publicID):

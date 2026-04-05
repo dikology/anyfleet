@@ -17,6 +17,7 @@ final class SyncQueueService {
     private let repository: LocalRepository
     private let apiClient: APIClientProtocol
     private let authService: (any AuthServiceProtocol)?
+    private let networkReachability: any NetworkReachabilityProviding
 
     // Configuration
     private let maxRetries = 3
@@ -34,12 +35,14 @@ final class SyncQueueService {
         repository: LocalRepository,
         apiClient: APIClientProtocol,
         authService: (any AuthServiceProtocol)? = nil,
-        diagnosticsService: DiagnosticsService? = nil
+        diagnosticsService: DiagnosticsService? = nil,
+        networkReachability: any NetworkReachabilityProviding = AlwaysOnlineReachability.shared
     ) {
         self.repository = repository
         self.apiClient = apiClient
         self.authService = authService
         self.diagnosticsService = diagnosticsService
+        self.networkReachability = networkReachability
         AppLogger.services.info("SyncQueueService initialized")
     }
 
@@ -453,8 +456,7 @@ final class SyncQueueService {
     }
 
     private func isNetworkReachable() async -> Bool {
-        // Basic check - in a real app you might use Network framework
-        return true
+        networkReachability.isPathSatisfied
     }
 
     private func isRetryableError(_ error: Error, operation: SyncOperation) -> Bool {

@@ -291,6 +291,8 @@
 "charter.editor.draftsSavedNote" = "Drafts are saved automatically";
 "charter.editor.back" = "Back";
 "charter.editor.saveTitle" = "Save Charter";
+"charter.editor.signInToShare.title" = "Sign In to Share";
+"charter.editor.signInToShare.message" = "Sign in to share your charter with the sailing community.";
 
 // Charter delete modal (when charter is in discovery)
 "charter.deleteModal.title" = "This charter is visible in discovery";
@@ -506,3 +508,5 @@
 "onboarding.skip" = "Skip";
 "onboarding.continue" = "Continue";
 "onboarding.getStarted" = "Get Started";
+
+"network.offlineBanner" = "You're offline. Changes will sync when you're back online.";
